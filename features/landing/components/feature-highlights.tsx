@@ -1,3 +1,5 @@
+import { Section } from "@/components/layout/section";
+
 import {
   BrainCircuit,
   CloudSun,
@@ -24,7 +26,7 @@ const FEATURES = [
 
 export function FeatureHighlights() {
   return (
-    <section className="py-16">
+    <Section>
       <div className="grid gap-6 md:grid-cols-3">
         {FEATURES.map((feature) => {
           const Icon = feature.icon;
@@ -47,6 +49,6 @@ export function FeatureHighlights() {
           );
         })}
       </div>
-    </section>
+    </Section>
   );
 }
