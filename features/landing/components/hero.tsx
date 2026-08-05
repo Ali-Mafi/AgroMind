@@ -11,11 +11,15 @@ export function Hero() {
         <div className="grid items-center gap-16 lg:grid-cols-2">
           {/* Left Side */}
           <div>
-            <span className="inline-flex rounded-full bg-green-100 px-4 py-1 text-sm font-medium text-green-700">
-              🌱 AI Powered Agriculture
-            </span>
+            <div className="mb-6 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-4 py-2">
+              <span className="mr-2 text-lg">🌱</span>
 
-            <h1 className="mt-6 text-5xl font-bold leading-tight text-gray-900">
+              <span className="font-medium text-green-700">
+                AI-Powered Precision Agriculture
+              </span>
+            </div>
+
+            <h1 className="font-heading text-5xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl lg:text-7xl">
               {HERO.title}
             </h1>
 

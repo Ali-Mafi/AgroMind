@@ -1,10 +1,10 @@
 export const HERO = {
-  title: "Smarter Farming Starts Here",
+  title: "Your Farm Powered by Intelligence",
 
   subtitle:
-    "Monitor your farms, optimize irrigation, analyze weather and make better farming decisions with AI.",
+    "Monitor your farms, optimize irrigation, analyze weather, and make smarter farming decisions with AI.",
 
-  primaryButton: "Start Free",
+  primaryButton: "Start Farming",
 
-  secondaryButton: "Watch Demo",
+  secondaryButton: "Live Demo",
 };
