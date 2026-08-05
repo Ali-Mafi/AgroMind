@@ -51,7 +51,7 @@ export function ValueProposition() {
         {/* Right Side */}
 
         <div className="flex items-center justify-center">
-          <div className="flex h-[420px] w-full items-center justify-center rounded-3xl border border-dashed border-border bg-muted/40">
+          <div className="flex h-105 w-full items-center justify-center rounded-3xl border border-dashed border-border bg-muted/40">
             Dashboard Preview
           </div>
         </div>
