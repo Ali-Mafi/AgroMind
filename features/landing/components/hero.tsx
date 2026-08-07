@@ -8,7 +8,7 @@ export function Hero() {
   return (
     <section className="py-24 relative overflow-hidden ">
 
-    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
+    <div className="absolute inset-0 -z-10 bg-linear-to-b from-primary/5 via-background to-background" />
 
     <div className="absolute -top-24 right-0 -z-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
