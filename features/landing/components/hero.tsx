@@ -6,7 +6,16 @@ import { FarmStatusCard } from "@/components/cards/farm-status-card";
 
 export function Hero() {
   return (
-    <section className="py-24">
+    <section className="py-24 relative overflow-hidden ">
+
+    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
+
+    <div className="absolute -top-24 right-0 -z-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+
+    <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-green-400/10 blur-3xl" />
+
+
+
       <AppContainer>
         <div className="grid items-center gap-16 lg:grid-cols-2">
           {/* Left Side */}
@@ -27,19 +36,19 @@ export function Hero() {
               {HERO.subtitle}
             </p>
 
-            <div className="mt-10 flex gap-4">
-              <Button size="lg">
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Button size="lg" className="h-12 px-8 rounded-2xl font-semibold shadow-sm hover:scale-[1.02] transition-all duration-200">
                 {HERO.primaryButton}
               </Button>
 
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" className="h-12 px-8 rounded-2xl hover:bg-primary/5 transition-all duration-200">
                 {HERO.secondaryButton}
               </Button>
             </div>
           </div>
 
           {/* Right Side */}
-                <div className="flex justify-center">
+                <div className="mx-auto w-full max-w-md">
                 <FarmStatusCard
                     farmName={DEMO_FARM.name}
                     location="Zaqeh, Qazvin"
