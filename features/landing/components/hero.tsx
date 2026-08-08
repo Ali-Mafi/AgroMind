@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DEMO_FARM } from "@/features/landing/data/demo-farm";
 import { FarmStatusCard } from "@/components/cards/farm-status-card";
 
+
 export function Hero() {
   return (
     <section className="py-24 relative overflow-hidden ">
