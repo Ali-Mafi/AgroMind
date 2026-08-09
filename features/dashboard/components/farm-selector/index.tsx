@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, MapPin } from "lucide-react";
+import type { DashboardFarm } from "@/features/dashboard/types/dashboard";
 
 interface FarmSelectorProps {
   farms: DashboardFarm[];
