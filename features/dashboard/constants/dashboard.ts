@@ -1,4 +1,11 @@
-export const DASHBOARD_STATS = [
+import type {
+  DashboardAI,
+  DashboardFarm,
+  DashboardIrrigation,
+  DashboardStat,
+} from "@/features/dashboard/types/dashboard";
+
+export const DASHBOARD_STATS: DashboardStat[] = [
   {
     id: "soil-moisture",
     label: "Soil Moisture",
@@ -23,15 +30,23 @@ export const DASHBOARD_STATS = [
     value: "82%",
     status: "Healthy",
   },
-] as const;
+];
 
-export const DASHBOARD_IRRIGATION = {
+export const DASHBOARD_IRRIGATION: DashboardIrrigation = {
   status: "Scheduled",
   nextRun: "Tomorrow, 06:00",
   duration: "45 min",
-} as const;
+};
 
-export const DASHBOARD_AI = {
+export const DASHBOARD_AI: DashboardAI = {
   status: "Optimal",
   message: "Current soil conditions are suitable for irrigation.",
-} as const;
+};
+
+export const DASHBOARD_FARMS: DashboardFarm[] = [
+  {
+    id: "zaqeh-farm",
+    name: "Zaqeh Farm",
+    location: "Qazvin, Iran",
+  },
+];

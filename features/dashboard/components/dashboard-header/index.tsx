@@ -1,11 +1,17 @@
-import { ChevronDown, MapPin } from "lucide-react";
+import { DashboardFarm } from "@/features/dashboard/types/dashboard";
+import { FarmSelector } from "@/features/dashboard/components/farm-selector";
 
-const DEMO_FARM = {
-  name: "Zaqeh Farm",
-  location: "Qazvin, Iran",
-};
+interface DashboardHeaderProps {
+  farms: DashboardFarm[];
+  selectedFarmId: string;
+  onFarmChange: (farmId: string) => void;
+}
 
-export function DashboardHeader() {
+export function DashboardHeader({
+  farms,
+  selectedFarmId,
+  onFarmChange,
+}: DashboardHeaderProps) {
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -22,28 +28,11 @@ export function DashboardHeader() {
         </p>
       </div>
 
-      <button
-        type="button"
-        className="flex w-full items-center justify-between gap-4 rounded-2xl border bg-card px-4 py-3 text-left shadow-sm transition-colors hover:bg-muted/50 sm:w-auto sm:min-w-60"
-      >
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-2">
-            <MapPin className="h-4 w-4 text-primary" />
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">
-              {DEMO_FARM.name}
-            </p>
-
-            <p className="text-xs text-muted-foreground">
-              {DEMO_FARM.location}
-            </p>
-          </div>
-        </div>
-
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-      </button>
+      <FarmSelector
+        farms={farms}
+        selectedFarmId={selectedFarmId}
+        onFarmChange={onFarmChange}
+      />
     </header>
   );
 }

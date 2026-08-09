@@ -3,10 +3,12 @@ import { DashboardLayout } from "@/features/dashboard/components/dashboard-layou
 
 export default function DashboardPage() {
   return (
+
+
     <DashboardLayout>
 
 
-        <DashboardOverview />
+    <DashboardOverview />
 
         
     </DashboardLayout>
