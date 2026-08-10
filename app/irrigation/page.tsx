@@ -1,19 +1,99 @@
+"use client";
+
+import { useState } from "react";
+
+import { FarmSelector } from "@/features/farms/components/farm-selector";
+import { FARMS } from "@/features/farms/constants/farms";
+
+import type { IrrigationSchedule as IrrigationScheduleData } from "@/features/irrigation/types/irrigation";
+
+import {
+  IRRIGATION_OVERVIEW_BY_FARM,
+  IRRIGATION_SENSORS_BY_FARM,
+  IRRIGATION_SCHEDULE_BY_FARM,
+} from "@/features/irrigation/constants/irrigation";
+
+import { IrrigationOverview } from "@/features/irrigation/components/irrigation-overview";
+import { IrrigationControl } from "@/features/irrigation/components/irrigation-control";
+import { IrrigationSchedule } from "@/features/irrigation/components/irrigation-schedule";
+import { SensorStatus } from "@/features/irrigation/components/sensor-status";
+
+
 export default function IrrigationPage() {
+  const [selectedFarmId, setSelectedFarmId] = useState(
+    FARMS[0]?.id ?? "",
+  );
+
+  const [schedules, setSchedules] = useState<
+    Record<string, IrrigationScheduleData>
+  >(IRRIGATION_SCHEDULE_BY_FARM);
+
+  const selectedFarm =
+    FARMS.find((farm) => farm.id === selectedFarmId) ?? FARMS[0];
+
+  if (!selectedFarm) {
+    return null;
+  }
+
+  const sensors =
+    IRRIGATION_SENSORS_BY_FARM[selectedFarm.id] ?? [];
+  
+  const irrigation =
+    IRRIGATION_OVERVIEW_BY_FARM[selectedFarm.id];
+
+  const schedule =
+    schedules[selectedFarm.id];
+    
+
+  if (!irrigation) {
+    return null;
+  }
+
   return (
     <main className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-          Irrigation
-        </p>
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+            Irrigation
+          </p>
 
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">
-          Irrigation Management
-        </h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">
+            Irrigation Management
+          </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
-          Monitor and manage irrigation for your farm.
-        </p>
-      </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Monitor and manage irrigation for your farm.
+          </p>
+        </div>
+
+      <FarmSelector
+          farms={FARMS}
+          selectedFarmId={selectedFarm.id}
+          onFarmChange={setSelectedFarmId}
+        />
+      </header>
+
+      <IrrigationOverview
+        irrigation={irrigation}
+      />
+
+      <IrrigationControl
+        farmName={selectedFarm.name}
+      />
+
+      <IrrigationSchedule
+        key={selectedFarm.id}
+        farmName={selectedFarm.name}
+        initialSchedule={schedule}
+        onSave={(newSchedule) => {
+          setSchedules((current) => ({
+            ...current,
+            [selectedFarm.id]: newSchedule,
+          }));
+        }}
+      />
+
+      <SensorStatus sensors={sensors} />
     </main>
   );
 }

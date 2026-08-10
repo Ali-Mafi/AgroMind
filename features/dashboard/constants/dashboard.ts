@@ -1,31 +1,11 @@
-import type {
-  DashboardFarm,
-  DashboardFarmData,
-} from "@/features/dashboard/types/dashboard";
+import type {DashboardFarmData} from "@/features/dashboard/types/dashboard";
+import {FARMS} from "@/features/farms/constants/farms";
 
 
-const ZAQEH_FARM: DashboardFarm = {
-  id: "zaqeh-farm",
-  name: "Zaqeh Farm",
-  location: "Qazvin, Iran",
-};
-
-const KASPIAN_FARM: DashboardFarm = {
-  id: "caspian-farm",
-  name: "Caspian Farm",
-  location: "Qazvin, Iran",
-};
-
-
-
-export const DASHBOARD_FARMS: DashboardFarm[] = [
-  ZAQEH_FARM,
-  KASPIAN_FARM,
-];
 
 export const DASHBOARD_FARM_DATA: DashboardFarmData[] = [
   {
-    farm: ZAQEH_FARM,
+    farm: FARMS[0],
     stats: [
       {
         id: "soil-moisture",
@@ -69,7 +49,7 @@ export const DASHBOARD_FARM_DATA: DashboardFarmData[] = [
 },
   },
   {
-    farm: KASPIAN_FARM,
+    farm: FARMS[1],
     stats: [
       {
         id: "soil-moisture",

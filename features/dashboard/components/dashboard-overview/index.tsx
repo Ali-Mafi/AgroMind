@@ -8,15 +8,12 @@ import { DashboardStats } from "@/features/dashboard/components/dashboard-stats"
 import { IrrigationWidget } from "@/features/dashboard/components/irrigation-widget";
 import { WeatherWidget } from "@/features/dashboard/components/weather-widget";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
-
-import {
-  DASHBOARD_FARM_DATA,
-  DASHBOARD_FARMS,
-} from "@/features/dashboard/constants/dashboard";
+import { DASHBOARD_FARM_DATA } from "@/features/dashboard/constants/dashboard";
+import { FARMS } from "@/features/farms/constants/farms";
 
 export function DashboardOverview() {
   const [selectedFarmId, setSelectedFarmId] = useState(
-    DASHBOARD_FARMS[0]?.id ?? "",
+    FARMS[0]?.id ?? "",
   );
 
   const selectedFarmData =
@@ -31,7 +28,7 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        farms={DASHBOARD_FARMS}
+        farms={FARMS}
         selectedFarmId={selectedFarmId}
         onFarmChange={setSelectedFarmId}
       />

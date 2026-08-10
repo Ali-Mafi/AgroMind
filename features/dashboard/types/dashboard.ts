@@ -1,3 +1,6 @@
+import type { Farm } from "@/features/farms/constants/farms";
+
+
 export interface DashboardStat {
   id: string;
   label: string;
@@ -16,11 +19,8 @@ export interface DashboardAI {
   message: string;
 }
 
-export interface DashboardFarm {
-  id: string;
-  name: string;
-  location: string;
-}
+
+export type DashboardFarm = Farm;
 
 export interface DashboardFarmData {
   farm: DashboardFarm;
@@ -37,3 +37,4 @@ export interface DashboardWeather {
   humidity: string;
   windSpeed: string;
 }
+
