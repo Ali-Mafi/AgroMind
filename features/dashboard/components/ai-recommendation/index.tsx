@@ -1,8 +1,14 @@
 import { BrainCircuit } from "lucide-react";
 
-import { DASHBOARD_AI } from "@/features/dashboard/constants/dashboard";
+import type { DashboardAI } from "@/features/dashboard/types/dashboard";
 
-export function AIRecommendation() {
+interface AIRecommendationProps {
+  ai: DashboardAI;
+}
+
+export function AIRecommendation({
+  ai,
+}: AIRecommendationProps) {
   return (
     <div className="rounded-2xl border bg-card p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -23,11 +29,11 @@ export function AIRecommendation() {
 
       <div className="mt-6">
         <span className="text-sm font-semibold text-primary">
-          {DASHBOARD_AI.status}
+          {ai.status}
         </span>
 
         <p className="mt-2 leading-6 text-muted-foreground">
-          {DASHBOARD_AI.message}
+          {ai.message}
         </p>
       </div>
     </div>

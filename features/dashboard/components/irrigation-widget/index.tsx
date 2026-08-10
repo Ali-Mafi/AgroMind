@@ -1,8 +1,14 @@
 import { Droplets } from "lucide-react";
 
-import { DASHBOARD_IRRIGATION } from "@/features/dashboard/constants/dashboard";
+import type { DashboardIrrigation } from "@/features/dashboard/types/dashboard";
 
-export function IrrigationWidget() {
+interface IrrigationWidgetProps {
+  irrigation: DashboardIrrigation;
+}
+
+export function IrrigationWidget({
+  irrigation,
+}: IrrigationWidgetProps) {
   return (
     <div className="rounded-2xl border bg-card p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -28,7 +34,7 @@ export function IrrigationWidget() {
           </p>
 
           <p className="mt-1 font-semibold">
-            {DASHBOARD_IRRIGATION.status}
+            {irrigation.status}
           </p>
         </div>
 
@@ -38,7 +44,7 @@ export function IrrigationWidget() {
           </p>
 
           <p className="mt-1 font-semibold">
-            {DASHBOARD_IRRIGATION.nextRun}
+            {irrigation.nextRun}
           </p>
         </div>
 
@@ -48,10 +54,10 @@ export function IrrigationWidget() {
           </p>
 
           <p className="mt-1 font-semibold">
-            {DASHBOARD_IRRIGATION.duration}
+            {irrigation.duration}
           </p>
         </div>
       </div>
     </div>
   );
-}   
+}

@@ -4,7 +4,11 @@ import {
   Waves,
 } from "lucide-react";
 
-import { DASHBOARD_STATS } from "@/features/dashboard/constants/dashboard";
+import type { DashboardStat } from "@/features/dashboard/types/dashboard";
+
+interface DashboardStatsProps {
+  stats: DashboardStat[];
+}
 
 const STAT_ICONS = {
   "soil-moisture": Droplets,
@@ -13,10 +17,12 @@ const STAT_ICONS = {
   "water-tank": Waves,
 } as const;
 
-export function DashboardStats() {
+export function DashboardStats({
+  stats,
+}: DashboardStatsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {DASHBOARD_STATS.map((stat) => {
+      {stats.map((stat) => {
         const Icon =
           STAT_ICONS[stat.id as keyof typeof STAT_ICONS];
 

@@ -27,4 +27,13 @@ export interface DashboardFarmData {
   stats: DashboardStat[];
   irrigation: DashboardIrrigation;
   ai: DashboardAI;
+  weather: DashboardWeather;
+
+}
+
+export interface DashboardWeather {
+  temperature: string;
+  condition: string;
+  humidity: string;
+  windSpeed: string;
 }
