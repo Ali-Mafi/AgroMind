@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
 
 import { FarmSelector } from "@/features/farms/components/farm-selector";
 import { FARMS } from "@/features/farms/constants/farms";
 import { useFarm } from "@/features/farms/context/farm-context";
 
-import type { IrrigationSchedule as IrrigationScheduleData } from "@/features/irrigation/types/irrigation";
-
 import {
   IRRIGATION_OVERVIEW_BY_FARM,
   IRRIGATION_SENSORS_BY_FARM,
-  IRRIGATION_SCHEDULE_BY_FARM,
 } from "@/features/irrigation/constants/irrigation";
 
 import { IrrigationOverview } from "@/features/irrigation/components/irrigation-overview";
@@ -22,11 +18,12 @@ import { SensorStatus } from "@/features/irrigation/components/sensor-status";
 
 export default function IrrigationPage() {
 
-  const { selectedFarmId, setSelectedFarmId } = useFarm();
-
-  const [schedules, setSchedules] = useState<
-    Record<string, IrrigationScheduleData>  
-  >(IRRIGATION_SCHEDULE_BY_FARM);
+  const {
+  selectedFarmId,
+  setSelectedFarmId,
+  irrigationSchedules,
+  setIrrigationSchedule,
+  } = useFarm();
 
   const selectedFarm =
     FARMS.find((farm) => farm.id === selectedFarmId) ?? FARMS[0];
@@ -42,12 +39,19 @@ export default function IrrigationPage() {
     IRRIGATION_OVERVIEW_BY_FARM[selectedFarm.id];
 
   const schedule =
-    schedules[selectedFarm.id];
+  irrigationSchedules[selectedFarm.id];
     
 
   if (!irrigation) {
     return null;
   }
+
+  console.log(
+  "SELECTED FARM:",
+  selectedFarm.id,
+  "SCHEDULE:",
+  irrigationSchedules[selectedFarm.id],
+);
 
   return (
     <main className="space-y-6">
@@ -82,14 +86,15 @@ export default function IrrigationPage() {
       />
 
       <IrrigationSchedule
-        key={selectedFarm.id}
+        // key={selectedFarm.id}
+        farmId={selectedFarm.id}
         farmName={selectedFarm.name}
         initialSchedule={schedule}
         onSave={(newSchedule) => {
-          setSchedules((current) => ({
-            ...current,
-            [selectedFarm.id]: newSchedule,
-          }));
+          setIrrigationSchedule(
+            selectedFarm.id,
+            newSchedule,
+          );
         }}
       />
 

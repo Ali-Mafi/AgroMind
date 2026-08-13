@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarClock, Clock, Save } from "lucide-react";
 
 
 
 interface IrrigationScheduleProps {
   farmName: string;
+    farmId: string;
   initialSchedule?: {
     date: string;
     time: string;
@@ -23,6 +24,7 @@ interface IrrigationScheduleProps {
 
 export function IrrigationSchedule({
   farmName,
+  farmId,
   initialSchedule,
   onSave,
 }: IrrigationScheduleProps) {
@@ -40,6 +42,19 @@ const [duration, setDuration] = useState(
 );
 
 const [saved, setSaved] = useState(false);
+
+useEffect(() => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  setDate(initialSchedule?.date ?? "");
+  setTime(initialSchedule?.time ?? "");
+  setDuration(initialSchedule?.duration ?? 45);
+  setSaved(false);
+}, [
+  farmId,
+  initialSchedule?.date,
+  initialSchedule?.time,
+  initialSchedule?.duration,
+]);
 
 
 
