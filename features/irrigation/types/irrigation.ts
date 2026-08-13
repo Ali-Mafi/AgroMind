@@ -23,3 +23,8 @@ export interface IrrigationSensor {
   unit: string;
   status: "Optimal" | "Normal" | "Warning";
 }
+
+export interface SensorStatusProps {
+  sensors: IrrigationSensor[];
+  farmName: string;
+}

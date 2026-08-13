@@ -15,10 +15,12 @@ const SENSOR_ICONS = {
 
 interface SensorStatusProps {
   sensors: IrrigationSensor[];
+  farmName: string;
 }
 
 export function SensorStatus({
   sensors,
+  farmName,
 }: SensorStatusProps) {
   return (
     <section className="rounded-2xl border bg-card p-6 shadow-sm">
@@ -32,7 +34,7 @@ export function SensorStatus({
         </h2>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Monitor irrigation-related sensor readings across your farm.
+          Live sensor status for {farmName}.
         </p>
       </div>
 

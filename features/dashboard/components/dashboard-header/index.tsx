@@ -1,22 +1,19 @@
 import { FarmSelector } from "@/features/farms/components/farm-selector";
-import type { Farm } from "@/features/farms/constants/farms";
+import { FARMS } from "@/features/farms/constants/farms";
+import { useFarm } from "@/features/farms/context/farm-context";
 
+export function DashboardHeader() {
+  const {
+    selectedFarmId,
+    setSelectedFarmId,
+  } = useFarm();
 
-export function DashboardHeader({
-  farms,
-  selectedFarmId,
-  onFarmChange,
-}: {
-  farms: Farm[];
-  selectedFarmId: string;
-  onFarmChange: (farmId: string) => void;
-}) {
   return (
-    <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+        <span className="text-sm font-semibold uppercase tracking-widest text-green-600">
           Farm Dashboard
-        </p>
+        </span>
 
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
           Farm Overview
@@ -28,9 +25,9 @@ export function DashboardHeader({
       </div>
 
       <FarmSelector
-        farms={farms}
+        farms={FARMS}
         selectedFarmId={selectedFarmId}
-        onFarmChange={onFarmChange}
+        onFarmChange={setSelectedFarmId}
       />
     </header>
   );

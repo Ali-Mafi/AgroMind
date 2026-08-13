@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { FarmSelector } from "@/features/farms/components/farm-selector";
 import { FARMS } from "@/features/farms/constants/farms";
+import { useFarm } from "@/features/farms/context/farm-context";
 
 import type { IrrigationSchedule as IrrigationScheduleData } from "@/features/irrigation/types/irrigation";
 
@@ -20,12 +21,11 @@ import { SensorStatus } from "@/features/irrigation/components/sensor-status";
 
 
 export default function IrrigationPage() {
-  const [selectedFarmId, setSelectedFarmId] = useState(
-    FARMS[0]?.id ?? "",
-  );
+
+  const { selectedFarmId, setSelectedFarmId } = useFarm();
 
   const [schedules, setSchedules] = useState<
-    Record<string, IrrigationScheduleData>
+    Record<string, IrrigationScheduleData>  
   >(IRRIGATION_SCHEDULE_BY_FARM);
 
   const selectedFarm =
@@ -93,7 +93,10 @@ export default function IrrigationPage() {
         }}
       />
 
-      <SensorStatus sensors={sensors} />
+      <SensorStatus
+        sensors={sensors}
+        farmName={selectedFarm.name}
+      />
     </main>
   );
 }

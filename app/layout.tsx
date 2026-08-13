@@ -5,6 +5,8 @@ import {
   Manrope,
 } from "next/font/google";
 import "./globals.css";
+import { FarmProvider } from "@/features/farms/context/farm-context";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,7 +41,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${manrope.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <FarmProvider>
+          {children}
+        </FarmProvider>
+      </body>
     </html>
   );
 };
