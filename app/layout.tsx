@@ -4,9 +4,12 @@ import {
   Inter,
   Manrope,
 } from "next/font/google";
-import "./globals.css";
-import { FarmProvider } from "@/features/farms/context/farm-context";
 
+import "./globals.css";
+
+import { FarmProvider } from "@/features/farms/context/farm-context";
+import { ThemeProvider } from "@/app/providers/theme-provider";
+import { SettingsProvider } from "@/features/settings/context/settings-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,13 +42,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${manrope.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <FarmProvider>
-          {children}
-        </FarmProvider>
+        <ThemeProvider>
+          <SettingsProvider>
+            <FarmProvider>
+              {children}
+            </FarmProvider>
+          </SettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
-};
+}
