@@ -1,80 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CalendarClock, Clock, Save } from "lucide-react";
 
-
+import type { IrrigationSchedule as IrrigationScheduleData } from "@/features/irrigation/types/irrigation";
 
 interface IrrigationScheduleProps {
   farmName: string;
-    farmId: string;
-  initialSchedule?: {
-    date: string;
-    time: string;
-    duration: number;
-  };
-  onSave?: (schedule: {
-    date: string;
-    time: string;
-    duration: number;
-  }) => void;
+  farmId: string;
+  schedule?: IrrigationScheduleData;
+  onSave: (schedule: IrrigationScheduleData) => void;
 }
-
-
 
 export function IrrigationSchedule({
   farmName,
   farmId,
-  initialSchedule,
+  schedule,
   onSave,
 }: IrrigationScheduleProps) {
+  const date = schedule?.date ?? "";
+  const time = schedule?.time ?? "";
+  const duration = schedule?.duration ?? 45;
 
-const [date, setDate] = useState(
-  initialSchedule?.date ?? "",
-);
-
-const [time, setTime] = useState(
-  initialSchedule?.time ?? "",
-);
-
-const [duration, setDuration] = useState(
-  initialSchedule?.duration ?? 45,
-);
-
-const [saved, setSaved] = useState(false);
-
-useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  setDate(initialSchedule?.date ?? "");
-  setTime(initialSchedule?.time ?? "");
-  setDuration(initialSchedule?.duration ?? 45);
-  setSaved(false);
-}, [
-  farmId,
-  initialSchedule?.date,
-  initialSchedule?.time,
-  initialSchedule?.duration,
-]);
-
-
-
-
-function handleSave() {
-  if (!date || !time) {
-    setSaved(false);
-    return;
+  function updateSchedule(
+    changes: Partial<IrrigationScheduleData>,
+  ) {
+    onSave({
+      date,
+      time,
+      duration,
+      ...changes,
+    });
   }
 
-  onSave?.({
-    date,
-    time,
-    duration,
-  });
-
-  setSaved(true);
-}
-
-
+  const canSave = Boolean(date && time);
 
   return (
     <section className="rounded-2xl border bg-card p-6 shadow-sm">
@@ -89,8 +47,8 @@ function handleSave() {
           </h2>
 
           <p className="mt-2 text-sm text-muted-foreground">
-                Plan the next irrigation session for {farmName}.
-            </p>
+            Plan the next irrigation session for {farmName}.
+          </p>
         </div>
 
         <div className="rounded-xl bg-primary/10 p-3">
@@ -101,19 +59,20 @@ function handleSave() {
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div>
           <label
-            htmlFor="irrigation-date"
+            htmlFor={`irrigation-date-${farmId}`}
             className="text-sm font-medium"
           >
             Date
           </label>
 
           <input
-            id="irrigation-date"
+            id={`irrigation-date-${farmId}`}
             type="date"
             value={date}
             onChange={(event) => {
-              setDate(event.target.value);
-              setSaved(false);
+              updateSchedule({
+                date: event.target.value,
+              });
             }}
             className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
@@ -121,7 +80,7 @@ function handleSave() {
 
         <div>
           <label
-            htmlFor="irrigation-time"
+            htmlFor={`irrigation-time-${farmId}`}
             className="text-sm font-medium"
           >
             Time
@@ -131,12 +90,13 @@ function handleSave() {
             <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
             <input
-              id="irrigation-time"
+              id={`irrigation-time-${farmId}`}
               type="time"
               value={time}
               onChange={(event) => {
-                setTime(event.target.value);
-                setSaved(false);
+                updateSchedule({
+                  time: event.target.value,
+                });
               }}
               className="w-full rounded-xl border bg-background py-2.5 pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
@@ -145,18 +105,19 @@ function handleSave() {
 
         <div>
           <label
-            htmlFor="irrigation-duration"
+            htmlFor={`irrigation-duration-${farmId}`}
             className="text-sm font-medium"
           >
             Duration
           </label>
 
           <select
-            id="irrigation-duration"
+            id={`irrigation-duration-${farmId}`}
             value={duration}
             onChange={(event) => {
-              setDuration(Number(event.target.value));
-              setSaved(false);
+              updateSchedule({
+                duration: Number(event.target.value),
+              });
             }}
             className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
           >
@@ -171,23 +132,32 @@ function handleSave() {
 
       <button
         type="button"
-        onClick={handleSave}
-        disabled={!date || !time}
+        onClick={() => {
+          if (!canSave) {
+            return;
+          }
+
+          onSave({
+            date,
+            time,
+            duration,
+          });
+        }}
+        disabled={!canSave}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Save className="h-4 w-4" />
         Save Schedule
       </button>
 
-      {saved && (
+      {canSave && (
         <div className="mt-4 rounded-xl bg-primary/5 p-4 text-sm">
           <p className="font-semibold text-primary">
-            Irrigation schedule saved
+            Irrigation schedule
           </p>
 
           <p className="mt-1 text-muted-foreground">
-            {date || "No date selected"} at{" "}
-            {time || "No time selected"} for {duration} minutes.
+            {date} at {time} for {duration} minutes.
           </p>
         </div>
       )}

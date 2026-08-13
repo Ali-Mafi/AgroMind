@@ -89,7 +89,7 @@ export default function IrrigationPage() {
         // key={selectedFarm.id}
         farmId={selectedFarm.id}
         farmName={selectedFarm.name}
-        initialSchedule={schedule}
+        schedule={schedule}
         onSave={(newSchedule) => {
           setIrrigationSchedule(
             selectedFarm.id,
