@@ -10,14 +10,14 @@ export const IRRIGATION_OVERVIEW_BY_FARM: Record<
   string,
   IrrigationOverview
 > = {
-  "zaqeh-farm": {
+  "my-farm": {
     status: "Scheduled",
     nextRun: "Tomorrow, 06:00",
     duration: "45 min",
     waterAmount: "18,000 L",
   },
 
-  "caspian-farm": {
+  "my-garden": {
     status: "Recommended",
     nextRun: "Today, 18:30",
     duration: "60 min",
@@ -29,13 +29,13 @@ export const IRRIGATION_SCHEDULE_BY_FARM: Record<
   string,
   IrrigationSchedule
 > = {
-  "zaqeh-farm": {
+  "my-farm": {
     date: "2026-08-11",
     time: "06:00",
     duration: 45,
   },
 
-  "caspian-farm": {
+  "my-garden": {
     date: "2026-08-10",
     time: "18:30",
     duration: 60,
@@ -46,7 +46,7 @@ export const IRRIGATION_SENSORS_BY_FARM: Record<
   string,
   IrrigationSensor[]
 > = {
-  "zaqeh-farm": [
+  "my-farm": [
     {
       id: "field-start-moisture",
       name: "Field Start",
@@ -70,7 +70,7 @@ export const IRRIGATION_SENSORS_BY_FARM: Record<
     },
   ],
 
-  "caspian-farm": [
+  "my-garden": [
     {
       id: "field-start-moisture",
       name: "Field Start",

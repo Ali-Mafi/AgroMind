@@ -1,18 +1,32 @@
-export interface Farm {
-  id: string;
-  name: string;
-  location: string;
-}
+import type { Farm } from "@/features/farms/types/farms";
 
 export const FARMS: Farm[] = [
   {
-    id: "zaqeh-farm",
-    name: "Zaqeh Farm",
+    id: "my-farm",
+    name: "My Farm",
     location: "Qazvin, Iran",
+    area: 40000,
+    type: "farm",
+    crop: {
+      id: "forage-corn",
+      name: "Forage Corn",
+    },
+    irrigationType: "Flood Irrigation",
   },
   {
-    id: "caspian-farm",
-    name: "Caspian Farm",
+    id: "my-garden",
+    name: "My Garden",
     location: "Qazvin, Iran",
+    area: 5000,
+    type: "garden",
+    plants: [
+      {
+        id: "walnut-1",
+        name: "Improved Late-Blooming Persian Walnut",
+        quantity: 500,
+        spacing: 6,
+        age: 3,
+      },
+    ],
   },
 ];

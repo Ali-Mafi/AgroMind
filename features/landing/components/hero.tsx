@@ -1,7 +1,7 @@
 import { HERO } from "@/constants/landing";
 import { AppContainer } from "@/components/layout/app-container";
 import { Button } from "@/components/ui/button";
-import { DEMO_FARM } from "@/features/landing/data/demo-farm";
+import { MY_FARM } from "@/features/landing/data/my-farm";
 import { FarmStatusCard } from "@/components/cards/farm-status-card";
 
 
@@ -51,13 +51,13 @@ export function Hero() {
           {/* Right Side */}
                 <div className="mx-auto w-full max-w-md">
                 <FarmStatusCard
-                    farmName={DEMO_FARM.name}
-                    location="Zaqeh, Qazvin"
-                    moisture={DEMO_FARM.moisture}
+                    farmName={MY_FARM.name}
+                    location="Fasham, Tehran"
+                    moisture={MY_FARM.moisture}
                     temperature={27}
                     humidity={61}
-                    weather={DEMO_FARM.weather}
-                    recommendation={DEMO_FARM.recommendation}
+                    weather={MY_FARM.weather}
+                    recommendation={MY_FARM.recommendation}
                 />
 
                 </div>

@@ -1,8 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { APP } from "@/constants/app";
 import { NAVIGATION } from "@/constants/navigation";
 import { AppContainer } from "@/components/layout/app-container";
 import { Button } from "@/components/ui/button";
+
 
 export function Navbar() {
   return (
@@ -10,12 +12,14 @@ export function Navbar() {
       <AppContainer>
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link
-            href="/"
-            className="text-2xl font-bold text-green-700 hover:opacity-80 transition"
-          >
-            {APP.name}
+
+          <Link href="/" className="flex items-center gap-2 transition hover:opacity-80">
+            <img src="/logo/agromind-logo.png" alt="AgroMind" className="h-13 w-13"/>
+              <span className="text-2xl font-bold text-green-700">
+                {APP.name}
+              </span>
           </Link>
+
 
           {/* Navigation */}
           <nav className="hidden items-center gap-8 md:flex">

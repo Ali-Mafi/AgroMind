@@ -1,5 +1,5 @@
-export const DEMO_FARM = {
-  name: "Demo Farm",
+export const MY_FARM = {
+  name: "My Farm",
 
   moisture: 41,
 

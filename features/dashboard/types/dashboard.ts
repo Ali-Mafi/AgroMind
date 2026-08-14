@@ -1,5 +1,4 @@
-import type { Farm } from "@/features/farms/constants/farms";
-
+import type { Farm } from "@/features/farms/types/farms";
 
 export interface DashboardStat {
   id: string;
