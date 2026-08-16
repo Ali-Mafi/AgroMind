@@ -86,7 +86,7 @@ export default async function FarmDetailsPage({
               {farm.type}
             </span>
 
-            <h1 className="mt-3 break-words text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+            <h1 className="mt-3 wrap-break-word text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               {farm.name}
             </h1>
 
@@ -177,7 +177,7 @@ export default async function FarmDetailsPage({
               Name
             </p>
 
-            <p className="mt-2 break-words text-sm font-semibold">
+            <p className="mt-2 wrap-break-word text-sm font-semibold">
               {farm.name}
             </p>
           </div>
@@ -187,7 +187,7 @@ export default async function FarmDetailsPage({
               Location
             </p>
 
-            <p className="mt-2 break-words text-sm font-semibold">
+            <p className="mt-2 wrap-break-word text-sm font-semibold">
               {farm.location}
             </p>
           </div>
@@ -208,7 +208,7 @@ export default async function FarmDetailsPage({
                 Crop
               </p>
 
-              <p className="mt-2 break-words text-sm font-semibold leading-5">
+              <p className="mt-2 wrap-break-word text-sm font-semibold leading-5">
                 {farm.crop.name}
               </p>
             </div>
