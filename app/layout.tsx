@@ -11,6 +11,7 @@ import { FarmProvider } from "@/features/farms/context/farm-context";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
 import { RegionProvider } from "@/features/region/context/region-context";
+import { LocationPermission } from "@/features/region/components/location-permission";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,7 +52,8 @@ export default function RootLayout({
           <RegionProvider>
             <SettingsProvider>
               <FarmProvider>
-                {children}
+                <LocationPermission/>
+                  {children}
               </FarmProvider>
             </SettingsProvider>
           </RegionProvider>
