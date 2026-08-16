@@ -1,6 +1,5 @@
 "use client";
 
-
 import { FarmSelector } from "@/features/farms/components/farm-selector";
 import { FARMS } from "@/features/farms/constants/farms";
 import { useFarm } from "@/features/farms/context/farm-context";
@@ -15,14 +14,12 @@ import { IrrigationControl } from "@/features/irrigation/components/irrigation-c
 import { IrrigationSchedule } from "@/features/irrigation/components/irrigation-schedule";
 import { SensorStatus } from "@/features/irrigation/components/sensor-status";
 
-
 export default function IrrigationPage() {
-
   const {
-  selectedFarmId,
-  setSelectedFarmId,
-  irrigationSchedules,
-  setIrrigationSchedule,
+    selectedFarmId,
+    setSelectedFarmId,
+    irrigationSchedules,
+    setIrrigationSchedule,
   } = useFarm();
 
   const selectedFarm =
@@ -34,74 +31,80 @@ export default function IrrigationPage() {
 
   const sensors =
     IRRIGATION_SENSORS_BY_FARM[selectedFarm.id] ?? [];
-  
+
   const irrigation =
     IRRIGATION_OVERVIEW_BY_FARM[selectedFarm.id];
 
   const schedule =
-  irrigationSchedules[selectedFarm.id];
-    
+    irrigationSchedules[selectedFarm.id];
 
   if (!irrigation) {
     return null;
   }
 
-  console.log(
-  "SELECTED FARM:",
-  selectedFarm.id,
-  "SCHEDULE:",
-  irrigationSchedules[selectedFarm.id],
-);
-
   return (
-    <main className="space-y-6">
-      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-            Irrigation
-          </p>
+    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
+      {/* Header */}
+      <header className="space-y-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm">
+              Irrigation
+            </p>
 
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">
-            Irrigation Management
-          </h1>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+              Irrigation Management
+            </h1>
 
-          <p className="mt-2 text-sm text-muted-foreground">
-            Monitor and manage irrigation for your farm.
-          </p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Monitor and manage irrigation for your farm.
+            </p>
+          </div>
+
+          <div className="w-full lg:w-auto lg:min-w-64">
+            <FarmSelector
+              farms={FARMS}
+              selectedFarmId={selectedFarm.id}
+              onFarmChange={setSelectedFarmId}
+            />
+          </div>
         </div>
-
-      <FarmSelector
-          farms={FARMS}
-          selectedFarmId={selectedFarm.id}
-          onFarmChange={setSelectedFarmId}
-        />
       </header>
 
-      <IrrigationOverview
-        irrigation={irrigation}
-      />
+      {/* Irrigation Overview */}
+      <section aria-label="Irrigation overview">
+        <IrrigationOverview irrigation={irrigation} />
+      </section>
 
-      <IrrigationControl
-        farmName={selectedFarm.name}
-      />
+      {/* Control + Schedule */}
+      <section
+        aria-label="Irrigation controls and schedule"
+        className="grid gap-5 lg:grid-cols-2"
+      >
+        <IrrigationControl
+          farmName={selectedFarm.name}
+        />
 
-      <IrrigationSchedule
-        // key={selectedFarm.id}
-        farmId={selectedFarm.id}
-        farmName={selectedFarm.name}
-        schedule={schedule}
-        onSave={(newSchedule) => {
-          setIrrigationSchedule(
-            selectedFarm.id,
-            newSchedule,
-          );
-        }}
-      />
+        <IrrigationSchedule
+          farmId={selectedFarm.id}
+          farmName={selectedFarm.name}
+          schedule={schedule}
+          onSave={(newSchedule) => {
+            setIrrigationSchedule(
+              selectedFarm.id,
+              newSchedule,
+            );
+          }}
+        />
+      </section>
 
-      <SensorStatus
-        sensors={sensors}
-        farmName={selectedFarm.name}
-      />
+      {/* Sensors */}
+      <section aria-label="Sensor status">
+        <SensorStatus
+          sensors={sensors}
+          farmName={selectedFarm.name}
+        />
+      </section>
     </main>
   );
 }

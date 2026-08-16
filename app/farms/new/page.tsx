@@ -99,8 +99,8 @@ export default function NewFarmPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6">
-      <div>
+    <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-0">      
+      <div className="space-y-1">
         <Link
           href="/farms"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -113,18 +113,18 @@ export default function NewFarmPage() {
           Farm Management
         </p>
 
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">
+        <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
           Add New {farmType === "garden" ? "Garden" : "Farm"}
         </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
           Add your information step by step.
         </p>
       </div>
 
       {/* Progress */}
       <div
-        className="grid gap-2"
+        className="grid grid-cols-5 gap-2 px-1 sm:gap-3"  
         style={{
           gridTemplateColumns: `repeat(${totalSteps}, minmax(0, 1fr))`,
         }}
@@ -146,7 +146,7 @@ export default function NewFarmPage() {
         )}
       </div>
 
-      <section className="rounded-2xl border bg-card p-6 shadow-sm">
+      <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
         {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-6">

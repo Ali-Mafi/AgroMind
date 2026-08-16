@@ -10,6 +10,7 @@ import "./globals.css";
 import { FarmProvider } from "@/features/farms/context/farm-context";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
+import { RegionProvider } from "@/features/region/context/region-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,11 +48,13 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <SettingsProvider>
-            <FarmProvider>
-              {children}
-            </FarmProvider>
-          </SettingsProvider>
+          <RegionProvider>
+            <SettingsProvider>
+              <FarmProvider>
+                {children}
+              </FarmProvider>
+            </SettingsProvider>
+          </RegionProvider>
         </ThemeProvider>
       </body>
     </html>
