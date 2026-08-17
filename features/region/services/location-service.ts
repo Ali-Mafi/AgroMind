@@ -3,35 +3,44 @@ export interface Coordinates {
   longitude: number;
 }
 
-export interface ReverseGeocodingResult {
+export interface ReverseGeocodedLocation {
   countryCode: string | null;
   countryName: string | null;
   city: string | null;
+  locality: string | null;
+}
+
+interface ReverseGeocodeResponse {
+  countryCode?: string | null;
+  countryName?: string | null;
+  city?: string | null;
+  locality?: string | null;
 }
 
 export function requestCurrentLocation(): Promise<Coordinates> {
-  return new Promise((resolve, reject) => {
-    if (!("geolocation" in navigator)) {
-      reject(
-        new Error("Geolocation is not supported by this browser."),
-      );
-      return;
-    }
+  if (!("geolocation" in navigator)) {
+    return Promise.reject(
+      new Error("Geolocation is not supported by this browser."),
+    );
+  }
 
+  return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        resolve({
+        const coordinates: Coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        });
+        };
+
+        resolve(coordinates);
       },
       (error) => {
         reject(error);
       },
       {
         enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 300000,
+        timeout: 30000,
+        maximumAge: 600000,
       },
     );
   });
@@ -39,15 +48,18 @@ export function requestCurrentLocation(): Promise<Coordinates> {
 
 export async function reverseGeocode(
   coordinates: Coordinates,
-): Promise<ReverseGeocodingResult> {
+): Promise<ReverseGeocodedLocation> {
   const params = new URLSearchParams({
     latitude: String(coordinates.latitude),
     longitude: String(coordinates.longitude),
-    localityLanguage: "en",
   });
 
   const response = await fetch(
-    `https://api.bigdatacloud.net/data/reverse-geocode-client?${params.toString()}`,
+    `/api/location?${params.toString()}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
   );
 
   if (!response.ok) {
@@ -56,16 +68,13 @@ export async function reverseGeocode(
     );
   }
 
-  const data = (await response.json()) as {
-    countryCode?: string;
-    countryName?: string;
-    city?: string;
-    locality?: string;
-  };
+  const data =
+    (await response.json()) as ReverseGeocodeResponse;
 
   return {
     countryCode: data.countryCode ?? null,
     countryName: data.countryName ?? null,
-    city: data.city ?? data.locality ?? null,
+    city: data.city ?? null,
+    locality: data.locality ?? null,
   };
 }

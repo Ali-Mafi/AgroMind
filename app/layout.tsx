@@ -3,6 +3,7 @@ import {
   Geist_Mono,
   Inter,
   Manrope,
+  Vazirmatn,
 } from "next/font/google";
 
 import "./globals.css";
@@ -31,6 +32,12 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const vazirmatn = Vazirmatn({
+  subsets: ["arabic"],
+  variable: "--font-vazirmatn",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "AgroMind",
   description: "smart farming",
@@ -45,7 +52,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${manrope.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${manrope.variable} ${geistMono.variable} ${vazirmatn.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>

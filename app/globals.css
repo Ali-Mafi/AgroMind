@@ -153,6 +153,10 @@
   --sidebar-ring: oklch(0.68 0.14 145);
 }
 
+.font-vazirmatn {
+  font-family: var(--font-vazirmatn), sans-serif;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

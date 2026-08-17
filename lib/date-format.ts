@@ -27,21 +27,49 @@ export function formatRegionalDate(
   date: Date,
   region: SupportedRegion,
 ): string {
-  return new Intl.DateTimeFormat(getCalendarLocale(region), {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+  if (region === "fa-IR") {
+    const parts = new Intl.DateTimeFormat(
+      "fa-IR-u-ca-persian",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      },
+    ).formatToParts(date);
+
+    const weekday =
+      parts.find((part) => part.type === "weekday")?.value ?? "";
+
+    const day =
+      parts.find((part) => part.type === "day")?.value ?? "";
+
+    const month =
+      parts.find((part) => part.type === "month")?.value ?? "";
+
+    const year =
+      parts.find((part) => part.type === "year")?.value ?? "";
+
+    return `${weekday}، ${day} ${month} ${year}`;
+  }
+
+  return new Intl.DateTimeFormat(
+    getCalendarLocale(region),
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  ).format(date);
 }
 
 export function formatRegionalShortDate(
   date: Date,
-  region: SupportedRegion,
 ): string {
-  return new Intl.DateTimeFormat(getCalendarLocale(region), {
-    day: "numeric",
-    month: "long",
+  return new Intl.DateTimeFormat("en-US-u-ca-gregory", {
+    day: "2-digit",
+    month: "short",
     year: "numeric",
   }).format(date);
 }
