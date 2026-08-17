@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,12 +10,13 @@ import {
   Wheat,
 } from "lucide-react";
 
-import { FARMS } from "@/features/farms/constants/farms";
+import { useFarm } from "@/features/farms/context/farm-context";
 
 export default function FarmsPage() {
+  const { farms } = useFarm();
+
   return (
     <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
-      {/* Header */}
       <header className="space-y-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 space-y-1">
@@ -40,13 +43,12 @@ export default function FarmsPage() {
         </div>
       </header>
 
-      {/* Farm / Garden Cards */}
-      {FARMS.length > 0 ? (
+      {farms.length > 0 ? (
         <section
           aria-label="My farms and gardens"
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
         >
-          {FARMS.map((farm) => {
+          {farms.map((farm) => {
             const isGarden = farm.type === "garden";
 
             return (
@@ -55,7 +57,6 @@ export default function FarmsPage() {
                 href={`/farms/${farm.id}`}
                 className="group flex min-h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                {/* Card Header */}
                 <div className="border-b px-5 py-5 sm:px-6 sm:py-6">
                   <div className="flex items-start gap-4">
                     <div
@@ -91,18 +92,13 @@ export default function FarmsPage() {
 
                       <div className="mt-2.5 flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4 shrink-0" />
-
-                        <span className="truncate">
-                          {farm.location}
-                        </span>
+                        <span className="truncate">{farm.location}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Content */}
                 <div className="flex flex-1 flex-col gap-5 p-5 sm:p-6">
-                  {/* Area */}
                   <div className="rounded-xl bg-muted/40 p-4">
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Ruler className="h-3.5 w-3.5" />
@@ -117,7 +113,6 @@ export default function FarmsPage() {
                     </p>
                   </div>
 
-                  {/* Crop */}
                   {farm.type === "farm" && farm.crop && (
                     <div className="rounded-xl border border-primary/10 bg-primary/4 p-4">
                       <p className="text-xs font-medium text-muted-foreground">
@@ -130,7 +125,6 @@ export default function FarmsPage() {
                     </div>
                   )}
 
-                  {/* Garden indicator */}
                   {isGarden && (
                     <div className="rounded-xl border border-gold/20 bg-gold/[0.06] p-4">
                       <p className="text-xs font-medium text-muted-foreground">
@@ -144,7 +138,6 @@ export default function FarmsPage() {
                   )}
                 </div>
 
-                {/* Card Footer */}
                 <div className="border-t bg-muted/20 px-5 py-4 sm:px-6">
                   <div className="flex min-h-6 items-center justify-between">
                     <span className="text-sm font-semibold text-primary">
@@ -159,7 +152,6 @@ export default function FarmsPage() {
           })}
         </section>
       ) : (
-        /* Empty State */
         <section className="rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
             <Wheat className="h-6 w-6 text-primary" />
