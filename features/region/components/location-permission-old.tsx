@@ -16,49 +16,22 @@ type PermissionState =
   | "granted"
   | "denied";
 
-const DISMISSED_STORAGE_KEY = "agromind-location-banner-dismissed";
-
 export function LocationPermission() {
   const { detectRegionFromLocation } = useRegion();
 
   const [state, setState] =
     useState<PermissionState>("idle");
 
-  // Hidden by default — we only reveal the banner once the
-  // initial check below decides it should actually be shown.
-  // This avoids a flash of the banner on every page load.
-  const [visible, setVisible] = useState(false);
-
-  function persistDismissed() {
-    try {
-      localStorage.setItem(DISMISSED_STORAGE_KEY, "true");
-    } catch {
-      // Ignore localStorage errors.
-    }
-  }
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    let dismissed = false;
-
-    try {
-      dismissed =
-        localStorage.getItem(DISMISSED_STORAGE_KEY) === "true";
-    } catch {
-      // Ignore localStorage errors.
-    }
-
-    if (dismissed) {
-      return;
-    }
-
     if (!("geolocation" in navigator)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisible(false);
       return;
     }
 
     if (!navigator.permissions) {
-      // Can't check permission state up front — show the
-      // banner and let the user decide.
-      setVisible(true);
       return;
     }
 
@@ -71,19 +44,16 @@ export function LocationPermission() {
           return;
         }
 
-        if (
-          permission.state === "granted" ||
-          permission.state === "denied"
-        ) {
-          return;
+        if (permission.state === "granted") {
+          setVisible(false);
         }
 
-        setVisible(true);
+        if (permission.state === "denied") {
+          setVisible(false);
+        }
       })
       .catch(() => {
-        if (!cancelled) {
-          setVisible(true);
-        }
+        // Permissions API is optional.
       });
 
     return () => {
@@ -91,30 +61,21 @@ export function LocationPermission() {
     };
   }, []);
 
-  async function handleAllowLocation() {
-    setState("requesting");
+        async function handleAllowLocation() {
+        setState("requesting");
 
-    try {
-      const detected = await detectRegionFromLocation();
+        try {
+            await detectRegionFromLocation();
 
-      if (detected) {
-        setState("granted");
-      } else {
-        // Permission may have been denied, or the detected
-        // country isn't supported — either way, this was not
-        // a successful detection.
-        setState("denied");
-      }
-    } catch {
-      setState("denied");
-    } finally {
-      persistDismissed();
-      setVisible(false);
+            setState("granted");
+            setVisible(false);
+        } catch {
+            setState("denied");
+            setVisible(false);
+        }
     }
-  }
 
   function handleNotNow() {
-    persistDismissed();
     setVisible(false);
   }
 

@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -11,8 +12,10 @@ import {
 import { FARMS } from "@/features/farms/constants/farms";
 import type { Farm } from "@/features/farms/types/farms";
 import { IRRIGATION_SCHEDULE_BY_FARM } from "@/features/irrigation/constants/irrigation";
-
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
+
+const FARMS_STORAGE_KEY = "agromind-farms";
+const IRRIGATION_STORAGE_KEY = "agromind-irrigation-schedules";
 
 interface FarmContextValue {
   farms: Farm[];
@@ -35,9 +38,9 @@ interface FarmContextValue {
   ) => void;
 }
 
-const FarmContext = createContext<
-  FarmContextValue | undefined
->(undefined);
+const FarmContext = createContext<FarmContextValue | undefined>(
+  undefined,
+);
 
 export function FarmProvider({
   children,
@@ -51,9 +54,88 @@ export function FarmProvider({
   );
 
   const [irrigationSchedules, setIrrigationSchedules] =
-    useState<
-      Record<string, IrrigationSchedule | undefined>
-    >(IRRIGATION_SCHEDULE_BY_FARM);
+    useState<Record<string, IrrigationSchedule | undefined>>(
+      IRRIGATION_SCHEDULE_BY_FARM,
+    );
+
+  // Load saved farms and irrigation schedules
+  useEffect(() => {
+    try {
+      const storedFarms = localStorage.getItem(FARMS_STORAGE_KEY);
+
+      if (storedFarms) {
+        const parsedFarms = JSON.parse(storedFarms) as Farm[];
+
+        if (Array.isArray(parsedFarms)) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setFarms(parsedFarms);
+
+          setSelectedFarmId((current) => {
+            if (
+              current &&
+              parsedFarms.some((farm) => farm.id === current)
+            ) {
+              return current;
+            }
+
+            return parsedFarms[0]?.id ?? "";
+          });
+        }
+      }
+
+      const storedSchedules = localStorage.getItem(
+        IRRIGATION_STORAGE_KEY,
+      );
+
+      if (storedSchedules) {
+        const parsedSchedules = JSON.parse(
+          storedSchedules,
+        ) as Record<string, IrrigationSchedule | undefined>;
+
+        if (
+          parsedSchedules &&
+          typeof parsedSchedules === "object"
+        ) {
+          setIrrigationSchedules(parsedSchedules);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load AgroMind data from localStorage:",
+        error,
+      );
+    }
+  }, []);
+
+  // Persist farms
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        FARMS_STORAGE_KEY,
+        JSON.stringify(farms),
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save farms to localStorage:",
+        error,
+      );
+    }
+  }, [farms]);
+
+  // Persist irrigation schedules
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        IRRIGATION_STORAGE_KEY,
+        JSON.stringify(irrigationSchedules),
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save irrigation schedules to localStorage:",
+        error,
+      );
+    }
+  }, [irrigationSchedules]);
 
   function addFarm(farm: Farm) {
     setFarms((current) => [...current, farm]);
@@ -74,24 +156,23 @@ export function FarmProvider({
   }
 
   function deleteFarm(farmId: string) {
-    setFarms((current) =>
-      current.filter((farm) => farm.id !== farmId),
-    );
+    setFarms((current) => {
+      const next = current.filter(
+        (farm) => farm.id !== farmId,
+      );
+
+      if (selectedFarmId === farmId) {
+        setSelectedFarmId(next[0]?.id ?? "");
+      }
+
+      return next;
+    });
 
     setIrrigationSchedules((current) => {
       const next = { ...current };
       delete next[farmId];
       return next;
     });
-
-    if (selectedFarmId === farmId) {
-      setSelectedFarmId((current) => {
-        const remaining = farms.filter(
-          (farm) => farm.id !== current,
-        );
-        return remaining[0]?.id ?? "";
-      });
-    }
   }
 
   function setIrrigationSchedule(
@@ -115,6 +196,7 @@ export function FarmProvider({
       irrigationSchedules,
       setIrrigationSchedule,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [farms, selectedFarmId, irrigationSchedules],
   );
 

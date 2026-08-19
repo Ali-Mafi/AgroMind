@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
+import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type FarmType = "farm" | "garden";
 
@@ -15,8 +17,11 @@ interface GardenPlant {
 }
 
 export default function NewFarmPage() {
+  const { addFarm } = useFarm();
   const [step, setStep] = useState(1);
   const [farmType, setFarmType] = useState<FarmType | null>(null);
+
+  const router = useRouter();
 
   const [farmName, setFarmName] = useState("");
   const [location, setLocation] = useState("");
@@ -97,6 +102,42 @@ export default function NewFarmPage() {
     if (step <= 1) return;
     setStep((current) => current - 1);
   };
+
+  const handleCreateFarm = () => {
+  if (!farmType) return;
+
+  const newFarm = {
+    id: `${farmType}-${Date.now()}`,
+    name:
+      farmName.trim() ||
+      (farmType === "farm" ? "New Farm" : "New Garden"),
+    location: location.trim() || "Not specified",
+    area: finalArea,
+    type: farmType,
+    ...(farmType === "farm"
+      ? {
+          crop: crop.trim()
+            ? {
+                id: `crop-${Date.now()}`,
+                name: crop.trim(),
+              }
+            : undefined,
+          irrigationType: irrigationType || undefined,
+        }
+      : {
+          plants: plants.map((plant) => ({
+            id: `plant-${plant.id}`,
+            name: plant.name.trim() || "Unnamed plant",
+            quantity: Number(plant.quantity) || 0,
+            spacing: Number(plant.spacing) || 0,
+            age: Number(plant.age) || 0,
+          })),
+        }),
+  };
+
+  addFarm(newFarm);
+  router.push(`/farms/${newFarm.id}`);
+};
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-0">      
@@ -649,25 +690,62 @@ export default function NewFarmPage() {
             <div>
               <label
                 htmlFor="irrigation-type"
-                className="text-sm font-medium"
+                className="text-sm font-medium text-foreground"
               >
                 Irrigation Type
               </label>
 
-              <select
-                id="irrigation-type"
-                value={irrigationType}
-                onChange={(event) =>
-                  setIrrigationType(event.target.value)
-                }
-                className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">Select irrigation type</option>
-                <option value="flood">Flood Irrigation</option>
-                <option value="drip">Drip Irrigation</option>
-                <option value="sprinkler">Sprinkler Irrigation</option>
-                <option value="other">Other</option>
-              </select>
+              <div className="relative mt-2">
+                <select
+                  id="irrigation-type"
+                  value={irrigationType}
+                  onChange={(event) => setIrrigationType(event.target.value)}
+                  className="
+                    w-full appearance-none rounded-xl
+                    border border-border
+                    bg-background
+                    px-3.5 py-3 pr-10
+                    text-sm text-foreground
+                    shadow-sm
+                    outline-none
+                    transition-all duration-200 ease-out
+                    hover:border-primary/40
+                    hover:shadow-[0_2px_8px_rgba(34,197,94,0.08)]
+                    focus:border-primary
+                    focus:ring-4 focus:ring-primary/10
+                    focus:shadow-[0_4px_14px_rgba(34,197,94,0.12)]
+                    cursor-pointer
+                  "
+                >
+                  <option value="" disabled>
+                    Select irrigation type
+                  </option>
+
+                  <option value="flood">Flood Irrigation</option>
+                  <option value="drip">Drip Irrigation</option>
+                  <option value="sprinkler">Sprinkler Irrigation</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <svg
+                  className="
+                    pointer-events-none
+                    absolute right-3.5 top-1/2
+                    h-4 w-4
+                    -translate-y-1/2
+                    text-muted-foreground
+                    transition-transform duration-200
+                  "
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
             </div>
           </div>
         )}
@@ -789,13 +867,7 @@ export default function NewFarmPage() {
 
             <button
               type="button"
-              onClick={() => {
-                alert(
-                  `${
-                    farmType === "farm" ? "Farm" : "Garden"
-                  } creation will be connected to the backend later.`,
-                );
-              }}
+              onClick={handleCreateFarm}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
               <Plus className="h-4 w-4" />
