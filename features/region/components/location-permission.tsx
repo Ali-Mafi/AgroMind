@@ -56,8 +56,7 @@ export function LocationPermission() {
     }
 
     if (!navigator.permissions) {
-      // Can't check permission state up front — show the
-      // banner and let the user decide.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(true);
       return;
     }

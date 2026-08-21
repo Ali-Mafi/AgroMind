@@ -19,10 +19,16 @@ export interface GardenPlant {
   age: number;
 }
 
+export interface FarmLocation {
+  latitude: number;
+  longitude: number;
+}
+
 export interface Farm {
   id: string;
   name: string;
   location: string;
+  coordinates?: FarmLocation;
   area: number;
   type: FarmType;
 

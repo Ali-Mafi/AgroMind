@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import FarmLocationPicker from "@/features/farms/components/farm-location-picker/farm-location-picker";
+import type { FarmLocation } from "@/features/farms/types/farms";
 
 type FarmType = "farm" | "garden";
 
@@ -25,6 +27,8 @@ export default function NewFarmPage() {
 
   const [farmName, setFarmName] = useState("");
   const [location, setLocation] = useState("");
+  const [coordinates, setCoordinates] =
+  useState<FarmLocation | undefined>();
 
   const [areaMode, setAreaMode] = useState<"direct" | "dimensions">(
     "direct",
@@ -111,9 +115,10 @@ export default function NewFarmPage() {
     name:
       farmName.trim() ||
       (farmType === "farm" ? "New Farm" : "New Garden"),
-    location: location.trim() || "Not specified",
-    area: finalArea,
-    type: farmType,
+        location: location.trim() || "Not specified",
+        coordinates,
+        area: finalArea,
+        type: farmType,
     ...(farmType === "farm"
       ? {
           crop: crop.trim()
@@ -291,26 +296,39 @@ export default function NewFarmPage() {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="farm-location"
-                  className="text-sm font-medium"
-                >
-                  Location
-                </label>
+              <div className="space-y-3">
+                <div>
+                  <label
+                    htmlFor="farm-location"
+                    className="text-sm font-medium"
+                  >
+                    Location
+                  </label>
 
-                <div className="relative mt-2">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Add a general location or select the exact position on the map.
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
                   <input
                     id="farm-location"
                     type="text"
                     value={location}
-                    onChange={(event) => setLocation(event.target.value)}
+                    onChange={(event) =>
+                      setLocation(event.target.value)
+                    }
                     placeholder="e.g. Qazvin, Iran"
                     className="w-full rounded-xl border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
+
+                <FarmLocationPicker
+                  value={coordinates}
+                  onChange={setCoordinates}
+                />
               </div>
             </div>
           </div>
