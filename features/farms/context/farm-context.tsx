@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -54,14 +53,14 @@ export function FarmProvider({
     FARMS[0]?.id ?? "",
   );
 
-  const hasLoadedFromStorage = useRef(false);
-
   const [irrigationSchedules, setIrrigationSchedules] =
     useState<Record<string, IrrigationSchedule | undefined>>(
       IRRIGATION_SCHEDULE_BY_FARM,
     );
 
-  // Load saved farms and irrigation schedules
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load saved data from localStorage once on the client.
   useEffect(() => {
     try {
       const storedFarms = localStorage.getItem(FARMS_STORAGE_KEY);
@@ -99,6 +98,7 @@ export function FarmProvider({
           parsedSchedules &&
           typeof parsedSchedules === "object"
         ) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIrrigationSchedules(parsedSchedules);
         }
       }
@@ -108,28 +108,17 @@ export function FarmProvider({
         error,
       );
     } finally {
-    hasLoadedFromStorage.current = true;
-  }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsHydrated(true);
+    }
   }, []);
 
-  // Persist farms
+  // Persist farms only after localStorage hydration has completed.
   useEffect(() => {
-  if (!hasLoadedFromStorage.current) {
-    return;
-  }
+    if (!isHydrated) {
+      return;
+    }
 
-  try {
-    localStorage.setItem(
-      FARMS_STORAGE_KEY,
-      JSON.stringify(farms),
-    );
-  } catch (error) {
-    console.error(
-      "Failed to save farms to localStorage:",
-      error,
-    );
-  }
-}, [farms]);useEffect(() => {
     try {
       localStorage.setItem(
         FARMS_STORAGE_KEY,
@@ -141,10 +130,14 @@ export function FarmProvider({
         error,
       );
     }
-  }, [farms]);
+  }, [farms, isHydrated]);
 
-  // Persist irrigation schedules
+  // Persist irrigation schedules only after hydration has completed.
   useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
     try {
       localStorage.setItem(
         IRRIGATION_STORAGE_KEY,
@@ -156,7 +149,7 @@ export function FarmProvider({
         error,
       );
     }
-  }, [irrigationSchedules]);
+  }, [irrigationSchedules, isHydrated]);
 
   function addFarm(farm: Farm) {
     setFarms((current) => [...current, farm]);
