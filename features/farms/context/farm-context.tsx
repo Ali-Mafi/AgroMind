@@ -98,7 +98,6 @@ export function FarmProvider({
           parsedSchedules &&
           typeof parsedSchedules === "object"
         ) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIrrigationSchedules(parsedSchedules);
         }
       }
@@ -108,7 +107,6 @@ export function FarmProvider({
         error,
       );
     } finally {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsHydrated(true);
     }
   }, []);
