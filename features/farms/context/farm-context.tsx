@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -52,6 +53,8 @@ export function FarmProvider({
   const [selectedFarmId, setSelectedFarmId] = useState(
     FARMS[0]?.id ?? "",
   );
+
+  const hasLoadedFromStorage = useRef(false);
 
   const [irrigationSchedules, setIrrigationSchedules] =
     useState<Record<string, IrrigationSchedule | undefined>>(
@@ -104,11 +107,29 @@ export function FarmProvider({
         "Failed to load AgroMind data from localStorage:",
         error,
       );
-    }
+    } finally {
+    hasLoadedFromStorage.current = true;
+  }
   }, []);
 
   // Persist farms
   useEffect(() => {
+  if (!hasLoadedFromStorage.current) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      FARMS_STORAGE_KEY,
+      JSON.stringify(farms),
+    );
+  } catch (error) {
+    console.error(
+      "Failed to save farms to localStorage:",
+      error,
+    );
+  }
+}, [farms]);useEffect(() => {
     try {
       localStorage.setItem(
         FARMS_STORAGE_KEY,

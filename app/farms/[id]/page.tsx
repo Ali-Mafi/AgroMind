@@ -13,11 +13,13 @@ import {
   Sprout,
   AlertTriangle,
 } from "lucide-react";
+
+import WeatherDashboard from "@/features/weather/components/weather-dashboard";
+
+
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { useFarm } from "@/features/farms/context/farm-context";
-
 interface FarmDetailsPageProps {
   params: Promise<{
     id: string;
@@ -71,7 +73,6 @@ export default function FarmDetailsPage({
       <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
         {/* Header */}
         <header className="space-y-6">
-          {/* Back */}
           <Link
             href="/farms"
             className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -80,7 +81,6 @@ export default function FarmDetailsPage({
             Back to Farms
           </Link>
 
-          {/* Header content */}
           <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6 lg:p-7">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
               {/* Farm identity */}
@@ -223,34 +223,32 @@ export default function FarmDetailsPage({
 
         {/* Farm / Garden Information */}
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
-          <div>
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                  isGarden
-                    ? "bg-gold/15 text-gold"
-                    : "bg-primary/10 text-primary"
-                }`}
-              >
-                {isGarden ? (
-                  <TreePine className="h-5 w-5" />
-                ) : (
-                  <Wheat className="h-5 w-5" />
-                )}
-              </div>
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                isGarden
+                  ? "bg-gold/15 text-gold"
+                  : "bg-primary/10 text-primary"
+              }`}
+            >
+              {isGarden ? (
+                <TreePine className="h-5 w-5" />
+              ) : (
+                <Wheat className="h-5 w-5" />
+              )}
+            </div>
 
-              <div>
-                <h2 className="text-xl font-bold sm:text-2xl">
-                  {isGarden
-                    ? "Garden Information"
-                    : "Farm Information"}
-                </h2>
+            <div>
+              <h2 className="text-xl font-bold sm:text-2xl">
+                {isGarden
+                  ? "Garden Information"
+                  : "Farm Information"}
+              </h2>
 
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Detailed information about this{" "}
-                  {isGarden ? "garden" : "farm"}.
-                </p>
-              </div>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Detailed information about this{" "}
+                {isGarden ? "garden" : "farm"}.
+              </p>
             </div>
           </div>
 
@@ -427,6 +425,15 @@ export default function FarmDetailsPage({
             )}
           </section>
         )}
+
+        {/* Weather */}
+
+        {farm.coordinates && (
+          <WeatherDashboard 
+            coordinates={farm.coordinates} 
+          />
+        )}
+        
       </main>
 
       {/* Delete Modal */}
@@ -443,7 +450,6 @@ export default function FarmDetailsPage({
             className="w-full max-w-lg overflow-hidden rounded-3xl border bg-card shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* Modal header */}
             <div className="border-b bg-destructive/3 px-6 py-6 sm:px-7 sm:py-7">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
@@ -465,7 +471,6 @@ export default function FarmDetailsPage({
               </div>
             </div>
 
-            {/* Modal body */}
             <div className="px-6 py-6 sm:px-7 sm:py-7">
               <p
                 id="delete-farm-description"
@@ -491,7 +496,6 @@ export default function FarmDetailsPage({
               </div>
             </div>
 
-            {/* Modal actions */}
             <div className="flex flex-col-reverse gap-3 border-t bg-muted/20 px-6 py-5 sm:flex-row sm:justify-end sm:px-7">
               <button
                 type="button"
