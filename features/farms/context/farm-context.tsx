@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 
-import { FARMS } from "@/features/farms/constants/farms";
 import type { Farm } from "@/features/farms/types/farms";
 import { IRRIGATION_SCHEDULE_BY_FARM } from "@/features/irrigation/constants/irrigation";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
@@ -47,11 +46,9 @@ export function FarmProvider({
 }: {
   children: ReactNode;
 }) {
-  const [farms, setFarms] = useState<Farm[]>(FARMS);
+  const [farms, setFarms] = useState<Farm[]>([]);
 
-  const [selectedFarmId, setSelectedFarmId] = useState(
-    FARMS[0]?.id ?? "",
-  );
+  const [selectedFarmId, setSelectedFarmId] = useState("");
 
   const [irrigationSchedules, setIrrigationSchedules] =
     useState<Record<string, IrrigationSchedule | undefined>>(
