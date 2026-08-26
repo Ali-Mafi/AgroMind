@@ -12,6 +12,21 @@ const SENSOR_ICONS = {
   "water-tank": Droplets,
 } as const;
 
+const DEFAULT_SENSOR_SLOTS = [
+  {
+    id: "field-start-moisture",
+    name: "Field Start Moisture",
+  },
+  {
+    id: "field-end-moisture",
+    name: "Field End Moisture",
+  },
+  {
+    id: "water-tank",
+    name: "Water Tank",
+  },
+] as const;
+
 interface SensorStatusProps {
   sensors: IrrigationSensor[];
   farmName: string;
@@ -50,51 +65,75 @@ export function SensorStatus({
 
       {/* Sensors */}
       {sensors.length > 0 ? (
-        <div
-          className={`mt-6 grid gap-3 ${
-            sensors.length === 1
-              ? "grid-cols-1"
-              : sensors.length === 2
-                ? "grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          }`}
-        >
-          {sensors.map((sensor) => {
-            const Icon =
-              SENSOR_ICONS[
-                sensor.id as keyof typeof SENSOR_ICONS
-              ] ?? Gauge;
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {sensors.length > 0
+    ? sensors.map((sensor) => {
+        const Icon =
+          SENSOR_ICONS[
+            sensor.id as keyof typeof SENSOR_ICONS
+          ] ?? Gauge;
 
-            return (
-              <div
-                key={sensor.id}
-                className="rounded-2xl border bg-background p-4 transition-colors hover:border-primary/30"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-
-                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                    {sensor.status}
-                  </span>
-                </div>
-
-                <p className="mt-5 text-sm font-medium text-muted-foreground">
-                  {sensor.name}
-                </p>
-
-                <p className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-                  {sensor.value}
-
-                  <span className="ml-1 text-sm font-medium text-muted-foreground sm:text-base">
-                    {sensor.unit}
-                  </span>
-                </p>
+        return (
+          <div
+            key={sensor.id}
+            className="rounded-2xl border bg-background p-4 transition-colors hover:border-primary/30"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="h-5 w-5" />
               </div>
-            );
-          })}
-        </div>
+
+              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                {sensor.status}
+              </span>
+            </div>
+
+            <p className="mt-5 text-sm font-medium text-muted-foreground">
+              {sensor.name}
+            </p>
+
+            <p className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+              {sensor.value}
+
+              <span className="ml-1 text-sm font-medium text-muted-foreground sm:text-base">
+                {sensor.unit}
+              </span>
+            </p>
+          </div>
+        );
+      })
+    : DEFAULT_SENSOR_SLOTS.map((sensor) => {
+        const Icon =
+          SENSOR_ICONS[
+            sensor.id as keyof typeof SENSOR_ICONS
+          ] ?? Gauge;
+
+        return (
+          <div
+            key={sensor.id}
+            className="rounded-2xl border bg-background p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Icon className="h-5 w-5" />
+              </div>
+
+              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                Not connected
+              </span>
+            </div>
+
+            <p className="mt-5 text-sm font-medium text-muted-foreground">
+              {sensor.name}
+            </p>
+
+            <p className="mt-1 text-xl font-semibold tracking-tight text-muted-foreground">
+              No data
+            </p>
+          </div>
+        );
+      })}
+</div>
       ) : (
         <div className="mt-6 rounded-2xl border border-dashed bg-muted/20 p-6 text-center">
           <RadioTower className="mx-auto h-6 w-6 text-muted-foreground/50" />

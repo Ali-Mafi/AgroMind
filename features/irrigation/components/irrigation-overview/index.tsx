@@ -4,7 +4,6 @@ import {
 } from "lucide-react";
 
 import type { IrrigationOverview as IrrigationOverviewData } from "@/features/irrigation/types/irrigation";
-import { TodayDateCard } from "@/features/shared/components/today-date-card";
 
 interface IrrigationOverviewProps {
   irrigation: IrrigationOverviewData;
@@ -39,8 +38,7 @@ export function IrrigationOverview({
 
         
         {/* Today */}
-          <TodayDateCard />
-
+        
           {/* Irrigation Stats */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="rounded-xl bg-muted/50 p-4">

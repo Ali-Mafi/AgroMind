@@ -10,7 +10,6 @@ import {
 } from "react";
 
 import type { Farm } from "@/features/farms/types/farms";
-import { IRRIGATION_SCHEDULE_BY_FARM } from "@/features/irrigation/constants/irrigation";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
 
 const FARMS_STORAGE_KEY = "agromind-farms";
@@ -51,9 +50,7 @@ export function FarmProvider({
   const [selectedFarmId, setSelectedFarmId] = useState("");
 
   const [irrigationSchedules, setIrrigationSchedules] =
-    useState<Record<string, IrrigationSchedule | undefined>>(
-      IRRIGATION_SCHEDULE_BY_FARM,
-    );
+  useState<Record<string, IrrigationSchedule | undefined>>({});
 
   const [isHydrated, setIsHydrated] = useState(false);
 

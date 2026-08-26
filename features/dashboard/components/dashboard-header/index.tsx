@@ -1,12 +1,12 @@
 import { FarmSelector } from "@/features/farms/components/farm-selector";
-import { FARMS } from "@/features/farms/constants/farms";
 import { useFarm } from "@/features/farms/context/farm-context";
 
 export function DashboardHeader() {
   const {
-    selectedFarmId,
-    setSelectedFarmId,
-  } = useFarm();
+  farms,
+  selectedFarmId,
+  setSelectedFarmId,
+} = useFarm();
 
   return (
     <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -25,10 +25,11 @@ export function DashboardHeader() {
       </div>
 
       <FarmSelector
-        farms={FARMS}
+        farms={farms}
         selectedFarmId={selectedFarmId}
         onFarmChange={setSelectedFarmId}
       />
+      
     </header>
   );
 }

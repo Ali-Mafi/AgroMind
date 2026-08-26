@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   CalendarClock,
   Check,
@@ -10,6 +11,9 @@ import {
 
 import type { IrrigationSchedule as IrrigationScheduleData } from "@/features/irrigation/types/irrigation";
 
+import { DatePicker } from "@/features/shared/components/date-picker";
+import { TimePicker } from "@/features/shared/components/time-picker";
+
 interface IrrigationScheduleProps {
   farmName: string;
   farmId: string;
@@ -18,6 +22,14 @@ interface IrrigationScheduleProps {
 }
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+
+function getLocalDateString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 export function IrrigationSchedule({
   farmName,
@@ -31,7 +43,46 @@ export function IrrigationSchedule({
     schedule?.duration ?? 45,
   );
 
-  const canSave = Boolean(date && time);
+  const [currentTime, setCurrentTime] = useState<number | null>(
+  null,
+);
+
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+  function updateCurrentTime() {
+    const now = new Date();
+
+    setCurrentTime(now.getTime());
+    setToday(getLocalDateString(now));
+  }
+
+  updateCurrentTime();
+
+  const interval = window.setInterval(
+    updateCurrentTime,
+    60_000,
+  );
+
+  return () => {
+    window.clearInterval(interval);
+  };
+}, []);
+
+  const scheduledTime =
+  date && time
+    ? new Date(`${date}T${time}:00`).getTime()
+    : null;
+
+const isPastSchedule =
+  currentTime !== null &&
+  scheduledTime !== null &&
+  scheduledTime <= currentTime;
+
+const canSave =
+  Boolean(date && time) &&
+  currentTime !== null &&
+  !isPastSchedule;
 
   function handleSave() {
     if (!canSave) {
@@ -87,12 +138,11 @@ export function IrrigationSchedule({
             </label>
           </div>
 
-          <input
+          <DatePicker
             id={`irrigation-date-${farmId}`}
-            type="date"
             value={date}
-            onChange={(event) => setDate(event.target.value)}
-            className="mt-3 h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            minDate={today}
+            onChange={setDate}
           />
         </div>
 
@@ -109,15 +159,25 @@ export function IrrigationSchedule({
             </label>
           </div>
 
-          <input
+          <TimePicker
             id={`irrigation-time-${farmId}`}
-            type="time"
             value={time}
-            onChange={(event) => setTime(event.target.value)}
-            className="mt-3 h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            onChange={setTime}
           />
         </div>
       </div>
+
+      {isPastSchedule && (
+        <div className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
+          <p className="text-sm font-medium text-destructive">
+            Please choose a future date and time.
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Irrigation cannot be scheduled for a time that has already passed.
+          </p>
+        </div>
+      )}
 
       {/* Duration */}
       <div className="mt-5 rounded-2xl border bg-background p-4 sm:p-5">

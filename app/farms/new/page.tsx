@@ -290,7 +290,9 @@ export default function NewFarmPage() {
                   value={farmName}
                   onChange={(event) => setFarmName(event.target.value)}
                   placeholder={
-                    farmType === "farm" ? "e.g. My Farm" : "e.g. My Garden"
+                    farmType === "farm"
+                      ? "e.g. North Field"
+                      : "e.g. Walnut Garden"
                   }
                   className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
