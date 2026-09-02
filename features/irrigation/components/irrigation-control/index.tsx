@@ -10,13 +10,13 @@ import {
   WifiOff,
 } from "lucide-react";
 
-const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+import type {
+  IrrigationControllerStatus,
+} from "@/features/irrigation/types/irrigation";
 
-export type IrrigationControllerStatus =
-  | "not-connected"
-  | "connected"
-  | "offline"
-  | "error";
+
+
+const DURATION_OPTIONS = [15, 30, 45, 60, 90];
 
 interface IrrigationControlProps {
   farmName: string;

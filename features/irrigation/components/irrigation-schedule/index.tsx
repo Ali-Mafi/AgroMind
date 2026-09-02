@@ -89,15 +89,32 @@ const canSave =
       return;
     }
 
-    onSave({
-      date,
-      time,
-      duration,
-    });
+      const timeZone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const now = new Date().toISOString();
+
+      const revision = schedule
+        ? (schedule.revision ?? 1) + 1
+        : 1;
+
+      onSave({
+        id: schedule?.id ?? crypto.randomUUID(),
+        revision,
+        date,
+        time,
+        duration,
+        timeZone,
+        createdAt: schedule?.createdAt ?? now,
+        updatedAt: now,
+      });
   }
 
   return (
-    <section className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
+    <section
+      id={`irrigation-schedule-${farmId}`}
+      className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6"
+    >
       {/* Header */}
       <div className="flex items-start gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-12 sm:w-12">

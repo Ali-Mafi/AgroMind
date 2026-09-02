@@ -1,3 +1,6 @@
+export type IrrigationScheduleStatus =
+  | "scheduled"
+  | "past-due";
 export interface IrrigationOverview {
   status: string;
   nextRun: string;
@@ -11,11 +14,15 @@ export interface IrrigationControl {
 }
 
 export interface IrrigationSchedule {
+  id?: string;
+  revision?: number;
   date: string;
   time: string;
   duration: number;
+  timeZone?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
-
 export interface IrrigationSensor {
   id: string;
   name: string;
@@ -28,3 +35,19 @@ export interface SensorStatusProps {
   sensors: IrrigationSensor[];
   farmName: string;
 }
+
+export type IrrigationControllerStatus =
+  | "not-connected"
+  | "connected"
+  | "offline"
+  | "error";
+
+export type IrrigationExecutionRoute =
+  | "manual"
+  | "automatic"
+  | "unavailable";  
+
+export type IrrigationDueAction =
+  | "send-manual-reminder"
+  | "request-automatic-start"
+  | "report-controller-unavailable";

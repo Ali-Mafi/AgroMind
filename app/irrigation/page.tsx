@@ -8,6 +8,10 @@ import {
 
 import { FarmSelector } from "@/features/farms/components/farm-selector";
 import { useFarm } from "@/features/farms/context/farm-context";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import { IrrigationOverview } from "@/features/irrigation/components/irrigation-overview";
 import { IrrigationSchedule } from "@/features/irrigation/components/irrigation-schedule";
@@ -15,7 +19,44 @@ import { IrrigationControl } from "@/features/irrigation/components/irrigation-c
 import { SensorStatus } from "@/features/irrigation/components/sensor-status";
 import { TodayDateCard } from "@/features/shared/components/today-date-card";
 
+function getScheduleTimestamp(
+  date: string,
+  time: string,
+) {
+  const [year, month, day] = date
+    .split("-")
+    .map(Number);
+
+  const [hour, minute] = time
+    .split(":")
+    .map(Number);
+
+  return new Date(
+    year,
+    month - 1,
+    day,
+    hour,
+    minute,
+    0,
+    0,
+  ).getTime();
+}
+
 export default function IrrigationPage() {
+
+  const [currentTime, setCurrentTime] =
+  useState(() => Date.now());
+
+useEffect(() => {
+  const interval = window.setInterval(() => {
+    setCurrentTime(Date.now());
+  }, 60_000);
+
+  return () => {
+    window.clearInterval(interval);
+  };
+}, []);
+
   const {
     farms,
     selectedFarmId,
@@ -81,14 +122,27 @@ export default function IrrigationPage() {
   const schedule =
     irrigationSchedules[selectedFarm.id];
 
-  const irrigationOverview = schedule
-    ? {
-        status: "Scheduled",
-        nextRun: `${schedule.date} at ${schedule.time}`,
-        duration: `${schedule.duration} min`,
-        waterAmount: "No data",
-      }
-    : null;
+  const scheduleTimestamp = schedule
+  ? getScheduleTimestamp(
+      schedule.date,
+      schedule.time,
+    )
+  : null;
+
+const isPastDue =
+  scheduleTimestamp !== null &&
+  scheduleTimestamp <= currentTime;
+
+const irrigationOverview = schedule
+  ? {
+      status: isPastDue
+        ? "Past-due"
+        : "Scheduled",
+      nextRun: `${schedule.date} at ${schedule.time}`,
+      duration: `${schedule.duration} min`,
+      waterAmount: "No data",
+    }
+  : null;
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
@@ -123,6 +177,16 @@ export default function IrrigationPage() {
       {irrigationOverview ? (
         <IrrigationOverview
           irrigation={irrigationOverview}
+          onReschedule={() => {
+            document
+              .getElementById(
+                `irrigation-schedule-${selectedFarm.id}`,
+              )
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+          }}
         />
       ) : (
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
