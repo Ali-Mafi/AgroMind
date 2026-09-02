@@ -13,6 +13,10 @@ import {
   useState,
 } from "react";
 
+import type {
+  IrrigationOverview as IrrigationOverviewData,
+} from "@/features/irrigation/types/irrigation";
+
 import { IrrigationOverview } from "@/features/irrigation/components/irrigation-overview";
 import { IrrigationSchedule } from "@/features/irrigation/components/irrigation-schedule";
 import { IrrigationControl } from "@/features/irrigation/components/irrigation-control";
@@ -133,11 +137,12 @@ const isPastDue =
   scheduleTimestamp !== null &&
   scheduleTimestamp <= currentTime;
 
-const irrigationOverview = schedule
+const irrigationOverview:
+  IrrigationOverviewData | null = schedule
   ? {
       status: isPastDue
-        ? "Past-due"
-        : "Scheduled",
+        ? "past-due"
+        : "scheduled",
       nextRun: `${schedule.date} at ${schedule.time}`,
       duration: `${schedule.duration} min`,
       waterAmount: "No data",

@@ -2,7 +2,7 @@ export type IrrigationScheduleStatus =
   | "scheduled"
   | "past-due";
 export interface IrrigationOverview {
-  status: string;
+  status: IrrigationScheduleStatus;
   nextRun: string;
   duration: number | string;
   waterAmount: string;
