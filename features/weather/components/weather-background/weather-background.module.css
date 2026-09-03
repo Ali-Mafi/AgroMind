@@ -1,0 +1,617 @@
+.background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  contain: paint;
+  background: #60798e;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+}
+
+/* ----------------------------- */
+/* Clear */
+/* ----------------------------- */
+
+.day.clear .sky {
+  background:
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(255, 235, 170, 0.28),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #438bbd 0%,
+      #70a8c9 52%,
+      #b0cad6 100%
+    );
+}
+
+.night.clear .sky {
+  background:
+    radial-gradient(
+      circle at 78% 8%,
+      rgba(190, 208, 228, 0.08),
+      transparent 26%
+    ),
+    linear-gradient(
+      180deg,
+      #07111c 0%,
+      #102336 58%,
+      #294253 100%
+    );
+}
+
+/* ----------------------------- */
+/* Partly cloudy */
+/* ----------------------------- */
+
+.day.partly-cloudy .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #4f819f 0%,
+      #789baa 55%,
+      #b0c2c8 100%
+    );
+}
+
+.night.partly-cloudy .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #08121c 0%,
+      #182a38 58%,
+      #3a4e59 100%
+    );
+}
+
+/* ----------------------------- */
+/* Cloudy */
+/* ----------------------------- */
+
+.day.cloudy .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #56636b 0%,
+      #7c878d 55%,
+      #a9afb2 100%
+    );
+}
+
+.night.cloudy .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #0b1217 0%,
+      #202d35 58%,
+      #46535a 100%
+    );
+}
+
+/* ----------------------------- */
+/* Rain */
+/* ----------------------------- */
+
+.day.drizzle .sky,
+.day.rain .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #3f5361 0%,
+      #657783 55%,
+      #919da3 100%
+    );
+}
+
+.night.drizzle .sky,
+.night.rain .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #050b10 0%,
+      #14232e 58%,
+      #344752 100%
+    );
+}
+
+.day.heavy-rain .sky,
+.day.storm .sky,
+.day.hail .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #252f36 0%,
+      #46525a 58%,
+      #737d82 100%
+    );
+}
+
+.night.heavy-rain .sky,
+.night.storm .sky,
+.night.hail .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #020507 0%,
+      #0b1319 58%,
+      #273239 100%
+    );
+}
+
+/* ----------------------------- */
+/* Snow */
+/* ----------------------------- */
+
+.day.snow .sky,
+.day.heavy-snow .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #718491 0%,
+      #a2b0b8 58%,
+      #d5dade 100%
+    );
+}
+
+.night.snow .sky,
+.night.heavy-snow .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #111a22 0%,
+      #32434f 58%,
+      #687781 100%
+    );
+}
+
+/* ----------------------------- */
+/* Fog */
+/* ----------------------------- */
+
+.day.fog .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #849094 0%,
+      #aab2b4 55%,
+      #c7cbcc 100%
+    );
+}
+
+.night.fog .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #182126 0%,
+      #3d4a51 55%,
+      #687378 100%
+    );
+}
+
+/* ----------------------------- */
+/* Unknown */
+/* ----------------------------- */
+
+.day.unknown .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #587589,
+      #a7bac3
+    );
+}
+
+.night.unknown .sky {
+  background:
+    linear-gradient(
+      180deg,
+      #0f1820,
+      #3b4d57
+    );
+}
+
+/* ----------------------------- */
+/* Atmosphere */
+/* ----------------------------- */
+
+.atmosphere {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 110%,
+      rgba(255, 255, 255, 0.09),
+      transparent 58%
+    );
+}
+
+.night .atmosphere {
+  opacity: 0.4;
+}
+
+/* ----------------------------- */
+/* Cloud layers */
+/* No large blur filters */
+/* ----------------------------- */
+
+.cloudLayer {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 50%;
+  will-change: transform;
+}
+
+.cloudLayerBack {
+  top: 3%;
+  opacity: 0.2;
+
+  background:
+    radial-gradient(
+      ellipse at 15% 42%,
+      rgba(225, 231, 234, 0.3) 0 18%,
+      transparent 38%
+    ),
+    radial-gradient(
+      ellipse at 48% 35%,
+      rgba(208, 217, 221, 0.25) 0 22%,
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 82% 48%,
+      rgba(221, 227, 229, 0.26) 0 20%,
+      transparent 40%
+    );
+
+  animation:
+    cloudBackMove 45s ease-in-out
+    infinite alternate;
+}
+
+.cloudLayerFront {
+  top: 25%;
+  opacity: 0.13;
+
+  background:
+    radial-gradient(
+      ellipse at 25% 55%,
+      rgba(200, 210, 215, 0.28) 0 20%,
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 70% 43%,
+      rgba(189, 200, 205, 0.24) 0 22%,
+      transparent 44%
+    );
+
+  animation:
+    cloudFrontMove 60s ease-in-out
+    infinite alternate;
+}
+
+.night .cloudLayerBack {
+  opacity: 0.11;
+}
+
+.night .cloudLayerFront {
+  opacity: 0.08;
+}
+
+.heavy-rain .cloudLayerBack,
+.storm .cloudLayerBack,
+.hail .cloudLayerBack {
+  opacity: 0.32;
+}
+
+.heavy-rain .cloudLayerFront,
+.storm .cloudLayerFront,
+.hail .cloudLayerFront {
+  opacity: 0.2;
+}
+
+/* ----------------------------- */
+/* Rain */
+/* ----------------------------- */
+
+.precipitation {
+  position: absolute;
+  inset: -25% -10%;
+  transform: rotate(6deg);
+  will-change: background-position;
+}
+
+.rainBack {
+  opacity: 0.08;
+
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 50px,
+      rgba(222, 232, 237, 0.5)
+        51px 51.5px,
+      transparent 52px 100px
+    );
+
+  background-size: 100px 200px;
+
+  animation:
+    rainMove 1.15s linear infinite;
+}
+
+.rainFront {
+  opacity: 0.12;
+
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 75px,
+      rgba(229, 237, 241, 0.55)
+        76px 76.5px,
+      transparent 77px 150px
+    );
+
+  background-size: 150px 240px;
+
+  animation:
+    rainMove 0.85s linear infinite;
+}
+
+.drizzle .rainBack {
+  opacity: 0.035;
+}
+
+.drizzle .rainFront {
+  opacity: 0.055;
+}
+
+.heavy-rain .rainBack,
+.storm .rainBack {
+  opacity: 0.15;
+}
+
+.heavy-rain .rainFront,
+.storm .rainFront {
+  opacity: 0.21;
+}
+
+/* ----------------------------- */
+/* Snow */
+/* ----------------------------- */
+
+.snow {
+  position: absolute;
+  inset: -8%;
+  will-change: transform;
+}
+
+.snowBack {
+  opacity: 0.14;
+
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.8)
+        0 1px,
+      transparent 1.4px
+    );
+
+  background-size: 52px 52px;
+
+  animation:
+    snowBackMove 15s linear infinite;
+}
+
+.snowFront {
+  opacity: 0.24;
+
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.88)
+        0 1.3px,
+      transparent 1.7px
+    );
+
+  background-size: 85px 85px;
+
+  animation:
+    snowFrontMove 11s linear infinite;
+}
+
+/* ----------------------------- */
+/* Fog */
+/* Fog uses gradients, not blur */
+/* ----------------------------- */
+
+.fog {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 35%;
+  opacity: 0.18;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(235, 239, 240, 0.45),
+      transparent
+    );
+}
+
+.fogBack {
+  top: 28%;
+
+  animation:
+    fogBackMove 24s ease-in-out
+    infinite alternate;
+}
+
+.fogFront {
+  top: 53%;
+  opacity: 0.14;
+
+  animation:
+    fogFrontMove 31s ease-in-out
+    infinite alternate;
+}
+
+/* ----------------------------- */
+/* Lightning */
+/* ----------------------------- */
+
+.lightning {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 70% 5%,
+      rgba(235, 241, 248, 0.3),
+      transparent 35%
+    );
+
+  animation:
+    lightningFlash 12s linear infinite;
+}
+
+/* ----------------------------- */
+/* Grain */
+/* Disabled for performance */
+/* ----------------------------- */
+
+.grain {
+  display: none;
+}
+
+/* ----------------------------- */
+/* Depth */
+/* ----------------------------- */
+
+.depth {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.015),
+      transparent 38%,
+      rgba(0, 0, 0, 0.1)
+    );
+}
+
+/* ----------------------------- */
+/* Animations */
+/* ----------------------------- */
+
+@keyframes cloudBackMove {
+  from {
+    transform: translate3d(-1%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(3%, 1%, 0);
+  }
+}
+
+@keyframes cloudFrontMove {
+  from {
+    transform: translate3d(2%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-2%, 1%, 0);
+  }
+}
+
+@keyframes rainMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -8px 240px;
+  }
+}
+
+@keyframes snowBackMove {
+  from {
+    transform:
+      translate3d(-1%, -6%, 0);
+  }
+
+  to {
+    transform:
+      translate3d(3%, 10%, 0);
+  }
+}
+
+@keyframes snowFrontMove {
+  from {
+    transform:
+      translate3d(2%, -8%, 0);
+  }
+
+  to {
+    transform:
+      translate3d(-2%, 12%, 0);
+  }
+}
+
+@keyframes fogBackMove {
+  from {
+    transform: translateX(-3%);
+  }
+
+  to {
+    transform: translateX(4%);
+  }
+}
+
+@keyframes fogFrontMove {
+  from {
+    transform: translateX(3%);
+  }
+
+  to {
+    transform: translateX(-4%);
+  }
+}
+
+@keyframes lightningFlash {
+  0%,
+  94%,
+  96%,
+  100% {
+    opacity: 0;
+  }
+
+  95% {
+    opacity: 0.2;
+  }
+}
+
+/* ----------------------------- */
+/* Accessibility */
+/* ----------------------------- */
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+  .background *,
+  .background *::before,
+  .background *::after {
+    animation: none !important;
+  }
+}
