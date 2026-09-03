@@ -1,7 +1,7 @@
 # AgroMind Project Rules
 
-Version: 1.0.0
-Last updated: 2026-08-26
+Version: 1.1.0
+Last updated: 2026-09-04
 
 ---
 
@@ -31,6 +31,30 @@ The review should include, as relevant:
 The AI must not assume that a file still matches an older conversation or cached version.
 
 The repository is the primary technical source of truth.
+
+### 1.1 Start-of-Day Roadmap
+
+Immediately after the repository review and before starting implementation work, the AI must present the user with a roadmap for the current work session.
+
+The roadmap must:
+
+- List the planned work items in execution order.
+- Show the current status of each item with clear visual markers such as `✅`, `⏳`, and `❌`.
+- Distinguish work already completed from work still pending.
+- Include a realistic estimated time range for each remaining item.
+- Include an estimated total session time when it is useful.
+- Be updated if repository inspection changes the expected plan.
+- Keep estimates explicitly approximate; they are planning estimates, not guarantees.
+
+Suggested status convention:
+
+```text
+✅ Completed
+⏳ Planned / in progress
+❌ Blocked / not started when specifically relevant
+```
+
+The roadmap is a planning overview only. The project must still follow the one-step-at-a-time rule: explain and complete one implementation task, wait for confirmation or error, then continue.
 
 ---
 
