@@ -212,10 +212,10 @@ export function HourlyForecast({
                 <article
                     key={hour.time}
                     className={[
-                    "min-w-26 snap-start rounded-2xl border px-3 py-3.5 text-center backdrop-blur-md transition",
+                    "min-w-26 snap-start rounded-2xl border px-3 py-3.5 text-center",
                     isCurrentHour
-                        ? "border-white/25 bg-white/15"
-                        : "border-white/10 bg-black/10",
+                        ? "border-white/25 bg-white/20"
+                        : "border-white/10 bg-black/20",
                     ].join(" ")}
                 >
                     <p className="text-xs font-semibold text-white/75">

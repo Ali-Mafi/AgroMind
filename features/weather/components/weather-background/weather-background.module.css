@@ -15,13 +15,6 @@
   background-size: cover;
 
   transform: scale(1.025);
-
-  animation:
-    atmosphericDrift
-    28s ease-in-out
-    infinite alternate;
-
-  will-change: transform;
 }
 
 .atmosphere {
@@ -57,27 +50,4 @@
       transparent 48%,
       rgba(0, 0, 0, 0.14) 100%
     );
-}
-
-@keyframes atmosphericDrift {
-  from {
-    transform:
-      scale(1.025)
-      translate3d(-0.3%, 0, 0);
-  }
-
-  to {
-    transform:
-      scale(1.04)
-      translate3d(0.3%, -0.3%, 0);
-  }
-}
-
-@media (
-  prefers-reduced-motion: reduce
-) {
-  .image {
-    animation: none;
-    transform: scale(1.025);
-  }
 }
