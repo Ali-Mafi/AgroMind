@@ -1,3 +1,6 @@
+import type { IrrigationType } from "@/features/farms/constants/irrigation-types";
+
+
 export interface FarmSelectorProps {
   farms: Farm[];
   selectedFarmId: string;
@@ -33,7 +36,6 @@ export interface Farm {
   type: FarmType;
 
   crop?: FarmCrop;
-  irrigationType?: string;
-
+  irrigationType?: IrrigationType;
   plants?: GardenPlant[];
 }

@@ -7,7 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FarmLocationPicker from "@/features/farms/components/farm-location-picker/farm-location-picker";
 import type { FarmLocation } from "@/features/farms/types/farms";
-
+import {
+  IRRIGATION_TYPES,
+  type IrrigationType,
+} from "@/features/farms/constants/irrigation-types";
 type FarmType = "farm" | "garden";
 
 interface GardenPlant {
@@ -38,8 +41,8 @@ export default function NewFarmPage() {
   const [width, setWidth] = useState("");
 
   const [crop, setCrop] = useState("");
-  const [irrigationType, setIrrigationType] = useState("");
-
+  const [irrigationType, setIrrigationType] =
+    useState<IrrigationType | "">("");
   const [plants, setPlants] = useState<GardenPlant[]>([]);
 
   const calculatedArea = useMemo(() => {
@@ -55,6 +58,12 @@ export default function NewFarmPage() {
 
   const finalArea =
     areaMode === "dimensions" ? calculatedArea : Number(area) || 0;
+
+  const hasValidName = farmName.trim().length > 0;
+  const hasExactLocation = Boolean(coordinates);
+
+  const canContinueStep2 =
+    hasValidName && hasExactLocation;
 
   const totalSteps = farmType === "farm" ? 6 : 5;
 
@@ -99,6 +108,10 @@ export default function NewFarmPage() {
 
     if (step === 1 && !farmType) return;
 
+    if (step === 2 && !canContinueStep2) {
+      return;
+    }
+
     setStep((current) => current + 1);
   };
 
@@ -108,14 +121,19 @@ export default function NewFarmPage() {
   };
 
   const handleCreateFarm = () => {
-  if (!farmType) return;
+    if (!farmType) return;
+
+    if (!farmName.trim() || !coordinates) {
+      setStep(2);
+      return;
+    }
 
   const newFarm = {
     id: `${farmType}-${Date.now()}`,
-    name:
-      farmName.trim() ||
-      (farmType === "farm" ? "New Farm" : "New Garden"),
-        location: location.trim() || "Not specified",
+    name: farmName.trim(),
+      location:
+        location.trim() ||
+        `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`,
         coordinates,
         area: finalArea,
         type: farmType,
@@ -282,6 +300,7 @@ export default function NewFarmPage() {
                   className="text-sm font-medium"
                 >
                   {farmType === "farm" ? "Farm Name" : "Garden Name"}
+                    <span className="ml-1 text-destructive">*</span>
                 </label>
 
                 <input
@@ -294,8 +313,13 @@ export default function NewFarmPage() {
                       ? "e.g. North Field"
                       : "e.g. Walnut Garden"
                   }
+                  required
+                  aria-required="true"
                   className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  A name is required for every farm or garden.
+                </p>
               </div>
 
               <div className="space-y-3">
@@ -326,6 +350,24 @@ export default function NewFarmPage() {
                     className="w-full rounded-xl border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">
+                    Exact Location
+                    <span className="ml-1 text-destructive">*</span>
+                  </p>
+
+                  {coordinates && (
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                      Selected
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Select the exact farm position on the map. This is required
+                  for location-based AgroMind features.
+                </p>
 
                 <FarmLocationPicker
                   value={coordinates}
@@ -719,7 +761,11 @@ export default function NewFarmPage() {
                 <select
                   id="irrigation-type"
                   value={irrigationType}
-                  onChange={(event) => setIrrigationType(event.target.value)}
+                  onChange={(event) =>
+                    setIrrigationType(
+                      event.target.value as IrrigationType,
+                    )
+                  }
                   className="
                     w-full appearance-none rounded-xl
                     border border-border
@@ -741,10 +787,14 @@ export default function NewFarmPage() {
                     Select irrigation type
                   </option>
 
-                  <option value="flood">Flood Irrigation</option>
-                  <option value="drip">Drip Irrigation</option>
-                  <option value="sprinkler">Sprinkler Irrigation</option>
-                  <option value="other">Other</option>
+                  {IRRIGATION_TYPES.map((type) => (
+                    <option
+                      key={type.value}
+                      value={type.value}
+                    >
+                      {type.label}
+                    </option>
+                  ))}
                 </select>
 
                 <svg
@@ -912,7 +962,10 @@ export default function NewFarmPage() {
             <button
               type="button"
               onClick={nextStep}
-              disabled={step === 1 && !farmType}
+              disabled={
+                (step === 1 && !farmType) ||
+                (step === 2 && !canContinueStep2)
+              }
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next

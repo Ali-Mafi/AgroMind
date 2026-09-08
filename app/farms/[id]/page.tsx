@@ -20,6 +20,7 @@ import WeatherDashboard from "@/features/weather/components/weather-dashboard";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFarm } from "@/features/farms/context/farm-context";
+import { getIrrigationTypeLabel } from "@/features/farms/constants/irrigation-types";
 interface FarmDetailsPageProps {
   params: Promise<{
     id: string;
@@ -322,7 +323,9 @@ export default function FarmDetailsPage({
                     </p>
 
                     <p className="mt-2 wrap-break-word text-sm font-semibold leading-5">
-                      {farm.irrigationType || "Not specified"}
+                      {getIrrigationTypeLabel(
+                        farm.irrigationType,
+                      )}
                     </p>
                   </div>
                 </div>

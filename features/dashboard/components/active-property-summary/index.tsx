@@ -12,17 +12,13 @@ import {
 import type { Farm } from "@/features/farms/types/farms";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { formatArea } from "@/features/settings/utils/area-formatter";
+import { getIrrigationTypeLabel } from "@/features/farms/constants/irrigation-types";
 
 interface ActivePropertySummaryProps {
   farm: Farm;
 }
 
-const IRRIGATION_LABELS: Record<string, string> = {
-  flood: "Flood Irrigation",
-  drip: "Drip Irrigation",
-  sprinkler: "Sprinkler Irrigation",
-  other: "Other",
-};
+
 
 export function ActivePropertySummary({
   farm,
@@ -39,10 +35,10 @@ export function ActivePropertySummary({
       0,
     ) ?? 0;
 
-  const irrigationLabel = farm.irrigationType
-    ? IRRIGATION_LABELS[farm.irrigationType] ??
-      farm.irrigationType
-    : "Not specified";
+  const irrigationLabel =
+    getIrrigationTypeLabel(
+      farm.irrigationType,
+    );
 
   return (
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">

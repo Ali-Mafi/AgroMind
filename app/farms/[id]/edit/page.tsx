@@ -15,20 +15,19 @@ import { useParams, useRouter } from "next/navigation";
 
 import { useFarm } from "@/features/farms/context/farm-context";
 import type { GardenPlant } from "@/features/farms/types/farms";
+import {
+  IRRIGATION_TYPES,
+  normalizeIrrigationType,
+  type IrrigationType,
+} from "@/features/farms/constants/irrigation-types";
 
-const IRRIGATION_TYPES = [
-  "Flood Irrigation",
-  "Drip Irrigation",
-  "Sprinkler Irrigation",
-  "Other",
-] as const;
 
 interface FormState {
   name: string;
   location: string;
   area: string;
   crop: string;
-  irrigationType: string;
+  irrigationType: IrrigationType | "";
   plants: GardenPlant[];
 }
 
@@ -69,8 +68,9 @@ export default function EditFarmPage() {
       location: farm.location,
       area: String(farm.area),
       crop: farm.crop?.name ?? "",
-      irrigationType: farm.irrigationType ?? "",
-      plants: farm.plants
+      irrigationType: normalizeIrrigationType(
+        farm.irrigationType,
+      ),      plants: farm.plants
         ? farm.plants.map((plant) => ({ ...plant }))
         : [],
     };
@@ -417,7 +417,7 @@ export default function EditFarmPage() {
                 onChange={(event) =>
                   updateField(
                     "irrigationType",
-                    event.target.value,
+                    event.target.value as IrrigationType,
                   )
                 }
                 className="w-full appearance-none rounded-xl border bg-background px-3 py-3 pr-11 text-sm font-medium text-foreground outline-none transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10"
@@ -427,8 +427,11 @@ export default function EditFarmPage() {
                 </option>
 
                 {IRRIGATION_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                  <option
+                    key={type.value}
+                    value={type.value}
+                  >
+                    {type.label}
                   </option>
                 ))}
               </select>
