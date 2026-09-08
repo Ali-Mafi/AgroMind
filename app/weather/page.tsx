@@ -42,6 +42,10 @@ export default function WeatherPage() {
     data,
     isWeatherLoading,
     weatherError,
+    isRefreshing,
+    refreshError,
+    checkedAt,
+    refresh,
   } = useWeatherCenter(
     selectedFarm?.coordinates,
   );
@@ -109,8 +113,8 @@ export default function WeatherPage() {
           </h1>
 
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            Live conditions and forecasts
-            for your exact farm location.
+            Latest available conditions and forecasts
+            for your farm coordinates.
           </p>
         </div>
 
@@ -165,15 +169,21 @@ export default function WeatherPage() {
           </h2>
 
           <p className="mt-2 text-sm text-muted-foreground">
-            Unable to load weather data for
-            this farm right now.
+            {weatherError ?? "Unable to load weather data for this farm right now."}
           </p>
+          <button type="button" onClick={refresh} className="mt-4 rounded-xl border px-4 py-2 text-sm font-medium">
+            Try again
+          </button>
         </section>
       ) : (
 
        <CurrentWeatherHero
             data={data}
             farmName={selectedFarm.name}
+            checkedAt={checkedAt}
+            isRefreshing={isRefreshing}
+            refreshError={refreshError}
+            onRefresh={refresh}
         />
 
       )}

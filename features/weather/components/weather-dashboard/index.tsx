@@ -2,6 +2,7 @@
 
 import type { FarmLocation } from "@/features/farms/types/farms";
 import { useWeather } from "@/features/weather/components/hooks/use-weather";
+import { WeatherSourceStatus } from "@/features/weather/components/weather-source-status";
 
 interface WeatherDashboardProps {
   coordinates: FarmLocation;
@@ -14,6 +15,10 @@ export default function WeatherDashboard({
     weather,
     isLoading,
     error,
+    isRefreshing,
+    refreshError,
+    checkedAt,
+    refresh,
   } = useWeather(coordinates);
 
   if (isLoading) {
@@ -39,8 +44,11 @@ export default function WeatherDashboard({
 
         <div className="mt-6 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
           <p className="text-sm font-medium text-destructive">
-            Unable to load weather data.
+            {error}
           </p>
+          <button type="button" onClick={refresh} className="mt-3 rounded-lg border px-3 py-2 text-sm">
+            Try again
+          </button>
         </div>
       </section>
     );
@@ -58,8 +66,13 @@ export default function WeatherDashboard({
         </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Current weather for this farm location.
+          Latest available weather for this farm location.
         </p>
+      </div>
+
+      <div className="mt-3 text-muted-foreground">
+        <WeatherSourceStatus weather={weather} checkedAt={checkedAt}
+          isRefreshing={isRefreshing} refreshError={refreshError} onRefresh={refresh} />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -95,11 +108,17 @@ export default function WeatherDashboard({
 
         <div className="rounded-xl border bg-background p-4">
           <p className="text-xs text-muted-foreground">
-            Rain
+            Precipitation
           </p>
 
           <p className="mt-2 text-2xl font-bold">
-            {weather.current.precipitation} mm
+            {weather.current.intervalSeconds !== null && weather.current.precipitation !== null
+              ? `${weather.current.precipitation} mm` : "—"}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {weather.current.intervalSeconds !== null
+              ? `Model estimate · previous ${Math.round(weather.current.intervalSeconds / 60)} min`
+              : "Current accumulation period unavailable"}
           </p>
         </div>
       </div>

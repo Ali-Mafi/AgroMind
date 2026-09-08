@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import {
-  normalizeWeatherCode,
   normalizeWindDirection,
 } from "@/features/weather/lib/normalize-weather";
 
@@ -25,34 +24,11 @@ import type {
   WeatherData,
 } from "@/features/weather/types/weather";
 
+import { buildWeatherTimeline } from "@/features/weather/lib/build-weather-timeline";
+
 interface HourlyForecastProps {
   weather: WeatherData;
-}
-
-function getFarmCurrentHourKey(
-  timeZone: string,
-) {
-  const parts =
-    new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(new Date());
-
-  const getPart = (type: string) =>
-    parts.find(
-      (part) => part.type === type,
-    )?.value ?? "";
-
-  return [
-    `${getPart("year")}-${getPart(
-      "month",
-    )}-${getPart("day")}`,
-    `${getPart("hour")}:00`,
-  ].join("T");
+  checkedAt: number | null;
 }
 
 function formatHour(
@@ -110,6 +86,7 @@ function WeatherIcon({
 
     case "fog":
     case "rime-fog":
+    case "dust":
       return (
         <CloudFog className={className} />
       );
@@ -148,145 +125,73 @@ function WeatherIcon({
 
 export function HourlyForecast({
   weather,
+  checkedAt,
 }: HourlyForecastProps) {
-  const currentHourKey =
-    getFarmCurrentHourKey(
-      weather.timezone,
-    );
-
-  const startIndex =
-    weather.hourly.findIndex(
-      (hour) =>
-        hour.time >= currentHourKey,
-    );
-
-  const safeStartIndex =
-    startIndex >= 0 ? startIndex : 0;
-
-  const hourlyForecast =
-    weather.hourly.slice(
-      safeStartIndex,
-      safeStartIndex + 24,
-    );
+  const asOf = checkedAt ?? Date.parse(weather.current.time);
+  const cards = buildWeatherTimeline(weather, asOf);
+  const reportIsOld = asOf - Date.parse(weather.current.time) > 30 * 60 * 1000;
+  const sourceName = weather.forecastSource === "weatherapi" ? "WeatherAPI" : "Open-Meteo";
 
   return (
     <div className="relative">
-        <div className="flex items-end justify-between gap-4">
+      <div className="flex items-end justify-between gap-4">
         <div>
-            <h2 className="text-sm font-semibold text-white">
-            Hourly Forecast
-            </h2>
-
-            <p className="mt-1 text-xs text-white/60">
-            Next 24 hours
-            </p>
+          <h2 className="text-sm font-semibold text-white">Hourly Forecast</h2>
+          <p className="mt-1 text-xs text-white/60">Now + next 24 hours · {sourceName}</p>
         </div>
+        <p className="text-xs text-white/55">{weather.timezoneAbbreviation}</p>
+      </div>
 
-        <p className="text-xs text-white/55">
-            {weather.timezoneAbbreviation}
-        </p>
-        </div>
-
-        <div className="relative mt-4">
+      <div className="relative mt-4">
         <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-20 w-12 bg-linear-to-l from-black/20 to-transparent" />
-
         <div className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-2 pr-8 scrollbar-thin [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20">
-            {hourlyForecast.map(
-            (hour, index) => {
-                const condition =
-                normalizeWeatherCode(
-                    hour.weatherCode,
-                );
+          {cards.map((card) => {
+            const isCurrent = card.kind === "current";
+            const wind = normalizeWindDirection(card.windDirection);
+            const probabilityLabel = card.precipitationProbabilityKind === "rain" ? "Rain"
+              : card.precipitationProbabilityKind === "snow" ? "Snow" : "Precip.";
 
-                const wind =
-                normalizeWindDirection(
-                    hour.windDirection,
-                );
-
-                const isCurrentHour =
-                index === 0 &&
-                hour.time ===
-                    currentHourKey;
-
-                return (
-                <article
-                    key={hour.time}
-                    className={[
-                    "min-w-26 snap-start rounded-2xl border px-3 py-3.5 text-center",
-                    isCurrentHour
-                        ? "border-white/25 bg-white/20"
-                        : "border-white/10 bg-black/20",
-                    ].join(" ")}
-                >
-                    <p className="text-xs font-semibold text-white/75">
-                    {isCurrentHour
-                        ? "Now"
-                        : formatHour(
-                            hour.time,
-                        )}
-                    </p>
-
-                    <div className="mt-3 flex justify-center text-white">
-                    <WeatherIcon
-                        condition={
-                        condition.condition
-                        }
-                        isDay={hour.isDay}
-                    />
-                    </div>
-
-                    <p className="mt-2.5 text-xl font-bold text-white">
-                    {Math.round(
-                        hour.temperature,
-                    )}
-                    °
-                    </p>
-
-                    <p className="mt-0.5 text-[10px] text-white/55">
-                    Feels{" "}
-                    {Math.round(
-                        hour.feelsLike,
-                    )}
-                    °
-                    </p>
-
-                    <div className="mt-3 flex items-center justify-center gap-1 text-xs font-medium text-sky-200">
-                    <Droplets className="h-3 w-3" />
-
-                    {Math.round(
-                        hour
-                        .precipitationProbability,
-                    )}
-                    %
-                    </div>
-
-                    <div className="mt-3 border-t border-white/10 pt-2.5">
-                    <div className="flex items-center justify-center gap-1">
-                        <Navigation
-                        className="h-3 w-3 text-white/60"
-                        style={{
-                            transform: `rotate(${hour.windDirection}deg)`,
-                        }}
-                        />
-
-                        <span className="text-[11px] font-semibold text-white/80">
-                        {wind.cardinal}
-                        </span>
-                    </div>
-
-                    <p className="mt-1 text-[10px] text-white/50">
-                        {Math.round(
-                        hour.windSpeed,
-                        )}{" "}
-                        km/h
-                    </p>
-                    </div>
-                </article>
-                );
-            },
-            )}
+            return (
+              <article
+                key={card.key}
+                data-weather-kind={card.kind}
+                className={[
+                  "min-w-26 snap-start rounded-2xl border px-3 py-3.5 text-center",
+                  isCurrent ? "border-white/25 bg-white/20" : "border-white/10 bg-black/20",
+                ].join(" ")}
+              >
+                <p className="text-xs font-semibold text-white/75">
+                  {isCurrent ? (reportIsOld ? "Last report" : "Now") : formatHour(card.time)}
+                </p>
+                <p className="mt-1 text-[10px] text-white/55">
+                  {isCurrent ? (weather.current.source === "weatherapi" ? "Reported" : "Model estimate") : "Forecast"}
+                </p>
+                <div className="mt-3 flex justify-center text-white" title={card.condition.label}>
+                  <WeatherIcon condition={card.condition.condition} isDay={card.isDay} />
+                </div>
+                <p className="mt-2.5 text-xl font-bold text-white">{Math.round(card.temperature)}°</p>
+                <p className="mt-0.5 text-[10px] text-white/55">Feels {Math.round(card.feelsLike)}°</p>
+                <div className="mt-3 flex items-center justify-center gap-1 text-xs font-medium text-sky-200">
+                  <Droplets className="h-3 w-3" />
+                  <span>
+                    {card.precipitationProbability !== null
+                      ? `${probabilityLabel} ${Math.round(card.precipitationProbability)}%`
+                      : "Chance —"}
+                  </span>
+                </div>
+                <div className="mt-3 border-t border-white/10 pt-2.5">
+                  <div className="flex items-center justify-center gap-1">
+                    <Navigation className="h-3 w-3 text-white/60"
+                      style={{ transform: `rotate(${card.windDirection}deg)` }} />
+                    <span className="text-[11px] font-semibold text-white/80">{wind.cardinal}</span>
+                  </div>
+                  <p className="mt-1 text-[10px] text-white/50">{Math.round(card.windSpeed)} km/h</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
-        </div>
+      </div>
     </div>
-    );
+  );
 }

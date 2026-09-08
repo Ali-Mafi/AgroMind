@@ -5,6 +5,7 @@ export type WeatherCondition =
   | "overcast"
   | "fog"
   | "rime-fog"
+  | "dust"
   | "drizzle"
   | "freezing-drizzle"
   | "rain"

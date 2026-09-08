@@ -13,7 +13,7 @@ export function resolveWeatherVisualState({
   const period =
     isDay ? "day" : "night";
 
-  if (isDusty) {
+  if (isDusty || condition === "dust") {
     return `dust-${period}`;
   }
 

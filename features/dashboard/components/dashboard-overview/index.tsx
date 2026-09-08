@@ -3,22 +3,25 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  MapPin,
   Plus,
   Sprout,
-  TreePine,
-  Wheat,
 } from "lucide-react";
 
+import { ActivePropertySummary } from "@/features/dashboard/components/active-property-summary";
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
 import { useFarm } from "@/features/farms/context/farm-context";
 import WeatherDashboard from "@/features/weather/components/weather-dashboard";
+import { IrrigationWidget } from "@/features/dashboard/components/irrigation-widget";
+import { SensorSummary } from "@/features/dashboard/components/sensor-summary";
+import { QuickActions } from "@/features/dashboard/components/quick-actions";
+import { AIRecommendation } from "@/features/dashboard/components/ai-recommendation";
 
 export function DashboardOverview() {
   const {
-    farms,
-    selectedFarmId,
-  } = useFarm();
+  farms,
+  selectedFarmId,
+  irrigationSchedules,
+} = useFarm();
 
   if (farms.length === 0) {
     return (
@@ -62,102 +65,52 @@ export function DashboardOverview() {
     return null;
   }
 
-  const isGarden = selectedFarm.type === "garden";
-
   return (
     <div className="space-y-6">
       <DashboardHeader />
 
-      <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="border-b p-5 sm:p-6">
-          <div className="flex items-start gap-4">
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-                isGarden
-                  ? "bg-gold/15 text-gold"
-                  : "bg-primary/10 text-primary"
-              }`}
-            >
-              {isGarden ? (
-                <TreePine className="h-5 w-5" />
-              ) : (
-                <Wheat className="h-5 w-5" />
-              )}
-            </div>
+      <ActivePropertySummary farm={selectedFarm} />
 
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Active property
-              </p>
+      <IrrigationWidget
+        schedule={irrigationSchedules[selectedFarm.id]}
+      />
 
-              <h2 className="mt-1 text-xl font-bold tracking-tight">
-                {selectedFarm.name}
-              </h2>
+      <SensorSummary />
 
-              <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 shrink-0" />
+      {selectedFarm.coordinates ? (
+        <WeatherDashboard
+          coordinates={selectedFarm.coordinates}
+        />
+      ) : (
+        <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Weather
+            </p>
 
-                <span className="truncate">
-                  {selectedFarm.location}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+            <h2 className="mt-2 text-lg font-semibold">
+              Farm location is not configured
+            </h2>
 
-        <div className="p-5 sm:p-6">
-          <div className="rounded-xl border border-dashed bg-muted/20 px-5 py-8 text-center">
-            <h3 className="text-base font-semibold">
-              Dashboard data is being connected
-            </h3>
-
-            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-              Weather, irrigation, sensor readings, and AI insights
-              will appear here only when they are backed by real
-              AgroMind data sources.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              Add the exact farm location to enable live weather data
+              for this property.
             </p>
 
             <Link
-              href={`/farms/${selectedFarm.id}`}
+              href={`/farms/${selectedFarm.id}/edit`}
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
             >
-              View farm details
+              Add farm location
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {selectedFarm.coordinates ? (
-  <WeatherDashboard
-    coordinates={selectedFarm.coordinates}
-  />
-) : (
-  <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        Weather
-      </p>
+      <QuickActions farmId={selectedFarm.id} />
 
-      <h2 className="mt-2 text-lg font-semibold">
-        Farm location is not configured
-      </h2>
-
-      <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-        Add the exact farm location to enable live weather data
-        for this property.
-      </p>
-
-      <Link
-        href={`/farms/${selectedFarm.id}/edit`}
-        className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-      >
-        Add farm location
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
-  </section>
-)}
+      <AIRecommendation farmName={selectedFarm.name} />
 
     </div>
   );

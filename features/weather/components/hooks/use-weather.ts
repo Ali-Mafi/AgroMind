@@ -1,90 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { subscribeToWeather, type WeatherRefreshState } from "@/features/weather/lib/weather-refresh";
+import type { WeatherCoordinates } from "@/features/weather/types/weather";
 
-import { getWeather } from "@/features/weather/services/weather-service";
-import type {
-  WeatherCoordinates,
-  WeatherData,
-} from "@/features/weather/types/weather";
-
-export function useWeather(
-  coordinates?: WeatherCoordinates,
-) {
-  const [weather, setWeather] =
-    useState<WeatherData | null>(null);
-
-  const [isLoading, setIsLoading] = useState(
-    Boolean(coordinates),
-  );
-
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+export function useWeather(coordinates?: WeatherCoordinates) {
+  const latitude = coordinates?.latitude;
+  const longitude = coordinates?.longitude;
+  const key = latitude !== undefined && longitude !== undefined
+    ? `${latitude},${longitude}` : null;
+  const [state, setState] = useState<(WeatherRefreshState & { key: string }) | null>(null);
+  const refreshHandler = useRef<(() => void) | null>(null);
+  const refresh = useCallback(() => refreshHandler.current?.(), []);
 
   useEffect(() => {
-    if (
-      coordinates?.latitude === undefined ||
-      coordinates?.longitude === undefined
-    ) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setWeather(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
+    if (latitude === undefined || longitude === undefined || !key) return;
 
-    const currentCoordinates: WeatherCoordinates = {
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude,
-    };
-
-    let cancelled = false;
-
-    async function loadWeather() {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const data = await getWeather(
-          currentCoordinates,
-        );
-
-        if (cancelled) return;
-
-        setWeather(data);
-      } catch (error) {
-        if (cancelled) return;
-
-        console.error(
-          "Failed to load weather:",
-          error,
-        );
-
-        setWeather(null);
-        setError(
-          "Unable to load weather data.",
-        );
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadWeather();
+    const subscription = subscribeToWeather({ latitude, longitude }, (next) => {
+      setState({ ...next, key });
+    });
+    refreshHandler.current = subscription.refresh;
 
     return () => {
-      cancelled = true;
+      refreshHandler.current = null;
+      subscription.dispose();
     };
-  }, [
-    coordinates?.latitude,
-    coordinates?.longitude,
-  ]);
+  }, [latitude, longitude, key]);
 
+  // Hide the previous farm's report immediately, even before the effect runs.
+  const current = state?.key === key ? state : null;
   return {
-    weather,
-    isLoading,
-    error,
+    weather: current?.weather ?? null,
+    isLoading: Boolean(key) && (current?.isLoading ?? true),
+    isRefreshing: current?.isRefreshing ?? false,
+    error: current?.error ?? null,
+    refreshError: current?.refreshError ?? null,
+    checkedAt: current?.checkedAt ?? null,
+    refresh,
   };
 }

@@ -9,7 +9,6 @@ import {
 } from "@/features/weather/components/hooks/use-weather";
 
 import {
-  normalizeWeatherCode,
   normalizeWindDirection,
 } from "@/features/weather/lib/normalize-weather";
 
@@ -47,6 +46,10 @@ export function useWeatherCenter(
     weather,
     isLoading: isWeatherLoading,
     error: weatherError,
+    isRefreshing,
+    refreshError,
+    checkedAt,
+    refresh,
   } = useWeather(coordinates);
 
   const {
@@ -58,10 +61,7 @@ export function useWeatherCenter(
   let data: WeatherCenterData | null = null;
 
   if (weather) {
-    const condition =
-      normalizeWeatherCode(
-        weather.current.weatherCode,
-      );
+    const condition = weather.current.condition;
 
     const wind =
       normalizeWindDirection(
@@ -103,5 +103,9 @@ export function useWeatherCenter(
 
     weatherError,
     airQualityError,
+    isRefreshing,
+    refreshError,
+    checkedAt,
+    refresh,
   };
 }

@@ -9,10 +9,6 @@ import {
   WeatherBackground,
 } from "@/features/weather/components/weather-background";
 
-import {
-  normalizeWeatherCode,
-} from "@/features/weather/lib/normalize-weather";
-
 import type {
   WeatherCenterData,
 } from "@/features/weather/types/weather-center";
@@ -20,11 +16,16 @@ import type {
 import {
   HourlyForecast,
 } from "@/features/weather/components/hourly-forecast";
+import { WeatherSourceStatus } from "@/features/weather/components/weather-source-status";
 
 interface CurrentWeatherHeroProps {
   data: WeatherCenterData;
 
   farmName: string;
+  checkedAt: number | null;
+  isRefreshing: boolean;
+  refreshError: string | null;
+  onRefresh: () => void;
 }
 
 function formatTemperature(
@@ -45,24 +46,30 @@ function formatIntervalMinutes(
 export function CurrentWeatherHero({
   data,
   farmName,
+  checkedAt,
+  isRefreshing,
+  refreshError,
+  onRefresh,
 }: CurrentWeatherHeroProps) {
   const {
     weather,
     current,
   } = data;
 
-  const today =
-    weather.daily[0] ?? null;
+  const dateParts = new Intl.DateTimeFormat("en", {
+    timeZone: weather.timezone, year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(checkedAt ?? weather.current.time));
+  const part = (type: string) => dateParts.find((p) => p.type === type)?.value;
+  const todayKey = `${part("year")}-${part("month")}-${part("day")}`;
+  const today = weather.daily.find((day) => day.date === todayKey) ?? null;
 
   const precipitationProbability =
-    today?.precipitationProbability ??
-    weather.current.precipitationProbability;
+    today?.precipitationProbability ?? null;
 
-  const todayCondition = today
-    ? normalizeWeatherCode(
-        today.weatherCode,
-      )
-    : null;
+  const todayCondition = today?.condition ?? null;
+  const forecastSourceName = weather.forecastSource === "weatherapi" ? "WeatherAPI" : "Open-Meteo";
+  const probabilityLabel = today?.precipitationProbabilityKind === "rain" ? "rain chance"
+    : today?.precipitationProbabilityKind === "snow" ? "snow chance" : "max chance";
 
   return (
     <section className="relative isolate overflow-hidden rounded-3xl border border-white/10 shadow-xl">
@@ -86,14 +93,12 @@ export function CurrentWeatherHero({
             </p>
 
             <p className="text-lg font-medium sm:text-xl">
-              {current.condition.label} now
+              {current.condition.label}
             </p>
 
-            {todayCondition &&
-              todayCondition.code !==
-                current.condition.code && (
+            {todayCondition && (
                 <p className="text-sm font-medium text-white/75 sm:text-base">
-                  {todayCondition.label} expected today
+                  Today&apos;s forecast: {todayCondition.label} · {forecastSourceName}
                 </p>
               )}
 
@@ -130,17 +135,26 @@ export function CurrentWeatherHero({
                 </>
               )}
             </div>
+            <div className="mt-2 text-white/75">
+              <WeatherSourceStatus
+                weather={weather} checkedAt={checkedAt}
+                isRefreshing={isRefreshing} refreshError={refreshError}
+                onRefresh={onRefresh}
+              />
+            </div>
           </div>
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-6">
-          <HourlyForecast
-            weather={weather}
-          />
+          {weather.forecastStatus === "available" ? (
+            <HourlyForecast weather={weather} checkedAt={checkedAt} />
+          ) : (
+            <p className="text-sm text-white/75">{forecastSourceName} forecast is temporarily unavailable.</p>
+          )}
         </div>
 
         <div className="mt-10 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-3.5 backdrop-blur-md sm:p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 sm:p-4">
             <div className="flex items-center gap-2 text-white/70">
               <Droplets className="h-4 w-4" />
 
@@ -157,7 +171,7 @@ export function CurrentWeatherHero({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-3.5 backdrop-blur-md sm:p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 sm:p-4">
             <div className="flex items-center gap-2 text-white/70">
               <Navigation
                 className="h-4 w-4"
@@ -187,7 +201,7 @@ export function CurrentWeatherHero({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-3.5 backdrop-blur-md sm:p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 sm:p-4">
             <div className="flex items-center gap-2 text-white/70">
               <Umbrella className="h-4 w-4" />
 
@@ -197,31 +211,28 @@ export function CurrentWeatherHero({
             </div>
 
             <p className="mt-2 text-xl font-semibold">
-              {(today?.precipitationSum ??
-                weather.current.precipitation
-              ).toFixed(1)}{" "}
-              mm
+              {today ? `${today.precipitationSum.toFixed(1)} mm` : "—"}
             </p>
 
             <p className="mt-0.5 text-xs text-white/65">
               {today
                 ? "Today's total forecast"
-                : `Previous ${formatIntervalMinutes(
-                    weather.current.intervalSeconds,
-                  )} min`}
+                : "Daily forecast unavailable"}
             </p>
 
             <p className="mt-1 text-[10px] leading-4 text-white/50">
               {precipitationProbability !== null
                 ? `${Math.round(
                     precipitationProbability,
-                  )}% max chance`
+                  )}% ${probabilityLabel}`
                 : "Chance unavailable"}
             </p>
 
-            {today && (
+            {today && <p className="mt-1 text-[10px] text-white/60">{forecastSourceName}</p>}
+
+            {weather.current.intervalSeconds !== null && weather.current.precipitation !== null && (
               <p className="mt-1 text-[10px] leading-4 text-white/45">
-                Current ·{" "}
+                Model estimate ·{" "}
                 {weather.current.precipitation.toFixed(
                   1,
                 )}{" "}
@@ -234,7 +245,7 @@ export function CurrentWeatherHero({
             )}
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-3.5 backdrop-blur-md sm:p-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-3.5 sm:p-4">
             <div className="flex items-center gap-2 text-white/70">
               <Gauge className="h-4 w-4" />
 
@@ -245,7 +256,7 @@ export function CurrentWeatherHero({
 
             <p className="mt-2 text-xl font-semibold">
               {Math.round(
-                weather.current.pressureMsl,
+                weather.current.pressure,
               )}
             </p>
 
@@ -258,4 +269,3 @@ export function CurrentWeatherHero({
     </section>
   );
 }
-  

@@ -11,7 +11,7 @@ export function DashboardHeader() {
   return (
     <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <span className="text-sm font-semibold uppercase tracking-widest text-green-600">
+        <span className="text-sm font-semibold uppercase tracking-widest text-primary">
           Farm Dashboard
         </span>
 
