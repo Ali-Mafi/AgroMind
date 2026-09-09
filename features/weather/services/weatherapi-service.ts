@@ -124,6 +124,7 @@ function parseHour(value: unknown): HourlyWeather {
   }
   return {
     time: raw.time.replace(" ", "T"),
+    source: "weatherapi",
     timeEpoch,
     temperature: requiredNumber(raw.temp_c),
     feelsLike: requiredNumber(raw.feelslike_c),
@@ -165,6 +166,7 @@ export function parseWeatherApiForecast(payload: unknown, coordinates: WeatherCo
     hourly.push(...raw.hour.map(parseHour));
     return {
       date: raw.date,
+      source: "weatherapi",
       temperatureMax: requiredNumber(day.maxtemp_c),
       temperatureMin: requiredNumber(day.mintemp_c),
       feelsLikeMax: null,

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronRight, Droplets, Gauge, Moon, Sunrise, Thermometer, Umbrella, Waves, Wind, type LucideIcon } from "lucide-react";
 import { WeatherSparkline } from "../weather-sparkline";
 import { normalizeWindDirection } from "@/features/weather/lib/normalize-weather";
@@ -26,7 +27,7 @@ export function DaylightGraphic({ sunrise, sunset }: { sunrise: string | null; s
   </svg>;
 }
 
-export function WeatherMetricGrid({ weather, asOf, onOpen }: {
+export const WeatherMetricGrid = memo(function WeatherMetricGrid({ weather, asOf, onOpen }: {
   weather: WeatherData; asOf: number; onOpen: (selection: WeatherDetailSelection) => void;
 }) {
   const todayKey = localWeatherTime(weather.timezone, asOf).slice(0, 10);
@@ -81,4 +82,4 @@ export function WeatherMetricGrid({ weather, asOf, onOpen }: {
       ))}
     </div>
   </>;
-}
+});

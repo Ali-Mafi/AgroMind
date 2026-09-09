@@ -15,7 +15,7 @@ const PROFILES = {
   moderate: { min: 80, max: 180, density: 6000, length: 21, speed: 900, opacity: .46 },
   heavy: { min: 150, max: 320, density: 3500, length: 29, speed: 1250, opacity: .62 },
 };
-const MAX_CANVAS_PIXELS = 1_400_000;
+const MAX_CANVAS_PIXELS = 900_000;
 
 export function WeatherParticles({ kind, intensity, lightning }: WeatherParticlesProps) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -30,6 +30,7 @@ export function WeatherParticles({ kind, intensity, lightning }: WeatherParticle
     const hail = kind === "hail";
     let width = 0;
     let height = 0;
+    let pixelRatio = 1;
     let particles: Particle[] = [];
     let frame: number | null = null;
     let previous = 0;
@@ -55,6 +56,7 @@ export function WeatherParticles({ kind, intensity, lightning }: WeatherParticle
       if (!width || !height) return;
       // The canvas is bounded by the viewport and by a pixel budget, even on Retina displays.
       const ratio = Math.min(1, Math.sqrt(MAX_CANVAS_PIXELS / (width * height)));
+      pixelRatio = ratio;
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -96,7 +98,12 @@ export function WeatherParticles({ kind, intensity, lightning }: WeatherParticle
         }
         const opacity = (snow || hail ? .58 : profile.opacity) * (.5 + layer * .25);
         if (snow || hail) { context.fillStyle = `rgba(229,242,255,${opacity})`; context.fill(); }
-        else { context.strokeStyle = `rgba(220,239,253,${opacity})`; context.lineWidth = .8 + layer * .45; context.stroke(); }
+        else {
+          context.strokeStyle = `rgba(220,239,253,${opacity})`;
+          // Keep distant drops visible when the desktop backing buffer is smaller.
+          context.lineWidth = Math.max(.8 + layer * .45, .8 / pixelRatio);
+          context.stroke();
+        }
       }
 
       if (lightning && elapsed > nextLightning) {

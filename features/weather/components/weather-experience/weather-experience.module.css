@@ -19,6 +19,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:global(html):has(.page) { scrollbar-gutter: stable; }
 .page { position: relative; isolation: isolate; min-height: 100svh; width: 100%; background: #294554; }
 .page *, .sheet * { box-sizing: border-box; }
 .page button, .sheet button { cursor: pointer; }
@@ -68,10 +69,11 @@
 .forecastLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .daily { padding: 20px 22px; }
 .dayList { margin-top: 10px; }
-.day { display: grid; grid-template-columns: 64px 42px 35px minmax(36px, 1fr) 35px; align-items: center; gap: 8px; min-height: 69px; width: 100%; border: none; border-top: 1px solid var(--weather-border); background: transparent; color: inherit; text-align: left; padding: 10px 0; }
+.day { display: grid; grid-template-columns: 78px 42px 35px minmax(36px, 1fr) 35px; align-items: center; gap: 8px; min-height: 69px; width: 100%; border: none; border-top: 1px solid var(--weather-border); background: transparent; color: inherit; text-align: left; padding: 10px 0; }
 .day:first-child { border-top: none; }
 .day:hover { background: rgba(185, 218, 239, .05); }
 .dayName { font-size: 1rem; font-weight: 500; }
+.dayName small { display: block; font-size: .75rem; font-weight: 400; color: var(--weather-muted); white-space: nowrap; }
 .dayWeather { display: flex; align-items: center; flex-direction: column; gap: 2px; }
 .dayWeather svg { width: 25px; height: 25px; }
 .dayWeather small { color: var(--weather-rain); font-size: .75rem; }
@@ -123,7 +125,7 @@
 .loading p { color: var(--weather-muted); margin-top: 20px; }
 .loadingTemperature { height: 135px; width: 180px; margin: 25px auto; border-radius: 20px; background: rgba(218, 237, 248, .1); }
 .loadingCard { margin-top: 45px; height: 220px; background: rgba(17, 39, 53, .5); border-radius: 23px; }
-.sheet { position: fixed; inset: auto 0 0; margin: 0 auto; width: min(760px, 100%); max-width: 100%; max-height: 91svh; border: 1px solid var(--weather-border); border-bottom: none; border-radius: 26px 26px 0 0; padding: 0; background: #152c3c; box-shadow: 0 -10px 70px rgba(2, 14, 24, .35); overscroll-behavior: contain; }
+.sheet { --weather-sheet-travel: 100%; position: fixed; inset: auto 0 0; margin: 0 auto; width: min(760px, 100%); max-width: 100%; max-height: 91svh; border: 1px solid var(--weather-border); border-bottom: none; border-radius: 26px 26px 0 0; padding: 0; background: #152c3c; box-shadow: 0 -10px 70px rgba(2, 14, 24, .35); overscroll-behavior: contain; }
 .sheet::backdrop { background: rgba(4, 15, 26, .55); }
 .sheetInner { padding: 24px 26px max(30px, env(safe-area-inset-bottom)); }
 .sheetHeader { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 24px; }
@@ -177,7 +179,7 @@
 .farmListFooter p { color: var(--weather-muted); font-size: .8125rem; }
 
 @media (min-width: 800px) {
-  .sheet { inset: 5svh 0 auto; max-height: 90svh; border: 1px solid var(--weather-border); border-radius: 26px; }
+  .sheet { --weather-sheet-travel: 40px; inset: 5svh 0 auto; max-height: 90svh; border: 1px solid var(--weather-border); border-radius: 26px; }
 }
 
 @media (max-width: 850px) {
@@ -199,7 +201,7 @@
   .hour { flex-basis: 70px; }
   .hourStrip { margin-left: -5px; margin-right: -5px; }
   .forecastLayout { gap: 14px; }
-  .day { grid-template-columns: 58px 37px 29px minmax(30px, 1fr) 32px; gap: 6px; }
+  .day { grid-template-columns: 74px 37px 29px minmax(30px, 1fr) 32px; gap: 6px; }
   .fieldFacts { grid-template-columns: 1fr 1fr; }
   .metricGrid { gap: 12px; }
   .metricCard { padding: 15px 13px; min-height: 234px; border-radius: 20px; }

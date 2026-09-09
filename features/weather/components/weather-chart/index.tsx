@@ -35,7 +35,7 @@ export function WeatherChart({ points, metric, selectedIndex, onSelect }: {
     const pointerX = (event.clientX - bounds.left) / bounds.width * WIDTH;
     let closest = 0;
     points.forEach((_, index) => { if (Math.abs(x(index) - pointerX) < Math.abs(x(closest) - pointerX)) closest = index; });
-    onSelect(closest);
+    if (closest !== selectedIndex) onSelect(closest);
   };
 
   if (!points.length || !hasData) return <p className={styles.chartEmpty}>No {WEATHER_METRICS[metric].title.toLowerCase()} forecast is available for this day.</p>;
@@ -45,7 +45,7 @@ export function WeatherChart({ points, metric, selectedIndex, onSelect }: {
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-labelledby={`${id}-title ${id}-description`}
         onPointerDown={selectAtPointer} onPointerMove={selectAtPointer}>
         <title id={`${id}-title`}>{`${WEATHER_METRICS[metric].title} hourly forecast`}</title>
-        <desc id={`${id}-description`}>Use the forecast hour slider or the data table below for exact values. Gaps mean unavailable data.</desc>
+        <desc id={`${id}-description`}>Use the forecast hour slider or the data table below for exact values. Gaps mean unavailable data or a change of forecast provider.</desc>
         {ticks.map((tick, index) => <g key={index}>
           <line x1={LEFT} x2={WIDTH - RIGHT} y1={y(tick)} y2={y(tick)} className={styles.chartGrid} />
           <text x={LEFT - 10} y={y(tick) + 4} textAnchor="end" className={styles.chartLabel}>

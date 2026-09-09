@@ -1,12 +1,14 @@
 import type { NormalizedWeatherCondition } from "./weather-normalization";
 
+export type WeatherSource = "open-meteo" | "weatherapi";
+
 export interface WeatherCoordinates {
   latitude: number;
   longitude: number;
 }
 
 export interface CurrentWeather {
-  source: "open-meteo" | "weatherapi";
+  source: WeatherSource;
   /** UTC ISO time supplied by the provider, never the browser's fetch time. */
   time: string;
   /** Backward accumulation period for precipitation; null when undocumented. */
@@ -43,6 +45,7 @@ export interface CurrentWeather {
 }
 
 export interface HourlyWeather {
+  source?: WeatherSource;
   /** Local forecast time in the provider's timezone. */
   time: string;
   /** Native Unix seconds, when the provider supplies an absolute timestamp. */
@@ -77,6 +80,7 @@ export interface HourlyWeather {
 }
 
 export interface DailyWeather {
+  source?: WeatherSource;
   date: string;
 
   temperatureMax: number;
@@ -108,8 +112,10 @@ export interface DailyWeather {
 export interface WeatherData {
   coordinates: WeatherCoordinates;
   currentStatus: "primary" | "model-only" | "fallback";
-  forecastSource: "open-meteo" | "weatherapi";
+  /** Primary provider. Individual forecast days/hours carry their own source. */
+  forecastSource: WeatherSource;
   forecastStatus: "available" | "unavailable";
+  forecastExtensionStatus?: "available" | "unavailable";
 
   timezone: string;
   timezoneAbbreviation: string;

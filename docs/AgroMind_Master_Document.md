@@ -388,3 +388,13 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Validation: 38 tests, full-repository lint and production build passed. The initial browser flow and local test-farm creation worked. The preview then stopped; browser chart interaction and target-device FPS remain unverified. The real Open-Meteo adapter request timed out; the user's WeatherAPI key was unavailable.
 - Detailed evidence and external reproduction steps: `docs/weather-verification-2026-09-09.md` and `docs/weather-realtime-setup.md`.
 - Remaining external validation: run the committed API check with the configured WeatherAPI account and collect FPS on the target device. No claim of live accuracy or measured FPS is made.
+
+## Step 007 — Ten-day forecast and desktop weather refinement — 2026-09-09
+
+- Continued from clean main at `0269b88`; preserved the completed Weather work.
+- Replaced the generic farm/garden hero label with its saved location and changed the farm-list action to Add farm.
+- At the user's request, extended the default three WeatherAPI days with seven Open-Meteo days. Each day and its hours/charts retain a visible source; primary current/Now, totals and hourly values stay intact. Extension failure keeps the primary data usable.
+- Added farm-local calendar bounds, date-keyed extension caching, absolute Open-Meteo hourly timestamps and a chart break when an overnight forecast changes provider.
+- Added smooth native-sheet entry/exit with focus restoration and reduced-motion handling. Isolated desktop background/canvas rendering, reduced raster buffer size without thinning heavy rain and avoided recomputing unchanged forecast cards.
+- Validation: 48 tests, repository lint, TypeScript and production build passed. Desktop dialog, Add farm and keyboard/focus behavior were checked in the browser. The live Open-Meteo call failed; no WeatherAPI key was present, so live mixed-data checks and target-device FPS remain unverified.
+- Details: `docs/weather-ten-day-update.md`; setup and account/device diagnostics: `docs/weather-realtime-setup.md`.

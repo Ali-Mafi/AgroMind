@@ -1,4 +1,4 @@
-import type { DailyWeather, HourlyWeather, WeatherData } from "../types/weather";
+import type { DailyWeather, HourlyWeather, WeatherData, WeatherSource } from "../types/weather";
 import type { WeatherChartPoint, WeatherMetric } from "../types/weather-detail";
 
 export function localWeatherTime(timezone: string, time: number) {
@@ -12,7 +12,7 @@ export function localWeatherTime(timezone: string, time: number) {
 
 export function forecastDays(weather: WeatherData, asOf: number) {
   const today = localWeatherTime(weather.timezone, asOf).slice(0, 10);
-  return weather.daily.filter((day) => day.date >= today);
+  return weather.daily.filter((day) => day.date >= today).slice(0, 10);
 }
 
 export function upcomingHours(weather: WeatherData, asOf: number, count = 24) {
@@ -50,8 +50,12 @@ export function chanceLabel(kind: HourlyWeather["precipitationProbabilityKind"])
   return kind === "rain" ? "Rain chance" : kind === "snow" ? "Snow chance" : "Precipitation chance";
 }
 
-export function sourceName(weather: WeatherData) {
-  return weather.forecastSource === "weatherapi" ? "WeatherAPI" : "Open-Meteo";
+export function sourceName(weather: WeatherData, entry?: { source?: WeatherSource }) {
+  return (entry?.source ?? weather.forecastSource) === "weatherapi" ? "WeatherAPI" : "Open-Meteo";
+}
+
+export function forecastSourceNames(weather: WeatherData, entries: { source?: WeatherSource }[] = weather.daily) {
+  return [...new Set(entries.map((entry) => sourceName(weather, entry)))].join(" + ") || sourceName(weather);
 }
 
 export function daylightMinutes(day: DailyWeather | null | undefined): number | null {
@@ -149,6 +153,7 @@ export function weatherChartPoints(hours: HourlyWeather[], metric: WeatherMetric
     }
     return {
       key: String(hour.timeEpoch ?? hour.time), time: hour.time,
+      source: hour.source,
       position: hour.timeEpoch ?? Date.parse(`${hour.time}Z`) / 1000,
       value, secondary,
     };

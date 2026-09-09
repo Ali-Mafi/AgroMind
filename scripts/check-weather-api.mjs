@@ -27,11 +27,15 @@ try {
   const now = Date.now();
   const reportAgeMinutes = (now - Date.parse(weather.current.time)) / 60000;
   assert.ok(Number.isFinite(reportAgeMinutes) && reportAgeMinutes >= -15, "Invalid or future report timestamp");
-  assert.equal(weather.current.source, weather.forecastSource, "Current and forecast providers differ");
+  assert.equal(weather.current.source, weather.forecastSource, "Current and primary forecast providers differ");
   assert.ok(weather.hourly.length > 0 && forecastDays(weather, now).length > 0, "Forecast is empty or expired");
   for (const hour of weather.hourly) {
     assert.ok(Number.isFinite(hour.temperature), "Invalid hourly temperature");
     assert.ok(hour.precipitation === null || (Number.isFinite(hour.precipitation) && hour.precipitation >= 0), "Invalid hourly rain");
+    const day = weather.daily.find((entry) => entry.date === hour.time.slice(0, 10));
+    assert.ok(day, "Hourly sample has no matching forecast day");
+    assert.equal(hour.source ?? weather.forecastSource, day.source ?? weather.forecastSource, "Daily and hourly providers differ");
+    assert.ok(Number.isFinite(hour.timeEpoch), "Hourly absolute time is missing");
   }
   assert.equal(buildWeatherTimeline(weather, now)[0].temperature, weather.current.temperature);
   const today = weather.daily.find((day) => day.date === localWeatherTime(weather.timezone, now).slice(0, 10));
@@ -40,6 +44,8 @@ try {
     result: "passed", provider: weather.forecastSource, status: weather.currentStatus, timezone: weather.timezone,
     reportedAt: weather.current.time, reportAgeMinutes: Math.round(reportAgeMinutes),
     stale: reportAgeMinutes > 30, forecastDays: forecastDays(weather, now).length, hourlySamples: weather.hourly.length,
+    daysBySource: forecastDays(weather, now).map((day) => ({ date: day.date, source: day.source ?? weather.forecastSource })),
+    extensionStatus: weather.forecastExtensionStatus ?? "not-needed",
     currentTemperatureC: weather.current.temperature, todayForecastMm: today.precipitationSum,
     currentReportedMm: weather.current.precipitation, currentIntervalSeconds: weather.current.intervalSeconds,
     note: "Validates the live provider contract, not accuracy against a rain gauge. Daily forecast and current accumulation are distinct.",

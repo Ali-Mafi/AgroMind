@@ -42,7 +42,7 @@ function canvasEnvironment(t) {
 
 test("heavy rain retains density at 4K while limiting canvas pixels and batching three strokes", (t) => {
   const env = canvasEnvironment(t);
-  assert.ok(env.canvas.width * env.canvas.height < 1_402_000);
+  assert.ok(env.canvas.width * env.canvas.height < 902_000);
   assert.equal(env.pending.size, 1);
   env.step(100); env.step(116.7);
   assert.equal(env.pending.size, 1);

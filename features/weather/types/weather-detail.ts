@@ -1,3 +1,5 @@
+import type { WeatherSource } from "./weather";
+
 export type WeatherMetric =
   | "precipitation"
   | "wind"
@@ -16,6 +18,7 @@ export interface WeatherDetailSelection {
 }
 
 export interface WeatherChartPoint {
+  source?: WeatherSource;
   key: string;
   time: string;
   /** A sortable timestamp; local wall-clock time is used only if no epoch exists. */

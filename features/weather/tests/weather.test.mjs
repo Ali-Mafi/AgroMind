@@ -62,6 +62,159 @@ function aggregator(model, report) {
   }).getFarmWeather;
 }
 
+function tenDayModel() {
+  const sample = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const dates = Array.from({ length: 10 }, (_, index) => `2026-09-${String(7 + index).padStart(2, "0")}`);
+  return {
+    ...modelWeather(),
+    daily: dates.map((date) => ({ ...sample.daily[0], date, source: "open-meteo", precipitationSum: 0.4,
+      sunrise: `${date}T06:00`, sunset: `${date}T19:00`, temperatureMin: 12, temperatureMax: 23 })),
+    hourly: dates.flatMap((date) => sample.hourly.slice(0, 24).map((hour) => ({ ...hour,
+      time: `${date}${hour.time.slice(10)}`, source: "open-meteo", temperature: 17, precipitation: 0.2,
+      timeEpoch: Date.parse(`${date}${hour.time.slice(10)}:00+03:30`) / 1000 }))),
+  };
+}
+
+test("ten-day forecast keeps the first three WeatherAPI days and extends seven complete Open-Meteo days", async (t) => {
+  setKey(t, "test-key-only");
+  t.mock.method(Date, "now", () => reportEpoch * 1000);
+  const primary = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const model = tenDayModel();
+  const original = structuredClone(primary);
+  let calls = 0;
+  const weather = await aggregator(async (coords, options) => {
+    calls++; assert.deepEqual(coords, coordinates);
+    assert.equal(options.timezone, "Asia/Tehran");
+    assert.equal(options.forecastExtension, true);
+    return model;
+  }, async () => primary)(coordinates);
+  assert.equal(calls, 1);
+  assert.deepEqual(primary, original);
+  assert.equal(weather.current, primary.current);
+  assert.equal(weather.forecastExtensionStatus, "available");
+  assert.equal(weather.daily.length, 10);
+  assert.equal(weather.hourly.length, 240);
+  assert.equal(new Set(weather.daily.map((day) => day.date)).size, 10);
+  assert.deepEqual(weather.daily.slice(0, 3), primary.daily);
+  assert.deepEqual(weather.daily.slice(3), model.daily.slice(3));
+  assert.deepEqual(weather.hourly.slice(0, 72), primary.hourly);
+  assert.deepEqual(weather.hourly.slice(72), model.hourly.slice(72));
+  for (const day of weather.daily) {
+    const hours = weather.hourly.filter((hour) => hour.time.startsWith(day.date));
+    assert.equal(hours.length, 24);
+    assert.ok(hours.every((hour) => hour.source === day.source));
+  }
+  const { buildWeatherTimeline } = loadTs("features/weather/lib/build-weather-timeline.ts");
+  assert.equal(buildWeatherTimeline(weather, reportEpoch * 1000)[0].temperature, primary.current.temperature);
+});
+
+test("extension failure retains a usable primary report; a paid ten-day response needs no second provider", async (t) => {
+  setKey(t, "test-key-only");
+  t.mock.method(Date, "now", () => reportEpoch * 1000);
+  const primary = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const partial = await aggregator(async () => { throw new Error("private upstream failure"); }, async () => primary)(coordinates);
+  assert.equal(partial.current, primary.current);
+  assert.equal(partial.currentStatus, "primary");
+  assert.deepEqual(partial.daily, primary.daily);
+  assert.equal(partial.forecastExtensionStatus, "unavailable");
+  assert.ok(!JSON.stringify(partial).includes("private upstream"));
+  const paid = { ...primary, daily: tenDayModel().daily.map((day) => ({ ...day, source: "weatherapi" })) };
+  let calls = 0;
+  const complete = await aggregator(async () => { calls++; }, async () => paid)(coordinates);
+  assert.equal(calls, 0); assert.equal(complete.daily.length, 10);
+  assert.equal(complete.forecastExtensionStatus, undefined);
+});
+
+test("hybrid dates use the farm calendar at midnight, reject a different timezone and never pad gaps", () => {
+  const { extendWeatherForecast, forecastDateWindow } = loadTs("features/weather/lib/extend-weather-forecast.ts");
+  const primary = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const model = tenDayModel();
+  const midnight = Date.parse("2026-09-07T20:30:00Z"); // September 8 in Qazvin.
+  const dates = forecastDateWindow(primary.timezone, midnight);
+  assert.equal(dates[0], "2026-09-08"); assert.equal(dates[9], "2026-09-17");
+  const afterMidnight = extendWeatherForecast(primary, model, midnight);
+  assert.equal(afterMidnight.daily[0].date, "2026-09-08");
+  assert.equal(afterMidnight.daily.length, 9); // September 17 is not in this fixture.
+  assert.equal(afterMidnight.forecastExtensionStatus, "unavailable");
+  assert.ok(afterMidnight.hourly.every((hour) => hour.time >= "2026-09-08"));
+  const wrongZone = extendWeatherForecast(primary, { ...model, timezone: "UTC" }, reportEpoch * 1000);
+  assert.deepEqual(wrongZone.daily, primary.daily);
+  const withGap = { ...model, daily: model.daily.filter((day) => day.date !== "2026-09-12") };
+  const gap = extendWeatherForecast(primary, withGap, reportEpoch * 1000);
+  assert.equal(gap.daily.length, 9);
+  assert.ok(!gap.hourly.some((hour) => hour.time.startsWith("2026-09-12")));
+});
+
+test("an overnight provider boundary retains absolute hourly spacing and a visible break in the chart", () => {
+  const { extendWeatherForecast } = loadTs("features/weather/lib/extend-weather-forecast.ts");
+  const { nightForecast, weatherChartPoints } = loadTs("features/weather/lib/weather-presentation.ts");
+  const { linePath } = loadTs("features/weather/lib/weather-chart.ts");
+  const weather = extendWeatherForecast(parseWeatherApiForecast(forecastPayload(), coordinates), tenDayModel(), reportEpoch * 1000);
+  const hours = nightForecast(weather, reportEpoch * 1000, "2026-09-09");
+  assert.equal(hours[0].time, "2026-09-09T20:00");
+  assert.equal(hours.at(-1).time, "2026-09-10T05:00");
+  const points = weatherChartPoints(hours, "overnight");
+  points.slice(1).forEach((point, index) => assert.equal(point.position - points[index].position, 3600));
+  assert.equal(points[3].source, "weatherapi"); assert.equal(points[4].source, "open-meteo");
+  assert.equal(linePath(points, "value", (index) => index, (value) => value).match(/M/g).length, 2);
+});
+
+test("extended daily rows and detail charts identify the actual provider and rainfall period", () => {
+  const React = localRequire("react");
+  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { extendWeatherForecast } = loadTs("features/weather/lib/extend-weather-forecast.ts");
+  const { WeatherForecastOverview } = loadTs("features/weather/components/weather-forecast-overview/index.tsx");
+  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const weather = extendWeatherForecast(parseWeatherApiForecast(forecastPayload(), coordinates), tenDayModel(), reportEpoch * 1000);
+  const render = (component, props) => renderToStaticMarkup(React.createElement(component, props)).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+  const overview = render(WeatherForecastOverview, { weather, asOf: reportEpoch * 1000, onOpen() {} });
+  assert.match(overview, /10-day forecast/); assert.match(overview, /WeatherAPI \+ Open-Meteo/);
+  const detail = (date, metric = "precipitation") => render(WeatherDetail, {
+    weather, asOf: reportEpoch * 1000, selection: { date, metric }, onSelection() {},
+  });
+  assert.match(detail("2026-09-07"), /Full-day forecast · 2026-09-07.*21\.0 mm/);
+  assert.doesNotMatch(detail("2026-09-07"), /preceding hour/);
+  assert.match(detail("2026-09-10"), /Full-day forecast · 2026-09-10.*0\.4 mm/);
+  assert.match(detail("2026-09-10"), /Hourly forecast · Open-Meteo/);
+  assert.match(detail("2026-09-10"), /preceding hour/);
+  assert.match(detail("2026-09-09", "overnight"), /night spans two forecast providers/);
+});
+
+test("Open-Meteo Unix hours retain DST instants and extension caching changes at local midnight", async (t) => {
+  const time = [Date.parse("2026-11-01T05:00Z") / 1000, Date.parse("2026-11-01T06:00Z") / 1000];
+  const hourFields = ["temperature_2m", "apparent_temperature", "relative_humidity_2m", "dew_point_2m", "precipitation_probability", "precipitation", "rain", "showers", "snowfall", "weather_code", "is_day", "cloud_cover", "visibility", "pressure_msl", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"];
+  const dayFields = ["temperature_2m_max", "temperature_2m_min", "apparent_temperature_max", "apparent_temperature_min", "precipitation_probability_max", "precipitation_sum", "rain_sum", "showers_sum", "snowfall_sum", "weather_code", "wind_speed_10m_max", "wind_gusts_10m_max", "wind_direction_10m_dominant", "uv_index_max"];
+  const raw = {
+    timezone: "America/New_York", timezone_abbreviation: "EDT", utc_offset_seconds: -14400, elevation: 10,
+    current: { time: time[0], interval: 900, temperature_2m: 22, apparent_temperature: 24, relative_humidity_2m: 80,
+      weather_code: 61, pressure_msl: 1014, wind_speed_10m: 10, wind_direction_10m: 180, wind_gusts_10m: 20 },
+    hourly: { ...Object.fromEntries(hourFields.map((field) => [field, [1, 2]])), time },
+    daily: { ...Object.fromEntries(dayFields.map((field) => [field, [1]])), time: [Date.parse("2026-11-01T04:00Z") / 1000],
+      sunrise: [Date.parse("2026-11-01T11:30Z") / 1000], sunset: [Date.parse("2026-11-01T22:00Z") / 1000] },
+  };
+  const requests = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => { requests.push({ url: new URL(url), options }); return Response.json(raw); });
+  const { getOpenMeteoWeather } = loadTs("features/weather/services/open-meteo-service.ts");
+  const weather = await getOpenMeteoWeather(coordinates, { forecastExtension: true, timezone: raw.timezone, asOf: time[0] * 1000 });
+  assert.equal(weather.current.time, "2026-11-01T05:00:00.000Z");
+  assert.deepEqual(weather.hourly.map((hour) => hour.time), ["2026-11-01T01:00", "2026-11-01T01:00"]);
+  assert.deepEqual(weather.hourly.map((hour) => hour.timeEpoch), time);
+  assert.equal(weather.daily[0].date, "2026-11-01");
+  assert.equal(weather.daily[0].sunrise, "2026-11-01T06:30");
+  assert.ok(weather.hourly.every((hour) => hour.source === "open-meteo"));
+  assert.equal(requests[0].url.searchParams.get("timeformat"), "unixtime");
+  assert.equal(requests[0].url.searchParams.get("timezone"), raw.timezone);
+  assert.equal(requests[0].url.searchParams.get("start_date"), "2026-11-01");
+  assert.equal(requests[0].url.searchParams.get("end_date"), "2026-11-10");
+  assert.equal(requests[0].options.cache, "force-cache");
+  assert.equal(requests[0].options.next.revalidate, 1800);
+  await getOpenMeteoWeather(coordinates, { forecastExtension: true, timezone: raw.timezone, asOf: Date.parse("2026-11-02T05:00Z") });
+  assert.equal(requests[1].url.searchParams.get("start_date"), "2026-11-02");
+  await getOpenMeteoWeather(coordinates);
+  assert.equal(requests[2].options.cache, "no-store");
+  assert.equal(requests[2].options.next, undefined);
+});
+
 test("WeatherAPI preserves thunder, native label, report time, units and missing fields", () => {
   const { current } = parseWeatherApiCurrent(payload());
   assert.equal(current.condition.condition, "thunderstorm");
@@ -113,13 +266,15 @@ test("WeatherAPI request uses exact coordinates on the server without cache", as
   assert.ok(!JSON.stringify(data).includes("test-key-only"));
 });
 
-test("one WeatherAPI response supplies current, hourly and daily data without a model request", async (t) => {
+test("an incomplete extension keeps WeatherAPI current, hourly and daily readings intact", async (t) => {
   setKey(t, "test-key-only");
+  t.mock.method(Date, "now", () => reportEpoch * 1000);
   const report = parseWeatherApiForecast(forecastPayload(), coordinates);
   let modelCalls = 0;
   const data = await aggregator(async () => { modelCalls++; return modelWeather(); }, async () => report)(coordinates);
-  assert.equal(modelCalls, 0);
-  assert.equal(data, report);
+  assert.equal(modelCalls, 1);
+  assert.equal(data.current, report.current);
+  assert.equal(data.forecastExtensionStatus, "unavailable");
   assert.equal(data.currentStatus, "primary");
   assert.equal(data.current.source, "weatherapi");
   assert.equal(data.forecastSource, "weatherapi");

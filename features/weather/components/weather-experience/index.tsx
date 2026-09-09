@@ -76,7 +76,7 @@ export function WeatherExperience() {
           <button type="button" className={styles.action} onClick={refresh}><RefreshCw size={18} />Try again</button>
         </section> : <>
           <section className={styles.hero} aria-label="Current conditions">
-            <p className={styles.locationLabel}><MapPin size={14} />{farm.type === "garden" ? "MY GARDEN" : "MY FARM"}</p>
+            <p className={styles.locationLabel}><MapPin size={14} />{farm.location?.trim() || `${farm.coordinates.latitude.toFixed(3)}, ${farm.coordinates.longitude.toFixed(3)}`}</p>
             <h1>{farm.name}</h1>
             <p className={styles.heroTemperature} data-weather-temperature="current">{temperature(weather.current.temperature)}</p>
             <p className={styles.heroCondition}>{weather.current.condition.label}</p>
@@ -97,7 +97,8 @@ export function WeatherExperience() {
           <WeatherForecastOverview weather={weather} asOf={asOf} onOpen={openDetail} />
           <WeatherMetricGrid weather={weather} asOf={asOf} onOpen={openDetail} />
           <footer className={styles.sourceFooter}>
-            <p>Weather data by <a href={weather.forecastSource === "weatherapi" ? "https://www.weatherapi.com/" : "https://open-meteo.com/"} target="_blank" rel="noreferrer">{sourceName(weather)}</a> · {weather.timezone}</p>
+            <p>Weather data by <a href={weather.forecastSource === "weatherapi" ? "https://www.weatherapi.com/" : "https://open-meteo.com/"} target="_blank" rel="noreferrer">{sourceName(weather)}</a>
+              {weather.forecastSource === "weatherapi" && weather.daily.some((day) => day.source === "open-meteo") && <> + <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a></>} · {weather.timezone}</p>
             <p>Checks every 5 minutes while visible. Last checked {weatherClock(localTime)}.</p>
             <p>Forecast totals are estimates. Measured daily rainfall requires local observations.</p>
           </footer>
@@ -127,7 +128,7 @@ export function WeatherExperience() {
         </div>
         <div className={styles.farmListFooter}>
           <p>{farms.length ? `${farms.length} saved ${farms.length === 1 ? "location" : "locations"}` : "No farms or gardens yet"}</p>
-          <Link href="/farms/new" className={styles.action}><Plus size={18} />Add location</Link>
+          <Link href="/farms/new" className={styles.action}><Plus size={18} />Add farm</Link>
         </div>
       </WeatherSheet>}
       {sheet && sheet !== "farms" && weather && <WeatherSheet title={WEATHER_METRICS[sheet.metric].title} subtitle={`${farm?.name} · ${weather.timezone}`} onClose={closeSheet}>

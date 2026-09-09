@@ -17,7 +17,9 @@ export function linePath(points: WeatherChartPoint[], field: "value" | "secondar
   return points.map((point, index) => {
     const value = point[field];
     if (value === null || !Number.isFinite(value)) { connected = false; return ""; }
-    const command = connected ? "L" : "M";
+    // A model boundary is a change of forecast, not a measured temperature jump.
+    const sameSource = index === 0 || points[index - 1].source === point.source;
+    const command = connected && sameSource ? "L" : "M";
     connected = true;
     return `${command}${x(index).toFixed(2)},${y(value).toFixed(2)}`;
   }).join(" ");

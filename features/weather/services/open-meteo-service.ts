@@ -1,6 +1,7 @@
 import "server-only";
 
 import { normalizeWeatherCode } from "@/features/weather/lib/normalize-weather";
+import { forecastDateWindow } from "@/features/weather/lib/extend-weather-forecast";
 import type {
   WeatherCoordinates,
   WeatherData,
@@ -11,6 +12,7 @@ const OPEN_METEO_URL =
 
 export async function getOpenMeteoWeather(
   coordinates: WeatherCoordinates,
+  options: { forecastExtension?: boolean; timezone?: string; asOf?: number } = {},
 ): Promise<WeatherData> {
   const params = new URLSearchParams({
     latitude: String(coordinates.latitude),
@@ -80,14 +82,24 @@ export async function getOpenMeteoWeather(
     wind_speed_unit: "kmh",
     precipitation_unit: "mm",
 
-    timezone: "auto",
+    timezone: options.timezone ?? "auto",
+    timeformat: "unixtime",
 
     forecast_days: "10",
   });
+  if (options.forecastExtension && options.timezone) {
+    const dates = forecastDateWindow(options.timezone, options.asOf ?? Date.now());
+    // Changing the local date changes the cache key immediately at midnight.
+    params.delete("forecast_days");
+    params.set("start_date", dates[0]);
+    params.set("end_date", dates[9]);
+  }
 
   const response = await fetch(
     `${OPEN_METEO_URL}?${params.toString()}`,
-    { cache: "no-store", signal: AbortSignal.timeout(10000) },
+    options.forecastExtension
+      ? { cache: "force-cache", next: { revalidate: 1800 }, signal: AbortSignal.timeout(4000) }
+      : { cache: "no-store", signal: AbortSignal.timeout(10000) },
   );
 
   if (!response.ok) {
@@ -100,7 +112,7 @@ export async function getOpenMeteoWeather(
 
   if (
     !data.current ||
-    typeof data.current.time !== "string" ||
+    !(typeof data.current.time === "string" || Number.isFinite(data.current.time)) ||
     !Number.isFinite(data.utc_offset_seconds) ||
     ![
       data.current.temperature_2m,
@@ -118,10 +130,22 @@ export async function getOpenMeteoWeather(
     throw new Error("Invalid Open-Meteo response.");
   }
 
-  // Open-Meteo returns local wall-clock strings when timezone=auto.
-  const currentTime = new Date(
-    Date.parse(`${data.current.time}Z`) - data.utc_offset_seconds * 1000,
-  ).toISOString();
+  // Unix timestamps remain UTC even with a local timezone. Format each instant
+  // in that zone so DST changes and half-hour offsets agree with WeatherAPI.
+  const formatter = new Intl.DateTimeFormat("en", {
+    timeZone: data.timezone, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  });
+  const localTime = (value: number | string): string => {
+    if (typeof value === "string") return value;
+    const parts = formatter.formatToParts(value * 1000);
+    const part = (name: string) => parts.find((entry) => entry.type === name)?.value;
+    return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+  };
+  // Keep compatibility with older ISO responses while requesting Unix in production.
+  const epoch = (value: number | string) => typeof value === "number" ? value
+    : Date.parse(`${value}Z`) / 1000 - data.utc_offset_seconds;
+  const currentTime = new Date(epoch(data.current.time) * 1000).toISOString();
 
   return {
     coordinates,
@@ -199,8 +223,10 @@ export async function getOpenMeteoWeather(
     },
 
     hourly: data.hourly.time.map(
-      (time: string, index: number) => ({
-        time,
+      (time: number | string, index: number) => ({
+        time: localTime(time),
+        timeEpoch: epoch(time),
+        source: "open-meteo" as const,
 
         temperature:
           data.hourly.temperature_2m[index],
@@ -260,8 +286,9 @@ export async function getOpenMeteoWeather(
     ),
 
     daily: data.daily.time.map(
-      (date: string, index: number) => ({
-        date,
+      (date: number | string, index: number) => ({
+        date: localTime(date).slice(0, 10),
+        source: "open-meteo" as const,
 
         temperatureMax:
           data.daily.temperature_2m_max[index],
@@ -311,10 +338,10 @@ export async function getOpenMeteoWeather(
             ],
 
         sunrise:
-          data.daily.sunrise[index],
+          data.daily.sunrise?.[index] ? localTime(data.daily.sunrise[index]) : null,
 
         sunset:
-          data.daily.sunset[index],
+          data.daily.sunset?.[index] ? localTime(data.daily.sunset[index]) : null,
 
         uvIndexMax:
           data.daily.uv_index_max[index],

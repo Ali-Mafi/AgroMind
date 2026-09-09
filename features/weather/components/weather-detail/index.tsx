@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { WeatherChart } from "../weather-chart";
 import { DaylightGraphic } from "../weather-metric-grid";
 import { normalizeWindDirection } from "@/features/weather/lib/normalize-weather";
 import {
-  WEATHER_METRICS, chanceLabel, daylightMinutes, durationLabel, forecastDays,
+  WEATHER_METRICS, chanceLabel, daylightMinutes, durationLabel, forecastDays, forecastSourceNames,
   localWeatherTime, nightForecast, rainAmount, sourceName, temperature, weatherChartPoints,
   weatherClock, weatherDayLabel,
 } from "@/features/weather/lib/weather-presentation";
@@ -47,9 +47,9 @@ function CurrentReading({ weather, metric }: { weather: WeatherData; metric: Wea
 function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "onSelection">) {
   const { metric, date, hour: initialHour } = selection;
   const day = weather.daily.find((entry) => entry.date === date);
-  const hours = metric === "overnight" ? nightForecast(weather, asOf, date)
-    : weather.hourly.filter((hour) => hour.time.startsWith(date));
-  const points = weatherChartPoints(hours, metric);
+  const hours = useMemo(() => metric === "overnight" ? nightForecast(weather, asOf, date)
+    : weather.hourly.filter((hour) => hour.time.startsWith(date)), [weather, asOf, date, metric]);
+  const points = useMemo(() => weatherChartPoints(hours, metric), [hours, metric]);
   const [selectedIndex, setSelectedIndex] = useState(() => {
     const exact = initialHour ? hours.findIndex((hour) => hour.time === initialHour) : -1;
     if (exact >= 0) return exact;
@@ -69,7 +69,7 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
     <CurrentReading weather={weather} metric={metric} />
     {selected && <div className={styles.selectedReading}>
       <div>
-        <p>{weatherClock(selected.time)}{selected.time.slice(0, 10) !== date ? ` · ${weatherDayLabel(selected.time.slice(0, 10))}` : ""} · Hourly forecast</p>
+        <p>{weatherClock(selected.time)}{selected.time.slice(0, 10) !== date ? ` · ${weatherDayLabel(selected.time.slice(0, 10))}` : ""} · Hourly forecast · {sourceName(weather, hour)}</p>
         <strong className={styles.selectedValue}>{reading(selected.value, metric)} <small>{WEATHER_METRICS[metric].unit}</small></strong>
       </div>
       <div className={styles.selectedAside}>
@@ -118,8 +118,9 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
     </div>}
 
     <p className={styles.detailExplanation}>{WEATHER_METRICS[metric].description}</p>
-    {metric === "precipitation" && weather.forecastSource === "open-meteo" && <p className={styles.detailNote}>Each hourly timestamp marks the end of the preceding hour&apos;s precipitation amount.</p>}
-    <p className={styles.detailNote}>{sourceName(weather)} · {weather.timezone} · Earlier hours on this chart remain forecasts.</p>
+    {metric === "precipitation" && (day?.source ?? weather.forecastSource) === "open-meteo" && <p className={styles.detailNote}>Each hourly timestamp marks the end of the preceding hour&apos;s precipitation amount.</p>}
+    <p className={styles.detailNote}>{forecastSourceNames(weather, hours)} · {weather.timezone} · Earlier hours on this chart remain forecasts.</p>
+    {new Set(hours.map((entry) => entry.source ?? weather.forecastSource)).size > 1 && <p className={styles.detailNote}>This night spans two forecast providers. Lines stop at the provider change; each reading shows its source.</p>}
 
     {points.length > 0 && <details className={styles.dataDisclosure}>
       <summary>View hourly values</summary>
@@ -130,6 +131,7 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
             {showSecondary && <th scope="col">{secondaryLabel}</th>}
             {metric === "precipitation" && <th scope="col">Chance</th>}
             {metric === "wind" && <th scope="col">From</th>}
+            <th scope="col">Source</th>
           </tr></thead>
           <tbody>{points.map((point, row) => <tr key={point.key} aria-selected={row === index}>
             <th scope="row">{metric === "overnight" ? `${point.time.slice(5, 10)} ` : ""}{weatherClock(point.time)}{hours[row].timeEpoch !== undefined && <span className="sr-only"> {new Date(hours[row].timeEpoch! * 1000).toISOString()}</span>}</th>
@@ -137,6 +139,7 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
             {showSecondary && <td>{reading(point.secondary, metric)}</td>}
             {metric === "precipitation" && <td>{hours[row].precipitationProbability !== null ? `${Math.round(hours[row].precipitationProbability!)}% ${chanceLabel(hours[row].precipitationProbabilityKind).replace(" chance", "")}` : "—"}</td>}
             {metric === "wind" && <td>{normalizeWindDirection(hours[row].windDirection).cardinal}</td>}
+            <td>{sourceName(weather, hours[row])}</td>
           </tr>)}</tbody>
         </table>
       </div>
@@ -171,11 +174,11 @@ export function WeatherDetail({ weather, asOf, selection, onSelection }: Weather
         <div className={styles.detailStat}><span>Sunset</span><strong>{weatherClock(day?.sunset ?? null)}</strong></div>
       </div>
       <p className={styles.detailExplanation}>{WEATHER_METRICS.daylight.description}</p>
-      <p className={styles.detailNote}>{sourceName(weather)} · {weather.timezone}</p>
+      <p className={styles.detailNote}>{sourceName(weather, day)} · {weather.timezone}</p>
       <div className={styles.tableWrap}><table className={styles.dataTable}>
         <caption className="sr-only">Daily sunrise, sunset and daylight at this farm</caption>
-        <thead><tr><th scope="col">Day</th><th scope="col">Sunrise</th><th scope="col">Sunset</th><th scope="col">Duration</th></tr></thead>
-        <tbody>{days.map((entry) => <tr key={entry.date}><th scope="row">{weatherDayLabel(entry.date, todayKey)}</th><td>{weatherClock(entry.sunrise)}</td><td>{weatherClock(entry.sunset)}</td><td>{durationLabel(daylightMinutes(entry))}</td></tr>)}</tbody>
+        <thead><tr><th scope="col">Day</th><th scope="col">Sunrise</th><th scope="col">Sunset</th><th scope="col">Duration</th><th scope="col">Source</th></tr></thead>
+        <tbody>{days.map((entry) => <tr key={entry.date}><th scope="row">{weatherDayLabel(entry.date, todayKey)}</th><td>{weatherClock(entry.sunrise)}</td><td>{weatherClock(entry.sunset)}</td><td>{durationLabel(daylightMinutes(entry))}</td><td>{sourceName(weather, entry)}</td></tr>)}</tbody>
       </table></div>
     </div> : <HourlyDetail key={`${weather.forecastSource}-${selection.metric}-${date}-${selection.hour ?? ""}`}
       weather={weather} asOf={asOf} selection={{ ...selection, date }} />}

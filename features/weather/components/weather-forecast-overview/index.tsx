@@ -1,16 +1,16 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import { CalendarDays, ChevronRight, Clock3, Sprout } from "lucide-react";
 import { WeatherIcon } from "../weather-icon";
 import { buildWeatherTimeline } from "@/features/weather/lib/build-weather-timeline";
 import {
-  chanceLabel, fieldOutlook, forecastDays, localWeatherTime, nextNight,
+  chanceLabel, fieldOutlook, forecastDays, forecastSourceNames, localWeatherTime, nextNight,
   rainAmount, sourceName, temperature, upcomingHours, weatherClock, weatherDayLabel,
 } from "@/features/weather/lib/weather-presentation";
 import type { WeatherData } from "@/features/weather/types/weather";
 import type { WeatherDetailSelection } from "@/features/weather/types/weather-detail";
 import styles from "../weather-experience/weather-experience.module.css";
 
-export function WeatherForecastOverview({ weather, asOf, onOpen }: {
+export const WeatherForecastOverview = memo(function WeatherForecastOverview({ weather, asOf, onOpen }: {
   weather: WeatherData; asOf: number; onOpen: (selection: WeatherDetailSelection) => void;
 }) {
   const todayKey = localWeatherTime(weather.timezone, asOf).slice(0, 10);
@@ -66,7 +66,7 @@ export function WeatherForecastOverview({ weather, asOf, onOpen }: {
                 <button type="button" key={day.date} className={styles.day}
                   aria-label={`${weatherDayLabel(day.date, todayKey, true)}, ${day.condition.label}, low ${temperature(day.temperatureMin)}, high ${temperature(day.temperatureMax)}, forecast precipitation ${rainAmount(day.precipitationSum)} millimetres. Open daily details`}
                   onClick={() => onOpen({ metric: "temperature", date: day.date })}>
-                  <span className={styles.dayName}>{weatherDayLabel(day.date, todayKey)}</span>
+                  <span className={styles.dayName}>{weatherDayLabel(day.date, todayKey)}<small>{sourceName(weather, day)}</small></span>
                   <span className={styles.dayWeather}>
                     <WeatherIcon condition={day.condition.condition} className={styles.weatherIcon} />
                     {day.precipitationProbability !== null && day.precipitationProbability > 0 &&
@@ -84,7 +84,8 @@ export function WeatherForecastOverview({ weather, asOf, onOpen }: {
               );
             })}
           </div> : <p className={styles.detailNote}>Daily forecast is unavailable.</p>}
-          <p className={styles.dailyNote}>{sourceName(weather)} · All times are local to this farm.</p>
+          <p className={styles.dailyNote}>{forecastSourceNames(weather, days)} · All times are local to this farm.</p>
+          {weather.forecastExtensionStatus === "unavailable" && <p className={styles.detailNote}>The extended forecast is temporarily unavailable. Showing {days.length} available days.</p>}
         </section>
 
         <section className={`${styles.glass} ${styles.fieldPanel}`} aria-label="Field outlook">
@@ -101,4 +102,4 @@ export function WeatherForecastOverview({ weather, asOf, onOpen }: {
       </div>
     </>
   );
-}
+});

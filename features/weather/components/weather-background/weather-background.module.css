@@ -4,6 +4,8 @@
   overflow: hidden;
   pointer-events: none;
   isolation: isolate;
+  contain: strict;
+  transform: translateZ(0);
   background: linear-gradient(180deg, #526b7b, #294454 55%, #1a3345);
 }
 .day[data-weather-state^="clear-"] { background: linear-gradient(180deg, #448ac0, #6dabc9 55%, #397394); }
@@ -21,5 +23,5 @@
 .atmosphere { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9, 30, 49, .06), transparent 42%, rgba(8, 25, 41, .16)); }
 .night .atmosphere { background: linear-gradient(180deg, rgba(2, 8, 21, .17), rgba(2, 9, 21, .12) 42%, rgba(1, 5, 17, .25)); }
 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 25%, transparent 40%, rgba(7, 20, 35, .18) 100%); }
-.particles { position: absolute; inset: 0; width: 100%; height: 100%; contain: strict; pointer-events: none; }
+.particles { position: absolute; inset: 0; width: 100%; height: 100%; contain: strict; pointer-events: none; transform: translateZ(0); }
 @media (prefers-reduced-motion: reduce) { .particles { display: none; } }
