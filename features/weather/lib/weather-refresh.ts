@@ -20,6 +20,7 @@ export function subscribeToWeather(
   let disposed = false;
   let request: AbortController | null = null;
   let lastAttempt: number | null = null;
+  let reconnectPending = false;
   let state: WeatherRefreshState = {
     weather: null,
     isLoading: true,
@@ -34,12 +35,15 @@ export function subscribeToWeather(
     if (!disposed) onChange(state);
   }
 
+  // Connectivity may change while the awaited request is running.
+  const isOffline = () => navigator.onLine === false;
+
   async function load(force = false) {
     if (disposed || request || document.visibilityState === "hidden") return;
-    if (navigator.onLine === false) {
+    if (isOffline()) {
       update(state.weather
-        ? { refreshError: "Offline. Showing the last received report." }
-        : { isLoading: false, error: "You are offline. Reconnect to load weather." });
+        ? { refreshError: "Offline. Showing the last received report.", checkedAt: Date.now() }
+        : { isLoading: false, error: "You are offline. Reconnect to load weather.", checkedAt: Date.now() });
       return;
     }
     if (!force && lastAttempt !== null && Date.now() - lastAttempt < WEATHER_REFRESH_INTERVAL_MS) return;
@@ -57,30 +61,48 @@ export function subscribeToWeather(
 
     try {
       const weather = await getWeather(coordinates, controller.signal);
-      if (!disposed) update({ weather, error: null, refreshError: null });
+      if (!disposed && !controller.signal.aborted) update({ weather, error: null, refreshError: null });
     } catch {
-      if (!disposed) update(state.weather
-        ? { refreshError: "Could not refresh. Showing the last received report." }
-        : { error: "Unable to load weather data. Please try again." });
+      if (!disposed) {
+        if (isOffline()) showOffline();
+        else update(state.weather
+          ? { refreshError: "Could not refresh. Showing the last received report." }
+          : { error: "Unable to load weather data. Please try again." });
+      }
     } finally {
       clearTimeout(timeout);
       request = null;
       if (!disposed) update({ isLoading: false, isRefreshing: false, checkedAt: Date.now() });
+      if (!disposed && reconnectPending) {
+        reconnectPending = false;
+        void load(true);
+      }
     }
   }
 
   const refresh = () => { void load(true); };
   const refreshIfDue = () => { void load(); };
-  const onOffline = () => {
+  function showOffline() {
     update(state.weather
-      ? { refreshError: "Offline. Showing the last received report." }
-      : { isLoading: false, error: "You are offline. Reconnect to load weather." });
+      ? { isRefreshing: false, refreshError: "Offline. Showing the last received report.", checkedAt: Date.now() }
+      : { isLoading: false, error: "You are offline. Reconnect to load weather.", checkedAt: Date.now() });
+  }
+  const onOffline = () => {
+    request?.abort();
+    showOffline();
+  };
+  const onOnline = () => {
+    // Reconnect can arrive before an aborted request settles, or while hidden.
+    // Retry as soon as possible without overlapping the previous request.
+    lastAttempt = null;
+    reconnectPending = request !== null;
+    refresh();
   };
 
   const timer = setInterval(refreshIfDue, WEATHER_REFRESH_INTERVAL_MS);
   document.addEventListener("visibilitychange", refreshIfDue);
   window.addEventListener("focus", refreshIfDue);
-  window.addEventListener("online", refresh);
+  window.addEventListener("online", onOnline);
   window.addEventListener("offline", onOffline);
   refresh();
 
@@ -92,7 +114,7 @@ export function subscribeToWeather(
       request?.abort();
       document.removeEventListener("visibilitychange", refreshIfDue);
       window.removeEventListener("focus", refreshIfDue);
-      window.removeEventListener("online", refresh);
+      window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     },
   };

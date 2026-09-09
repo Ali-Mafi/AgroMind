@@ -1,34 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import path from "node:path";
-import { createRequire } from "node:module";
 import { test } from "node:test";
-import ts from "typescript";
-
-const root = path.resolve(import.meta.dirname, "../../..");
-const localRequire = createRequire(path.join(root, "package.json"));
-
-// Use the project's installed TypeScript compiler; no test runner dependency.
-// server-only is a Next.js build marker, replaced only in this Node test loader.
-function loadTs(relative, mocks = {}, cache = new Map()) {
-  let filename = path.resolve(root, relative);
-  if (!existsSync(filename)) filename += ".ts";
-  if (cache.has(filename)) return cache.get(filename).exports;
-  const loadedModule = { exports: {} };
-  cache.set(filename, loadedModule);
-  const result = ts.transpileModule(readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
-  });
-  function requireModule(id) {
-    if (Object.hasOwn(mocks, id)) return mocks[id];
-    if (id === "server-only") return {};
-    if (id.startsWith("@/")) return loadTs(id.slice(2), mocks, cache);
-    if (id.startsWith(".")) return loadTs(path.resolve(path.dirname(filename), id), mocks, cache);
-    return localRequire(id);
-  }
-  new Function("require", "module", "exports", result.outputText)(requireModule, loadedModule, loadedModule.exports);
-  return loadedModule.exports;
-}
+import { loadTs, localRequire } from "./helpers/load-ts.mjs";
 
 const coordinates = { latitude: 36.27, longitude: 50.01 };
 const reportEpoch = Date.parse("2026-09-07T07:15:00Z") / 1000;
@@ -57,7 +29,7 @@ function forecastPayload() {
       hour: Array.from({ length: 24 }, (_, hour) => {
         const time = `${date} ${String(hour).padStart(2, "0")}:00`;
         return { ...data.current, time, time_epoch: Date.parse(time.replace(" ", "T") + ":00+03:30") / 1000,
-          temp_c: hour === 10 ? 28 : 25, feelslike_c: 29, wind_kph: 19,
+          temp_c: hour === 10 ? 28 : 25, feelslike_c: 29, wind_kph: 19, is_day: hour >= 6 && hour < 20 ? 1 : 0,
           chance_of_rain: "65", chance_of_snow: "0", snow_cm: 0,
           condition: { code: 1003, text: "Partly cloudy" } };
       }),
@@ -409,4 +381,215 @@ test("the rendered Now card matches the main temperature while future cards keep
   assert.match(nextCard, /Rain 65%/);
   const old = renderToStaticMarkup(React.createElement(HourlyForecast, { weather, checkedAt: reportEpoch * 1000 + 3600000 }));
   assert.match(old, />Last report</);
+});
+
+test("display horizon uses available local dates and never invents ten forecast days", () => {
+  const { forecastDays, localWeatherTime } = loadTs("features/weather/lib/weather-presentation.ts");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  assert.equal(forecastDays(weather, reportEpoch * 1000).length, 3);
+  const midnight = Date.parse("2026-09-07T21:00:00Z");
+  assert.equal(localWeatherTime("Asia/Tehran", midnight), "2026-09-08T00:30");
+  assert.deepEqual(forecastDays(weather, midnight).map((day) => day.date), ["2026-09-08", "2026-09-09"]);
+  assert.deepEqual(forecastDays(weather, Date.parse("2026-09-11T00:00Z")), []);
+});
+
+test("sparse hourly data does not extend the next-day outlook and repeated local hours keep their epoch", () => {
+  const { upcomingHours } = loadTs("features/weather/lib/weather-presentation.ts");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const base = weather.hourly[0];
+  weather.hourly = [
+    { ...base, timeEpoch: undefined, time: "2026-09-07T11:00" },
+    { ...base, timeEpoch: undefined, time: "2026-09-09T11:00" },
+  ];
+  assert.equal(upcomingHours(weather, reportEpoch * 1000).length, 1);
+  weather.timezone = "America/New_York";
+  weather.hourly = [
+    { ...base, time: "2026-11-01T01:00", timeEpoch: Date.parse("2026-11-01T05:00Z") / 1000 },
+    { ...base, time: "2026-11-01T01:00", timeEpoch: Date.parse("2026-11-01T06:00Z") / 1000 },
+  ];
+  const remaining = upcomingHours(weather, Date.parse("2026-11-01T05:30Z"));
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].timeEpoch, Date.parse("2026-11-01T06:00Z") / 1000);
+});
+
+test("night outlook stops at the following day and missing daylight stays unavailable", () => {
+  const { nextNight, daylightMinutes, durationLabel } = loadTs("features/weather/lib/weather-presentation.ts");
+  const sample = (isDay, temperature) => ({ isDay, temperature });
+  const sequence = [sample(true, 25), sample(false, 4), sample(false, -1), sample(true, 12), sample(false, -10)];
+  assert.deepEqual(nextNight(sequence).map((hour) => hour.temperature), [4, -1]);
+  assert.deepEqual(nextNight([sample(true, 25)]), []);
+  assert.equal(daylightMinutes({ sunrise: null, sunset: null }), null);
+  assert.equal(durationLabel(null), "—");
+  assert.equal(daylightMinutes({ sunrise: "2026-09-07T06:15", sunset: "2026-09-07T19:20" }), 785);
+  assert.equal(durationLabel(785), "13h 5m");
+});
+
+test("night detail includes the next morning's minimum and agrees with the card", () => {
+  const { nightForecast, nextNight, upcomingHours } = loadTs("features/weather/lib/weather-presentation.ts");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  weather.hourly.find((hour) => hour.time === "2026-09-08T04:00").temperature = -2;
+  const card = nextNight(upcomingHours(weather, reportEpoch * 1000));
+  const chart = nightForecast(weather, reportEpoch * 1000, "2026-09-07");
+  assert.deepEqual(chart, card);
+  assert.equal(Math.min(...chart.map((hour) => hour.temperature)), -2);
+  assert.ok(chart.some((hour) => hour.time === "2026-09-08T04:00"));
+  assert.ok(chart.every((hour) => !hour.isDay));
+});
+
+test("charts retain missing samples and forecast values instead of substituting current readings", () => {
+  const { weatherChartPoints, rainAmount, fieldOutlook } = loadTs("features/weather/lib/weather-presentation.ts");
+  const { linePath } = loadTs("features/weather/lib/weather-chart.ts");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  weather.hourly[1].precipitation = null;
+  const before = structuredClone(weather);
+  const temperaturePoints = weatherChartPoints(weather.hourly, "temperature");
+  assert.equal(temperaturePoints[10].value, 28);
+  assert.equal(weather.current.temperature, 22);
+  const rain = weatherChartPoints(weather.hourly.slice(0, 3), "precipitation");
+  assert.equal(rain[1].value, null);
+  assert.equal((linePath(rain, "value", (index) => index, (value) => value).match(/M/g) ?? []).length, 2);
+  assert.equal(rainAmount(null), "—"); assert.equal(rainAmount(0), "0.0"); assert.equal(rainAmount(0.04), "<0.1");
+  const missing = weather.hourly.slice(0, 2).map((hour) => ({ ...hour, precipitation: null }));
+  assert.match(fieldOutlook(missing), /unavailable/);
+  assert.doesNotMatch(fieldOutlook(missing), /No measurable/);
+  assert.deepEqual(weather, before);
+});
+
+test("storm backgrounds try rainy and cloudy assets without a clear-sky fallback", () => {
+  const { weatherBackgroundCandidates: candidates } = loadTs("features/weather/lib/weather-background-assets.ts", {
+    "./resolve-weather-background": { resolveWeatherBackground: () => "/weather/backgrounds/clear-day.png" },
+  });
+  assert.ok(candidates("storm-day").includes("/weather/backgrounds/cloudy-day.webp"));
+  assert.ok(candidates("heavy-rain-night").includes("/weather/backgrounds/rain-night.webp"));
+  assert.ok(!candidates("storm-day").some((url) => url.includes("clear-day")));
+  assert.deepEqual(candidates("unknown-day"), []);
+  const custom = loadTs("features/weather/lib/weather-background-assets.ts", {
+    "./resolve-weather-background": { resolveWeatherBackground: () => "/weather/backgrounds/my-clouds.png" },
+  }).weatherBackgroundCandidates;
+  assert.equal(custom("cloudy-day")[0], "/weather/backgrounds/my-clouds.webp");
+});
+
+test("redesigned forecast keeps Now consistent and labels only the available days", () => {
+  const React = localRequire("react");
+  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { WeatherForecastOverview } = loadTs("features/weather/components/weather-forecast-overview/index.tsx");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  const html = renderToStaticMarkup(React.createElement(WeatherForecastOverview, { weather, asOf: reportEpoch * 1000, onOpen: () => {} }));
+  const now = html.match(/<button[^>]*data-weather-kind="current"[\s\S]*?<\/button>/)[0];
+  assert.match(now, />Now</); assert.match(now, />22°</); assert.doesNotMatch(now, /28°/);
+  assert.match(html, /3-day forecast/); assert.doesNotMatch(html, /10-day/);
+});
+
+test("rain card and detail distinguish a four-millimetre daily forecast from a 0.4 report", () => {
+  const React = localRequire("react");
+  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { WeatherMetricGrid } = loadTs("features/weather/components/weather-metric-grid/index.tsx");
+  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  weather.daily[0].precipitationSum = 4;
+  weather.current.precipitation = 0.4;
+  const grid = renderToStaticMarkup(React.createElement(WeatherMetricGrid, { weather, asOf: reportEpoch * 1000, onOpen: () => {} }));
+  assert.match(grid, /Precipitation: 4\.0 mm\. Today&#x27;s total forecast/);
+  assert.doesNotMatch(grid, /Precipitation: 0\.4/);
+  assert.doesNotMatch(grid, /UV index|Visibility/);
+  const detail = renderToStaticMarkup(React.createElement(WeatherDetail, {
+    weather, asOf: reportEpoch * 1000, selection: { metric: "precipitation", date: "2026-09-07" }, onSelection: () => {},
+  }));
+  const text = detail.replace(/<[^>]*>/g, "");
+  assert.match(text, /Full-day forecast.*4\.0 mm/);
+  assert.match(text, /Measured daily totalUnavailable/);
+  assert.match(text, /Latest provider report: 0\.4 mm/);
+  assert.match(text, /does not specify this reading&#x27;s accumulation period/);
+  assert.doesNotMatch(text, /previous 15 minutes/);
+});
+
+test("detail charts and accessible tables render for every supported measurement", () => {
+  const React = localRequire("react");
+  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  for (const metric of ["temperature", "wind", "humidity", "dewPoint", "overnight", "pressure", "cloudCover", "daylight"]) {
+    const html = renderToStaticMarkup(React.createElement(WeatherDetail, {
+      weather, asOf: reportEpoch * 1000, selection: { metric, date: "2026-09-07" }, onSelection: () => {},
+    }));
+    assert.match(html, /<table/, metric);
+    assert.doesNotMatch(html, /NaN|Infinity/, metric);
+    if (metric === "dewPoint") assert.match(html, /No dew point forecast is available/);
+    else if (metric !== "daylight") assert.match(html, /type="range"/);
+    else { assert.match(html, /06:15/); assert.match(html, /19:20/); }
+  }
+});
+
+test("forecast day configuration is bounded and provider output is not padded", async (t) => {
+  const previous = process.env.WEATHERAPI_FORECAST_DAYS;
+  t.after(() => { if (previous === undefined) delete process.env.WEATHERAPI_FORECAST_DAYS; else process.env.WEATHERAPI_FORECAST_DAYS = previous; });
+  let requested;
+  t.mock.method(globalThis, "fetch", async (url) => { requested = new URL(url).searchParams.get("days"); return Response.json(forecastPayload()); });
+  const { getWeatherApiWeather } = loadTs("features/weather/services/weatherapi-service.ts");
+  process.env.WEATHERAPI_FORECAST_DAYS = "10";
+  const data = await getWeatherApiWeather(coordinates, "test-key-only");
+  assert.equal(requested, "10"); assert.equal(data.daily.length, 3);
+  process.env.WEATHERAPI_FORECAST_DAYS = "9999";
+  await getWeatherApiWeather(coordinates, "test-key-only");
+  assert.equal(requested, "3");
+});
+
+test("offline checks advance report age without rewriting the report timestamp", async (t) => {
+  const env = browser(t); let last;
+  const data = modelWeather();
+  const sub = subscription(async () => data, (state) => { last = state; });
+  env.addCleanup(sub.dispose); await flush();
+  env.navigator.onLine = false;
+  t.mock.timers.tick(35 * 60 * 1000); await flush();
+  assert.match(last.refreshError, /Offline/);
+  assert.ok(last.checkedAt - Date.parse(last.weather.current.time) >= 30 * 60 * 1000);
+  assert.equal(last.weather.current.time, data.current.time);
+});
+
+test("reconnect during a pending request retries immediately and ignores the aborted result", async (t) => {
+  const env = browser(t); let calls = 0; let finish; let signal; let last;
+  const sub = subscription((_coords, currentSignal) => {
+    calls++; signal = currentSignal;
+    return new Promise((resolve) => { finish = resolve; });
+  }, (state) => { last = state; });
+  env.addCleanup(sub.dispose);
+  env.navigator.onLine = false; env.window.dispatchEvent(new Event("offline"));
+  assert.equal(signal.aborted, true); assert.match(last.error, /offline/);
+  env.navigator.onLine = true; env.window.dispatchEvent(new Event("online"));
+  assert.equal(calls, 1);
+  finish(modelWeather()); await flush();
+  assert.equal(calls, 2); assert.equal(last.weather, null);
+  assert.equal(last.isLoading, true);
+  finish(modelWeather()); await flush();
+  assert.equal(last.error, null); assert.equal(last.isLoading, false);
+});
+
+test("reconnecting in a hidden tab refreshes on return even before the polling interval", async (t) => {
+  const env = browser(t); let calls = 0;
+  const sub = subscription(async () => { calls++; return modelWeather(); }, () => {});
+  env.addCleanup(sub.dispose); await flush();
+  env.document.visibilityState = "hidden";
+  env.navigator.onLine = false; env.window.dispatchEvent(new Event("offline"));
+  env.navigator.onLine = true; env.window.dispatchEvent(new Event("online"));
+  assert.equal(calls, 1);
+  env.document.visibilityState = "visible";
+  env.document.dispatchEvent(new Event("visibilitychange")); await flush();
+  assert.equal(calls, 2);
+});
+
+test("farm dashboard uses the same local daily rainfall total as the full weather page", () => {
+  const React = localRequire("react");
+  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  weather.current.precipitation = 0.4;
+  weather.daily[0].precipitationSum = 4;
+  const state = { weather, checkedAt: reportEpoch * 1000, isLoading: false, isRefreshing: false, refresh: () => {} };
+  const Dashboard = loadTs("features/weather/components/weather-dashboard/index.tsx", {
+    "@/features/weather/components/hooks/use-weather": { useWeather: () => state },
+  }).default;
+  const render = () => renderToStaticMarkup(React.createElement(Dashboard, { coordinates }));
+  assert.match(render(), /4\.0 mm/); assert.match(render(), /Today&#x27;s total forecast/);
+  assert.ok(!render().includes("0.4 mm"));
+  state.checkedAt += 3 * 86400000;
+  assert.match(render(), /Daily forecast unavailable/); assert.ok(!render().includes("4.0 mm"));
 });

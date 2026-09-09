@@ -15,8 +15,7 @@ interface RainDrop {
   length: number;
   speed: number;
   drift: number;
-  opacity: number;
-  width: number;
+  layer: 0 | 1 | 2;
 }
 
 interface RainProfile {
@@ -32,30 +31,30 @@ interface RainProfile {
 const RAIN_PROFILES: Record<RainIntensity, RainProfile> = {
   light: {
     densityDivisor: 16_000,
-    minDrops: 18,
-    maxDrops: 45,
+    minDrops: 22,
+    maxDrops: 50,
     length: [10, 17],
     speed: [520, 760],
-    opacity: [0.16, 0.28],
+    opacity: [0.18, 0.3],
     wind: -55,
   },
   moderate: {
-    densityDivisor: 8_500,
-    minDrops: 32,
-    maxDrops: 85,
-    length: [12, 22],
-    speed: [650, 940],
-    opacity: [0.2, 0.36],
-    wind: -72,
+    densityDivisor: 8_000,
+    minDrops: 40,
+    maxDrops: 100,
+    length: [13, 24],
+    speed: [680, 980],
+    opacity: [0.24, 0.42],
+    wind: -78,
   },
   heavy: {
-    densityDivisor: 5_000,
-    minDrops: 55,
-    maxDrops: 130,
-    length: [16, 29],
-    speed: [820, 1_180],
-    opacity: [0.24, 0.42],
-    wind: -92,
+    densityDivisor: 4_500,
+    minDrops: 70,
+    maxDrops: 160,
+    length: [18, 34],
+    speed: [850, 1_250],
+    opacity: [0.32, 0.58],
+    wind: -100,
   },
 };
 
@@ -70,6 +69,12 @@ function createDrop(
   fillViewport: boolean,
 ): RainDrop {
   const depth = randomBetween(0.45, 1);
+  const layer =
+    depth < 0.64
+      ? 0
+      : depth < 0.82
+        ? 1
+        : 2;
 
   return {
     x: randomBetween(-60, width + 60),
@@ -79,8 +84,7 @@ function createDrop(
     length: randomBetween(...profile.length) * depth,
     speed: randomBetween(...profile.speed) * depth,
     drift: profile.wind * depth,
-    opacity: randomBetween(...profile.opacity) * depth,
-    width: randomBetween(0.7, 1.25) * depth,
+    layer,
   };
 }
 
@@ -89,7 +93,10 @@ export function RainEffect({ intensity, isNight }: RainEffectProps) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d", { alpha: true });
+    const context = canvas?.getContext("2d", {
+      alpha: true,
+      desynchronized: true,
+    });
 
     if (!canvas || !context) return;
 
@@ -130,10 +137,11 @@ export function RainEffect({ intensity, isNight }: RainEffectProps) {
 
       if (!width || !height) return;
 
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1);
       canvas.width = Math.round(width * pixelRatio);
       canvas.height = Math.round(height * pixelRatio);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      context.lineCap = "round";
       populateDrops();
     };
 
@@ -156,7 +164,6 @@ export function RainEffect({ intensity, isNight }: RainEffectProps) {
       previousTime = time;
 
       context.clearRect(0, 0, width, height);
-      context.lineCap = "round";
 
       for (const drop of drops) {
         drop.x += drop.drift * delta;
@@ -165,17 +172,32 @@ export function RainEffect({ intensity, isNight }: RainEffectProps) {
         if (drop.y > height + drop.length || drop.x < -80) {
           resetDrop(drop);
         }
+      }
 
+      const layers = [0, 1, 2] as const;
+
+      for (const layer of layers) {
         context.beginPath();
-        context.moveTo(drop.x, drop.y);
-        context.lineTo(
-          drop.x + (drop.drift / drop.speed) * drop.length,
-          drop.y + drop.length,
-        );
-        context.lineWidth = drop.width;
+
+        for (const drop of drops) {
+          if (drop.layer !== layer) continue;
+
+          context.moveTo(drop.x, drop.y);
+          context.lineTo(
+            drop.x + (drop.drift / drop.speed) * drop.length,
+            drop.y + drop.length,
+          );
+        }
+
+        const layerProgress = (layer + 1) / layers.length;
+        const opacity =
+          profile.opacity[0] +
+          (profile.opacity[1] - profile.opacity[0]) * layerProgress;
+
+        context.lineWidth = 0.65 + layer * 0.35;
         context.strokeStyle = isNight
-          ? `rgba(213, 231, 255, ${drop.opacity})`
-          : `rgba(63, 95, 119, ${drop.opacity})`;
+          ? `rgba(213, 231, 255, ${opacity})`
+          : `rgba(63, 95, 119, ${opacity})`;
         context.stroke();
       }
 
@@ -247,6 +269,10 @@ export function RainEffect({ intensity, isNight }: RainEffectProps) {
     <canvas
       ref={canvasRef}
       className="pointer-events-none absolute inset-0 h-full w-full"
+      style={{
+        contain: "strict",
+        transform: "translateZ(0)",
+      }}
       aria-hidden="true"
     />
   );

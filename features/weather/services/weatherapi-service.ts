@@ -203,14 +203,16 @@ export async function getWeatherApiWeather(
   coordinates: WeatherCoordinates,
   apiKey: string,
 ) {
+  const configuredDays = Number(process.env.WEATHERAPI_FORECAST_DAYS ?? "3");
+  const forecastDays = Number.isInteger(configuredDays) && configuredDays >= 1 && configuredDays <= 14
+    ? configuredDays : 3;
   const params = new URLSearchParams({
     key: apiKey,
     q: `${coordinates.latitude},${coordinates.longitude}`,
     aqi: "no",
     lang: "en",
-    // Today's remaining hours plus the next days cover a rolling 24-hour strip.
-    // Three forecast days are supported by the Free plan.
-    days: "3",
+    // Keep the Free-plan default. Longer horizons require provider entitlement.
+    days: String(forecastDays),
     alerts: "no",
   });
 

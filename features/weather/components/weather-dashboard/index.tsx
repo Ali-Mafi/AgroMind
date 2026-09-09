@@ -3,6 +3,7 @@
 import type { FarmLocation } from "@/features/farms/types/farms";
 import { useWeather } from "@/features/weather/components/hooks/use-weather";
 import { WeatherSourceStatus } from "@/features/weather/components/weather-source-status";
+import { localWeatherTime, rainAmount } from "@/features/weather/lib/weather-presentation";
 
 interface WeatherDashboardProps {
   coordinates: FarmLocation;
@@ -58,6 +59,9 @@ export default function WeatherDashboard({
     return null;
   }
 
+  const todayKey = localWeatherTime(weather.timezone, checkedAt ?? Date.parse(weather.current.time)).slice(0, 10);
+  const today = weather.daily.find((day) => day.date === todayKey);
+
   return (
     <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
       <div>
@@ -112,13 +116,10 @@ export default function WeatherDashboard({
           </p>
 
           <p className="mt-2 text-2xl font-bold">
-            {weather.current.intervalSeconds !== null && weather.current.precipitation !== null
-              ? `${weather.current.precipitation} mm` : "—"}
+            {today?.precipitationSum != null ? `${rainAmount(today.precipitationSum)} mm` : "—"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {weather.current.intervalSeconds !== null
-              ? `Model estimate · previous ${Math.round(weather.current.intervalSeconds / 60)} min`
-              : "Current accumulation period unavailable"}
+            {today?.precipitationSum != null ? "Today's total forecast" : "Daily forecast unavailable"}
           </p>
         </div>
       </div>

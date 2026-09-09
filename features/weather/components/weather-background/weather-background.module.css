@@ -4,50 +4,22 @@
   overflow: hidden;
   pointer-events: none;
   isolation: isolate;
-  background: #172635;
+  background: linear-gradient(180deg, #526b7b, #294454 55%, #1a3345);
 }
-
-.image {
-  position: absolute;
-  inset: -2%;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-
-  transform: scale(1.025);
-}
-
-.atmosphere {
-  position: absolute;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.03) 0%,
-      transparent 40%,
-      rgba(0, 0, 0, 0.12) 100%
-    );
-}
-
-.night .atmosphere {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(2, 8, 18, 0.12) 0%,
-      rgba(3, 10, 20, 0.03) 42%,
-      rgba(0, 4, 10, 0.2) 100%
-    );
-}
-
-.vignette {
-  position: absolute;
-  inset: 0;
-
-  background:
-    radial-gradient(
-      ellipse at center,
-      transparent 48%,
-      rgba(0, 0, 0, 0.14) 100%
-    );
-}
+.day[data-weather-state^="clear-"] { background: linear-gradient(180deg, #448ac0, #6dabc9 55%, #397394); }
+.day[data-weather-state^="partly-cloudy-"] { background: linear-gradient(180deg, #5585a4, #7b9aaa 48%, #3c6079); }
+.background[data-weather-state^="rain-"],
+.background[data-weather-state^="heavy-rain-"],
+.background[data-weather-state^="storm-"],
+.background[data-weather-state^="hail-"] { background: linear-gradient(180deg, #536571, #3d5463 45%, #213b4e); }
+.background[data-weather-state^="snow-"],
+.background[data-weather-state^="heavy-snow-"] { background: linear-gradient(180deg, #879da9, #657c8f 60%, #364f67); }
+.background[data-weather-state^="fog-"] { background: linear-gradient(180deg, #8e9da5, #728591 50%, #4b6272); }
+.background[data-weather-state^="dust-"] { background: linear-gradient(180deg, #857356, #7a7564 50%, #4b5c63); }
+.background.night { background: linear-gradient(180deg, #071329, #192c47 58%, #1b3449); }
+.image { position: absolute; inset: 0; background-size: cover; background-position: center top; background-repeat: no-repeat; }
+.atmosphere { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9, 30, 49, .06), transparent 42%, rgba(8, 25, 41, .16)); }
+.night .atmosphere { background: linear-gradient(180deg, rgba(2, 8, 21, .17), rgba(2, 9, 21, .12) 42%, rgba(1, 5, 17, .25)); }
+.vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 25%, transparent 40%, rgba(7, 20, 35, .18) 100%); }
+.particles { position: absolute; inset: 0; width: 100%; height: 100%; contain: strict; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .particles { display: none; } }

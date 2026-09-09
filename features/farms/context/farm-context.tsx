@@ -17,6 +17,7 @@ const IRRIGATION_STORAGE_KEY = "agromind-irrigation-schedules";
 
 interface FarmContextValue {
   farms: Farm[];
+  isHydrated: boolean;
 
   selectedFarmId: string;
   setSelectedFarmId: (farmId: string) => void;
@@ -194,6 +195,7 @@ export function FarmProvider({
   const value = useMemo(
     () => ({
       farms,
+      isHydrated,
       selectedFarmId,
       setSelectedFarmId,
       addFarm,
@@ -203,7 +205,7 @@ export function FarmProvider({
       setIrrigationSchedule,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [farms, selectedFarmId, irrigationSchedules],
+    [farms, selectedFarmId, irrigationSchedules, isHydrated],
   );
 
   return (
