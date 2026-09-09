@@ -6,12 +6,9 @@ import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FarmLocationPicker from "@/features/farms/components/farm-location-picker/farm-location-picker";
-import type { FarmLocation } from "@/features/farms/types/farms";
-import {
-  IRRIGATION_TYPES,
-  type IrrigationType,
-} from "@/features/farms/constants/irrigation-types";
-type FarmType = "farm" | "garden";
+import type { FarmLocation, FarmType } from "@/features/farms/types/farms";
+import type { IrrigationType } from "@/features/farms/constants/irrigation-types";
+import { IrrigationTypeSelector } from "@/features/farms/components/irrigation-type-selector";
 
 interface GardenPlant {
   id: number;
@@ -21,8 +18,68 @@ interface GardenPlant {
   age: string;
 }
 
+interface ReverseGeocodeResult {
+  countryName?: string | null;
+  city?: string | null;
+  locality?: string | null;
+}
+
+async function resolveFarmLocationName(
+  coordinates: FarmLocation,
+): Promise<string> {
+  const params = new URLSearchParams({
+    latitude: String(coordinates.latitude),
+    longitude: String(coordinates.longitude),
+  });
+
+  try {
+    const response = await fetch(
+      `/api/location?${params.toString()}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return "Pinned location";
+    }
+
+    const data =
+      (await response.json()) as ReverseGeocodeResult;
+
+    const locationParts = [
+      data.locality,
+      data.city,
+      data.countryName,
+    ].filter(
+      (part): part is string =>
+        Boolean(part?.trim()),
+    );
+
+    const uniqueParts = Array.from(
+      new Set(
+        locationParts.map((part) => part.trim()),
+      ),
+    );
+
+    return (
+      uniqueParts.join(", ") || "Pinned location"
+    );
+  } catch {
+    return "Pinned location";
+  }
+}
+
+function normalizePropertyName(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
 export default function NewFarmPage() {
-  const { addFarm } = useFarm();
+  const { farms, addFarm } = useFarm();
   const [step, setStep] = useState(1);
   const [farmType, setFarmType] = useState<FarmType | null>(null);
 
@@ -60,10 +117,17 @@ export default function NewFarmPage() {
     areaMode === "dimensions" ? calculatedArea : Number(area) || 0;
 
   const hasValidName = farmName.trim().length > 0;
+  const hasDuplicateName = farms.some(
+    (farm) =>
+      normalizePropertyName(farm.name) ===
+      normalizePropertyName(farmName),
+  );
   const hasExactLocation = Boolean(coordinates);
 
   const canContinueStep2 =
-    hasValidName && hasExactLocation;
+    hasValidName &&
+    hasExactLocation &&
+    !hasDuplicateName;
 
   const totalSteps = farmType === "farm" ? 6 : 5;
 
@@ -120,23 +184,28 @@ export default function NewFarmPage() {
     setStep((current) => current - 1);
   };
 
-  const handleCreateFarm = () => {
+  const handleCreateFarm = async () => {
     if (!farmType) return;
-
+    if (hasDuplicateName) {
+      setStep(2);
+      return;
+    }
     if (!farmName.trim() || !coordinates) {
       setStep(2);
       return;
     }
 
+    const resolvedLocation =
+      location.trim() ||
+      (await resolveFarmLocationName(coordinates));
+
   const newFarm = {
     id: `${farmType}-${Date.now()}`,
     name: farmName.trim(),
-      location:
-        location.trim() ||
-        `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`,
-        coordinates,
-        area: finalArea,
-        type: farmType,
+    location: resolvedLocation,
+    coordinates,
+    area: finalArea,
+    type: farmType,
     ...(farmType === "farm"
       ? {
           crop: crop.trim()
@@ -317,9 +386,15 @@ export default function NewFarmPage() {
                   aria-required="true"
                   className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  A name is required for every farm or garden.
-                </p>
+                {hasDuplicateName ? (
+                  <p className="mt-2 text-xs font-medium text-destructive">
+                    This name is already being used. Please choose a different name.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    A unique name is required for every farm or garden.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -739,86 +814,24 @@ export default function NewFarmPage() {
         )}
 
         {/* STEP 5 FARM - IRRIGATION */}
-        {step === 5 && farmType === "farm" && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold">Irrigation</h2>
+          {step === 5 && farmType === "farm" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold">
+                  Irrigation
+                </h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Choose how this farm is irrigated.
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor="irrigation-type"
-                className="text-sm font-medium text-foreground"
-              >
-                Irrigation Type
-              </label>
-
-              <div className="relative mt-2">
-                <select
-                  id="irrigation-type"
-                  value={irrigationType}
-                  onChange={(event) =>
-                    setIrrigationType(
-                      event.target.value as IrrigationType,
-                    )
-                  }
-                  className="
-                    w-full appearance-none rounded-xl
-                    border border-border
-                    bg-background
-                    px-3.5 py-3 pr-10
-                    text-sm text-foreground
-                    shadow-sm
-                    outline-none
-                    transition-all duration-200 ease-out
-                    hover:border-primary/40
-                    hover:shadow-[0_2px_8px_rgba(34,197,94,0.08)]
-                    focus:border-primary
-                    focus:ring-4 focus:ring-primary/10
-                    focus:shadow-[0_4px_14px_rgba(34,197,94,0.12)]
-                    cursor-pointer
-                  "
-                >
-                  <option value="" disabled>
-                    Select irrigation type
-                  </option>
-
-                  {IRRIGATION_TYPES.map((type) => (
-                    <option
-                      key={type.value}
-                      value={type.value}
-                    >
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-
-                <svg
-                  className="
-                    pointer-events-none
-                    absolute right-3.5 top-1/2
-                    h-4 w-4
-                    -translate-y-1/2
-                    text-muted-foreground
-                    transition-transform duration-200
-                  "
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Choose how this farm is irrigated.
+                </p>
               </div>
+
+              <IrrigationTypeSelector
+                value={irrigationType}
+                onChange={setIrrigationType}
+              />
             </div>
-          </div>
-        )}
+          )}
 
         {/* REVIEW */}
         {((step === 6 && farmType === "farm") ||

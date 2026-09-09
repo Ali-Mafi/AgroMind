@@ -4,61 +4,148 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  ChevronDown,
+  Plus,
   Save,
+  Trash2,
   TreePine,
   Wheat,
-  Plus,
-  Trash2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
+import FarmLocationPicker from "@/features/farms/components/farm-location-picker/farm-location-picker";
+import { IrrigationTypeSelector } from "@/features/farms/components/irrigation-type-selector";
 import { useFarm } from "@/features/farms/context/farm-context";
-import type { GardenPlant } from "@/features/farms/types/farms";
+
 import {
-  IRRIGATION_TYPES,
   normalizeIrrigationType,
   type IrrigationType,
 } from "@/features/farms/constants/irrigation-types";
 
+import type {
+  FarmLocation,
+  GardenPlant,
+} from "@/features/farms/types/farms";
 
 interface FormState {
   name: string;
   location: string;
+  coordinates?: FarmLocation;
   area: string;
   crop: string;
   irrigationType: IrrigationType | "";
   plants: GardenPlant[];
 }
 
+interface ReverseGeocodeResult {
+  countryName?: string | null;
+  city?: string | null;
+  locality?: string | null;
+}
+
+async function resolveFarmLocationName(
+  coordinates: FarmLocation,
+): Promise<string> {
+  const params = new URLSearchParams({
+    latitude: String(coordinates.latitude),
+    longitude: String(coordinates.longitude),
+  });
+
+  try {
+    const response = await fetch(
+      `/api/location?${params.toString()}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return "Pinned location";
+    }
+
+    const data =
+      (await response.json()) as ReverseGeocodeResult;
+
+    const locationParts = [
+      data.locality,
+      data.city,
+      data.countryName,
+    ].filter(
+      (part): part is string =>
+        Boolean(part?.trim()),
+    );
+
+    const uniqueParts = Array.from(
+      new Set(
+        locationParts.map((part) =>
+          part.trim(),
+        ),
+      ),
+    );
+
+    return (
+      uniqueParts.join(", ") ||
+      "Pinned location"
+    );
+  } catch {
+    return "Pinned location";
+  }
+}
+
+function normalizePropertyName(
+  value: string,
+) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
 export default function EditFarmPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{
+    id: string;
+  }>();
+
   const router = useRouter();
 
-  const { farms, updateFarm } = useFarm();
+  const {
+    farms,
+    updateFarm,
+  } = useFarm();
 
-  const farm = farms.find((item) => item.id === params.id);
+  const farm = farms.find(
+    (item) => item.id === params.id,
+  );
 
-  const [form, setForm] = useState<FormState>({
-    name: "",
-    location: "",
-    area: "",
-    crop: "",
-    irrigationType: "",
-    plants: [],
-  });
+  const [form, setForm] =
+    useState<FormState>({
+      name: "",
+      location: "",
+      coordinates: undefined,
+      area: "",
+      crop: "",
+      irrigationType: "",
+      plants: [],
+    });
 
-  const [initialForm, setInitialForm] = useState<FormState>({
-    name: "",
-    location: "",
-    area: "",
-    crop: "",
-    irrigationType: "",
-    plants: [],
-  });
+  const [initialForm, setInitialForm] =
+    useState<FormState>({
+      name: "",
+      location: "",
+      coordinates: undefined,
+      area: "",
+      crop: "",
+      irrigationType: "",
+      plants: [],
+    });
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [isSaving, setIsSaving] =
+    useState(false);
+
+  const [
+    showUnsavedDialog,
+    setShowUnsavedDialog,
+  ] = useState(false);
 
   useEffect(() => {
     if (!farm) return;
@@ -66,17 +153,27 @@ export default function EditFarmPage() {
     const initialState: FormState = {
       name: farm.name,
       location: farm.location,
+      coordinates: farm.coordinates,
       area: String(farm.area),
-      crop: farm.crop?.name ?? "",
-      irrigationType: normalizeIrrigationType(
-        farm.irrigationType,
-      ),      plants: farm.plants
-        ? farm.plants.map((plant) => ({ ...plant }))
+
+      crop:
+        farm.crop?.name ?? "",
+
+      irrigationType:
+        normalizeIrrigationType(
+          farm.irrigationType,
+        ),
+
+      plants: farm.plants
+        ? farm.plants.map((plant) => ({
+            ...plant,
+          }))
         : [],
     };
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(initialState);
+
     setInitialForm(initialState);
   }, [farm]);
 
@@ -88,26 +185,82 @@ export default function EditFarmPage() {
           className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" />
+
           Back to Farms
         </Link>
 
         <section className="mt-8 rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
-          <h1 className="text-2xl font-bold">Farm not found</h1>
+          <h1 className="text-2xl font-bold">
+            Farm not found
+          </h1>
 
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            The selected farm or garden does not exist.
+            The selected farm or garden
+            does not exist.
           </p>
         </section>
       </main>
     );
   }
 
-  const isGarden = farm.type === "garden";
+  const isGarden =
+    farm.type === "garden";
 
   const isDirty =
-    JSON.stringify(form) !== JSON.stringify(initialForm);
+    JSON.stringify(form) !==
+    JSON.stringify(initialForm);
 
-  const updateField = <K extends keyof FormState>(
+  const hasDuplicateName =
+    farms.some(
+      (item) =>
+        item.id !== farm.id &&
+        normalizePropertyName(
+          item.name,
+        ) ===
+          normalizePropertyName(
+            form.name,
+          ),
+    );
+
+  const areaValue =
+    Number(form.area);
+
+  const nameErrorMessage =
+    !form.name.trim()
+      ? "Name is required."
+      : hasDuplicateName
+        ? "This name is already being used. Please choose a different name."
+        : undefined;
+
+  const areaErrorMessage =
+    !form.area.trim()
+      ? "Area is required."
+      : !Number.isFinite(
+            areaValue,
+          ) || areaValue <= 0
+        ? "Area must be greater than 0."
+        : undefined;
+
+  const coordinatesErrorMessage =
+    !form.coordinates
+      ? "Exact location is required."
+      : undefined;
+
+  const hasValidationError =
+    Boolean(
+      nameErrorMessage ||
+        areaErrorMessage ||
+        coordinatesErrorMessage,
+    );
+
+  const canSaveChanges =
+    isDirty &&
+    !isSaving &&
+    !hasValidationError;
+
+  const updateField = <
+    K extends keyof FormState,
+  >(
     field: K,
     value: FormState[K],
   ) => {
@@ -118,12 +271,18 @@ export default function EditFarmPage() {
   };
 
   const addPlant = () => {
-    if (form.plants.length >= 5) return;
+    if (
+      form.plants.length >= 5
+    ) {
+      return;
+    }
 
     setForm((current) => ({
       ...current,
+
       plants: [
         ...current.plants,
+
         {
           id: `plant-${Date.now()}`,
           name: "",
@@ -142,113 +301,186 @@ export default function EditFarmPage() {
   ) => {
     setForm((current) => ({
       ...current,
-      plants: current.plants.map((plant) => {
-        if (plant.id !== plantId) return plant;
 
-        if (field === "name") {
-          return {
-            ...plant,
-            name: value,
-          };
-        }
+      plants:
+        current.plants.map(
+          (plant) => {
+            if (
+              plant.id !== plantId
+            ) {
+              return plant;
+            }
 
-        return {
-          ...plant,
-          [field]: Number(value) || 0,
-        };
-      }),
+            if (
+              field === "name"
+            ) {
+              return {
+                ...plant,
+                name: value,
+              };
+            }
+
+            return {
+              ...plant,
+              [field]:
+                Number(value) || 0,
+            };
+          },
+        ),
     }));
   };
 
-  const removePlant = (plantId: string) => {
+  const removePlant = (
+    plantId: string,
+  ) => {
     setForm((current) => ({
       ...current,
-      plants: current.plants.filter(
-        (plant) => plant.id !== plantId,
-      ),
+
+      plants:
+        current.plants.filter(
+          (plant) =>
+            plant.id !== plantId,
+        ),
     }));
   };
 
-  const saveChanges = () => {
-    if (!isDirty || isSaving) return;
+  const saveChanges =
+    async () => {
+      if (
+        !canSaveChanges ||
+        !form.coordinates
+      ) {
+        return;
+      }
 
-    const area = Number(form.area);
+      setIsSaving(true);
 
-    if (
-      !form.name.trim() ||
-      !form.location.trim() ||
-      area <= 0
-    ) {
-      return;
-    }
+      const area =
+        Number(form.area);
 
-    setIsSaving(true);
+      const resolvedLocation =
+        form.location.trim() ||
+        (await resolveFarmLocationName(
+          form.coordinates,
+        ));
 
-    updateFarm(farm.id, {
-      name: form.name.trim(),
-      location: form.location.trim(),
-      area,
-      crop:
-        !isGarden && form.crop.trim()
-          ? {
-              id:
-                farm.crop?.id ??
-                `crop-${farm.id}`,
-              name: form.crop.trim(),
-            }
+      updateFarm(farm.id, {
+        name: form.name.trim(),
+
+        location:
+          resolvedLocation,
+
+        coordinates:
+          form.coordinates,
+
+        area,
+
+        crop:
+          !isGarden &&
+          form.crop.trim()
+            ? {
+                id:
+                  farm.crop?.id ??
+                  `crop-${farm.id}`,
+
+                name:
+                  form.crop.trim(),
+              }
+            : undefined,
+
+        irrigationType:
+          form.irrigationType ||
+          undefined,
+
+        plants: isGarden
+          ? form.plants.map(
+              (plant) => ({
+                ...plant,
+              }),
+            )
           : undefined,
-      irrigationType:
-        form.irrigationType || undefined,
-      plants: isGarden
-        ? form.plants.map((plant) => ({
-            ...plant,
-          }))
-        : undefined,
-    });
+      });
 
-    setInitialForm({
-      name: form.name.trim(),
-      location: form.location.trim(),
-      area: String(area),
-      crop: form.crop.trim(),
-      irrigationType: form.irrigationType,
-      plants: isGarden
-        ? form.plants.map((plant) => ({
-            ...plant,
-          }))
-        : [],
-    });
+      setInitialForm({
+        name:
+          form.name.trim(),
 
-    setShowUnsavedDialog(false);
+        location:
+          resolvedLocation,
 
-    router.push(`/farms/${farm.id}`);
-  };
+        coordinates:
+          form.coordinates,
 
-  const handleNavigation = () => {
-    if (!isDirty) {
-      router.push(`/farms/${farm.id}`);
-      return;
-    }
+        area:
+          String(area),
 
-    setShowUnsavedDialog(true);
-  };
+        crop:
+          form.crop.trim(),
 
-  const discardChanges = () => {
-    setShowUnsavedDialog(false);
+        irrigationType:
+          form.irrigationType,
 
-    router.push(`/farms/${farm.id}`);
-  };
+        plants: isGarden
+          ? form.plants.map(
+              (plant) => ({
+                ...plant,
+              }),
+            )
+          : [],
+      });
+
+      setShowUnsavedDialog(
+        false,
+      );
+
+      router.push(
+        `/farms/${farm.id}`,
+      );
+    };
+
+  const handleNavigation =
+    () => {
+      if (!isDirty) {
+        router.push(
+          `/farms/${farm.id}`,
+        );
+
+        return;
+      }
+
+      setShowUnsavedDialog(
+        true,
+      );
+    };
+
+  const discardChanges =
+    () => {
+      setShowUnsavedDialog(
+        false,
+      );
+
+      router.push(
+        `/farms/${farm.id}`,
+      );
+    };
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
+      {/* Header */}
       <header className="space-y-6">
         <button
           type="button"
-          onClick={handleNavigation}
+          onClick={
+            handleNavigation
+          }
           className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to {isGarden ? "Garden" : "Farm"}
+
+          Back to{" "}
+          {isGarden
+            ? "Garden"
+            : "Farm"}
         </button>
 
         <div className="flex items-start gap-4">
@@ -278,20 +510,27 @@ export default function EditFarmPage() {
             </span>
 
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Edit {isGarden ? "Garden" : "Farm"}
+              Edit{" "}
+              {isGarden
+                ? "Garden"
+                : "Farm"}
             </h1>
 
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Update the information for {farm.name}.
+              Update the
+              information for{" "}
+              {farm.name}.
             </p>
           </div>
         </div>
       </header>
 
+      {/* Form */}
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          saveChanges();
+
+          void saveChanges();
         }}
         className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8"
       >
@@ -309,15 +548,28 @@ export default function EditFarmPage() {
               id="farm-name"
               type="text"
               value={form.name}
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 updateField(
                   "name",
-                  event.target.value,
+                  event.target
+                    .value,
                 )
               }
-              className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              required
+              aria-invalid={Boolean(
+                nameErrorMessage,
+              )}
+              className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
             />
+
+            {nameErrorMessage && (
+              <p className="mt-2 text-xs font-medium text-destructive">
+                {
+                  nameErrorMessage
+                }
+              </p>
+            )}
           </div>
 
           {/* Location */}
@@ -332,16 +584,76 @@ export default function EditFarmPage() {
             <input
               id="farm-location"
               type="text"
-              value={form.location}
-              onChange={(event) =>
+              value={
+                form.location
+              }
+              onChange={(
+                event,
+              ) =>
                 updateField(
                   "location",
-                  event.target.value,
+                  event.target
+                    .value,
                 )
               }
               className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              required
             />
+
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              Optional. Leave
+              this blank to
+              detect the
+              location name
+              automatically from
+              the map.
+            </p>
+          </div>
+
+          {/* Exact Location */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">
+                  Exact Location
+                </p>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Change the
+                  exact position
+                  of this
+                  property on
+                  the map.
+                </p>
+              </div>
+
+              {form.coordinates && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  Selected
+                </span>
+              )}
+            </div>
+
+            <FarmLocationPicker
+              value={
+                form.coordinates
+              }
+              onChange={(
+                coordinates,
+              ) =>
+                updateField(
+                  "coordinates",
+                  coordinates,
+                )
+              }
+            />
+
+            {coordinatesErrorMessage && (
+              <p className="text-xs font-medium text-destructive">
+                {
+                  coordinatesErrorMessage
+                }
+              </p>
+            )}
           </div>
 
           {/* Area */}
@@ -359,21 +671,36 @@ export default function EditFarmPage() {
                 type="number"
                 min="1"
                 step="any"
-                value={form.area}
-                onChange={(event) =>
+                value={
+                  form.area
+                }
+                onChange={(
+                  event,
+                ) =>
                   updateField(
                     "area",
-                    event.target.value,
+                    event.target
+                      .value,
                   )
                 }
-                className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                required
+                aria-invalid={Boolean(
+                  areaErrorMessage,
+                )}
+                className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
               />
 
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 m²
               </span>
             </div>
+
+            {areaErrorMessage && (
+              <p className="mt-2 text-xs font-medium text-destructive">
+                {
+                  areaErrorMessage
+                }
+              </p>
+            )}
           </div>
 
           {/* Crop */}
@@ -389,11 +716,16 @@ export default function EditFarmPage() {
               <input
                 id="farm-crop"
                 type="text"
-                value={form.crop}
-                onChange={(event) =>
+                value={
+                  form.crop
+                }
+                onChange={(
+                  event,
+                ) =>
                   updateField(
                     "crop",
-                    event.target.value,
+                    event.target
+                      .value,
                   )
                 }
                 className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -403,42 +735,23 @@ export default function EditFarmPage() {
 
           {/* Irrigation Type */}
           <div>
-            <label
-              htmlFor="irrigation-type"
-              className="text-sm font-medium"
-            >
+            <label className="text-sm font-medium">
               Irrigation Type
             </label>
 
-            <div className="relative mt-2">
-              <select
-                id="irrigation-type"
-                value={form.irrigationType}
-                onChange={(event) =>
+            <div className="mt-2">
+              <IrrigationTypeSelector
+                value={
+                  form.irrigationType
+                }
+                onChange={(
+                  value,
+                ) =>
                   updateField(
                     "irrigationType",
-                    event.target.value as IrrigationType,
+                    value,
                   )
                 }
-                className="w-full appearance-none rounded-xl border bg-background px-3 py-3 pr-11 text-sm font-medium text-foreground outline-none transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10"
-              >
-                <option value="" disabled>
-                  Select irrigation type
-                </option>
-
-                {IRRIGATION_TYPES.map((type) => (
-                  <option
-                    key={type.value}
-                    value={type.value}
-                  >
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                aria-hidden="true"
-                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors"
               />
             </div>
           </div>
@@ -449,18 +762,27 @@ export default function EditFarmPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold">
-                    Plants / Trees
+                    Plants /
+                    Trees
                   </h2>
 
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Manage the plants and trees in this garden.
+                    Manage the
+                    plants and
+                    trees in this
+                    garden.
                   </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={addPlant}
-                  disabled={form.plants.length >= 5}
+                  onClick={
+                    addPlant
+                  }
+                  disabled={
+                    form.plants
+                      .length >= 5
+                  }
                   className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Plus className="h-4 w-4" />
@@ -469,151 +791,195 @@ export default function EditFarmPage() {
               </div>
 
               <div className="space-y-4">
-                {form.plants.map((plant) => (
-                  <div
-                    key={plant.id}
-                    className="rounded-xl border bg-background p-4 sm:p-5"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-semibold">
-                        Plant / Tree
-                      </p>
+                {form.plants.map(
+                  (plant) => (
+                    <div
+                      key={
+                        plant.id
+                      }
+                      className="rounded-xl border bg-background p-4 sm:p-5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-semibold">
+                          Plant /
+                          Tree
+                        </p>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removePlant(plant.id)
-                        }
-                        className="rounded-lg p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                        aria-label="Remove plant"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor={`plant-name-${plant.id}`}
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Name
-                        </label>
-
-                        <input
-                          id={`plant-name-${plant.id}`}
-                          type="text"
-                          value={plant.name}
-                          onChange={(event) =>
-                            updatePlant(
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removePlant(
                               plant.id,
-                              "name",
-                              event.target.value,
                             )
                           }
-                          className="mt-2 w-full rounded-xl border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
+                          className="rounded-lg p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                          aria-label="Remove plant"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
 
-                      <div>
-                        <label
-                          htmlFor={`plant-quantity-${plant.id}`}
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Quantity
-                        </label>
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                        {/* Plant name */}
+                        <div className="sm:col-span-2">
+                          <label
+                            htmlFor={`plant-name-${plant.id}`}
+                            className="text-xs font-medium text-muted-foreground"
+                          >
+                            Name
+                          </label>
 
-                        <input
-                          id={`plant-quantity-${plant.id}`}
-                          type="number"
-                          min="0"
-                          value={plant.quantity}
-                          onChange={(event) =>
-                            updatePlant(
-                              plant.id,
-                              "quantity",
-                              event.target.value,
-                            )
-                          }
-                          className="mt-2 w-full rounded-xl border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor={`plant-spacing-${plant.id}`}
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Spacing
-                        </label>
-
-                        <div className="relative mt-2">
                           <input
-                            id={`plant-spacing-${plant.id}`}
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={plant.spacing}
-                            onChange={(event) =>
+                            id={`plant-name-${plant.id}`}
+                            type="text"
+                            value={
+                              plant.name
+                            }
+                            onChange={(
+                              event,
+                            ) =>
                               updatePlant(
                                 plant.id,
-                                "spacing",
-                                event.target.value,
+                                "name",
+                                event
+                                  .target
+                                  .value,
                               )
                             }
-                            className="w-full rounded-xl border bg-card px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="mt-2 w-full rounded-xl border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
-
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                            m
-                          </span>
                         </div>
-                      </div>
 
-                      <div>
-                        <label
-                          htmlFor={`plant-age-${plant.id}`}
-                          className="text-xs font-medium text-muted-foreground"
-                        >
-                          Age
-                        </label>
+                        {/* Quantity */}
+                        <div>
+                          <label
+                            htmlFor={`plant-quantity-${plant.id}`}
+                            className="text-xs font-medium text-muted-foreground"
+                          >
+                            Quantity
+                          </label>
 
-                        <div className="relative mt-2">
                           <input
-                            id={`plant-age-${plant.id}`}
+                            id={`plant-quantity-${plant.id}`}
                             type="number"
                             min="0"
-                            step="any"
-                            value={plant.age}
-                            onChange={(event) =>
+                            value={
+                              plant.quantity
+                            }
+                            onChange={(
+                              event,
+                            ) =>
                               updatePlant(
                                 plant.id,
-                                "age",
-                                event.target.value,
+                                "quantity",
+                                event
+                                  .target
+                                  .value,
                               )
                             }
-                            className="w-full rounded-xl border bg-card px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="mt-2 w-full rounded-xl border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
+                        </div>
 
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                            yrs
-                          </span>
+                        {/* Spacing */}
+                        <div>
+                          <label
+                            htmlFor={`plant-spacing-${plant.id}`}
+                            className="text-xs font-medium text-muted-foreground"
+                          >
+                            Spacing
+                          </label>
+
+                          <div className="relative mt-2">
+                            <input
+                              id={`plant-spacing-${plant.id}`}
+                              type="number"
+                              min="0"
+                              step="any"
+                              value={
+                                plant.spacing
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                updatePlant(
+                                  plant.id,
+                                  "spacing",
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                              m
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Age */}
+                        <div>
+                          <label
+                            htmlFor={`plant-age-${plant.id}`}
+                            className="text-xs font-medium text-muted-foreground"
+                          >
+                            Age
+                          </label>
+
+                          <div className="relative mt-2">
+                            <input
+                              id={`plant-age-${plant.id}`}
+                              type="number"
+                              min="0"
+                              step="any"
+                              value={
+                                plant.age
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                updatePlant(
+                                  plant.id,
+                                  "age",
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                              yrs
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
 
-                {form.plants.length === 0 && (
+                {form.plants
+                  .length ===
+                  0 && (
                   <div className="rounded-xl border border-dashed p-6 text-center">
                     <TreePine className="mx-auto h-8 w-8 text-muted-foreground" />
 
                     <p className="mt-3 text-sm font-medium">
-                      No plants or trees added
+                      No plants
+                      or trees
+                      added
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Add the plants or trees managed in this garden.
+                      Add the
+                      plants or
+                      trees
+                      managed in
+                      this
+                      garden.
                     </p>
                   </div>
                 )}
@@ -626,7 +992,9 @@ export default function EditFarmPage() {
         <div className="mt-8 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
           <button
             type="button"
-            onClick={handleNavigation}
+            onClick={
+              handleNavigation
+            }
             className="inline-flex min-h-11 items-center justify-center rounded-xl border px-5 text-sm font-medium transition hover:bg-muted"
           >
             Cancel
@@ -634,7 +1002,9 @@ export default function EditFarmPage() {
 
           <button
             type="submit"
-            disabled={!isDirty || isSaving}
+            disabled={
+              !canSaveChanges
+            }
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
@@ -664,34 +1034,62 @@ export default function EditFarmPage() {
               </h2>
 
               <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                You have unsaved changes. Do you want to save
-                them before leaving this page?
+                You have
+                unsaved
+                changes. Do you
+                want to save
+                them before
+                leaving this
+                page?
               </p>
+
+              {hasValidationError && (
+                <p className="mt-3 text-xs font-medium leading-5 text-destructive">
+                  Fix the
+                  validation
+                  errors before
+                  saving. You
+                  can still
+                  discard the
+                  changes.
+                </p>
+              )}
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {/* Cancel */}
               <button
                 type="button"
                 onClick={() =>
-                  setShowUnsavedDialog(false)
+                  setShowUnsavedDialog(
+                    false,
+                  )
                 }
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-4 text-sm font-medium transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Cancel
               </button>
 
+              {/* Discard */}
               <button
                 type="button"
-                onClick={discardChanges}
+                onClick={
+                  discardChanges
+                }
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-destructive/30 px-4 text-sm font-semibold text-destructive transition hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
               >
                 Discard Changes
               </button>
 
+              {/* Save */}
               <button
                 type="button"
-                onClick={saveChanges}
-                disabled={isSaving}
+                onClick={() => {
+                  void saveChanges();
+                }}
+                disabled={
+                  !canSaveChanges
+                }
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save className="h-4 w-4 shrink-0" />
