@@ -1,3 +1,4 @@
+import { T } from "@/features/settings/components/translated-text";
 import { Section } from "@/components/layout/section";
 
 import {
@@ -39,11 +40,11 @@ export function FeatureHighlights() {
               <Icon className="mb-4 h-10 w-10 text-green-600" />
 
               <h3 className="text-lg font-semibold">
-                {feature.title}
+                <T text={feature.title} />
               </h3>
 
               <p className="mt-2 text-sm text-muted-foreground">
-                {feature.description}
+                <T text={feature.description} />
               </p>
             </div>
           );

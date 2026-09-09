@@ -1,3 +1,6 @@
+"use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useWeatherFormat } from "../hooks/use-weather-format";
 import {
   Cloud,
   CloudFog,
@@ -29,28 +32,6 @@ import { buildWeatherTimeline } from "@/features/weather/lib/build-weather-timel
 interface HourlyForecastProps {
   weather: WeatherData;
   checkedAt: number | null;
-}
-
-function formatHour(
-  time: string,
-) {
-  const hour = Number(
-    time.slice(11, 13),
-  );
-
-  if (hour === 0) {
-    return "12 AM";
-  }
-
-  if (hour === 12) {
-    return "12 PM";
-  }
-
-  if (hour > 12) {
-    return `${hour - 12} PM`;
-  }
-
-  return `${hour} AM`;
 }
 
 function WeatherIcon({
@@ -127,6 +108,7 @@ export function HourlyForecast({
   weather,
   checkedAt,
 }: HourlyForecastProps) {
+  const { weatherClock: formatHour, temperature, measure, t } = useWeatherFormat();
   const asOf = checkedAt ?? Date.parse(weather.current.time);
   const cards = buildWeatherTimeline(weather, asOf);
   const reportIsOld = asOf - Date.parse(weather.current.time) > 30 * 60 * 1000;
@@ -136,8 +118,8 @@ export function HourlyForecast({
     <div className="relative">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-white">Hourly Forecast</h2>
-          <p className="mt-1 text-xs text-white/60">Now + next 24 hours · {sourceName}</p>
+          <h2 className="text-sm font-semibold text-white"><T text="Hourly Forecast" /></h2>
+          <p className="mt-1 text-xs text-white/60"><T text="Now + next 24 hours ·" />{" "}{sourceName}</p>
         </div>
         <p className="text-xs text-white/55">{weather.timezoneAbbreviation}</p>
       </div>
@@ -164,19 +146,19 @@ export function HourlyForecast({
                   {isCurrent ? (reportIsOld ? "Last report" : "Now") : formatHour(card.time)}
                 </p>
                 <p className="mt-1 text-[10px] text-white/55">
-                  {isCurrent ? (weather.current.source === "weatherapi" ? "Reported" : "Model estimate") : "Forecast"}
+                  {isCurrent ? (weather.current.source === "weatherapi" ? "Reported" : "Model estimate") : t("Forecast")}
                 </p>
-                <div className="mt-3 flex justify-center text-white" title={card.condition.label}>
+                <div className="mt-3 flex justify-center text-white" title={t(card.condition.label)}>
                   <WeatherIcon condition={card.condition.condition} isDay={card.isDay} />
                 </div>
-                <p className="mt-2.5 text-xl font-bold text-white">{Math.round(card.temperature)}°</p>
-                <p className="mt-0.5 text-[10px] text-white/55">Feels {Math.round(card.feelsLike)}°</p>
+                <p className="mt-2.5 text-xl font-bold text-white">{temperature(card.temperature)}</p>
+                <p className="mt-0.5 text-[10px] text-white/55">{t("Feels like {value}", { value: temperature(card.feelsLike) })}</p>
                 <div className="mt-3 flex items-center justify-center gap-1 text-xs font-medium text-sky-200">
                   <Droplets className="h-3 w-3" />
                   <span>
                     {card.precipitationProbability !== null
                       ? `${probabilityLabel} ${Math.round(card.precipitationProbability)}%`
-                      : "Chance —"}
+                      : t("Chance —")}
                   </span>
                 </div>
                 <div className="mt-3 border-t border-white/10 pt-2.5">
@@ -185,7 +167,7 @@ export function HourlyForecast({
                       style={{ transform: `rotate(${card.windDirection}deg)` }} />
                     <span className="text-[11px] font-semibold text-white/80">{wind.cardinal}</span>
                   </div>
-                  <p className="mt-1 text-[10px] text-white/50">{Math.round(card.windSpeed)} km/h</p>
+                  <p className="mt-1 text-[10px] text-white/50">{measure(card.windSpeed, "wind", 0)}</p>
                 </div>
               </article>
             );

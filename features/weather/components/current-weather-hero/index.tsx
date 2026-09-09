@@ -1,3 +1,6 @@
+"use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useWeatherFormat } from "../hooks/use-weather-format";
 import {
   Droplets,
   Gauge,
@@ -28,12 +31,6 @@ interface CurrentWeatherHeroProps {
   onRefresh: () => void;
 }
 
-function formatTemperature(
-  temperature: number,
-) {
-  return `${Math.round(temperature)}°`;
-}
-
 function formatIntervalMinutes(
   intervalSeconds: number,
 ) {
@@ -51,6 +48,7 @@ export function CurrentWeatherHero({
   refreshError,
   onRefresh,
 }: CurrentWeatherHeroProps) {
+  const { temperature: formatTemperature, measure, reading, symbol, t } = useWeatherFormat();
   const {
     weather,
     current,
@@ -93,18 +91,16 @@ export function CurrentWeatherHero({
             </p>
 
             <p className="text-lg font-medium sm:text-xl">
-              {current.condition.label}
+              {t(current.condition.label)}
             </p>
 
             {todayCondition && (
-                <p className="text-sm font-medium text-white/75 sm:text-base">
-                  Today&apos;s forecast: {todayCondition.label} · {forecastSourceName}
+                <p className="text-sm font-medium text-white/75 sm:text-base"><T text="Today's forecast:" />{" "}{t(todayCondition.label)} · {forecastSourceName}
                 </p>
               )}
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80 sm:text-base">
-              <span>
-                Feels like{" "}
+              <span><T text="Feels like" />{" "}
                 {formatTemperature(
                   weather.current.feelsLike,
                 )}
@@ -149,7 +145,7 @@ export function CurrentWeatherHero({
           {weather.forecastStatus === "available" ? (
             <HourlyForecast weather={weather} checkedAt={checkedAt} />
           ) : (
-            <p className="text-sm text-white/75">{forecastSourceName} forecast is temporarily unavailable.</p>
+            <p className="text-sm text-white/75">{forecastSourceName}{" "}<T text="forecast is temporarily unavailable." /></p>
           )}
         </div>
 
@@ -158,9 +154,7 @@ export function CurrentWeatherHero({
             <div className="flex items-center gap-2 text-white/70">
               <Droplets className="h-4 w-4" />
 
-              <span className="text-xs font-medium uppercase tracking-wide">
-                Humidity
-              </span>
+              <span className="text-xs font-medium uppercase tracking-wide"><T text="Humidity" /></span>
             </div>
 
             <p className="mt-2 text-xl font-semibold">
@@ -180,24 +174,16 @@ export function CurrentWeatherHero({
                 }}
               />
 
-              <span className="text-xs font-medium uppercase tracking-wide">
-                Wind
-              </span>
+              <span className="text-xs font-medium uppercase tracking-wide"><T text="Wind" /></span>
             </div>
 
             <p className="mt-2 text-xl font-semibold">
               {current.wind.cardinal}{" "}
-              {Math.round(
-                weather.current.windSpeed,
-              )}
+              {reading(weather.current.windSpeed, "wind")}
             </p>
 
             <p className="mt-0.5 text-xs text-white/65">
-              km/h · Gusts{" "}
-              {Math.round(
-                weather.current.windGusts,
-              )}{" "}
-              km/h
+              {symbol("wind")} · {t("Gusts")} {measure(weather.current.windGusts, "wind", 0)}
             </p>
           </div>
 
@@ -205,19 +191,17 @@ export function CurrentWeatherHero({
             <div className="flex items-center gap-2 text-white/70">
               <Umbrella className="h-4 w-4" />
 
-              <span className="text-xs font-medium uppercase tracking-wide">
-                Precipitation
-              </span>
+              <span className="text-xs font-medium uppercase tracking-wide"><T text="Precipitation" /></span>
             </div>
 
             <p className="mt-2 text-xl font-semibold">
-              {today ? `${today.precipitationSum.toFixed(1)} mm` : "—"}
+              {today ? measure(today.precipitationSum, "precipitation") : "—"}
             </p>
 
             <p className="mt-0.5 text-xs text-white/65">
               {today
-                ? "Today's total forecast"
-                : "Daily forecast unavailable"}
+                ? t("Today's total forecast")
+                : t("Daily forecast unavailable")}
             </p>
 
             <p className="mt-1 text-[10px] leading-4 text-white/50">
@@ -225,23 +209,17 @@ export function CurrentWeatherHero({
                 ? `${Math.round(
                     precipitationProbability,
                   )}% ${probabilityLabel}`
-                : "Chance unavailable"}
+                : t("Chance unavailable")}
             </p>
 
             {today && <p className="mt-1 text-[10px] text-white/60">{forecastSourceName}</p>}
 
             {weather.current.intervalSeconds !== null && weather.current.precipitation !== null && (
-              <p className="mt-1 text-[10px] leading-4 text-white/45">
-                Model estimate ·{" "}
-                {weather.current.precipitation.toFixed(
-                  1,
-                )}{" "}
-                mm · previous{" "}
+              <p className="mt-1 text-[10px] leading-4 text-white/45"><T text="Model estimate ·" />{" "}
+                {measure(weather.current.precipitation, "precipitation")} · {t("previous")}{" "}
                 {formatIntervalMinutes(
                   weather.current.intervalSeconds,
-                )}{" "}
-                min
-              </p>
+                )}{" "}<T text="min" /></p>
             )}
           </div>
 
@@ -249,20 +227,14 @@ export function CurrentWeatherHero({
             <div className="flex items-center gap-2 text-white/70">
               <Gauge className="h-4 w-4" />
 
-              <span className="text-xs font-medium uppercase tracking-wide">
-                Pressure
-              </span>
+              <span className="text-xs font-medium uppercase tracking-wide"><T text="Pressure" /></span>
             </div>
 
             <p className="mt-2 text-xl font-semibold">
-              {Math.round(
-                weather.current.pressure,
-              )}
+              {reading(weather.current.pressure, "pressure")}
             </p>
 
-            <p className="mt-0.5 text-xs text-white/65">
-              hPa
-            </p>
+            <p className="mt-0.5 text-xs text-white/65">{symbol("pressure")}</p>
           </div>
         </div>
       </div>

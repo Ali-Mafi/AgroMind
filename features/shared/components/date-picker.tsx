@@ -1,411 +1,57 @@
 "use client";
+import { useMemo, useState } from "react";
+import { Popover } from "@base-ui/react/popover";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { calendarMonth, firstWeekday, localDateValue, parseLocalDate, shiftDay } from "@/features/settings/lib/calendar";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  CalendarDays,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-
-interface DatePickerProps {
-  id?: string;
-  value: string;
-  minDate?: string;
-  onChange: (value: string) => void;
-}
-
-const WEEK_DAYS = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-];
-
-function parseDate(value?: string) {
-  if (!value) {
-    return null;
-  }
-
-  const [year, month, day] = value
-    .split("-")
-    .map(Number);
-
-  if (!year || !month || !day) {
-    return null;
-  }
-
-  return new Date(year, month - 1, day);
-}
-
-function formatDateValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatDisplayDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function isSameDay(
-  first: Date,
-  second: Date,
-) {
-  return (
-    first.getFullYear() ===
-      second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
-}
-
-export function DatePicker({
-  id,
-  value,
-  minDate,
-  onChange,
-}: DatePickerProps) {
-  const wrapperRef =
-    useRef<HTMLDivElement>(null);
-
-  const [isOpen, setIsOpen] =
-    useState(false);
-
-  const selectedDate = parseDate(value);
-  const minimumDate = parseDate(minDate);
-
-  const initialDate =
-    selectedDate ??
-    minimumDate ??
-    new Date();
-
-  const [viewDate, setViewDate] = useState(
-    () =>
-      new Date(
-        initialDate.getFullYear(),
-        initialDate.getMonth(),
-        1,
-      ),
-  );
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    function handlePointerDown(
-      event: MouseEvent,
-    ) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target as Node,
-        )
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(
-      event: KeyboardEvent,
-    ) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handlePointerDown,
-    );
-
-    document.addEventListener(
-      "keydown",
-      handleKeyDown,
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handlePointerDown,
-      );
-
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
-    };
-  }, [isOpen]);
-
-  function openCalendar() {
-    if (!isOpen) {
-      const date =
-        selectedDate ??
-        minimumDate ??
-        new Date();
-
-      setViewDate(
-        new Date(
-          date.getFullYear(),
-          date.getMonth(),
-          1,
-        ),
-      );
-    }
-
-    setIsOpen((current) => !current);
-  }
-
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-
-  const monthLabel =
-    new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      year: "numeric",
-    }).format(viewDate);
-
-  const firstDayOfMonth = new Date(
-    year,
-    month,
-    1,
-  ).getDay();
-
-  const daysInMonth = new Date(
-    year,
-    month + 1,
-    0,
-  ).getDate();
-
-  const calendarCells: Array<
-    number | null
-  > = [];
-
-  for (
-    let index = 0;
-    index < firstDayOfMonth;
-    index += 1
-  ) {
-    calendarCells.push(null);
-  }
-
-  for (
-    let day = 1;
-    day <= daysInMonth;
-    day += 1
-  ) {
-    calendarCells.push(day);
-  }
-
-  while (calendarCells.length % 7 !== 0) {
-    calendarCells.push(null);
-  }
-
-  const previousMonthEnd = new Date(
-    year,
-    month,
-    0,
-  );
-
-  const canGoPrevious =
-    !minimumDate ||
-    previousMonthEnd >= minimumDate;
-
-  function goToPreviousMonth() {
-    if (!canGoPrevious) {
-      return;
-    }
-
-    setViewDate(
-      new Date(year, month - 1, 1),
-    );
-  }
-
-  function goToNextMonth() {
-    setViewDate(
-      new Date(year, month + 1, 1),
-    );
-  }
-
-  function selectDay(day: number) {
-    const selected = new Date(
-      year,
-      month,
-      day,
-    );
-
-    if (
-      minimumDate &&
-      selected < minimumDate
-    ) {
-      return;
-    }
-
-    onChange(formatDateValue(selected));
-    setIsOpen(false);
-  }
-
-  const today = new Date();
-
-  return (
-    <div
-      ref={wrapperRef}
-      className="relative mt-3"
-    >
-      <button
-        id={id}
-        type="button"
-        onClick={openCalendar}
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        className="flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-left outline-none transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
-      >
-        <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
-
-        <span
-          className={`min-w-0 flex-1 truncate text-sm ${
-            selectedDate
-              ? "font-medium text-foreground"
-              : "text-muted-foreground"
-          }`}
-        >
-          {selectedDate
-            ? formatDisplayDate(selectedDate)
-            : "Select a date"}
-        </span>
-
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-label="Choose irrigation date"
-          className="absolute left-0 top-full z-50 mt-2 w-full min-w-70 rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={goToPreviousMonth}
-              disabled={!canGoPrevious}
-              aria-label="Previous month"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border bg-background transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-35"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-
-            <p className="text-sm font-bold tracking-tight">
-              {monthLabel}
-            </p>
-
-            <button
-              type="button"
-              onClick={goToNextMonth}
-              aria-label="Next month"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border bg-background transition-colors hover:bg-muted"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mt-4 grid grid-cols-7 gap-1">
-            {WEEK_DAYS.map((day) => (
-              <div
-                key={day}
-                className="flex h-8 items-center justify-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
-              >
-                {day}
-              </div>
-            ))}
-
-            {calendarCells.map(
-              (day, index) => {
-                if (day === null) {
-                  return (
-                    <div
-                      key={`empty-${index}`}
-                      className="h-9"
-                    />
-                  );
-                }
-
-                const date = new Date(
-                  year,
-                  month,
-                  day,
-                );
-
-                const dateValue =
-                  formatDateValue(date);
-
-                const disabled =
-                  Boolean(
-                    minimumDate &&
-                      date < minimumDate,
-                  );
-
-                const selected =
-                  value === dateValue;
-
-                const isToday =
-                  isSameDay(date, today);
-
-                return (
-                  <button
-                    key={dateValue}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() =>
-                      selectDay(day)
-                    }
-                    aria-pressed={selected}
-                    aria-current={
-                      isToday
-                        ? "date"
-                        : undefined
-                    }
-                    className={`flex h-9 items-center justify-center rounded-xl text-sm font-medium transition-all ${
-                      selected
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : isToday
-                          ? "border border-primary/30 bg-primary/5 text-primary"
-                          : "hover:bg-muted"
-                    } ${
-                      disabled
-                        ? "cursor-not-allowed text-muted-foreground/30 hover:bg-transparent"
-                        : ""
-                    }`}
-                  >
-                    {day}
-                  </button>
-                );
-              },
-            )}
-          </div>
+interface DatePickerProps { id?: string; value: string; minDate?: string; onChange: (value: string) => void }
+export function DatePicker({ id, value, minDate, onChange }: DatePickerProps) {
+  const { calendar, country, format, direction } = useSettings();
+  const t = useTranslation();
+  const [open, setOpen] = useState(false);
+  const selected = parseLocalDate(value);
+  const minimum = parseLocalDate(minDate);
+  const [anchor, setAnchor] = useState(() => selected ?? minimum ?? new Date());
+  const month = useMemo(() => calendarMonth(anchor, calendar), [anchor, calendar]);
+  const weekStart = firstWeekday(country);
+  const blanks = (month.first.getDay() - weekStart + 7) % 7;
+  const weekDays = Array.from({ length: 7 }, (_, index) => new Date(2026, 0, 4 + (weekStart + index) % 7, 12));
+  const label = (date: Date) => format.date(date, { year: "numeric", month: "long", day: "numeric" });
+  const today = localDateValue(new Date());
+  return <Popover.Root open={open} onOpenChange={(next) => { if (next) setAnchor(selected ?? minimum ?? new Date()); setOpen(next); }}>
+    <Popover.Trigger id={id} className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-start outline-none hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary">
+      <CalendarDays size={16} className="text-primary" /><span className="flex-1 text-sm">{selected ? label(selected) : t("Select a date")}</span><ChevronDown size={16} />
+    </Popover.Trigger>
+    <Popover.Portal><Popover.Positioner sideOffset={8} align="start" className="z-[80]">
+      <Popover.Popup aria-label={t("Choose irrigation date")} className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl outline-none" dir={direction}>
+        <div className="flex items-center justify-between gap-3">
+          <button type="button" disabled={!!minimum && month.previous < minimum} onClick={() => setAnchor(month.previous)} aria-label={t("Previous month")} className="rounded-xl border p-2 disabled:opacity-30"><ChevronLeft size={18} className="rtl:rotate-180" /></button>
+          <p className="text-sm font-bold" aria-live="polite">{format.date(month.first, { year: "numeric", month: "long", day: undefined })}</p>
+          <button type="button" onClick={() => setAnchor(month.next)} aria-label={t("Next month")} className="rounded-xl border p-2"><ChevronRight size={18} className="rtl:rotate-180" /></button>
         </div>
-      )}
-    </div>
-  );
+        <div className="mt-4 grid grid-cols-7 gap-1">
+          {weekDays.map((day, index) => <span key={index} className="py-2 text-center text-xs text-muted-foreground">{format.date(day, { year: undefined, month: undefined, day: undefined, weekday: "short" })}</span>)}
+          {Array.from({ length: blanks }, (_, index) => <span key={`blank-${index}`} />)}
+          {month.days.map((date) => {
+            const key = localDateValue(date);
+            return <button type="button" key={key} data-date={key} disabled={!!minimum && date < minimum}
+              aria-label={label(date)} aria-pressed={key === value} aria-current={key === today ? "date" : undefined}
+              onClick={() => { onChange(key); setOpen(false); }}
+              onKeyDown={(event) => {
+                const delta = event.key === "ArrowDown" ? 7 : event.key === "ArrowUp" ? -7 : event.key === "ArrowRight" ? (direction === "rtl" ? -1 : 1) : event.key === "ArrowLeft" ? (direction === "rtl" ? 1 : -1) : 0;
+                if (!delta) return;
+                event.preventDefault();
+                const target = event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`[data-date="${localDateValue(shiftDay(date, delta))}"]`);
+                target?.focus();
+              }}
+              className={`flex h-10 items-center justify-center rounded-xl text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-25 ${key === value ? "bg-primary text-primary-foreground" : key === today ? "border border-primary/30 bg-primary/5 text-primary" : "hover:bg-muted"}`}>
+              {format.date(date, { year: undefined, month: undefined, day: "numeric" })}
+            </button>;
+          })}
+        </div>
+      </Popover.Popup>
+    </Popover.Positioner></Popover.Portal>
+  </Popover.Root>;
 }

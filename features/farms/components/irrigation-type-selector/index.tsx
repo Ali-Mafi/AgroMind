@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
 import { useEffect, useRef, useState } from "react";
 import {
   Check,
@@ -54,6 +56,7 @@ export function IrrigationTypeSelector({
   onChange,
   disabled = false,
 }: IrrigationTypeSelectorProps) {
+  const t = useTranslation();
   const [open, setOpen] = useState(false);
 
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -123,7 +126,7 @@ export function IrrigationTypeSelector({
         className={`
           group flex min-h-16 w-full items-center gap-3
           rounded-2xl border bg-background
-          px-3.5 py-3 text-left
+          px-3.5 py-3 text-start
           shadow-sm
           transition-all duration-200
           disabled:cursor-not-allowed disabled:opacity-50
@@ -141,9 +144,7 @@ export function IrrigationTypeSelector({
 
         {/* Information */}
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            Irrigation method
-          </p>
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground"><T text="Irrigation method" /></p>
 
           <p
             className={`mt-0.5 truncate text-sm font-semibold ${
@@ -154,7 +155,7 @@ export function IrrigationTypeSelector({
           >
             {selectedType
               ? selectedType.label
-              : "Select irrigation type"}
+              : t("Select irrigation type")}
           </p>
 
           {selectedType && (
@@ -182,7 +183,7 @@ export function IrrigationTypeSelector({
       {open && !disabled && (
         <div
           role="listbox"
-          aria-label="Select irrigation type"
+          aria-label={t("Select irrigation type")}
           className="
             absolute left-0 right-0
             top-[calc(100%+8px)]
@@ -194,9 +195,7 @@ export function IrrigationTypeSelector({
           "
         >
           <div className="px-3 py-2">
-            <p className="text-xs font-semibold text-muted-foreground">
-              Irrigation types
-            </p>
+            <p className="text-xs font-semibold text-muted-foreground"><T text="Irrigation types" /></p>
           </div>
 
           <div className="space-y-1">
@@ -219,7 +218,7 @@ export function IrrigationTypeSelector({
                     onChange(type.value);
                     setOpen(false);
                   }}
-                  className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-left transition-all duration-150 ${
+                  className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-start transition-all duration-150 ${
                     selected
                       ? "bg-primary/8"
                       : "hover:bg-muted/70"
@@ -239,7 +238,7 @@ export function IrrigationTypeSelector({
                   {/* Option content */}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">
-                      {type.label}
+                      <T text={type.label} />
                     </p>
 
                     <p className="mt-0.5 text-xs leading-5 text-muted-foreground">

@@ -1,5 +1,7 @@
 "use client";
 
+import { T } from "@/features/settings/components/translated-text";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
@@ -26,6 +28,7 @@ const themes = [
 type ThemeValue = (typeof themes)[number]["value"];
 
 export function ThemeSwitcher() {
+  const t = useTranslation();
   const { theme, setTheme } = useTheme();
 
   const [mounted, setMounted] = useState(false);
@@ -78,7 +81,7 @@ export function ThemeSwitcher() {
   return (
     <div
       role="radiogroup"
-      aria-label="Theme"
+      aria-label={t("Theme")}
       className="grid h-14 w-full max-w-md grid-cols-3 gap-1.5 rounded-2xl border bg-muted/40 p-1.5"
     >
       {/* Sliding selector */}
@@ -149,7 +152,7 @@ export function ThemeSwitcher() {
               </motion.span>
 
               <span className="hidden sm:inline">
-                {item.label}
+                <T text={item.label} />
               </span>
             </motion.span>
           </button>

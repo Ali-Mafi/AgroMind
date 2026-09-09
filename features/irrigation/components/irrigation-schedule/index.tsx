@@ -1,4 +1,7 @@
 "use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { parseLocalDate } from "@/features/settings/lib/calendar";
 
 import { useEffect, useState } from "react";
 
@@ -37,6 +40,7 @@ export function IrrigationSchedule({
   schedule,
   onSave,
 }: IrrigationScheduleProps) {
+  const { format } = useSettings();
   const [date, setDate] = useState(schedule?.date ?? "");
   const [time, setTime] = useState(schedule?.time ?? "");
   const [duration, setDuration] = useState(
@@ -122,16 +126,11 @@ const canSave =
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm">
-            Irrigation Schedule
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation Schedule" /></p>
 
-          <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl">
-            Schedule irrigation
-          </h2>
+          <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl"><T text="Schedule irrigation" /></h2>
 
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Plan the next irrigation session for{" "}
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground"><T text="Plan the next irrigation session for" />{" "}
             <span className="font-medium text-foreground">
               {farmName}
             </span>
@@ -150,9 +149,7 @@ const canSave =
             <label
               htmlFor={`irrigation-date-${farmId}`}
               className="text-sm font-semibold"
-            >
-              Date
-            </label>
+            ><T text="Date" /></label>
           </div>
 
           <DatePicker
@@ -171,9 +168,7 @@ const canSave =
             <label
               htmlFor={`irrigation-time-${farmId}`}
               className="text-sm font-semibold"
-            >
-              Start Time
-            </label>
+            ><T text="Start Time" /></label>
           </div>
 
           <TimePicker
@@ -186,26 +181,18 @@ const canSave =
 
       {isPastSchedule && (
         <div className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
-          <p className="text-sm font-medium text-destructive">
-            Please choose a future date and time.
-          </p>
+          <p className="text-sm font-medium text-destructive"><T text="Please choose a future date and time." /></p>
 
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Irrigation cannot be scheduled for a time that has already passed.
-          </p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground"><T text="Irrigation cannot be scheduled for a time that has already passed." /></p>
         </div>
       )}
 
       {/* Duration */}
       <div className="mt-5 rounded-2xl border bg-background p-4 sm:p-5">
         <div>
-          <p className="text-sm font-semibold">
-            Irrigation Duration
-          </p>
+          <p className="text-sm font-semibold"><T text="Irrigation Duration" /></p>
 
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Choose how long the irrigation should run.
-          </p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground"><T text="Choose how long the irrigation should run." /></p>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -227,8 +214,7 @@ const canSave =
                   <Check className="mr-1.5 h-3.5 w-3.5" />
                 )}
 
-                {option} min
-              </button>
+                {option}{" "}<T text="min" /></button>
             );
           })}
         </div>
@@ -241,9 +227,7 @@ const canSave =
         disabled={!canSave}
         className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
       >
-        <Save className="h-4 w-4" />
-        Save Schedule
-      </button>
+        <Save className="h-4 w-4" /><T text="Save Schedule" /></button>
 
       {/* Summary */}
       {canSave && (
@@ -254,27 +238,20 @@ const canSave =
             </div>
 
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-primary">
-                Schedule ready
-              </p>
+              <p className="text-sm font-semibold text-primary"><T text="Schedule ready" /></p>
 
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Irrigation for{" "}
+              <p className="mt-1 text-sm leading-6 text-muted-foreground"><T text="Irrigation for" />{" "}
                 <span className="font-medium text-foreground">
                   {farmName}
-                </span>{" "}
-                is scheduled for{" "}
+                </span>{" "}<T text="is scheduled for" />{" "}
                 <span className="font-semibold text-foreground">
-                  {date}
-                </span>{" "}
-                at{" "}
+                  {date ? format.date(parseLocalDate(date) ?? new Date()) : "—"}
+                </span>{" "}<T text="at" />{" "}
                 <span className="font-semibold text-foreground">
-                  {time}
-                </span>{" "}
-                for{" "}
+                  {format.clock(time)}
+                </span>{" "}<T text="for" />{" "}
                 <span className="font-semibold text-foreground">
-                  {duration} minutes
-                </span>
+                  {duration}{" "}<T text="minutes" /></span>
                 .
               </p>
             </div>

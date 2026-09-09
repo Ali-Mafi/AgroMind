@@ -1,3 +1,7 @@
+"use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
 import {
   BrainCircuit,
   CloudSun,
@@ -10,6 +14,8 @@ import { FarmStatusCardProps } from "./types";
 
 export function FarmStatusCard({
   farmName,
+  area,
+  crop,
   location,
   moisture,
   temperature,
@@ -17,6 +23,8 @@ export function FarmStatusCard({
   weather,
   recommendation,
 }: FarmStatusCardProps) {
+  const { format } = useSettings();
+  const t = useTranslation();
   return (
     <div className="rounded-3xl border bg-card p-6 shadow-sm">
 
@@ -31,10 +39,11 @@ export function FarmStatusCard({
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Last sync • 2 min ago
+          {t("Sample farm · Not live data")}
         </p>
       </div>
 
+      {area != null && <p className="mt-3 text-sm text-muted-foreground">{crop} · <bdi>{format.measure(area, "area")}</bdi></p>}
       <div className="my-6 h-px bg-border" />
 
       <div className="space-y-4">
@@ -42,29 +51,29 @@ export function FarmStatusCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CloudSun className="h-5 w-5 text-primary" />
-            <span>Weather</span>
+            <span><T text="Weather" /></span>
           </div>
 
           <span className="font-medium">
-            {weather}
+            {t(weather)}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Thermometer className="h-5 w-5 text-primary" />
-            <span>Temperature</span>
+            <span><T text="Temperature" /></span>
           </div>
 
           <span className="font-medium">
-            {temperature}°C
+            {format.measure(temperature, "temperature", 0)}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
-            <span>Soil Moisture</span>
+            <span><T text="Soil Moisture" /></span>
           </div>
 
           <span className="font-medium">
@@ -75,7 +84,7 @@ export function FarmStatusCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
-            <span>Humidity</span>
+            <span><T text="Humidity" /></span>
           </div>
 
           <span className="font-medium">
@@ -86,11 +95,11 @@ export function FarmStatusCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BrainCircuit className="h-5 w-5 text-primary" />
-            <span>AI Status</span>
+            <span><T text="AI Status" /></span>
           </div>
 
           <span className="font-semibold text-primary">
-            {recommendation}
+            {t(recommendation)}
           </span>
         </div>
 

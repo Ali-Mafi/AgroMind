@@ -1,5 +1,6 @@
 "use client";
 
+import { T } from "@/features/settings/components/translated-text";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -34,22 +35,15 @@ export function DashboardOverview() {
               <Sprout className="h-7 w-7 text-primary" />
             </div>
 
-            <h2 className="mt-6 text-xl font-bold tracking-tight sm:text-2xl">
-              Start with your first farm
-            </h2>
+            <h2 className="mt-6 text-xl font-bold tracking-tight sm:text-2xl"><T text="Start with your first farm" /></h2>
 
-            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-              Add a farm or garden to start monitoring weather,
-              irrigation, field conditions, and future AI insights.
-            </p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base"><T text="Add a farm or garden to start monitoring weather, irrigation, field conditions, and future AI insights." /></p>
 
             <Link
               href="/farms/new"
               className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              <Plus className="h-4 w-4" />
-              Add Farm / Garden
-            </Link>
+              <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
           </div>
         </section>
       </div>
@@ -84,25 +78,16 @@ export function DashboardOverview() {
       ) : (
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Weather
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Weather" /></p>
 
-            <h2 className="mt-2 text-lg font-semibold">
-              Farm location is not configured
-            </h2>
+            <h2 className="mt-2 text-lg font-semibold"><T text="Farm location is not configured" /></h2>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Add the exact farm location to enable live weather data
-              for this property.
-            </p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground"><T text="Add the exact farm location to enable live weather data for this property." /></p>
 
             <Link
               href={`/farms/${selectedFarm.id}/edit`}
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-            >
-              Add farm location
-              <ArrowRight className="h-4 w-4" />
+            ><T text="Add farm location" /><ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>

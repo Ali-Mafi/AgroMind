@@ -69,7 +69,7 @@
 .forecastLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .daily { padding: 20px 22px; }
 .dayList { margin-top: 10px; }
-.day { display: grid; grid-template-columns: 78px 42px 35px minmax(36px, 1fr) 35px; align-items: center; gap: 8px; min-height: 69px; width: 100%; border: none; border-top: 1px solid var(--weather-border); background: transparent; color: inherit; text-align: left; padding: 10px 0; }
+.day { display: grid; grid-template-columns: 78px 42px 35px minmax(36px, 1fr) 35px; align-items: center; gap: 8px; min-height: 69px; width: 100%; border: none; border-top: 1px solid var(--weather-border); background: transparent; color: inherit; text-align: start; padding: 10px 0; }
 .day:first-child { border-top: none; }
 .day:hover { background: rgba(185, 218, 239, .05); }
 .dayName { font-size: 1rem; font-weight: 500; }
@@ -77,11 +77,11 @@
 .dayWeather { display: flex; align-items: center; flex-direction: column; gap: 2px; }
 .dayWeather svg { width: 25px; height: 25px; }
 .dayWeather small { color: var(--weather-rain); font-size: .75rem; }
-.low { color: var(--weather-dim); text-align: right; }
-.high { text-align: right; }
+.low { color: var(--weather-dim); text-align: end; }
+.high { text-align: end; }
 .temperatureTrack { position: relative; height: 6px; width: 100%; border-radius: 8px; background: rgba(5, 25, 41, .6); }
-.temperatureRange { position: absolute; top: 0; height: 6px; border-radius: 8px; background: linear-gradient(90deg, var(--weather-green), #e4dc8d, #f7b155); left: var(--range-start); width: var(--range-width); }
-.temperatureDot { position: absolute; top: -2px; left: var(--current-position); width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: white; border: 2px solid #364858; }
+.temperatureRange { position: absolute; top: 0; height: 6px; border-radius: 8px; background: linear-gradient(90deg, var(--weather-green), #e4dc8d, #f7b155); inset-inline-start: var(--range-start); width: var(--range-width); }
+.temperatureDot { position: absolute; top: -2px; inset-inline-start: var(--current-position); width: 10px; height: 10px; margin-inline-start: -5px; border-radius: 50%; background: white; border: 2px solid #364858; }
 .dailyNote { border-top: 1px solid var(--weather-border); padding-top: 12px; font-size: .8125rem; color: var(--weather-muted); }
 .fieldPanel { padding: 20px 22px; }
 .fieldPanel .sectionTitle { color: var(--weather-green); }
@@ -93,7 +93,7 @@
 .metricHeading h2 { font-size: 1rem; font-weight: 500; }
 .metricHeading p { color: var(--weather-muted); font-size: .8125rem; }
 .metricGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.metricCard { position: relative; width: 100%; min-height: 242px; display: flex; flex-direction: column; align-items: stretch; padding: 18px; color: inherit; text-align: left; transition: background .15s; }
+.metricCard { position: relative; width: 100%; min-height: 242px; display: flex; flex-direction: column; align-items: stretch; padding: 18px; color: inherit; text-align: start; transition: background .15s; }
 .metricCard:hover { background: var(--weather-surface-hover); }
 .metricCard .sectionTitle { font-size: .75rem; letter-spacing: .045em; }
 .metricValue { font-size: clamp(1.65rem, 3vw, 2.2rem); line-height: 1.2; font-weight: 450; margin-top: 13px; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
@@ -141,7 +141,7 @@
 .selectedReading p { color: var(--weather-muted); font-size: .875rem; }
 .selectedValue { display: block; font-size: 2.6rem; font-weight: 400; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .selectedValue small { font-size: 1.1rem; }
-.selectedAside { text-align: right; max-width: 230px; color: var(--weather-muted); font-size: .875rem; }
+.selectedAside { text-align: end; max-width: 230px; color: var(--weather-muted); font-size: .875rem; }
 .chart { margin-top: 18px; }
 .chart svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
 .chartLabel { fill: var(--weather-muted); font-size: 17px; }
@@ -165,12 +165,12 @@
 .dataDisclosure summary { font-size: .875rem; color: var(--weather-muted); cursor: pointer; min-height: 38px; }
 .tableWrap { overflow-x: auto; }
 .dataTable { width: 100%; border-collapse: collapse; font-size: .875rem; white-space: nowrap; }
-.dataTable th, .dataTable td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--weather-border); }
+.dataTable th, .dataTable td { padding: 10px 12px; text-align: end; border-bottom: 1px solid var(--weather-border); }
 .dataTable th { color: var(--weather-muted); font-weight: 400; }
-.dataTable th:first-child, .dataTable td:first-child { text-align: left; }
+.dataTable th:first-child, .dataTable td:first-child { text-align: start; }
 .dataTable tr[aria-selected="true"] { background: rgba(195, 224, 242, .08); }
 .farmList { display: grid; gap: 12px; }
-.farmOption { width: 100%; border-radius: 20px; border: 1px solid var(--weather-border); background: #203e51; padding: 20px; color: inherit; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.farmOption { width: 100%; border-radius: 20px; border: 1px solid var(--weather-border); background: #203e51; padding: 20px; color: inherit; text-align: start; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .farmOption[aria-pressed="true"] { border-color: var(--weather-green); background: #294b54; }
 .farmOption strong { font-size: 1.2rem; font-weight: 500; display: block; overflow-wrap: anywhere; }
 .farmOption small { display: block; color: var(--weather-muted); font-size: .875rem; margin-top: 4px; }
@@ -232,3 +232,4 @@
 @media (prefers-reduced-motion: reduce) {
   .page *, .sheet * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+:global([dir="rtl"]) .temperatureRange { background: linear-gradient(270deg, var(--weather-green), #e4dc8d, #f7b155); }

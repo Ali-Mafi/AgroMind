@@ -1,5 +1,7 @@
 export interface FarmStatusCardProps {
   farmName: string;
+  area?: number;
+  crop?: string;
 
   location: string;
 

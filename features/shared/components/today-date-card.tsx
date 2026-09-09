@@ -1,16 +1,14 @@
 "use client";
 
+import { T } from "@/features/settings/components/translated-text";
 import { useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
 
-import { useRegion } from "@/features/region/context/region-context";
-import {
-  formatRegionalDate,
-  formatRegionalShortDate,
-} from "@/lib/date-format";
+import { useSettings } from "@/features/settings/context/settings-context";
+
 
 export function TodayDateCard() {
-  const { region } = useRegion();
+  const { format, language } = useSettings();
 
   const [mounted, setMounted] = useState(false);
 
@@ -28,9 +26,7 @@ export function TodayDateCard() {
           </div>
 
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Today
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary"><T text="Today" /></p>
 
             <div className="mt-2 h-5 w-48 animate-pulse rounded-md bg-muted" />
 
@@ -43,13 +39,9 @@ export function TodayDateCard() {
 
   const today = new Date();
 
-  const regionalDate = formatRegionalDate(
-    today,
-    region,
-  );
+  const regionalDate = format.date(today, { weekday: "long", month: "long" });
 
-  const shortRegionalDate =
-    formatRegionalShortDate(today);
+
 
   return (
     <section className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
@@ -59,21 +51,17 @@ export function TodayDateCard() {
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Today
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary"><T text="Today" /></p>
 
           <p
             className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${
-              region === "fa-IR" ? "font-vazirmatn" : ""
+              language === "fa" ? "font-vazirmatn" : ""
             }`}
           >
             {regionalDate}
           </p>
 
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            {shortRegionalDate}
-          </p>
+
         </div>
       </div>
     </section>

@@ -4,6 +4,7 @@ export function formatArea(
   areaInSquareMeters: number,
   unit: AreaUnit,
 ): string {
+  if (unit === "acre") return `${(areaInSquareMeters / 4046.8564224).toLocaleString()} ac`;
   if (unit === "hectare") {
     return `${(areaInSquareMeters / 10_000).toLocaleString()} ha`;
   }

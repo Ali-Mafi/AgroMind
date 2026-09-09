@@ -1,10 +1,12 @@
+import { T } from "@/features/settings/components/translated-text";
+import { useWeatherFormat } from "../hooks/use-weather-format";
 import { memo } from "react";
 import { ChevronRight, Droplets, Gauge, Moon, Sunrise, Thermometer, Umbrella, Waves, Wind, type LucideIcon } from "lucide-react";
 import { WeatherSparkline } from "../weather-sparkline";
 import { normalizeWindDirection } from "@/features/weather/lib/normalize-weather";
 import {
-  chanceLabel, daylightMinutes, durationLabel, localWeatherTime, nextNight,
-  rainAmount, temperature, upcomingHours, weatherChartPoints, weatherClock,
+  daylightMinutes, localWeatherTime, nextNight,
+  upcomingHours, weatherChartPoints,
 } from "@/features/weather/lib/weather-presentation";
 import type { WeatherData } from "@/features/weather/types/weather";
 import type { WeatherDetailSelection, WeatherMetric } from "@/features/weather/types/weather-detail";
@@ -16,7 +18,7 @@ interface MetricCardData {
 }
 
 export function DaylightGraphic({ sunrise, sunset }: { sunrise: string | null; sunset: string | null }) {
-  if (!sunrise || !sunset) return <span className={styles.sparklineEmpty}>Sunrise / sunset unavailable</span>;
+  if (!sunrise || !sunset) return <span className={styles.sparklineEmpty}><T text="Sunrise / sunset unavailable" /></span>;
   const position = (time: string) => (Number(time.slice(11, 13)) * 60 + Number(time.slice(14, 16))) / 1440 * 200;
   // This is a 24-hour timeline of astronomical times, not a sunshine forecast.
   return <svg viewBox="0 0 200 55" className={styles.daylightGraphic} aria-hidden="true">
@@ -30,6 +32,7 @@ export function DaylightGraphic({ sunrise, sunset }: { sunrise: string | null; s
 export const WeatherMetricGrid = memo(function WeatherMetricGrid({ weather, asOf, onOpen }: {
   weather: WeatherData; asOf: number; onOpen: (selection: WeatherDetailSelection) => void;
 }) {
+  const { chanceLabel, durationLabel, temperature, rainAmount, weatherClock, reading, symbol, measure, t, number } = useWeatherFormat();
   const todayKey = localWeatherTime(weather.timezone, asOf).slice(0, 10);
   const today = weather.daily.find((day) => day.date === todayKey);
   const hours = upcomingHours(weather, asOf);
@@ -40,44 +43,44 @@ export const WeatherMetricGrid = memo(function WeatherMetricGrid({ weather, asOf
   const wind = normalizeWindDirection(current.windDirection);
   const cards: MetricCardData[] = [
     { metric: "precipitation", title: "Precipitation", Icon: Umbrella,
-      value: rainAmount(today?.precipitationSum), unit: "mm", subtitle: "Today's total forecast",
-      footnote: today?.precipitationProbability != null ? `${Math.round(today.precipitationProbability)}% ${chanceLabel(today.precipitationProbabilityKind).toLowerCase()}` : "Chance unavailable" },
+      value: rainAmount(today?.precipitationSum), unit: symbol("precipitation"), subtitle: "Today's total forecast",
+      footnote: today?.precipitationProbability != null ? `${number(today.precipitationProbability, 0)}% ${chanceLabel(today.precipitationProbabilityKind).toLowerCase()}` : "Chance unavailable" },
     { metric: "wind", title: "Wind & gusts", Icon: Wind,
-      value: String(Math.round(current.windSpeed)), unit: "km/h", subtitle: `From ${wind.cardinal} · ${currentLabel}`,
-      footnote: `Gusts ${Math.round(current.windGusts)} km/h now` },
+      value: reading(current.windSpeed, "wind"), unit: symbol("wind"), subtitle: t("From {direction} · {report}", { direction: wind.cardinal, report: t(currentLabel) }),
+      footnote: t("Gusts {value} now", { value: measure(current.windGusts, "wind", 0) }) },
     { metric: "temperature", title: "Temperature", Icon: Thermometer,
-      value: temperature(current.temperature), subtitle: `Feels like ${temperature(current.feelsLike)}`,
-      footnote: today ? `Today's forecast ${temperature(today.temperatureMin)} to ${temperature(today.temperatureMax)}` : "Daily range unavailable" },
+      value: temperature(current.temperature), subtitle: t("Feels like {value}", { value: temperature(current.feelsLike) }),
+      footnote: today ? t("Today's forecast {low} to {high}", { low: temperature(today.temperatureMin), high: temperature(today.temperatureMax) }) : "Daily range unavailable" },
     { metric: "humidity", title: "Humidity", Icon: Droplets,
-      value: `${Math.round(current.humidity)}%`, subtitle: `Relative humidity · ${currentLabel}`,
+      value: `${number(current.humidity, 0)}%`, subtitle: t("Relative humidity · {report}", { report: t(currentLabel) }),
       footnote: "Air humidity, not soil moisture" },
     { metric: "overnight", title: "Night low", Icon: Moon,
       value: temperature(low), subtitle: current.isDay ? "Next night · Forecast" : "Rest of night · Forecast",
-      footnote: low === null ? "Night forecast unavailable" : low <= 0 ? "Air temperature forecast at or below 0°C" : "Open the night temperature chart" },
+      footnote: low === null ? "Night forecast unavailable" : low <= 0 ? t("Air temperature forecast at or below {value}", { value: measure(0, "temperature", 0) }) : "Open the night temperature chart" },
     { metric: "dewPoint", title: "Dew point", Icon: Waves,
       value: temperature(current.dewPoint), subtitle: current.dewPoint === null ? "Current reading unavailable" : currentLabel,
       footnote: "Compare dew point with air temperature" },
     { metric: "daylight", title: "Daylight", Icon: Sunrise,
-      value: durationLabel(daylightMinutes(today)), subtitle: `Sunrise ${weatherClock(today?.sunrise ?? null)}`,
-      footnote: `Sunset ${weatherClock(today?.sunset ?? null)} · Local time` },
+      value: durationLabel(daylightMinutes(today)), subtitle: t("Sunrise {time}", { time: weatherClock(today?.sunrise ?? null) }),
+      footnote: t("Sunset {time} · Local time", { time: weatherClock(today?.sunset ?? null) }) },
     { metric: "pressure", title: "Pressure", Icon: Gauge,
-      value: String(Math.round(current.pressure)), unit: "hPa", subtitle: currentLabel,
+      value: reading(current.pressure, "pressure"), unit: symbol("pressure"), subtitle: currentLabel,
       footnote: "Open the hourly pressure trend" },
   ];
 
   return <>
-    <div className={styles.metricHeading}><h2>Conditions for your field</h2><p>Tap a card for hourly details</p></div>
+    <div className={styles.metricHeading}><h2><T text="Conditions for your field" /></h2><p><T text="Tap a card for hourly details" /></p></div>
     <div className={styles.metricGrid}>
       {cards.map(({ metric, title, Icon, value, unit, subtitle, footnote }) => (
         <button type="button" key={metric} className={`${styles.glass} ${styles.metricCard}`} data-metric={metric}
           onClick={() => onOpen({ metric, date: metric === "overnight" ? night[0]?.time.slice(0, 10) ?? todayKey : todayKey })}
-          aria-label={`${title}: ${value}${unit ? ` ${unit}` : ""}. ${subtitle}. Open chart and details`}>
-          <span className={styles.sectionTitle}><span><Icon />{title}</span><ChevronRight size={14} /></span>
+          aria-label={`${t(title)}: ${value}${unit ? ` ${unit}` : ""}. ${t(subtitle)}. ${t("Open chart and details")}`}>
+          <span className={styles.sectionTitle}><span><Icon />{t(title)}</span><ChevronRight size={14} /></span>
           <span className={styles.metricValue}>{value}{unit && <> <small>{unit}</small></>}</span>
-          <span className={styles.metricSubtitle}>{subtitle}</span>
+          <span className={styles.metricSubtitle}>{t(subtitle)}</span>
           {metric === "daylight" ? <DaylightGraphic sunrise={today?.sunrise ?? null} sunset={today?.sunset ?? null} />
             : <WeatherSparkline points={weatherChartPoints(metric === "overnight" ? night : hours, metric)} metric={metric} />}
-          <span className={styles.metricFootnote}>{footnote}</span>
+          <span className={styles.metricFootnote}>{t(footnote)}</span>
         </button>
       ))}
     </div>

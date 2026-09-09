@@ -1,4 +1,7 @@
 "use client";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
 
 import Link from "next/link";
 import {
@@ -13,6 +16,8 @@ import {
 import { useFarm } from "@/features/farms/context/farm-context";
 
 export default function FarmsPage() {
+  const t = useTranslation();
+  const { format } = useSettings();
   const { farms } = useFarm();
 
   return (
@@ -20,32 +25,24 @@ export default function FarmsPage() {
       <header className="space-y-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm">
-              Farm Management
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Farm Management" /></p>
 
-            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-              My Farms & Gardens
-            </h1>
+            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"><T text="My Farms & Gardens" /></h1>
 
-            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              Manage your farms and gardens in one place.
-            </p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground"><T text="Manage your farms and gardens in one place." /></p>
           </div>
 
           <Link
             href="/farms/new"
             className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:w-auto"
           >
-            <Plus className="h-4 w-4" />
-            Add Farm / Garden
-          </Link>
+            <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
         </div>
       </header>
 
       {farms.length > 0 ? (
         <section
-          aria-label="My farms and gardens"
+          aria-label={t("My farms and gardens")}
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
         >
           {farms.map((farm) => {
@@ -101,23 +98,17 @@ export default function FarmsPage() {
                 <div className="flex flex-1 flex-col gap-5 p-5 sm:p-6">
                   <div className="rounded-xl bg-muted/40 p-4">
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                      <Ruler className="h-3.5 w-3.5" />
-                      Area
-                    </div>
+                      <Ruler className="h-3.5 w-3.5" /><T text="Area" /></div>
 
                     <p className="mt-2 text-lg font-bold tracking-tight">
-                      {farm.area.toLocaleString()}
-                      <span className="ml-1 text-sm font-medium text-muted-foreground">
-                        m²
-                      </span>
+                      {format.measure(farm.area, "area")}
+
                     </p>
                   </div>
 
                   {farm.type === "farm" && farm.crop && (
                     <div className="rounded-xl border border-primary/10 bg-primary/4 p-4">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Crop
-                      </p>
+                      <p className="text-xs font-medium text-muted-foreground"><T text="Crop" /></p>
 
                       <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5">
                         {farm.crop.name}
@@ -127,22 +118,16 @@ export default function FarmsPage() {
 
                   {isGarden && (
                     <div className="rounded-xl border border-gold/20 bg-gold/[0.06] p-4">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Property type
-                      </p>
+                      <p className="text-xs font-medium text-muted-foreground"><T text="Property type" /></p>
 
-                      <p className="mt-2 text-sm font-semibold">
-                        Garden / Orchard
-                      </p>
+                      <p className="mt-2 text-sm font-semibold"><T text="Garden / Orchard" /></p>
                     </div>
                   )}
                 </div>
 
                 <div className="border-t bg-muted/20 px-5 py-4 sm:px-6">
                   <div className="flex min-h-6 items-center justify-between">
-                    <span className="text-sm font-semibold text-primary">
-                      View details
-                    </span>
+                    <span className="text-sm font-semibold text-primary"><T text="View details" /></span>
 
                     <ArrowRight className="h-4 w-4 text-primary transition-transform duration-200 group-hover:translate-x-1" />
                   </div>
@@ -157,22 +142,15 @@ export default function FarmsPage() {
             <Wheat className="h-6 w-6 text-primary" />
           </div>
 
-          <h2 className="mt-5 text-lg font-semibold">
-            No farms or gardens yet
-          </h2>
+          <h2 className="mt-5 text-lg font-semibold"><T text="No farms or gardens yet" /></h2>
 
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            Add your first farm or garden to start managing irrigation,
-            crops, weather, and AI recommendations.
-          </p>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="Add your first farm or garden to start managing irrigation, crops, weather, and AI recommendations." /></p>
 
           <Link
             href="/farms/new"
             className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            <Plus className="h-4 w-4" />
-            Add Farm / Garden
-          </Link>
+            <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
         </section>
       )}
     </main>

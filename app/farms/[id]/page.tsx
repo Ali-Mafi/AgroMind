@@ -1,4 +1,7 @@
 "use client";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
 
 import Link from "next/link";
 import {
@@ -30,6 +33,8 @@ interface FarmDetailsPageProps {
 export default function FarmDetailsPage({
   params,
 }: FarmDetailsPageProps) {
+  const t = useTranslation();
+  const { format } = useSettings();
   const { id } = use(params);
   const router = useRouter();
 
@@ -46,16 +51,12 @@ export default function FarmDetailsPage({
           href="/farms"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Farms
-        </Link>
+          <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
 
         <section className="mt-8 rounded-2xl border bg-card p-6 text-center shadow-sm sm:mt-10 sm:p-10">
-          <h1 className="text-2xl font-bold">Farm not found</h1>
+          <h1 className="text-2xl font-bold"><T text="Farm not found" /></h1>
 
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            The selected farm or garden does not exist.
-          </p>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="The selected farm or garden does not exist." /></p>
         </section>
       </main>
     );
@@ -78,9 +79,7 @@ export default function FarmDetailsPage({
             href="/farms"
             className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Farms
-          </Link>
+            <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
 
           <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6 lg:p-7">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -132,7 +131,7 @@ export default function FarmDetailsPage({
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                   <Pencil className="h-4 w-4" />
-                  <span>Edit</span>
+                  <span><T text="Edit" /></span>
                 </Link>
 
                 <button
@@ -141,7 +140,7 @@ export default function FarmDetailsPage({
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-sm font-semibold text-destructive transition-all hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
                 >
                   <Trash2 className="h-4 w-4" />
-                  <span>Delete</span>
+                  <span><T text="Delete" /></span>
                 </button>
               </div>
             </div>
@@ -150,7 +149,7 @@ export default function FarmDetailsPage({
 
         {/* Overview */}
         <section
-          aria-label="Farm overview"
+          aria-label={t("Farm overview")}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {/* Area */}
@@ -161,13 +160,11 @@ export default function FarmDetailsPage({
               </div>
 
               <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Area</p>
+                <p className="text-sm text-muted-foreground"><T text="Area" /></p>
 
                 <p className="mt-1.5 text-xl font-bold tracking-tight">
-                  {farm.area.toLocaleString()}{" "}
-                  <span className="text-sm font-medium text-muted-foreground">
-                    m²
-                  </span>
+                  {format.measure(farm.area, "area")}{" "}
+
                 </p>
               </div>
             </div>
@@ -191,7 +188,7 @@ export default function FarmDetailsPage({
               </div>
 
               <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Type</p>
+                <p className="text-sm text-muted-foreground"><T text="Type" /></p>
 
                 <p className="mt-1.5 text-xl font-bold capitalize">
                   {farm.type}
@@ -209,12 +206,10 @@ export default function FarmDetailsPage({
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-sm text-muted-foreground">
-                    Irrigation
-                  </p>
+                  <p className="text-sm text-muted-foreground"><T text="Irrigation" /></p>
 
                   <p className="mt-1.5 wrap-break-word text-base font-bold">
-                    {farm.irrigationType || "Not specified"}
+                    {farm.irrigationType || t("Not specified")}
                   </p>
                 </div>
               </div>
@@ -242,13 +237,12 @@ export default function FarmDetailsPage({
             <div>
               <h2 className="text-xl font-bold sm:text-2xl">
                 {isGarden
-                  ? "Garden Information"
-                  : "Farm Information"}
+                  ? t("Garden Information")
+                  : t("Farm Information")}
               </h2>
 
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Detailed information about this{" "}
-                {isGarden ? "garden" : "farm"}.
+              <p className="mt-1 text-sm leading-6 text-muted-foreground"><T text="Detailed information about this" />{" "}
+                {isGarden ? t("garden") : t("farm")}.
               </p>
             </div>
           </div>
@@ -256,9 +250,7 @@ export default function FarmDetailsPage({
           <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {/* Name */}
             <div className="rounded-xl border bg-background p-4 sm:p-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Name
-              </p>
+              <p className="text-xs font-medium text-muted-foreground"><T text="Name" /></p>
 
               <p className="mt-2 wrap-break-word text-sm font-semibold">
                 {farm.name}
@@ -267,9 +259,7 @@ export default function FarmDetailsPage({
 
             {/* Location */}
             <div className="rounded-xl border bg-background p-4 sm:p-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Location
-              </p>
+              <p className="text-xs font-medium text-muted-foreground"><T text="Location" /></p>
 
               <p className="mt-2 wrap-break-word text-sm font-semibold">
                 {farm.location}
@@ -278,20 +268,16 @@ export default function FarmDetailsPage({
 
             {/* Area */}
             <div className="rounded-xl border bg-background p-4 sm:p-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Area
-              </p>
+              <p className="text-xs font-medium text-muted-foreground"><T text="Area" /></p>
 
               <p className="mt-2 text-sm font-semibold">
-                {farm.area.toLocaleString()} m²
+                {format.measure(farm.area, "area")}
               </p>
             </div>
 
             {/* Type */}
             <div className="rounded-xl border bg-background p-4 sm:p-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Type
-              </p>
+              <p className="text-xs font-medium text-muted-foreground"><T text="Type" /></p>
 
               <p className="mt-2 text-sm font-semibold capitalize">
                 {farm.type}
@@ -301,12 +287,10 @@ export default function FarmDetailsPage({
             {/* Crop */}
             {!isGarden && (
               <div className="rounded-xl border bg-background p-4 sm:p-5">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Crop
-                </p>
+                <p className="text-xs font-medium text-muted-foreground"><T text="Crop" /></p>
 
                 <p className="mt-2 wrap-break-word text-sm font-semibold leading-5">
-                  {farm.crop?.name || "Not specified"}
+                  {farm.crop?.name || t("Not specified")}
                 </p>
               </div>
             )}
@@ -318,9 +302,7 @@ export default function FarmDetailsPage({
                   <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Irrigation Type
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground"><T text="Irrigation Type" /></p>
 
                     <p className="mt-2 wrap-break-word text-sm font-semibold leading-5">
                       {getIrrigationTypeLabel(
@@ -344,19 +326,15 @@ export default function FarmDetailsPage({
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-bold sm:text-2xl">
-                    Plants / Trees
-                  </h2>
+                  <h2 className="text-xl font-bold sm:text-2xl"><T text="Plants / Trees" /></h2>
 
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Plants and trees currently managed in this garden.
-                  </p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground"><T text="Plants and trees currently managed in this garden." /></p>
                 </div>
               </div>
 
               <span className="inline-flex w-fit rounded-full bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold">
                 {farm.plants?.length ?? 0}{" "}
-                {farm.plants?.length === 1 ? "item" : "items"}
+                {farm.plants?.length === 1 ? t("item") : t("items")}
               </span>
             </div>
 
@@ -374,14 +352,12 @@ export default function FarmDetailsPage({
 
                       <div className="min-w-0">
                         <p className="wrap-break-word text-sm font-semibold">
-                          {plant.name || "Unnamed plant"}
+                          {plant.name || t("Unnamed plant")}
                         </p>
 
                         <div className="mt-3 grid grid-cols-3 gap-3">
                           <div>
-                            <p className="text-[11px] text-muted-foreground">
-                              Quantity
-                            </p>
+                            <p className="text-[11px] text-muted-foreground"><T text="Quantity" /></p>
 
                             <p className="mt-1 text-sm font-semibold">
                               {plant.quantity}
@@ -389,23 +365,18 @@ export default function FarmDetailsPage({
                           </div>
 
                           <div>
-                            <p className="text-[11px] text-muted-foreground">
-                              Spacing
-                            </p>
+                            <p className="text-[11px] text-muted-foreground"><T text="Spacing" /></p>
 
                             <p className="mt-1 text-sm font-semibold">
-                              {plant.spacing} m
+                              {format.measure(plant.spacing, "length")}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-[11px] text-muted-foreground">
-                              Age
-                            </p>
+                            <p className="text-[11px] text-muted-foreground"><T text="Age" /></p>
 
                             <p className="mt-1 text-sm font-semibold">
-                              {plant.age} yrs
-                            </p>
+                              {plant.age}{" "}<T text="yrs" /></p>
                           </div>
                         </div>
                       </div>
@@ -417,13 +388,9 @@ export default function FarmDetailsPage({
               <div className="mt-7 rounded-xl border border-dashed p-6 text-center sm:p-8">
                 <TreePine className="mx-auto h-8 w-8 text-muted-foreground" />
 
-                <p className="mt-3 text-sm font-semibold">
-                  No plants or trees added
-                </p>
+                <p className="mt-3 text-sm font-semibold"><T text="No plants or trees added" /></p>
 
-                <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
-                  No plants or trees have been added to this garden yet.
-                </p>
+                <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-muted-foreground"><T text="No plants or trees have been added to this garden yet." /></p>
               </div>
             )}
           </section>
@@ -432,11 +399,11 @@ export default function FarmDetailsPage({
         {/* Weather */}
 
         {farm.coordinates && (
-          <WeatherDashboard 
-            coordinates={farm.coordinates} 
+          <WeatherDashboard
+            coordinates={farm.coordinates}
           />
         )}
-        
+
       </main>
 
       {/* Delete Modal */}
@@ -463,13 +430,10 @@ export default function FarmDetailsPage({
                   <h2
                     id="delete-farm-title"
                     className="text-xl font-bold sm:text-2xl"
-                  >
-                    Delete {isGarden ? "Garden" : "Farm"}?
+                  ><T text="Delete" />{" "}{isGarden ? t("Garden") : t("Farm")}?
                   </h2>
 
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    This action requires confirmation.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground"><T text="This action requires confirmation." /></p>
                 </div>
               </div>
             </div>
@@ -478,23 +442,17 @@ export default function FarmDetailsPage({
               <p
                 id="delete-farm-description"
                 className="text-sm leading-6 text-muted-foreground"
-              >
-                Are you sure you want to permanently delete{" "}
+              ><T text="Are you sure you want to permanently delete" />{" "}
                 <span className="font-semibold text-foreground">
                   {farm.name}
-                </span>
-                ? All information associated with this{" "}
-                {isGarden ? "garden" : "farm"} will be removed from
-                AgroMind.
-              </p>
+                </span><T text="? All information associated with this" />{" "}
+                {isGarden ? t("garden") : t("farm")}{" "}<T text="will be removed from AgroMind." /></p>
 
               <div className="mt-5 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
                 <div className="flex gap-3">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
 
-                  <p className="text-xs leading-5 text-destructive">
-                    This action cannot be undone.
-                  </p>
+                  <p className="text-xs leading-5 text-destructive"><T text="This action cannot be undone." /></p>
                 </div>
               </div>
             </div>
@@ -504,18 +462,14 @@ export default function FarmDetailsPage({
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border bg-background px-5 py-2.5 text-sm font-semibold transition-all hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:w-auto"
-              >
-                Cancel
-              </button>
+              ><T text="Cancel" /></button>
 
               <button
                 type="button"
                 onClick={handleDelete}
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 sm:w-auto"
               >
-                <Trash2 className="h-4 w-4" />
-                Confirm Delete
-              </button>
+                <Trash2 className="h-4 w-4" /><T text="Confirm Delete" /></button>
             </div>
           </div>
         </div>

@@ -11,7 +11,7 @@ export const localRequire = createRequire(path.join(root, "package.json"));
 export function loadTs(relative, mocks = {}, cache = new Map()) {
   let filename = path.resolve(root, relative);
   if (existsSync(filename) && statSync(filename).isDirectory()) filename = path.join(filename, "index.tsx");
-  if (!existsSync(filename)) filename += ".ts";
+  if (!existsSync(filename)) filename = [filename + ".ts", filename + ".tsx"].find(existsSync) ?? filename + ".ts";
   if (cache.has(filename)) return cache.get(filename).exports;
   const loadedModule = { exports: {} };
   cache.set(filename, loadedModule);

@@ -1,4 +1,7 @@
 "use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
 
 import {
   useEffect,
@@ -43,10 +46,7 @@ function formatTime(
   hour: number,
   minute: number,
 ) {
-  return `${String(hour).padStart(
-    2,
-    "0",
-  )}:${String(minute).padStart(2, "0")}`;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 export function TimePicker({
@@ -54,6 +54,8 @@ export function TimePicker({
   value,
   onChange,
 }: TimePickerProps) {
+  const { format, hourCycle } = useSettings();
+  const t = useTranslation();
   const wrapperRef =
     useRef<HTMLDivElement>(null);
 
@@ -180,7 +182,7 @@ export function TimePicker({
         onClick={openPicker}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        className="flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-left outline-none transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
+        className="flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-start outline-none transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
       >
         <Clock3 className="h-4 w-4 shrink-0 text-primary" />
 
@@ -191,7 +193,7 @@ export function TimePicker({
               : "text-muted-foreground"
           }`}
         >
-          {value || "Select a time"}
+          {value ? format.clock(value) : t("Select a time")}
         </span>
 
         <ChevronDown
@@ -204,30 +206,24 @@ export function TimePicker({
       {isOpen && (
         <div
           role="dialog"
-          aria-label="Choose irrigation time"
+          aria-label={t("Choose irrigation time")}
           className="absolute left-0 top-full z-50 mt-2 w-full min-w-72.5 rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl"
         >
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Start Time
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary"><T text="Start Time" /></p>
 
-            <h3 className="mt-1 text-base font-bold">
-              Choose irrigation time
-            </h3>
+            <h3 className="mt-1 text-base font-bold"><T text="Choose irrigation time" /></h3>
           </div>
 
           <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             {/* Hour */}
             <div className="rounded-2xl border bg-background p-3">
-              <p className="text-center text-xs font-medium text-muted-foreground">
-                Hour
-              </p>
+              <p className="text-center text-xs font-medium text-muted-foreground"><T text="Hour" /></p>
 
               <button
                 type="button"
                 onClick={increaseHour}
-                aria-label="Increase hour"
+                aria-label={t("Increase hour")}
                 className="mx-auto mt-2 flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronUp className="h-4 w-4" />
@@ -235,17 +231,14 @@ export function TimePicker({
 
               <div className="my-1 flex h-14 items-center justify-center rounded-xl bg-primary/5">
                 <span className="text-3xl font-bold tabular-nums text-primary">
-                  {String(hour).padStart(
-                    2,
-                    "0",
-                  )}
+                  {format.number(hourCycle === "h12" ? hour % 12 || 12 : hour, 0)}
                 </span>
               </div>
 
               <button
                 type="button"
                 onClick={decreaseHour}
-                aria-label="Decrease hour"
+                aria-label={t("Decrease hour")}
                 className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronDown className="h-4 w-4" />
@@ -258,14 +251,12 @@ export function TimePicker({
 
             {/* Minute */}
             <div className="rounded-2xl border bg-background p-3">
-              <p className="text-center text-xs font-medium text-muted-foreground">
-                Minute
-              </p>
+              <p className="text-center text-xs font-medium text-muted-foreground"><T text="Minute" /></p>
 
               <button
                 type="button"
                 onClick={increaseMinute}
-                aria-label="Increase minute"
+                aria-label={t("Increase minute")}
                 className="mx-auto mt-2 flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronUp className="h-4 w-4" />
@@ -273,17 +264,14 @@ export function TimePicker({
 
               <div className="my-1 flex h-14 items-center justify-center rounded-xl bg-primary/5">
                 <span className="text-3xl font-bold tabular-nums text-primary">
-                  {String(minute).padStart(
-                    2,
-                    "0",
-                  )}
+                  {format.number(minute, 0)}
                 </span>
               </div>
 
               <button
                 type="button"
                 onClick={decreaseMinute}
-                aria-label="Decrease minute"
+                aria-label={t("Decrease minute")}
                 className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronDown className="h-4 w-4" />
@@ -291,23 +279,21 @@ export function TimePicker({
             </div>
           </div>
 
+          <p className="mt-4 text-center text-sm font-semibold" aria-live="polite">{format.clock(formatTime(hour, minute))}</p>
+          {hourCycle === "h12" && <button type="button" onClick={() => setHour((current) => (current + 12) % 24)} className="mt-3 w-full rounded-xl border p-2 text-sm">{t(hour < 12 ? "Switch to PM" : "Switch to AM")}</button>}
           <button
             type="button"
             onClick={useCurrentTime}
             className="mt-4 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
           >
-            <Clock3 className="h-4 w-4 text-primary" />
-            Use current time
-          </button>
+            <Clock3 className="h-4 w-4 text-primary" /><T text="Use current time" /></button>
 
           <button
             type="button"
             onClick={handleDone}
             className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90"
           >
-            <Check className="h-4 w-4" />
-            Done
-          </button>
+            <Check className="h-4 w-4" /><T text="Done" /></button>
         </div>
       )}
     </div>

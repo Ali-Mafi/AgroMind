@@ -1,3 +1,4 @@
+import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
 
 export function Footer() {
@@ -15,8 +16,7 @@ export function Footer() {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {APP.name}. All rights reserved.
-        </p>
+          © {new Date().getFullYear()} {APP.name}<T text=". All rights reserved." /></p>
       </div>
     </footer>
   );

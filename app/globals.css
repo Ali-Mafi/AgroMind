@@ -169,3 +169,13 @@
     @apply font-sans;
   }
 }
+
+/* Locale affects reading direction; numeric inputs and plots keep their own direction. */
+html[lang="fa"] body,
+html[lang="fa"] .font-heading {
+  font-family: var(--font-vazirmatn), sans-serif;
+}
+html[lang="fa"] .tracking-widest,
+html[lang="fa"] .tracking-wide {
+  letter-spacing: normal;
+}

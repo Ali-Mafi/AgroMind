@@ -1,10 +1,15 @@
+import { T } from "@/features/settings/components/translated-text";
 import type { WeatherChartPoint, WeatherMetric } from "@/features/weather/types/weather-detail";
-import { chartDomain, linePath } from "@/features/weather/lib/weather-chart";
+import { useMemo } from "react";
+import { linePath } from "@/features/weather/lib/weather-chart";
+import { displayChart } from "@/features/weather/lib/weather-display-units";
+import { useWeatherFormat } from "../hooks/use-weather-format";
 import styles from "../weather-experience/weather-experience.module.css";
 
-export function WeatherSparkline({ points, metric }: { points: WeatherChartPoint[]; metric: WeatherMetric }) {
-  if (!points.some((point) => point.value !== null)) return <span className={styles.sparklineEmpty}>Forecast unavailable</span>;
-  const [min, max] = chartDomain(points, metric);
+export function WeatherSparkline({ points: canonicalPoints, metric }: { points: WeatherChartPoint[]; metric: WeatherMetric }) {
+  const { units } = useWeatherFormat();
+  const { points, domain: [min, max] } = useMemo(() => displayChart(canonicalPoints, metric, units), [canonicalPoints, metric, units]);
+  if (!points.some((point) => point.value !== null)) return <span className={styles.sparklineEmpty}><T text="Forecast unavailable" /></span>;
   const x = (index: number) => 3 + index / Math.max(1, points.length - 1) * 194;
   const y = (value: number) => 45 - (value - min) / (max - min) * 40;
   return (

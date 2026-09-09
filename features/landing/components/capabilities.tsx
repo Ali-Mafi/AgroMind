@@ -1,3 +1,4 @@
+import { T } from "@/features/settings/components/translated-text";
 import { Section } from "@/components/layout/section";
 
 import {
@@ -41,7 +42,7 @@ export function Capabilities() {
               <Icon className="mx-auto mb-3 h-8 w-8 text-green-600" />
 
               <p className="text-sm font-medium">
-                {item.title}
+                <T text={item.title} />
               </p>
             </div>
           );

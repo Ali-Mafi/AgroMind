@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -10,7 +12,8 @@ import {
 } from "lucide-react";
 
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
-import { formatRegionalShortDate } from "@/lib/date-format";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { parseLocalDate } from "@/features/settings/lib/calendar";
 
 interface IrrigationWidgetProps {
   schedule?: IrrigationSchedule;
@@ -39,19 +42,13 @@ function getScheduleTimestamp(
   ).getTime();
 }
 
-function formatScheduleDate(date: string) {
-  const [year, month, day] = date
-    .split("-")
-    .map(Number);
 
-  return formatRegionalShortDate(
-    new Date(year, month - 1, day, 12),
-  );
-}
 
 export function IrrigationWidget({
   schedule,
 }: IrrigationWidgetProps) {
+  const t = useTranslation();
+  const { format } = useSettings();
   const [currentTime, setCurrentTime] =
     useState<number | null>(null);
 
@@ -81,25 +78,16 @@ export function IrrigationWidget({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Irrigation
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Irrigation" /></p>
 
-            <h2 className="mt-1 text-lg font-bold tracking-tight">
-              No irrigation scheduled
-            </h2>
+            <h2 className="mt-1 text-lg font-bold tracking-tight"><T text="No irrigation scheduled" /></h2>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              There is currently no irrigation schedule for this
-              property.
-            </p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground"><T text="There is currently no irrigation schedule for this property." /></p>
 
             <Link
               href="/irrigation"
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-            >
-              Schedule irrigation
-              <ArrowRight className="h-4 w-4" />
+            ><T text="Schedule irrigation" /><ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -126,17 +114,11 @@ export function IrrigationWidget({
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Irrigation
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Irrigation" /></p>
 
-            <h2 className="mt-1 text-lg font-bold tracking-tight">
-              Irrigation Schedule
-            </h2>
+            <h2 className="mt-1 text-lg font-bold tracking-tight"><T text="Irrigation Schedule" /></h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              Current schedule for the active property.
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground"><T text="Current schedule for the active property." /></p>
           </div>
         </div>
 
@@ -148,10 +130,10 @@ export function IrrigationWidget({
           }`}
         >
           {currentTime === null
-            ? "Scheduled"
+            ? t("Scheduled")
             : isPastDue
-              ? "Past due"
-              : "Scheduled"}
+              ? t("Past due")
+              : t("Scheduled")}
         </span>
       </div>
 
@@ -162,12 +144,10 @@ export function IrrigationWidget({
             <CalendarClock className="h-4 w-4 text-primary" />
           </div>
 
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Date
-          </p>
+          <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Date" /></p>
 
           <p className="mt-1 font-bold">
-            {formatScheduleDate(schedule.date)}
+            {format.date(parseLocalDate(schedule.date) ?? new Date())}
           </p>
         </div>
 
@@ -176,12 +156,10 @@ export function IrrigationWidget({
             <Clock3 className="h-4 w-4 text-primary" />
           </div>
 
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Start Time
-          </p>
+          <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Start Time" /></p>
 
           <p className="mt-1 font-bold">
-            {schedule.time}
+            {format.clock(schedule.time)}
           </p>
         </div>
 
@@ -190,13 +168,10 @@ export function IrrigationWidget({
             <Droplets className="h-4 w-4 text-primary" />
           </div>
 
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Duration
-          </p>
+          <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Duration" /></p>
 
           <p className="mt-1 font-bold">
-            {schedule.duration} min
-          </p>
+            {schedule.duration}{" "}<T text="min" /></p>
         </div>
       </div>
 
@@ -205,9 +180,7 @@ export function IrrigationWidget({
         <Link
           href="/irrigation"
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-        >
-          Manage irrigation
-          <ArrowRight className="h-4 w-4" />
+        ><T text="Manage irrigation" /><ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </section>

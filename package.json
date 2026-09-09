@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test features/weather/tests/*.test.mjs",
+    "test": "node --test features/weather/tests/*.test.mjs features/settings/tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

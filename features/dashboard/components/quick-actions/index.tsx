@@ -1,3 +1,4 @@
+import { T } from "@/features/settings/components/translated-text";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -19,17 +20,11 @@ export function QuickActions({
   return (
     <section>
       <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Quick Actions
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Quick Actions" /></p>
 
-        <h2 className="mt-1 text-lg font-bold tracking-tight">
-          Manage active property
-        </h2>
+        <h2 className="mt-1 text-lg font-bold tracking-tight"><T text="Manage active property" /></h2>
 
-        <p className="mt-1 text-sm text-muted-foreground">
-          Jump directly to the most common farm management tasks.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground"><T text="Jump directly to the most common farm management tasks." /></p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,13 +37,9 @@ export function QuickActions({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">
-              Manage Irrigation
-            </p>
+            <p className="font-semibold"><T text="Manage Irrigation" /></p>
 
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Control and schedule irrigation.
-            </p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground"><T text="Control and schedule irrigation." /></p>
           </div>
 
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
@@ -63,13 +54,9 @@ export function QuickActions({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">
-              Farm Details
-            </p>
+            <p className="font-semibold"><T text="Farm Details" /></p>
 
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              View property information and details.
-            </p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground"><T text="View property information and details." /></p>
           </div>
 
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
@@ -84,13 +71,9 @@ export function QuickActions({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">
-              Edit Property
-            </p>
+            <p className="font-semibold"><T text="Edit Property" /></p>
 
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Update location, crop, area, and settings.
-            </p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground"><T text="Update location, crop, area, and settings." /></p>
           </div>
 
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />

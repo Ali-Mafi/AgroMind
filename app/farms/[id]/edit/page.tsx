@@ -1,4 +1,9 @@
 "use client";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { MeasurementInput } from "@/features/settings/components/measurement-input";
+
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -102,6 +107,8 @@ function normalizePropertyName(
 }
 
 export default function EditFarmPage() {
+  const t = useTranslation();
+  const { format } = useSettings();
   const params = useParams<{
     id: string;
   }>();
@@ -184,20 +191,12 @@ export default function EditFarmPage() {
           href="/farms"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <ArrowLeft className="h-4 w-4" />
-
-          Back to Farms
-        </Link>
+          <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
 
         <section className="mt-8 rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
-          <h1 className="text-2xl font-bold">
-            Farm not found
-          </h1>
+          <h1 className="text-2xl font-bold"><T text="Farm not found" /></h1>
 
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            The selected farm or garden
-            does not exist.
-          </p>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="The selected farm or garden does not exist." /></p>
         </section>
       </main>
     );
@@ -475,12 +474,10 @@ export default function EditFarmPage() {
           }
           className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <ArrowLeft className="h-4 w-4" />
-
-          Back to{" "}
+          <ArrowLeft className="h-4 w-4" /><T text="Back to" />{" "}
           {isGarden
-            ? "Garden"
-            : "Farm"}
+            ? t("Garden")
+            : t("Farm")}
         </button>
 
         <div className="flex items-start gap-4">
@@ -509,16 +506,13 @@ export default function EditFarmPage() {
               {farm.type}
             </span>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Edit{" "}
+            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"><T text="Edit" />{" "}
               {isGarden
-                ? "Garden"
-                : "Farm"}
+                ? t("Garden")
+                : t("Farm")}
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Update the
-              information for{" "}
+            <p className="mt-2 text-sm leading-6 text-muted-foreground"><T text="Update the information for" />{" "}
               {farm.name}.
             </p>
           </div>
@@ -540,9 +534,7 @@ export default function EditFarmPage() {
             <label
               htmlFor="farm-name"
               className="text-sm font-medium"
-            >
-              Name
-            </label>
+            ><T text="Name" /></label>
 
             <input
               id="farm-name"
@@ -565,9 +557,7 @@ export default function EditFarmPage() {
 
             {nameErrorMessage && (
               <p className="mt-2 text-xs font-medium text-destructive">
-                {
-                  nameErrorMessage
-                }
+                <T text={nameErrorMessage} />
               </p>
             )}
           </div>
@@ -577,9 +567,7 @@ export default function EditFarmPage() {
             <label
               htmlFor="farm-location"
               className="text-sm font-medium"
-            >
-              Location
-            </label>
+            ><T text="Location" /></label>
 
             <input
               id="farm-location"
@@ -599,37 +587,20 @@ export default function EditFarmPage() {
               className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
 
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              Optional. Leave
-              this blank to
-              detect the
-              location name
-              automatically from
-              the map.
-            </p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground"><T text="Optional. Leave this blank to detect the location name automatically from the map." /></p>
           </div>
 
           {/* Exact Location */}
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">
-                  Exact Location
-                </p>
+                <p className="text-sm font-medium"><T text="Exact Location" /></p>
 
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Change the
-                  exact position
-                  of this
-                  property on
-                  the map.
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground"><T text="Change the exact position of this property on the map." /></p>
               </div>
 
               {form.coordinates && (
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  Selected
-                </span>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"><T text="Selected" /></span>
               )}
             </div>
 
@@ -650,7 +621,7 @@ export default function EditFarmPage() {
             {coordinatesErrorMessage && (
               <p className="text-xs font-medium text-destructive">
                 {
-                  coordinatesErrorMessage
+                  t(coordinatesErrorMessage ?? "")
                 }
               </p>
             )}
@@ -661,26 +632,20 @@ export default function EditFarmPage() {
             <label
               htmlFor="farm-area"
               className="text-sm font-medium"
-            >
-              Area
-            </label>
+            ><T text="Area" /></label>
 
             <div className="relative mt-2">
-              <input
+              <MeasurementInput kind="area"
                 id="farm-area"
-                type="number"
-                min="1"
+                min="0"
                 step="any"
                 value={
                   form.area
                 }
-                onChange={(
-                  event,
-                ) =>
+                onValueChange={(canonical) =>
                   updateField(
                     "area",
-                    event.target
-                      .value,
+                    canonical,
                   )
                 }
                 aria-invalid={Boolean(
@@ -689,16 +654,12 @@ export default function EditFarmPage() {
                 className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                m²
-              </span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("area")}</span>
             </div>
 
             {areaErrorMessage && (
               <p className="mt-2 text-xs font-medium text-destructive">
-                {
-                  areaErrorMessage
-                }
+                <T text={areaErrorMessage} />
               </p>
             )}
           </div>
@@ -709,9 +670,7 @@ export default function EditFarmPage() {
               <label
                 htmlFor="farm-crop"
                 className="text-sm font-medium"
-              >
-                Crop
-              </label>
+              ><T text="Crop" /></label>
 
               <input
                 id="farm-crop"
@@ -735,9 +694,7 @@ export default function EditFarmPage() {
 
           {/* Irrigation Type */}
           <div>
-            <label className="text-sm font-medium">
-              Irrigation Type
-            </label>
+            <label className="text-sm font-medium"><T text="Irrigation Type" /></label>
 
             <div className="mt-2">
               <IrrigationTypeSelector
@@ -761,17 +718,9 @@ export default function EditFarmPage() {
             <div className="space-y-5 border-t pt-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-bold">
-                    Plants /
-                    Trees
-                  </h2>
+                  <h2 className="text-lg font-bold"><T text="Plants / Trees" /></h2>
 
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Manage the
-                    plants and
-                    trees in this
-                    garden.
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground"><T text="Manage the plants and trees in this garden." /></p>
                 </div>
 
                 <button
@@ -785,9 +734,7 @@ export default function EditFarmPage() {
                   }
                   className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Plus className="h-4 w-4" />
-                  Add
-                </button>
+                  <Plus className="h-4 w-4" /><T text="Add" /></button>
               </div>
 
               <div className="space-y-4">
@@ -800,10 +747,7 @@ export default function EditFarmPage() {
                       className="rounded-xl border bg-background p-4 sm:p-5"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <p className="text-sm font-semibold">
-                          Plant /
-                          Tree
-                        </p>
+                        <p className="text-sm font-semibold"><T text="Plant / Tree" /></p>
 
                         <button
                           type="button"
@@ -813,7 +757,7 @@ export default function EditFarmPage() {
                             )
                           }
                           className="rounded-lg p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                          aria-label="Remove plant"
+                          aria-label={t("Remove plant")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -825,9 +769,7 @@ export default function EditFarmPage() {
                           <label
                             htmlFor={`plant-name-${plant.id}`}
                             className="text-xs font-medium text-muted-foreground"
-                          >
-                            Name
-                          </label>
+                          ><T text="Name" /></label>
 
                           <input
                             id={`plant-name-${plant.id}`}
@@ -855,9 +797,7 @@ export default function EditFarmPage() {
                           <label
                             htmlFor={`plant-quantity-${plant.id}`}
                             className="text-xs font-medium text-muted-foreground"
-                          >
-                            Quantity
-                          </label>
+                          ><T text="Quantity" /></label>
 
                           <input
                             id={`plant-quantity-${plant.id}`}
@@ -886,36 +826,27 @@ export default function EditFarmPage() {
                           <label
                             htmlFor={`plant-spacing-${plant.id}`}
                             className="text-xs font-medium text-muted-foreground"
-                          >
-                            Spacing
-                          </label>
+                          ><T text="Spacing" /></label>
 
                           <div className="relative mt-2">
-                            <input
+                            <MeasurementInput kind="length"
                               id={`plant-spacing-${plant.id}`}
-                              type="number"
                               min="0"
                               step="any"
                               value={
                                 plant.spacing
                               }
-                              onChange={(
-                                event,
-                              ) =>
+                              onValueChange={(canonical) =>
                                 updatePlant(
                                   plant.id,
                                   "spacing",
-                                  event
-                                    .target
-                                    .value,
+                                  canonical,
                                 )
                               }
                               className="w-full rounded-xl border bg-card px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                              m
-                            </span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{format.symbol("length")}</span>
                           </div>
                         </div>
 
@@ -924,9 +855,7 @@ export default function EditFarmPage() {
                           <label
                             htmlFor={`plant-age-${plant.id}`}
                             className="text-xs font-medium text-muted-foreground"
-                          >
-                            Age
-                          </label>
+                          ><T text="Age" /></label>
 
                           <div className="relative mt-2">
                             <input
@@ -951,9 +880,7 @@ export default function EditFarmPage() {
                               className="w-full rounded-xl border bg-card px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                              yrs
-                            </span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"><T text="yrs" /></span>
                           </div>
                         </div>
                       </div>
@@ -967,20 +894,9 @@ export default function EditFarmPage() {
                   <div className="rounded-xl border border-dashed p-6 text-center">
                     <TreePine className="mx-auto h-8 w-8 text-muted-foreground" />
 
-                    <p className="mt-3 text-sm font-medium">
-                      No plants
-                      or trees
-                      added
-                    </p>
+                    <p className="mt-3 text-sm font-medium"><T text="No plants or trees added" /></p>
 
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Add the
-                      plants or
-                      trees
-                      managed in
-                      this
-                      garden.
-                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground"><T text="Add the plants or trees managed in this garden." /></p>
                   </div>
                 )}
               </div>
@@ -996,9 +912,7 @@ export default function EditFarmPage() {
               handleNavigation
             }
             className="inline-flex min-h-11 items-center justify-center rounded-xl border px-5 text-sm font-medium transition hover:bg-muted"
-          >
-            Cancel
-          </button>
+          ><T text="Cancel" /></button>
 
           <button
             type="submit"
@@ -1010,8 +924,8 @@ export default function EditFarmPage() {
             <Save className="h-4 w-4" />
 
             {isSaving
-              ? "Saving..."
-              : "Save Changes"}
+              ? t("Saving...")
+              : t("Save Changes")}
           </button>
         </div>
       </form>
@@ -1029,30 +943,12 @@ export default function EditFarmPage() {
               <h2
                 id="unsaved-changes-title"
                 className="text-xl font-bold tracking-tight sm:text-2xl"
-              >
-                Unsaved Changes
-              </h2>
+              ><T text="Unsaved Changes" /></h2>
 
-              <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                You have
-                unsaved
-                changes. Do you
-                want to save
-                them before
-                leaving this
-                page?
-              </p>
+              <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="You have unsaved changes. Do you want to save them before leaving this page?" /></p>
 
               {hasValidationError && (
-                <p className="mt-3 text-xs font-medium leading-5 text-destructive">
-                  Fix the
-                  validation
-                  errors before
-                  saving. You
-                  can still
-                  discard the
-                  changes.
-                </p>
+                <p className="mt-3 text-xs font-medium leading-5 text-destructive"><T text="Fix the validation errors before saving. You can still discard the changes." /></p>
               )}
             </div>
 
@@ -1066,9 +962,7 @@ export default function EditFarmPage() {
                   )
                 }
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-4 text-sm font-medium transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                Cancel
-              </button>
+              ><T text="Cancel" /></button>
 
               {/* Discard */}
               <button
@@ -1077,9 +971,7 @@ export default function EditFarmPage() {
                   discardChanges
                 }
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-destructive/30 px-4 text-sm font-semibold text-destructive transition hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
-              >
-                Discard Changes
-              </button>
+              ><T text="Discard Changes" /></button>
 
               {/* Save */}
               <button
@@ -1096,8 +988,8 @@ export default function EditFarmPage() {
 
                 <span>
                   {isSaving
-                    ? "Saving..."
-                    : "Save Changes"}
+                    ? t("Saving...")
+                    : t("Save Changes")}
                 </span>
               </button>
             </div>

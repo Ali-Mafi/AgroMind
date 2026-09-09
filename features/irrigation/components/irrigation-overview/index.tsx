@@ -1,3 +1,4 @@
+import { T } from "@/features/settings/components/translated-text";
 import {
   CalendarClock,
   Droplets,
@@ -36,17 +37,11 @@ const scheduleTimeLabel = isPastDue
           </div>
 
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm">
-              Irrigation Overview
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation Overview" /></p>
 
-            <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl">
-              Current irrigation plan
-            </h2>
+            <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl"><T text="Current irrigation plan" /></h2>
 
-            <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-              Overview of the current irrigation status and upcoming plan.
-            </p>
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground"><T text="Overview of the current irrigation status and upcoming plan." /></p>
           </div>
         </div>
 
@@ -56,18 +51,16 @@ const scheduleTimeLabel = isPastDue
           {/* Irrigation Stats */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="rounded-xl bg-muted/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                Status
-              </p>
+              <p className="text-xs font-medium text-muted-foreground"><T text="Status" /></p>
 
               <p className="mt-2 text-sm font-semibold sm:text-base">
-                {statusLabel}
+                <T text={statusLabel} />
               </p>
             </div>
 
             <div className="rounded-xl bg-muted/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">
-                {scheduleTimeLabel}
+                <T text={scheduleTimeLabel} />
               </p>
 
               <p className="mt-2 text-sm font-semibold sm:text-base">
@@ -77,9 +70,7 @@ const scheduleTimeLabel = isPastDue
 
             <div className="rounded-xl bg-muted/50 p-4">
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Timer className="h-3.5 w-3.5" />
-                Duration
-              </div>
+                <Timer className="h-3.5 w-3.5" /><T text="Duration" /></div>
 
               <p className="mt-2 text-sm font-semibold sm:text-base">
                 {irrigation.duration}
@@ -91,13 +82,9 @@ const scheduleTimeLabel = isPastDue
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold">
-                    This irrigation schedule has passed.
-                  </p>
+                  <p className="text-sm font-semibold"><T text="This irrigation schedule has passed." /></p>
 
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Choose a new date and time to reschedule this irrigation.
-                  </p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground"><T text="Choose a new date and time to reschedule this irrigation." /></p>
                 </div>
 
                 {onReschedule && (
@@ -106,9 +93,7 @@ const scheduleTimeLabel = isPastDue
                     onClick={onReschedule}
                     className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border bg-background px-4 py-2 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    <CalendarClock className="h-4 w-4 text-primary" />
-                    Reschedule Irrigation
-                  </button>
+                    <CalendarClock className="h-4 w-4 text-primary" /><T text="Reschedule Irrigation" /></button>
                 )}
               </div>
             </div>
@@ -121,9 +106,7 @@ const scheduleTimeLabel = isPastDue
             </div>
 
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">
-                Estimated Water Usage
-              </p>
+              <p className="text-xs text-muted-foreground"><T text="Estimated Water Usage" /></p>
 
               <p className="mt-1 text-sm font-semibold sm:text-base">
                 {irrigation.waterAmount}

@@ -1,3 +1,6 @@
+import { useSettings } from "@/features/settings/context/settings-context";
+import { sensorReading } from "@/features/settings/lib/sensor-reading";
+import { T } from "@/features/settings/components/translated-text";
 import {
   Droplets,
   Gauge,
@@ -36,6 +39,7 @@ export function SensorStatus({
   sensors,
   farmName,
 }: SensorStatusProps) {
+  const { format } = useSettings();
   return (
     <section className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
       {/* Header */}
@@ -45,16 +49,11 @@ export function SensorStatus({
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm">
-            Sensor Status
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Sensor Status" /></p>
 
-          <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl">
-            Field monitoring
-          </h2>
+          <h2 className="mt-1.5 text-xl font-bold tracking-tight sm:text-2xl"><T text="Field monitoring" /></h2>
 
-          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-            Live sensor status for{" "}
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground"><T text="Live sensor status for" />{" "}
             <span className="font-medium text-foreground">
               {farmName}
             </span>
@@ -68,6 +67,7 @@ export function SensorStatus({
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
   {sensors.length > 0
     ? sensors.map((sensor) => {
+        const reading = sensorReading(sensor.value, sensor.unit, format);
         const Icon =
           SENSOR_ICONS[
             sensor.id as keyof typeof SENSOR_ICONS
@@ -84,19 +84,19 @@ export function SensorStatus({
               </div>
 
               <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                {sensor.status}
+                <T text={sensor.status} />
               </span>
             </div>
 
             <p className="mt-5 text-sm font-medium text-muted-foreground">
-              {sensor.name}
+              <T text={sensor.name} />
             </p>
 
             <p className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-              {sensor.value}
+              {reading.value}
 
               <span className="ml-1 text-sm font-medium text-muted-foreground sm:text-base">
-                {sensor.unit}
+                {reading.unit}
               </span>
             </p>
           </div>
@@ -118,18 +118,14 @@ export function SensorStatus({
                 <Icon className="h-5 w-5" />
               </div>
 
-              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                Not connected
-              </span>
+              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"><T text="Not connected" /></span>
             </div>
 
             <p className="mt-5 text-sm font-medium text-muted-foreground">
-              {sensor.name}
+              <T text={sensor.name} />
             </p>
 
-            <p className="mt-1 text-xl font-semibold tracking-tight text-muted-foreground">
-              No data
-            </p>
+            <p className="mt-1 text-xl font-semibold tracking-tight text-muted-foreground"><T text="No data" /></p>
           </div>
         );
       })}
@@ -138,13 +134,9 @@ export function SensorStatus({
         <div className="mt-6 rounded-2xl border border-dashed bg-muted/20 p-6 text-center">
           <RadioTower className="mx-auto h-6 w-6 text-muted-foreground/50" />
 
-          <p className="mt-3 text-sm font-semibold">
-            No sensors connected
-          </p>
+          <p className="mt-3 text-sm font-semibold"><T text="No sensors connected" /></p>
 
-          <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground">
-            No irrigation sensors are currently configured for this farm.
-          </p>
+          <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground"><T text="No irrigation sensors are currently configured for this farm." /></p>
         </div>
       )}
     </section>

@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { T } from "@/features/settings/components/translated-text";
 import Link from "next/link";
 import { APP } from "@/constants/app";
 import { NAVIGATION } from "@/constants/navigation";
@@ -29,16 +30,17 @@ export function Navbar() {
                 href={item.href}
                 className="text-sm font-medium text-gray-600 transition hover:text-green-700"
               >
-                {item.label}
+                <T text={item.label} />
               </Link>
             ))}
           </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost">Sign In</Button>
+            <Link href="/settings" className="text-sm font-medium text-gray-600 hover:text-green-700"><T text="Settings" /></Link>
+            <Button variant="ghost"><T text="Sign In" /></Button>
 
-            <Button>Get Started</Button>
+            <Button><T text="Get Started" /></Button>
           </div>
         </div>
       </AppContainer>

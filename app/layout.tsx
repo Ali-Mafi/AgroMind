@@ -12,7 +12,7 @@ import { FarmProvider } from "@/features/farms/context/farm-context";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
 import { RegionProvider } from "@/features/region/context/region-context";
-import { LocationPermission } from "@/features/region/components/location-permission";
+import { RegionOnboarding } from "@/features/settings/components/region-onboarding";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,14 +56,14 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <RegionProvider>
-            <SettingsProvider>
+          <SettingsProvider>
+            <RegionProvider>
               <FarmProvider>
-                <LocationPermission/>
+                <RegionOnboarding />
                   {children}
               </FarmProvider>
-            </SettingsProvider>
-          </RegionProvider>
+            </RegionProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

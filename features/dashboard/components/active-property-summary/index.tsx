@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,7 +14,6 @@ import {
 
 import type { Farm } from "@/features/farms/types/farms";
 import { useSettings } from "@/features/settings/context/settings-context";
-import { formatArea } from "@/features/settings/utils/area-formatter";
 import { getIrrigationTypeLabel } from "@/features/farms/constants/irrigation-types";
 
 interface ActivePropertySummaryProps {
@@ -23,7 +25,8 @@ interface ActivePropertySummaryProps {
 export function ActivePropertySummary({
   farm,
 }: ActivePropertySummaryProps) {
-  const { areaUnit } = useSettings();
+  const t = useTranslation();
+  const { format } = useSettings();
 
   const isGarden = farm.type === "garden";
 
@@ -62,9 +65,7 @@ export function ActivePropertySummary({
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Active Property
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Active Property" /></p>
 
                 <span
                   className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
@@ -73,7 +74,7 @@ export function ActivePropertySummary({
                       : "bg-primary/10 text-primary"
                   }`}
                 >
-                  {isGarden ? "Garden" : "Farm"}
+                  {isGarden ? t("Garden") : t("Farm")}
                 </span>
               </div>
 
@@ -94,9 +95,7 @@ export function ActivePropertySummary({
           <Link
             href={`/farms/${farm.id}`}
             className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            View Details
-            <ArrowRight className="h-4 w-4" />
+          ><T text="View Details" /><ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -109,12 +108,10 @@ export function ActivePropertySummary({
             <Ruler className="h-4 w-4 text-primary" />
           </div>
 
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Area
-          </p>
+          <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Area" /></p>
 
           <p className="mt-1 text-lg font-bold">
-            {formatArea(farm.area, areaUnit)}
+            {format.measure(farm.area, "area")}
           </p>
         </div>
 
@@ -134,12 +131,10 @@ export function ActivePropertySummary({
             )}
           </div>
 
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Property Type
-          </p>
+          <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Property Type" /></p>
 
           <p className="mt-1 text-lg font-bold">
-            {isGarden ? "Garden / Orchard" : "Farm"}
+            {isGarden ? t("Garden / Orchard") : t("Farm")}
           </p>
         </div>
 
@@ -150,15 +145,15 @@ export function ActivePropertySummary({
           </div>
 
           <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {isGarden ? "Plant / Tree Types" : "Primary Crop"}
+            {isGarden ? t("Plant / Tree Types") : t("Primary Crop")}
           </p>
 
           <p className="mt-1 line-clamp-2 text-lg font-bold">
             {isGarden
               ? plantTypes > 0
                 ? `${plantTypes} type${plantTypes === 1 ? "" : "s"}`
-                : "Not specified"
-              : farm.crop?.name ?? "Not specified"}
+                : t("Not specified")
+              : farm.crop?.name ?? t("Not specified")}
           </p>
         </div>
 
@@ -169,14 +164,14 @@ export function ActivePropertySummary({
           </div>
 
           <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {isGarden ? "Total Plants / Trees" : "Irrigation"}
+            {isGarden ? t("Total Plants / Trees") : t("Irrigation")}
           </p>
 
           <p className="mt-1 line-clamp-2 text-lg font-bold">
             {isGarden
               ? totalPlants > 0
                 ? totalPlants.toLocaleString()
-                : "Not specified"
+                : t("Not specified")
               : irrigationLabel}
           </p>
         </div>

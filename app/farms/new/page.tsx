@@ -1,4 +1,9 @@
 "use client";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { MeasurementInput } from "@/features/settings/components/measurement-input";
+
 
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
@@ -79,6 +84,8 @@ function normalizePropertyName(value: string) {
 }
 
 export default function NewFarmPage() {
+  const t = useTranslation();
+  const { format } = useSettings();
   const { farms, addFarm } = useFarm();
   const [step, setStep] = useState(1);
   const [farmType, setFarmType] = useState<FarmType | null>(null);
@@ -238,21 +245,14 @@ export default function NewFarmPage() {
           href="/farms"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Farms
-        </Link>
+          <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
 
-        <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-primary">
-          Farm Management
-        </p>
+        <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-primary"><T text="Farm Management" /></p>
 
-        <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          Add New {farmType === "garden" ? "Garden" : "Farm"}
+        <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"><T text="Add New" />{" "}{farmType === "garden" ? t("Garden") : t("Farm")}
         </h1>
 
-        <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-          Add your information step by step.
-        </p>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground"><T text="Add your information step by step." /></p>
       </div>
 
       {/* Progress */}
@@ -271,8 +271,7 @@ export default function NewFarmPage() {
                 }`}
               />
 
-              <p className="mt-2 text-xs text-muted-foreground">
-                Step {item}
+              <p className="mt-2 text-xs text-muted-foreground"><T text="Step" />{" "}{item}
               </p>
             </div>
           ),
@@ -284,20 +283,16 @@ export default function NewFarmPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold">
-                What do you want to manage?
-              </h2>
+              <h2 className="text-xl font-bold"><T text="What do you want to manage?" /></h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Choose the type of land you want to manage with AgroMind.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Choose the type of land you want to manage with AgroMind." /></p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setFarmType("farm")}
-                className={`group rounded-2xl border p-6 text-left transition-all ${
+                className={`group rounded-2xl border p-6 text-start transition-all ${
                   farmType === "farm"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "bg-background hover:border-primary/50 hover:bg-primary/5"
@@ -305,24 +300,19 @@ export default function NewFarmPage() {
               >
                 <div className="text-4xl">🌾</div>
 
-                <h3 className="mt-4 text-lg font-bold">Farm</h3>
+                <h3 className="mt-4 text-lg font-bold"><T text="Farm" /></h3>
 
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  For agricultural land used for crops and larger-scale
-                  farming.
-                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground"><T text="For agricultural land used for crops and larger-scale farming." /></p>
 
                 {farmType === "farm" && (
-                  <span className="mt-4 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Selected
-                  </span>
+                  <span className="mt-4 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"><T text="Selected" /></span>
                 )}
               </button>
 
               <button
                 type="button"
                 onClick={() => setFarmType("garden")}
-                className={`group rounded-2xl border p-6 text-left transition-all ${
+                className={`group rounded-2xl border p-6 text-start transition-all ${
                   farmType === "garden"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "bg-background hover:border-primary/50 hover:bg-primary/5"
@@ -330,16 +320,12 @@ export default function NewFarmPage() {
               >
                 <div className="text-4xl">🌳</div>
 
-                <h3 className="mt-4 text-lg font-bold">Garden</h3>
+                <h3 className="mt-4 text-lg font-bold"><T text="Garden" /></h3>
 
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  For gardens, orchards, and smaller cultivated areas.
-                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground"><T text="For gardens, orchards, and smaller cultivated areas." /></p>
 
                 {farmType === "garden" && (
-                  <span className="mt-4 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Selected
-                  </span>
+                  <span className="mt-4 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"><T text="Selected" /></span>
                 )}
               </button>
             </div>
@@ -352,13 +338,12 @@ export default function NewFarmPage() {
             <div>
               <h2 className="text-xl font-bold">
                 {farmType === "farm"
-                  ? "Farm Information"
-                  : "Garden Information"}
+                  ? t("Farm Information")
+                  : t("Garden Information")}
               </h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add the basic information about your{" "}
-                {farmType === "farm" ? "farm" : "garden"}.
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Add the basic information about your" />{" "}
+                {farmType === "farm" ? t("farm") : t("garden")}.
               </p>
             </div>
 
@@ -368,7 +353,7 @@ export default function NewFarmPage() {
                   htmlFor="farm-name"
                   className="text-sm font-medium"
                 >
-                  {farmType === "farm" ? "Farm Name" : "Garden Name"}
+                  {farmType === "farm" ? t("Farm Name") : t("Garden Name")}
                     <span className="ml-1 text-destructive">*</span>
                 </label>
 
@@ -379,21 +364,17 @@ export default function NewFarmPage() {
                   onChange={(event) => setFarmName(event.target.value)}
                   placeholder={
                     farmType === "farm"
-                      ? "e.g. North Field"
-                      : "e.g. Walnut Garden"
+                      ? t("e.g. North Field")
+                      : t("e.g. Walnut Garden")
                   }
                   required
                   aria-required="true"
                   className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
                 {hasDuplicateName ? (
-                  <p className="mt-2 text-xs font-medium text-destructive">
-                    This name is already being used. Please choose a different name.
-                  </p>
+                  <p className="mt-2 text-xs font-medium text-destructive"><T text="This name is already being used. Please choose a different name." /></p>
                 ) : (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    A unique name is required for every farm or garden.
-                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground"><T text="A unique name is required for every farm or garden." /></p>
                 )}
               </div>
 
@@ -402,13 +383,9 @@ export default function NewFarmPage() {
                   <label
                     htmlFor="farm-location"
                     className="text-sm font-medium"
-                  >
-                    Location
-                  </label>
+                  ><T text="Location" /></label>
 
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Add a general location or select the exact position on the map.
-                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground"><T text="Add a general location or select the exact position on the map." /></p>
                 </div>
 
                 <div className="relative">
@@ -421,28 +398,21 @@ export default function NewFarmPage() {
                     onChange={(event) =>
                       setLocation(event.target.value)
                     }
-                    placeholder="e.g. Qazvin, Iran"
+                    placeholder={t("e.g. Qazvin, Iran")}
                     className="w-full rounded-xl border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium">
-                    Exact Location
-                    <span className="ml-1 text-destructive">*</span>
+                  <p className="text-sm font-medium"><T text="Exact Location" /><span className="ml-1 text-destructive">*</span>
                   </p>
 
                   {coordinates && (
-                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                      Selected
-                    </span>
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"><T text="Selected" /></span>
                   )}
                 </div>
 
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Select the exact farm position on the map. This is required
-                  for location-based AgroMind features.
-                </p>
+                <p className="text-xs leading-5 text-muted-foreground"><T text="Select the exact farm position on the map. This is required for location-based AgroMind features." /></p>
 
                 <FarmLocationPicker
                   value={coordinates}
@@ -457,44 +427,38 @@ export default function NewFarmPage() {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold">Area</h2>
+              <h2 className="text-xl font-bold"><T text="Area" /></h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Enter the area directly or calculate it from the dimensions.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Enter the area directly or calculate it from the dimensions." /></p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setAreaMode("direct")}
-                className={`rounded-xl border p-4 text-left transition-all ${
+                className={`rounded-xl border p-4 text-start transition-all ${
                   areaMode === "direct"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "hover:border-primary/50"
                 }`}
               >
-                <p className="font-semibold">Enter area</p>
+                <p className="font-semibold"><T text="Enter area" /></p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Enter the total area directly.
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground"><T text="Enter the total area directly." /></p>
               </button>
 
               <button
                 type="button"
                 onClick={() => setAreaMode("dimensions")}
-                className={`rounded-xl border p-4 text-left transition-all ${
+                className={`rounded-xl border p-4 text-start transition-all ${
                   areaMode === "dimensions"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "hover:border-primary/50"
                 }`}
               >
-                <p className="font-semibold">Calculate from dimensions</p>
+                <p className="font-semibold"><T text="Calculate from dimensions" /></p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Use length and width.
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground"><T text="Use length and width." /></p>
               </button>
             </div>
 
@@ -503,24 +467,19 @@ export default function NewFarmPage() {
                 <label
                   htmlFor="area"
                   className="text-sm font-medium"
-                >
-                  Area
-                </label>
+                ><T text="Area" /></label>
 
                 <div className="relative mt-2">
-                  <input
+                  <MeasurementInput kind="area"
                     id="area"
-                    type="number"
                     min="0"
                     value={area}
-                    onChange={(event) => setArea(event.target.value)}
-                    placeholder="e.g. 6000"
+                    onValueChange={(canonical) => setArea(canonical)}
+                    placeholder={format.input(6000, "area")}
                     className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
 
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    m²
-                  </span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("area")}</span>
                 </div>
               </div>
             )}
@@ -532,26 +491,21 @@ export default function NewFarmPage() {
                     <label
                       htmlFor="length"
                       className="text-sm font-medium"
-                    >
-                      Length
-                    </label>
+                    ><T text="Length" /></label>
 
                     <div className="relative mt-2">
-                      <input
+                      <MeasurementInput kind="length"
                         id="length"
-                        type="number"
                         min="0"
                         value={length}
-                        onChange={(event) =>
-                          setLength(event.target.value)
+                        onValueChange={(canonical) =>
+                          setLength(canonical)
                         }
-                        placeholder="e.g. 100"
+                        placeholder={format.input(100, "length")}
                         className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        m
-                      </span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
 
@@ -559,42 +513,35 @@ export default function NewFarmPage() {
                     <label
                       htmlFor="width"
                       className="text-sm font-medium"
-                    >
-                      Width
-                    </label>
+                    ><T text="Width" /></label>
 
                     <div className="relative mt-2">
-                      <input
+                      <MeasurementInput kind="length"
                         id="width"
-                        type="number"
                         min="0"
                         value={width}
-                        onChange={(event) =>
-                          setWidth(event.target.value)
+                        onValueChange={(canonical) =>
+                          setWidth(canonical)
                         }
-                        placeholder="e.g. 60"
+                        placeholder={format.input(60, "length")}
                         className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        m
-                      </span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-xl bg-primary/5 p-5">
-                  <p className="text-sm text-muted-foreground">
-                    Estimated Area
-                  </p>
+                  <p className="text-sm text-muted-foreground"><T text="Estimated Area" /></p>
 
                   <p className="mt-1 text-2xl font-bold text-primary">
-                    {calculatedArea.toLocaleString()} m²
+                    {format.measure(calculatedArea, "area")}
                   </p>
 
                   {calculatedArea > 0 && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {length}m × {width}m
+                      {format.measure(Number(length), "length")} × {format.measure(Number(width), "length")}
                     </p>
                   )}
                 </div>
@@ -603,12 +550,10 @@ export default function NewFarmPage() {
 
             {finalArea > 0 && areaMode === "direct" && (
               <div className="rounded-xl bg-primary/5 p-5">
-                <p className="text-sm text-muted-foreground">
-                  Selected Area
-                </p>
+                <p className="text-sm text-muted-foreground"><T text="Selected Area" /></p>
 
                 <p className="mt-1 text-2xl font-bold text-primary">
-                  {finalArea.toLocaleString()} m²
+                  {format.measure(finalArea, "area")}
                 </p>
               </div>
             )}
@@ -619,27 +564,23 @@ export default function NewFarmPage() {
         {step === 4 && farmType === "farm" && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold">Crop</h2>
+              <h2 className="text-xl font-bold"><T text="Crop" /></h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add the main crop grown on this farm.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Add the main crop grown on this farm." /></p>
             </div>
 
             <div>
               <label
                 htmlFor="crop"
                 className="text-sm font-medium"
-              >
-                Crop
-              </label>
+              ><T text="Crop" /></label>
 
               <input
                 id="crop"
                 type="text"
                 value={crop}
                 onChange={(event) => setCrop(event.target.value)}
-                placeholder="e.g. Forage Corn"
+                placeholder={t("e.g. Forage Corn")}
                 className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
@@ -650,20 +591,16 @@ export default function NewFarmPage() {
         {step === 4 && farmType === "garden" && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold">Plants & Trees</h2>
+              <h2 className="text-xl font-bold"><T text="Plants & Trees" /></h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add up to 5 types of trees or plants in this garden.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Add up to 5 types of trees or plants in this garden." /></p>
             </div>
 
             {plants.length === 0 && (
               <div className="rounded-xl border border-dashed p-6 text-center">
-                <p className="font-medium">No plants added yet</p>
+                <p className="font-medium"><T text="No plants added yet" /></p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Add the tree or plant types you grow in this garden.
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground"><T text="Add the tree or plant types you grow in this garden." /></p>
               </div>
             )}
 
@@ -675,20 +612,17 @@ export default function NewFarmPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold">
-                        Plant / Tree {index + 1}
+                      <p className="font-semibold"><T text="Plant / Tree" />{" "}{index + 1}
                       </p>
 
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Add the details for this plant type.
-                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground"><T text="Add the details for this plant type." /></p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => removePlant(plant.id)}
                       className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      aria-label="Remove plant"
+                      aria-label={t("Remove plant")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -696,9 +630,7 @@ export default function NewFarmPage() {
 
                   <div className="mt-5 space-y-4">
                     <div>
-                      <label className="text-sm font-medium">
-                        Plant / Tree Name
-                      </label>
+                      <label className="text-sm font-medium"><T text="Plant / Tree Name" /></label>
 
                       <input
                         type="text"
@@ -710,16 +642,14 @@ export default function NewFarmPage() {
                             event.target.value,
                           )
                         }
-                        placeholder="e.g. Late-blooming Persian walnut"
+                        placeholder={t("e.g. Late-blooming Persian walnut")}
                         className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
-                        <label className="text-sm font-medium">
-                          Quantity
-                        </label>
+                        <label className="text-sm font-medium"><T text="Quantity" /></label>
 
                         <input
                           type="number"
@@ -732,42 +662,35 @@ export default function NewFarmPage() {
                               event.target.value,
                             )
                           }
-                          placeholder="e.g. 250"
+                          placeholder={t("e.g. 250")}
                           className="mt-2 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium">
-                          Spacing
-                        </label>
+                        <label className="text-sm font-medium"><T text="Spacing" /></label>
 
                         <div className="relative mt-2">
-                          <input
-                            type="number"
+                          <MeasurementInput kind="length"
                             min="0"
                             value={plant.spacing}
-                            onChange={(event) =>
+                            onValueChange={(canonical) =>
                               updatePlant(
                                 plant.id,
                                 "spacing",
-                                event.target.value,
+                                canonical,
                               )
                             }
-                            placeholder="e.g. 6"
+                            placeholder={format.input(6, "length")}
                             className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
 
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                            m
-                          </span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                         </div>
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium">
-                          Age
-                        </label>
+                        <label className="text-sm font-medium"><T text="Age" /></label>
 
                         <div className="relative mt-2">
                           <input
@@ -781,13 +704,11 @@ export default function NewFarmPage() {
                                 event.target.value,
                               )
                             }
-                            placeholder="e.g. 4"
+                            placeholder={t("e.g. 4")}
                             className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
 
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                            yrs
-                          </span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"><T text="yrs" /></span>
                         </div>
                       </div>
                     </div>
@@ -802,14 +723,11 @@ export default function NewFarmPage() {
                 onClick={addPlant}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm font-semibold transition-colors hover:border-primary hover:bg-primary/5"
               >
-                <Plus className="h-4 w-4" />
-                Add Plant / Tree
-              </button>
+                <Plus className="h-4 w-4" /><T text="Add Plant / Tree" /></button>
             )}
 
             <p className="text-center text-xs text-muted-foreground">
-              {plants.length} of 5 plant types added
-            </p>
+              {plants.length}{" "}<T text="of 5 plant types added" /></p>
           </div>
         )}
 
@@ -817,13 +735,9 @@ export default function NewFarmPage() {
           {step === 5 && farmType === "farm" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold">
-                  Irrigation
-                </h2>
+                <h2 className="text-xl font-bold"><T text="Irrigation" /></h2>
 
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Choose how this farm is irrigated.
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground"><T text="Choose how this farm is irrigated." /></p>
               </div>
 
               <IrrigationTypeSelector
@@ -838,20 +752,15 @@ export default function NewFarmPage() {
           (step === 5 && farmType === "garden")) && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold">
-                Review {farmType === "farm" ? "Farm" : "Garden"}
+              <h2 className="text-xl font-bold"><T text="Review" />{" "}{farmType === "farm" ? t("Farm") : t("Garden")}
               </h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                Check your information before creating it.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground"><T text="Check your information before creating it." /></p>
             </div>
 
             <div className="space-y-3">
               <div className="rounded-xl border p-4">
-                <p className="text-xs text-muted-foreground">
-                  Type
-                </p>
+                <p className="text-xs text-muted-foreground"><T text="Type" /></p>
 
                 <p className="mt-1 font-semibold capitalize">
                   {farmType}
@@ -859,56 +768,46 @@ export default function NewFarmPage() {
               </div>
 
               <div className="rounded-xl border p-4">
-                <p className="text-xs text-muted-foreground">
-                  Name
-                </p>
+                <p className="text-xs text-muted-foreground"><T text="Name" /></p>
 
                 <p className="mt-1 font-semibold">
-                  {farmName || "Not specified"}
+                  {farmName || t("Not specified")}
                 </p>
               </div>
 
               <div className="rounded-xl border p-4">
-                <p className="text-xs text-muted-foreground">
-                  Location
-                </p>
+                <p className="text-xs text-muted-foreground"><T text="Location" /></p>
 
                 <p className="mt-1 font-semibold">
-                  {location || "Not specified"}
+                  {location || t("Not specified")}
                 </p>
               </div>
 
               <div className="rounded-xl border p-4">
-                <p className="text-xs text-muted-foreground">
-                  Area
-                </p>
+                <p className="text-xs text-muted-foreground"><T text="Area" /></p>
 
                 <p className="mt-1 font-semibold">
                   {finalArea > 0
-                    ? `${finalArea.toLocaleString()} m²`
-                    : "Not specified"}
+                    ? format.measure(finalArea, "area")
+                    : t("Not specified")}
                 </p>
               </div>
 
               {farmType === "farm" && (
                 <>
                   <div className="rounded-xl border p-4">
-                    <p className="text-xs text-muted-foreground">
-                      Crop
-                    </p>
+                    <p className="text-xs text-muted-foreground"><T text="Crop" /></p>
 
                     <p className="mt-1 font-semibold">
-                      {crop || "Not specified"}
+                      {crop || t("Not specified")}
                     </p>
                   </div>
 
                   <div className="rounded-xl border p-4">
-                    <p className="text-xs text-muted-foreground">
-                      Irrigation Type
-                    </p>
+                    <p className="text-xs text-muted-foreground"><T text="Irrigation Type" /></p>
 
                     <p className="mt-1 font-semibold">
-                      {irrigationType || "Not specified"}
+                      {irrigationType || t("Not specified")}
                     </p>
                   </div>
                 </>
@@ -916,14 +815,10 @@ export default function NewFarmPage() {
 
               {farmType === "garden" && (
                 <div className="rounded-xl border p-4">
-                  <p className="text-xs text-muted-foreground">
-                    Plants / Trees
-                  </p>
+                  <p className="text-xs text-muted-foreground"><T text="Plants / Trees" /></p>
 
                   {plants.length === 0 ? (
-                    <p className="mt-1 font-semibold">
-                      No plants specified
-                    </p>
+                    <p className="mt-1 font-semibold"><T text="No plants specified" /></p>
                   ) : (
                     <div className="mt-3 space-y-3">
                       {plants.map((plant) => (
@@ -932,14 +827,13 @@ export default function NewFarmPage() {
                           className="rounded-lg bg-muted/50 p-3"
                         >
                           <p className="font-semibold">
-                            {plant.name || "Unnamed plant"}
+                            {plant.name || t("Unnamed plant")}
                           </p>
 
                           <p className="mt-1 text-xs text-muted-foreground">
-                            {plant.quantity || 0} plants ·{" "}
-                            {plant.spacing || 0}m spacing ·{" "}
-                            {plant.age || 0} years old
-                          </p>
+                            {plant.quantity || 0}{" "}<T text="plants ·" />{" "}
+                            {format.measure(Number(plant.spacing) || 0, "length")}{" "}<T text="spacing ·" />{" "}
+                            {plant.age || 0}{" "}<T text="years old" /></p>
                         </div>
                       ))}
                     </div>
@@ -953,8 +847,7 @@ export default function NewFarmPage() {
               onClick={handleCreateFarm}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              <Plus className="h-4 w-4" />
-              Create {farmType === "farm" ? "Farm" : "Garden"}
+              <Plus className="h-4 w-4" /><T text="Create" />{" "}{farmType === "farm" ? t("Farm") : t("Garden")}
             </button>
           </div>
         )}
@@ -967,9 +860,7 @@ export default function NewFarmPage() {
             disabled={step === 1}
             className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Previous
-          </button>
+            <ArrowLeft className="h-4 w-4" /><T text="Previous" /></button>
 
           {step < totalSteps && (
             <button
@@ -980,9 +871,7 @@ export default function NewFarmPage() {
                 (step === 2 && !canContinueStep2)
               }
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-              <ArrowRight className="h-4 w-4" />
+            ><T text="Next" /><ArrowRight className="h-4 w-4" />
             </button>
           )}
         </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { T } from "@/features/settings/components/translated-text";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -45,6 +47,7 @@ export function IrrigationControl({
   onStart,
   onStop,
 }: IrrigationControlProps) {
+  const t = useTranslation();
   const controllerConnected =
     controllerStatus === "connected";
 
@@ -111,7 +114,7 @@ export function IrrigationControl({
     ) {
       return {
         title: "Automation not connected",
-        description: `No irrigation controller is connected to ${farmName}. Connect a compatible controller to enable remote start and stop.`,
+        description: t("No irrigation controller is connected to {farm}. Connect a compatible controller to enable remote start and stop.", { farm: farmName }),
         destructive: false,
       };
     }
@@ -146,14 +149,14 @@ export function IrrigationControl({
     if (isRunning) {
       return {
         title: "Irrigation in progress",
-        description: `${farmName} is currently being irrigated.`,
+        description: t("{farm} is currently being irrigated.", { farm: farmName }),
         destructive: false,
       };
     }
 
     return {
       title: "Controller ready",
-      description: `${farmName} is connected and ready for remote irrigation control.`,
+      description: t("{farm} is connected and ready for remote irrigation control.", { farm: farmName }),
       destructive: false,
     };
   })();
@@ -171,24 +174,16 @@ export function IrrigationControl({
             </div>
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                Irrigation Control
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary"><T text="Irrigation Control" /></p>
 
-              <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
-                Remote irrigation
-              </h2>
+              <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl"><T text="Remote irrigation" /></h2>
             </div>
           </div>
 
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Control irrigation for{" "}
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground"><T text="Control irrigation for" />{" "}
             <span className="font-medium text-foreground">
               {farmName}
-            </span>{" "}
-            when a compatible irrigation controller
-            is connected.
-          </p>
+            </span>{" "}<T text="when a compatible irrigation controller is connected." /></p>
         </div>
 
         {/* Controller Status */}
@@ -199,7 +194,7 @@ export function IrrigationControl({
             className={`h-2 w-2 rounded-full ${statusDotClass}`}
           />
 
-          {statusLabel}
+          <T text={statusLabel} />
         </div>
       </div>
 
@@ -237,11 +232,11 @@ export function IrrigationControl({
 
           <div className="min-w-0">
             <p className="text-sm font-semibold">
-              {controlMessage.title}
+              {t(controlMessage.title)}
             </p>
 
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              {controlMessage.description}
+              {t(controlMessage.description)}
             </p>
           </div>
         </div>
@@ -252,9 +247,7 @@ export function IrrigationControl({
         <div className="flex items-center gap-2">
           <Timer className="h-4 w-4 text-muted-foreground" />
 
-          <p className="text-sm font-semibold">
-            Irrigation duration
-          </p>
+          <p className="text-sm font-semibold"><T text="Irrigation duration" /></p>
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -281,9 +274,7 @@ export function IrrigationControl({
               >
                 {option}
 
-                <span className="ml-1 text-xs font-medium opacity-80">
-                  min
-                </span>
+                <span className="ml-1 text-xs font-medium opacity-80"><T text="min" /></span>
               </button>
             );
           })}
@@ -300,10 +291,7 @@ export function IrrigationControl({
           }
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
         >
-          <Play className="h-4 w-4 fill-current" />
-
-          Start Irrigation
-        </button>
+          <Play className="h-4 w-4 fill-current" /><T text="Start Irrigation" /></button>
 
         <button
           type="button"
@@ -313,10 +301,7 @@ export function IrrigationControl({
           }
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border bg-background px-4 py-3 text-sm font-semibold transition-all hover:-translate-y-0.5 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
         >
-          <Square className="h-4 w-4 fill-current" />
-
-          Stop Irrigation
-        </button>
+          <Square className="h-4 w-4 fill-current" /><T text="Stop Irrigation" /></button>
       </div>
     </section>
   );

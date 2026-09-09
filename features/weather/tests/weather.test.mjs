@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { loadTs, localRequire } from "./helpers/load-ts.mjs";
+import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
 
 const coordinates = { latitude: 36.27, longitude: 50.01 };
 const reportEpoch = Date.parse("2026-09-07T07:15:00Z") / 1000;
@@ -161,10 +162,10 @@ test("an overnight provider boundary retains absolute hourly spacing and a visib
 
 test("extended daily rows and detail charts identify the actual provider and rainfall period", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
   const { extendWeatherForecast } = loadTs("features/weather/lib/extend-weather-forecast.ts");
-  const { WeatherForecastOverview } = loadTs("features/weather/components/weather-forecast-overview/index.tsx");
-  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const { WeatherForecastOverview } = loadUi("features/weather/components/weather-forecast-overview/index.tsx");
+  const { WeatherDetail } = loadUi("features/weather/components/weather-detail/index.tsx");
   const weather = extendWeatherForecast(parseWeatherApiForecast(forecastPayload(), coordinates), tenDayModel(), reportEpoch * 1000);
   const render = (component, props) => renderToStaticMarkup(React.createElement(component, props)).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
   const overview = render(WeatherForecastOverview, { weather, asOf: reportEpoch * 1000, onOpen() {} });
@@ -172,9 +173,9 @@ test("extended daily rows and detail charts identify the actual provider and rai
   const detail = (date, metric = "precipitation") => render(WeatherDetail, {
     weather, asOf: reportEpoch * 1000, selection: { date, metric }, onSelection() {},
   });
-  assert.match(detail("2026-09-07"), /Full-day forecast · 2026-09-07.*21\.0 mm/);
+  assert.match(detail("2026-09-07"), /Full-day forecast.*21\.0 mm/);
   assert.doesNotMatch(detail("2026-09-07"), /preceding hour/);
-  assert.match(detail("2026-09-10"), /Full-day forecast · 2026-09-10.*0\.4 mm/);
+  assert.match(detail("2026-09-10"), /Full-day forecast.*0\.4 mm/);
   assert.match(detail("2026-09-10"), /Hourly forecast · Open-Meteo/);
   assert.match(detail("2026-09-10"), /preceding hour/);
   assert.match(detail("2026-09-09", "overnight"), /night spans two forecast providers/);
@@ -432,11 +433,11 @@ test("offline initial state and timed-out requests are recoverable", async (t) =
 
 test("UI separates daily forecast from reported rain and shows report age and source", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
-  const { CurrentWeatherHero } = loadTs("features/weather/components/current-weather-hero/index.tsx", {
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
+  const { CurrentWeatherHero } = loadUi("features/weather/components/current-weather-hero/index.tsx", {
     "@/features/weather/components/weather-background": { WeatherBackground: () => null },
     "@/features/weather/components/hourly-forecast": { HourlyForecast: () => null },
-    "@/features/weather/components/weather-source-status": loadTs("features/weather/components/weather-source-status/index.tsx"),
+    "@/features/weather/components/weather-source-status": loadUi("features/weather/components/weather-source-status/index.tsx"),
   });
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   const props = {
@@ -521,14 +522,14 @@ test("rain and snow probabilities remain explicitly labelled and absent values s
 
 test("the rendered Now card matches the main temperature while future cards keep their forecasts", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
-  const { HourlyForecast } = loadTs("features/weather/components/hourly-forecast/index.tsx");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
+  const { HourlyForecast } = loadUi("features/weather/components/hourly-forecast/index.tsx");
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   const html = renderToStaticMarkup(React.createElement(HourlyForecast, { weather, checkedAt: reportEpoch * 1000 }));
   const currentCard = html.match(/<article[^>]*data-weather-kind="current"[\s\S]*?<\/article>/)[0];
   assert.match(currentCard, />Now</);
   assert.match(currentCard, />22°</);
-  assert.match(currentCard, /Feels 24°/);
+  assert.match(currentCard, /Feels like 24°/);
   assert.match(currentCard, /Chance —/);
   assert.ok(!currentCard.includes("28°"));
   const nextCard = html.match(/<article[^>]*data-weather-kind="forecast"[\s\S]*?<\/article>/)[0];
@@ -626,8 +627,8 @@ test("storm backgrounds try rainy and cloudy assets without a clear-sky fallback
 
 test("redesigned forecast keeps Now consistent and labels only the available days", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
-  const { WeatherForecastOverview } = loadTs("features/weather/components/weather-forecast-overview/index.tsx");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
+  const { WeatherForecastOverview } = loadUi("features/weather/components/weather-forecast-overview/index.tsx");
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   const html = renderToStaticMarkup(React.createElement(WeatherForecastOverview, { weather, asOf: reportEpoch * 1000, onOpen: () => {} }));
   const now = html.match(/<button[^>]*data-weather-kind="current"[\s\S]*?<\/button>/)[0];
@@ -637,9 +638,9 @@ test("redesigned forecast keeps Now consistent and labels only the available day
 
 test("rain card and detail distinguish a four-millimetre daily forecast from a 0.4 report", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
-  const { WeatherMetricGrid } = loadTs("features/weather/components/weather-metric-grid/index.tsx");
-  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
+  const { WeatherMetricGrid } = loadUi("features/weather/components/weather-metric-grid/index.tsx");
+  const { WeatherDetail } = loadUi("features/weather/components/weather-detail/index.tsx");
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   weather.daily[0].precipitationSum = 4;
   weather.current.precipitation = 0.4;
@@ -660,8 +661,8 @@ test("rain card and detail distinguish a four-millimetre daily forecast from a 0
 
 test("detail charts and accessible tables render for every supported measurement", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
-  const { WeatherDetail } = loadTs("features/weather/components/weather-detail/index.tsx");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
+  const { WeatherDetail } = loadUi("features/weather/components/weather-detail/index.tsx");
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   for (const metric of ["temperature", "wind", "humidity", "dewPoint", "overnight", "pressure", "cloudCover", "daylight"]) {
     const html = renderToStaticMarkup(React.createElement(WeatherDetail, {
@@ -673,6 +674,23 @@ test("detail charts and accessible tables render for every supported measurement
     else if (metric !== "daylight") assert.match(html, /type="range"/);
     else { assert.match(html, /06:15/); assert.match(html, /19:20/); }
   }
+});
+
+test("US rainfall cards and detail tables convert the same daily and current amounts independently", () => {
+  const React = localRequire("react");
+  const { load, renderToStaticMarkup } = localizedRenderer({ country: "US" });
+  const { WeatherMetricGrid } = load("features/weather/components/weather-metric-grid/index.tsx");
+  const { WeatherDetail } = load("features/weather/components/weather-detail/index.tsx");
+  const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
+  weather.daily[0].precipitationSum = 4;
+  weather.current.precipitation = .4;
+  const grid = renderToStaticMarkup(React.createElement(WeatherMetricGrid, { weather, asOf: reportEpoch * 1000, onOpen() {} }));
+  assert.match(grid, /Precipitation: 0\.16 in/);
+  const detail = renderToStaticMarkup(React.createElement(WeatherDetail, { weather, asOf: reportEpoch * 1000, selection: { metric: "precipitation", date: "2026-09-07" }, onSelection() {} })).replace(/<[^>]*>/g, "");
+  assert.match(detail, /Full-day forecast.*0\.16 in/);
+  assert.match(detail, /Latest provider report: 0\.02 in/);
+  assert.equal(weather.daily[0].precipitationSum, 4);
+  assert.equal(weather.current.precipitation, .4);
 });
 
 test("forecast day configuration is bounded and provider output is not padded", async (t) => {
@@ -734,12 +752,12 @@ test("reconnecting in a hidden tab refreshes on return even before the polling i
 
 test("farm dashboard uses the same local daily rainfall total as the full weather page", () => {
   const React = localRequire("react");
-  const { renderToStaticMarkup } = localRequire("react-dom/server");
+  const { load: loadUi, renderToStaticMarkup } = localizedRenderer();
   const weather = parseWeatherApiForecast(forecastPayload(), coordinates);
   weather.current.precipitation = 0.4;
   weather.daily[0].precipitationSum = 4;
   const state = { weather, checkedAt: reportEpoch * 1000, isLoading: false, isRefreshing: false, refresh: () => {} };
-  const Dashboard = loadTs("features/weather/components/weather-dashboard/index.tsx", {
+  const Dashboard = loadUi("features/weather/components/weather-dashboard/index.tsx", {
     "@/features/weather/components/hooks/use-weather": { useWeather: () => state },
   }).default;
   const render = () => renderToStaticMarkup(React.createElement(Dashboard, { coordinates }));

@@ -1,3 +1,8 @@
+"use client";
+import { T } from "@/features/settings/components/translated-text";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { REGION_PROFILES } from "@/features/settings/constants/region-profiles";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { HERO } from "@/constants/landing";
 import { AppContainer } from "@/components/layout/app-container";
 import { Button } from "@/components/ui/button";
@@ -6,6 +11,9 @@ import { FarmStatusCard } from "@/components/cards/farm-status-card";
 
 
 export function Hero() {
+  const { country } = useSettings();
+  const t = useTranslation();
+  const sample = REGION_PROFILES[country].example;
   return (
     <section className="py-24 relative overflow-hidden ">
 
@@ -24,26 +32,24 @@ export function Hero() {
             <div className="mb-6 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-4 py-2">
               <span className="mr-2 text-lg">🌱</span>
 
-              <span className="font-medium text-green-700">
-                AI-Powered Precision Agriculture
-              </span>
+              <span className="font-medium text-green-700"><T text="AI-Powered Precision Agriculture" /></span>
             </div>
 
             <h1 className="font-heading text-5xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl lg:text-7xl">
-              {HERO.title}
+              {t(HERO.title)}
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-              {HERO.subtitle}
+              {t(HERO.subtitle)}
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Button size="lg" className="h-12 px-8 rounded-2xl font-semibold shadow-sm hover:scale-[1.02] transition-all duration-200">
-                {HERO.primaryButton}
+                {t(HERO.primaryButton)}
               </Button>
 
               <Button variant="outline" size="lg" className="h-12 px-8 rounded-2xl hover:bg-primary/5 transition-all duration-200">
-                {HERO.secondaryButton}
+                {t(HERO.secondaryButton)}
               </Button>
             </div>
           </div>
@@ -51,10 +57,12 @@ export function Hero() {
           {/* Right Side */}
                 <div className="mx-auto w-full max-w-md">
                 <FarmStatusCard
-                    farmName={MY_FARM.name}
-                    location="Fasham, Tehran"
+                    farmName={t("Sample farm")}
+                    location={t(sample.location)}
+                    area={sample.area}
+                    crop={t(sample.crop)}
                     moisture={MY_FARM.moisture}
-                    temperature={27}
+                    temperature={sample.temperature}
                     humidity={61}
                     weather={MY_FARM.weather}
                     recommendation={MY_FARM.recommendation}
