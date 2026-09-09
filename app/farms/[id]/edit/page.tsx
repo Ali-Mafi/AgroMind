@@ -635,7 +635,7 @@ export default function EditFarmPage() {
             ><T text="Area" /></label>
 
             <div className="relative mt-2">
-              <MeasurementInput kind="area"
+              <MeasurementInput kind={isGarden ? "gardenArea" : "area"}
                 id="farm-area"
                 min="0"
                 step="any"
@@ -654,7 +654,7 @@ export default function EditFarmPage() {
                 className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("area")}</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(isGarden ? "gardenArea" : "area")}</span>
             </div>
 
             {areaErrorMessage && (

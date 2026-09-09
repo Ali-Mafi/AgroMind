@@ -470,16 +470,16 @@ export default function NewFarmPage() {
                 ><T text="Area" /></label>
 
                 <div className="relative mt-2">
-                  <MeasurementInput kind="area"
+                  <MeasurementInput kind={farmType === "garden" ? "gardenArea" : "area"}
                     id="area"
                     min="0"
                     value={area}
                     onValueChange={(canonical) => setArea(canonical)}
-                    placeholder={format.input(6000, "area")}
+                    placeholder={format.input(6000, farmType === "garden" ? "gardenArea" : "area")}
                     className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
 
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("area")}</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(farmType === "garden" ? "gardenArea" : "area")}</span>
                 </div>
               </div>
             )}
@@ -536,7 +536,7 @@ export default function NewFarmPage() {
                   <p className="text-sm text-muted-foreground"><T text="Estimated Area" /></p>
 
                   <p className="mt-1 text-2xl font-bold text-primary">
-                    {format.measure(calculatedArea, "area")}
+                    {format.measure(calculatedArea, farmType === "garden" ? "gardenArea" : "area")}
                   </p>
 
                   {calculatedArea > 0 && (
@@ -553,7 +553,7 @@ export default function NewFarmPage() {
                 <p className="text-sm text-muted-foreground"><T text="Selected Area" /></p>
 
                 <p className="mt-1 text-2xl font-bold text-primary">
-                  {format.measure(finalArea, "area")}
+                  {format.measure(finalArea, farmType === "garden" ? "gardenArea" : "area")}
                 </p>
               </div>
             )}
@@ -788,7 +788,7 @@ export default function NewFarmPage() {
 
                 <p className="mt-1 font-semibold">
                   {finalArea > 0
-                    ? format.measure(finalArea, "area")
+                    ? format.measure(finalArea, farmType === "garden" ? "gardenArea" : "area")
                     : t("Not specified")}
                 </p>
               </div>

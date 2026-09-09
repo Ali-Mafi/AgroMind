@@ -154,17 +154,17 @@ export function IrrigationTypeSelector({
             }`}
           >
             {selectedType
-              ? selectedType.label
+              ? t(selectedType.label)
               : t("Select irrigation type")}
           </p>
 
           {selectedType && (
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {
+              {t(
                 IRRIGATION_META[
                   selectedType.value
                 ].description
-              }
+              )}
             </p>
           )}
         </div>
@@ -242,7 +242,7 @@ export function IrrigationTypeSelector({
                     </p>
 
                     <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                      {meta.description}
+                      {t(meta.description)}
                     </p>
                   </div>
 

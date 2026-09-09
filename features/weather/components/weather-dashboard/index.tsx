@@ -7,13 +7,18 @@ import { useWeather } from "@/features/weather/components/hooks/use-weather";
 import { WeatherSourceStatus } from "@/features/weather/components/weather-source-status";
 import { useWeatherFormat } from "../hooks/use-weather-format";
 import { localWeatherTime } from "@/features/weather/lib/weather-presentation";
+import Link from "next/link";
 
 interface WeatherDashboardProps {
   coordinates: FarmLocation;
+  farmId?: string;
+  returnTo?: "/dashboard" | "/irrigation";
 }
 
 export default function WeatherDashboard({
   coordinates,
+  farmId,
+  returnTo = "/dashboard",
 }: WeatherDashboardProps) {
   const t = useTranslation();
   const { measure, number } = useWeatherFormat();
@@ -60,19 +65,20 @@ export default function WeatherDashboard({
   const today = weather.daily.find((day) => day.date === todayKey);
 
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
-      <div>
+    <section className={`relative rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8 ${farmId ? "transition hover:border-primary/40 hover:shadow-md" : ""}`}>
+      {farmId && <Link href={`/weather?farm=${encodeURIComponent(farmId)}&from=${returnTo.slice(1)}`} aria-label={t("Open local forecast")} className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />}
+      <div className="pointer-events-none relative z-10">
         <h2 className="text-xl font-bold sm:text-2xl"><T text="Weather" /></h2>
 
         <p className="mt-1 text-sm text-muted-foreground"><T text="Latest available weather for this farm location." /></p>
       </div>
 
-      <div className="mt-3 text-muted-foreground">
+      <div className="relative z-10 mt-3 text-muted-foreground">
         <WeatherSourceStatus weather={weather} checkedAt={checkedAt}
           isRefreshing={isRefreshing} refreshError={refreshError} onRefresh={refresh} />
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="pointer-events-none relative z-10 mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-xl border bg-background p-4">
           <p className="text-xs text-muted-foreground"><T text="Temperature" /></p>
 

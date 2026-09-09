@@ -25,14 +25,14 @@ export function DatePicker({ id, value, minDate, onChange }: DatePickerProps) {
       <CalendarDays size={16} className="text-primary" /><span className="flex-1 text-sm">{selected ? label(selected) : t("Select a date")}</span><ChevronDown size={16} />
     </Popover.Trigger>
     <Popover.Portal><Popover.Positioner sideOffset={8} align="start" className="z-[80]">
-      <Popover.Popup aria-label={t("Choose irrigation date")} className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl outline-none" dir={direction}>
+      <Popover.Popup aria-label={t("Choose irrigation date")} className="w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl outline-none sm:p-5" dir={direction}>
         <div className="flex items-center justify-between gap-3">
           <button type="button" disabled={!!minimum && month.previous < minimum} onClick={() => setAnchor(month.previous)} aria-label={t("Previous month")} className="rounded-xl border p-2 disabled:opacity-30"><ChevronLeft size={18} className="rtl:rotate-180" /></button>
           <p className="text-sm font-bold" aria-live="polite">{format.date(month.first, { year: "numeric", month: "long", day: undefined })}</p>
           <button type="button" onClick={() => setAnchor(month.next)} aria-label={t("Next month")} className="rounded-xl border p-2"><ChevronRight size={18} className="rtl:rotate-180" /></button>
         </div>
-        <div className="mt-4 grid grid-cols-7 gap-1">
-          {weekDays.map((day, index) => <span key={index} className="py-2 text-center text-xs text-muted-foreground">{format.date(day, { year: undefined, month: undefined, day: undefined, weekday: "short" })}</span>)}
+        <div className="mt-4 grid grid-cols-7 gap-x-1.5 gap-y-2">
+          {weekDays.map((day, index) => <span key={index} className="min-w-0 py-2 text-center text-[11px] text-muted-foreground sm:text-xs">{format.date(day, { year: undefined, month: undefined, day: undefined, weekday: "short" })}</span>)}
           {Array.from({ length: blanks }, (_, index) => <span key={`blank-${index}`} />)}
           {month.days.map((date) => {
             const key = localDateValue(date);
@@ -46,7 +46,7 @@ export function DatePicker({ id, value, minDate, onChange }: DatePickerProps) {
                 const target = event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`[data-date="${localDateValue(shiftDay(date, delta))}"]`);
                 target?.focus();
               }}
-              className={`flex h-10 items-center justify-center rounded-xl text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-25 ${key === value ? "bg-primary text-primary-foreground" : key === today ? "border border-primary/30 bg-primary/5 text-primary" : "hover:bg-muted"}`}>
+              className={`flex h-11 min-w-0 items-center justify-center rounded-xl text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-25 ${key === value ? "bg-primary text-primary-foreground" : key === today ? "border border-primary/30 bg-primary/5 text-primary" : "hover:bg-muted"}`}>
               {format.date(date, { year: undefined, month: undefined, day: "numeric" })}
             </button>;
           })}

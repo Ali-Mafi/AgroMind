@@ -1,10 +1,4 @@
-export type SupportedRegion =
-  | "fa-IR"
-  | "en-US"
-  | "en-GB"
-  | "zh-CN"
-  | "ja-JP"
-  | "th-TH";
+export type SupportedRegion = string;
 
 export interface RegionConfig {
   locale: SupportedRegion;

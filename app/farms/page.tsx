@@ -101,7 +101,7 @@ export default function FarmsPage() {
                       <Ruler className="h-3.5 w-3.5" /><T text="Area" /></div>
 
                     <p className="mt-2 text-lg font-bold tracking-tight">
-                      {format.measure(farm.area, "area")}
+                      {format.measure(farm.area, isGarden ? "gardenArea" : "area")}
 
                     </p>
                   </div>

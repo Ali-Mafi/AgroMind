@@ -1,16 +1,5 @@
 import type { SupportedRegion } from "@/features/region/types/region";
-
-const COUNTRY_TO_REGION: Record<
-  string,
-  SupportedRegion
-> = {
-  IR: "fa-IR",
-  US: "en-US",
-  GB: "en-GB",
-  CN: "zh-CN",
-  JP: "ja-JP",
-  TH: "th-TH",
-};
+import { REGION_PROFILES } from "@/features/settings/constants/region-profiles";
 
 export function getRegionFromCountry(
   countryCode: string | null,
@@ -19,5 +8,5 @@ export function getRegionFromCountry(
     return null;
   }
 
-  return COUNTRY_TO_REGION[countryCode.toUpperCase()] ?? null;
+  return REGION_PROFILES[countryCode.toUpperCase()]?.locale ?? null;
 }

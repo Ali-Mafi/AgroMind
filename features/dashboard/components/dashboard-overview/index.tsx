@@ -74,6 +74,8 @@ export function DashboardOverview() {
       {selectedFarm.coordinates ? (
         <WeatherDashboard
           coordinates={selectedFarm.coordinates}
+          farmId={selectedFarm.id}
+          returnTo="/dashboard"
         />
       ) : (
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">

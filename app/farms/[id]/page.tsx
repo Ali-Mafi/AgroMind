@@ -163,7 +163,7 @@ export default function FarmDetailsPage({
                 <p className="text-sm text-muted-foreground"><T text="Area" /></p>
 
                 <p className="mt-1.5 text-xl font-bold tracking-tight">
-                  {format.measure(farm.area, "area")}{" "}
+                  {format.measure(farm.area, isGarden ? "gardenArea" : "area")}{" "}
 
                 </p>
               </div>
@@ -271,7 +271,7 @@ export default function FarmDetailsPage({
               <p className="text-xs font-medium text-muted-foreground"><T text="Area" /></p>
 
               <p className="mt-2 text-sm font-semibold">
-                {format.measure(farm.area, "area")}
+                {format.measure(farm.area, isGarden ? "gardenArea" : "area")}
               </p>
             </div>
 
@@ -401,6 +401,8 @@ export default function FarmDetailsPage({
         {farm.coordinates && (
           <WeatherDashboard
             coordinates={farm.coordinates}
+            farmId={farm.id}
+            returnTo="/dashboard"
           />
         )}
 

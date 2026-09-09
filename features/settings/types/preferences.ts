@@ -1,9 +1,10 @@
-export type Country = "IR" | "US" | "GB" | "CN" | "JP" | "TH";
-export type Language = "en" | "fa";
-export type AreaUnit = "sqm" | "hectare" | "acre";
+export type Country = string;
+export type Language = string;
+export type AreaUnit = "sqm" | "sqft" | "hectare" | "acre";
 export interface Units {
   temperature: "celsius" | "fahrenheit";
   area: AreaUnit;
+  gardenArea: AreaUnit;
   distance: "km" | "mile";
   length: "m" | "ft";
   wind: "kmh" | "mph";
@@ -12,7 +13,7 @@ export interface Units {
   pressure: "hpa" | "inhg";
 }
 export type UnitOverrides = { [K in keyof Units]: Units[K] | "auto" };
-export type Calendar = "gregory" | "persian" | "buddhist";
+export type Calendar = string;
 export interface Preferences {
   version: 1; country: Country; regionConfirmed: boolean; regionSource: "manual" | "detected";
   language: Language | "auto"; units: UnitOverrides; calendar: Calendar | "auto";

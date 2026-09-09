@@ -19,6 +19,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:global(html[lang="fa"]) .page,
+:global(html[lang="fa"]) .sheet {
+  font-family: var(--font-vazirmatn), system-ui, sans-serif;
+}
+
 :global(html):has(.page) { scrollbar-gutter: stable; }
 .page { position: relative; isolation: isolate; min-height: 100svh; width: 100%; background: #294554; }
 .page *, .sheet * { box-sizing: border-box; }

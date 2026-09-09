@@ -11,6 +11,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function WeatherPage() {
-  return <WeatherExperience />;
+export default async function WeatherPage({ searchParams }: { searchParams: Promise<{ farm?: string; from?: string }> }) {
+  const params = await searchParams;
+  return <WeatherExperience initialFarmId={params.farm} returnTo={params.from === "irrigation" ? "/irrigation" : "/dashboard"} />;
 }

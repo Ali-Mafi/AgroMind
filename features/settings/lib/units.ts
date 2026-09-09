@@ -1,8 +1,8 @@
 import type { ResolvedPreferences, Units } from "../types/preferences";
 
 // Exact international acre/foot, statute mile, US liquid gallon and inch factors.
-const FACTORS: Record<string, number> = { sqm: 1, hectare: 10000, acre: 4046.8564224, km: 1, mile: 1.609344, m: 1, ft: .3048, kmh: 1, mph: 1.609344, mm: 1, inch: 25.4, litre: 1, "us-gallon": 3.785411784, hpa: 1, inhg: 33.8638866667 };
-export const SYMBOLS: Record<string, string> = { celsius: "°C", fahrenheit: "°F", sqm: "m²", hectare: "ha", acre: "ac", km: "km", mile: "mi", m: "m", ft: "ft", kmh: "km/h", mph: "mph", mm: "mm", inch: "in", litre: "L", "us-gallon": "gal (US)", hpa: "hPa", inhg: "inHg" };
+const FACTORS: Record<string, number> = { sqm: 1, sqft: .09290304, hectare: 10000, acre: 4046.8564224, km: 1, mile: 1.609344, m: 1, ft: .3048, kmh: 1, mph: 1.609344, mm: 1, inch: 25.4, litre: 1, "us-gallon": 3.785411784, hpa: 1, inhg: 33.8638866667 };
+export const SYMBOLS: Record<string, string> = { celsius: "°C", fahrenheit: "°F", sqm: "m²", sqft: "ft²", hectare: "ha", acre: "ac", km: "km", mile: "mi", m: "m", ft: "ft", kmh: "km/h", mph: "mph", mm: "mm", inch: "in", litre: "L", "us-gallon": "gal (US)", hpa: "hPa", inhg: "inHg" };
 export function fromCanonical(value: number, kind: keyof Units, units: Units) {
   return kind === "temperature" ? units.temperature === "fahrenheit" ? value * 9 / 5 + 32 : value : value / FACTORS[units[kind]];
 }
@@ -24,7 +24,7 @@ export function createFormatters(settings: ResolvedPreferences) {
   };
   const convert = (value: number, kind: keyof Units) => fromCanonical(value, kind, settings.units);
   const symbol = (kind: keyof Units) => SYMBOLS[settings.units[kind]];
-  const measure = (value: number | null | undefined, kind: keyof Units, digits = kind === "precipitation" || kind === "area" ? 2 : 1) =>
+  const measure = (value: number | null | undefined, kind: keyof Units, digits = kind === "precipitation" || kind === "area" || kind === "gardenArea" ? 2 : 1) =>
     value == null || !Number.isFinite(value) ? "—" : `${kind === "precipitation" ? rain(value) : number(convert(value, kind), digits)} ${symbol(kind)}`;
   const date = (value: Date | number, options: Intl.DateTimeFormatOptions = {}) => new Intl.DateTimeFormat(settings.locale, {
     year: "numeric", month: "short", day: "numeric", hourCycle: settings.hourCycle, ...options, calendar: settings.calendar, numberingSystem: settings.numbering,

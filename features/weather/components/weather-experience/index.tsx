@@ -22,10 +22,11 @@ const WeatherDetail = dynamic(() => import("../weather-detail").then((module) =>
   loading: () => <p role="status" className={styles.detailNote}><T text="Loading chart…" /></p>,
 });
 
-export function WeatherExperience() {
-  const { temperature, weatherClock, shortDate, t } = useWeatherFormat();
+export function WeatherExperience({ initialFarmId, returnTo = "/dashboard" }: { initialFarmId?: string; returnTo?: "/dashboard" | "/irrigation" }) {
+  const { temperature, weatherClock, shortDate, number, t } = useWeatherFormat();
   const { farms, selectedFarmId, setSelectedFarmId, isHydrated } = useFarm();
-  const farm = farms.find((entry) => entry.id === selectedFarmId) ?? farms[0];
+  const [viewFarmId, setViewFarmId] = useState(initialFarmId);
+  const farm = farms.find((entry) => entry.id === viewFarmId) ?? farms.find((entry) => entry.id === selectedFarmId) ?? farms[0];
   const { weather, isLoading, error, isRefreshing, refreshError, checkedAt, refresh } = useWeather(farm?.coordinates);
   const motion = useWeatherMotion();
   const [sheet, setSheet] = useState<WeatherDetailSelection | "farms" | null>(null);
@@ -49,7 +50,7 @@ export function WeatherExperience() {
       <div className={styles.pageShade} aria-hidden="true" />
       <div className={styles.content}>
         <header className={styles.topbar}>
-          <Link href="/dashboard" className={styles.brand}><Sprout size={21} /><span>AgroMind <span aria-hidden="true">/</span>{" "}<T text="Weather" /></span></Link>
+          <Link href={returnTo} className={styles.brand}><Sprout size={21} /><span>AgroMind <span aria-hidden="true">/</span>{" "}<T text="Weather" /></span></Link>
           <div className={styles.topActions}>
             <button type="button" className={styles.iconButton} onClick={motion.toggle}
               disabled={motion.reducedMotion} aria-pressed={!motion.enabled}
@@ -109,11 +110,11 @@ export function WeatherExperience() {
       </div>
 
       <nav className={styles.dock} aria-label={t("Weather navigation")}>
-        <Link href="/dashboard" className={styles.iconButton} aria-label={t("Back to dashboard")} title={t("Back to dashboard")}><ArrowLeft size={23} /></Link>
+        <Link href={returnTo} className={styles.iconButton} aria-label={t(returnTo === "/irrigation" ? "Back to irrigation" : "Back to dashboard")} title={t(returnTo === "/irrigation" ? "Back to irrigation" : "Back to dashboard")}><ArrowLeft size={23} /></Link>
         <div className={styles.dockCenter}>
           <span>{farm?.name ?? t("Your locations")}</span>
           <div className={styles.farmDots} aria-hidden="true">
-            {farms.length <= 7 ? farms.map((entry) => <span key={entry.id} className={styles.farmDot} data-active={entry.id === farm?.id} />) : <span>{farms.findIndex((entry) => entry.id === farm?.id) + 1} / {farms.length}</span>}
+            {farms.length <= 7 ? farms.map((entry) => <span key={entry.id} className={styles.farmDot} data-active={entry.id === farm?.id} />) : <span>{number(farms.findIndex((entry) => entry.id === farm?.id) + 1, 0)} / {number(farms.length, 0)}</span>}
           </div>
         </div>
         <button type="button" className={styles.iconButton} aria-label={t("Open farm locations")} title={t("Farm locations")} onClick={() => setSheet("farms")}><List size={24} /></button>
@@ -122,7 +123,7 @@ export function WeatherExperience() {
       {sheet === "farms" && <WeatherSheet title={t("Your locations")} subtitle={t("Weather at your farms and gardens")} onClose={closeSheet}>
         <div className={styles.farmList}>
           {farms.map((entry) => <button type="button" key={entry.id} className={styles.farmOption}
-            aria-pressed={entry.id === farm?.id} onClick={() => { setSelectedFarmId(entry.id); closeSheet(); }}>
+            aria-pressed={entry.id === farm?.id} onClick={() => { setViewFarmId(entry.id); setSelectedFarmId(entry.id); closeSheet(); }}>
             <span><strong>{entry.name}</strong><small>{entry.location || (entry.type === "garden" ? "Garden" : "Farm")}</small>
               <small>{!entry.coordinates ? t("Location needed") : entry.id === farm?.id && weather ? t(weather.current.condition.label) : t("Open local forecast")}</small>
             </span>
@@ -130,7 +131,7 @@ export function WeatherExperience() {
           </button>)}
         </div>
         <div className={styles.farmListFooter}>
-          <p>{farms.length ? t("{count} saved locations", { count: farms.length }) : t("No farms or gardens yet")}</p>
+          <p>{farms.length ? t("{count} saved locations", { count: number(farms.length, 0) }) : t("No farms or gardens yet")}</p>
           <Link href="/farms/new" className={styles.action}><Plus size={18} /><T text="Add farm" /></Link>
         </div>
       </WeatherSheet>}

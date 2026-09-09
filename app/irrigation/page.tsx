@@ -26,6 +26,7 @@ import { IrrigationSchedule } from "@/features/irrigation/components/irrigation-
 import { IrrigationControl } from "@/features/irrigation/components/irrigation-control";
 import { SensorStatus } from "@/features/irrigation/components/sensor-status";
 import { TodayDateCard } from "@/features/shared/components/today-date-card";
+import WeatherDashboard from "@/features/weather/components/weather-dashboard";
 
 function getScheduleTimestamp(
   date: string,
@@ -165,6 +166,8 @@ const irrigationOverview:
       </header>
 
       <TodayDateCard />
+
+      {selectedFarm.coordinates && <WeatherDashboard coordinates={selectedFarm.coordinates} farmId={selectedFarm.id} returnTo="/irrigation" />}
 
       {irrigationOverview ? (
         <IrrigationOverview

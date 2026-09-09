@@ -21,7 +21,7 @@ test("region defaults, language and explicit unit choices stay independent", () 
   assert.equal(after.units.temperature, "fahrenheit"); assert.equal(after.units.area, "sqm"); assert.equal(after.units.wind, "kmh");
   assert.equal(resolve({ country: "US", language: "fa" }).units.temperature, "fahrenheit");
   assert.equal(resolve({ country: "US", language: "fa" }).direction, "rtl");
-  assert.equal(resolve({ country: "JP" }).language, "en");
+  assert.equal(resolve({ country: "JP" }).language, "ja");
 });
 
 test("preferences restore valid choices, migrate legacy manual region and sanitize damaged storage", () => {
@@ -33,7 +33,7 @@ test("preferences restore valid choices, migrate legacy manual region and saniti
   const invalid = parsePreferences(JSON.stringify({ version: 1, country: "__proto__", language: "unsupported", units: { area: "miles", volume: "imperial-gallon" } }));
   assert.equal(invalid.country, "US"); assert.equal(invalid.units.area, "auto"); assert.equal(invalid.units.volume, "auto");
   assert.equal(countryFromLocale("fa-IR"), "IR"); assert.equal(countryFromLocale("en-US"), "US"); assert.equal(countryFromLocale("fa"), "IR");
-  assert.equal(countryFromLocale("de-DE"), null);
+  assert.equal(countryFromLocale("de-DE"), "DE");
 });
 
 test("UI unit boundaries preserve farm area, dimensions and US liquid-gallon calculations", () => {
@@ -46,6 +46,7 @@ test("UI unit boundaries preserve farm area, dimensions and US liquid-gallon cal
   const imperial = createFormatters(resolve({ country: "US" }));
   assert.equal(metric.parse("4", "area"), 40000);
   assert.equal(metric.input(40000, "area"), "4");
+  assert.equal(imperial.input(92.90304, "gardenArea"), "1000");
   assert.ok(Math.abs(imperial.parse("100", "length") * imperial.parse("100", "length") - 929.0304) < 1e-8);
   assert.equal(parseLocalizedNumber("۱٬۲۳۴٫۵"), 1234.5);
   assert.ok(Number.isNaN(parseLocalizedNumber("")));

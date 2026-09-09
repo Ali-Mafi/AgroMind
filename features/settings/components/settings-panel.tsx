@@ -6,12 +6,13 @@ import { useWeatherMotion } from "@/features/weather/components/hooks/use-weathe
 import { useSettings } from "../context/settings-context";
 import { useTranslation } from "../hooks/use-translation";
 import { REGION_PROFILES, UNIT_NAMES, UNIT_OPTIONS } from "../constants/region-profiles";
+import { CALENDAR_OPTIONS, COUNTRY_CODES, LANGUAGE_OPTIONS, countryDisplayName } from "../constants/locale-options";
 import { AUTO_UNITS } from "../lib/preferences";
 import { PreferenceSelect } from "./preference-select";
-import type { Calendar, Country, Language, Units } from "../types/preferences";
+import type { Calendar, Language, Units } from "../types/preferences";
 import type { ReactNode } from "react";
 
-const UNIT_LABELS: Record<keyof Units, string> = { temperature: "Temperature", area: "Land area", distance: "Distance", length: "Length & plant spacing", wind: "Wind speed", precipitation: "Rainfall", volume: "Water volume", pressure: "Pressure" };
+const UNIT_LABELS: Record<keyof Units, string> = { temperature: "Temperature", area: "Farm area", gardenArea: "Garden area", distance: "Distance", length: "Length & plant spacing", wind: "Wind speed", precipitation: "Rainfall", volume: "Water volume", pressure: "Pressure" };
 function Group({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return <section className="space-y-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-7">
     <h2 className="flex items-center gap-3 text-lg font-bold"><span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>{title}</h2>{children}
@@ -34,11 +35,11 @@ export function SettingsPanel() {
       <div className="space-y-6">
         <Group title={t("Region & language")} icon={<Globe2 size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <PreferenceSelect label={t("Region")} value={settings.country} options={Object.entries(REGION_PROFILES).map(([value, profile]) => ({ value: value as Country, label: t(profile.name) }))} onChange={(country) => update({ country, regionConfirmed: true, regionSource: "manual" })} />
-            <PreferenceSelect<Language | "auto"> label={t("Website language")} value={preferences.language} options={[automatic, { value: "en", label: "English" }, { value: "fa", label: "فارسی" }]} onChange={(language) => update({ language })} description={t("Language changes text and reading direction, independently of units.")} />
+            <PreferenceSelect label={t("Region")} value={settings.country} options={COUNTRY_CODES.map((value) => ({ value, label: countryDisplayName(value, settings.locale) })).sort((a,b) => a.label.localeCompare(b.label, settings.locale))} onChange={(country) => update({ country, regionConfirmed: true, regionSource: "manual" })} />
+            <PreferenceSelect<Language | "auto"> label={t("Website language")} value={preferences.language} options={[automatic, ...LANGUAGE_OPTIONS]} onChange={(language) => update({ language })} description={t("Language changes text and reading direction, independently of units.")} />
           </div>
           <p className="text-sm leading-6 text-muted-foreground">{t("Changing region updates automatic preferences. Your custom choices stay the same.")}</p>
-          {["CN", "JP", "TH"].includes(settings.country) && <p className="text-xs text-muted-foreground">{t("English and Persian are available. Other regional languages currently use English.")}</p>}
+          {!['en','fa'].includes(settings.language) && <p className="text-xs text-muted-foreground">{t("Interface translations for this language are being completed; untranslated text uses English.")}</p>}
         </Group>
         <Group title={t("Measurement units")} icon={<Ruler size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">{(Object.keys(UNIT_OPTIONS) as (keyof Units)[]).map((kind) => <PreferenceSelect key={kind} label={t(UNIT_LABELS[kind])} value={preferences.units[kind]} options={[{ ...automatic, label: `${t("Follow region")} · ${t(UNIT_NAMES[REGION_PROFILES[settings.country].units[kind]])}` }, ...UNIT_OPTIONS[kind].map((value) => ({ value, label: t(UNIT_NAMES[value]) }))]} onChange={(value) => setUnit(kind, value)} />)}</div>
@@ -46,7 +47,7 @@ export function SettingsPanel() {
         </Group>
         <Group title={t("Date & time")} icon={<CalendarDays size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <PreferenceSelect<Calendar | "auto"> label={t("Calendar")} value={preferences.calendar} options={[automatic, { value: "gregory", label: t("Gregorian") }, { value: "persian", label: t("Persian") }, { value: "buddhist", label: t("Buddhist") }]} onChange={(calendar) => update({ calendar })} />
+            <PreferenceSelect<Calendar | "auto"> label={t("Calendar")} value={preferences.calendar} options={[automatic, ...CALENDAR_OPTIONS.map((option) => ({ ...option, label:t(option.label) }))]} onChange={(calendar) => update({ calendar })} />
             <PreferenceSelect label={t("Time format")} value={preferences.hourCycle} options={[automatic, { value: "h12", label: t("12-hour") }, { value: "h23", label: t("24-hour") }]} onChange={(hourCycle) => update({ hourCycle })} />
             <PreferenceSelect label={t("Numerals")} value={preferences.numbering} options={[automatic, { value: "latn", label: "123" }, { value: "arabext", label: "۱۲۳" }]} onChange={(numbering) => update({ numbering })} />
           </div>

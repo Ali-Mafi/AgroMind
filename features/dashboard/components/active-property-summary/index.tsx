@@ -111,7 +111,7 @@ export function ActivePropertySummary({
           <p className="mt-4 text-xs font-medium text-muted-foreground"><T text="Area" /></p>
 
           <p className="mt-1 text-lg font-bold">
-            {format.measure(farm.area, "area")}
+            {format.measure(farm.area, isGarden ? "gardenArea" : "area")}
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export function ActivePropertySummary({
           <p className="mt-1 line-clamp-2 text-lg font-bold">
             {isGarden
               ? plantTypes > 0
-                ? `${plantTypes} type${plantTypes === 1 ? "" : "s"}`
+                ? `${format.number(plantTypes, 0)} ${t("types")}`
                 : t("Not specified")
               : farm.crop?.name ?? t("Not specified")}
           </p>
@@ -170,7 +170,7 @@ export function ActivePropertySummary({
           <p className="mt-1 line-clamp-2 text-lg font-bold">
             {isGarden
               ? totalPlants > 0
-                ? totalPlants.toLocaleString()
+                ? format.number(totalPlants, 0)
                 : t("Not specified")
               : irrigationLabel}
           </p>

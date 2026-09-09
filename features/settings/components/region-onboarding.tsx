@@ -5,6 +5,7 @@ import { Globe2, LocateFixed, Sprout } from "lucide-react";
 import { useSettings } from "../context/settings-context";
 import { useTranslation } from "../hooks/use-translation";
 import { REGION_PROFILES } from "../constants/region-profiles";
+import { COUNTRY_CODES, countryDisplayName } from "../constants/locale-options";
 import { countryFromLocale, resolvePreferences } from "../lib/preferences";
 import { createFormatters } from "../lib/units";
 import { useRegion } from "@/features/region/context/region-context";
@@ -40,7 +41,7 @@ function RegionChoice() {
         <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Globe2 /></div>
         <Dialog.Title className="text-2xl font-bold">{t("Make AgroMind yours")}</Dialog.Title>
         <Dialog.Description className="my-3 text-sm leading-6 text-muted-foreground">{t("Choose your region for local examples and default units. Language and units can be changed separately in Settings.")}</Dialog.Description>
-        <PreferenceSelect label={t("Region")} value={country} options={Object.entries(REGION_PROFILES).map(([value, profile]) => ({ value: value as Country, label: profile.name === "Iran" ? "ایران · Iran" : t(profile.name) }))} onChange={(next) => { choiceRevision.current++; setCountry(next); setMessage(""); }} />
+        <PreferenceSelect label={t("Region")} value={country} options={COUNTRY_CODES.map((value) => ({ value, label: countryDisplayName(value, REGION_PROFILES[country].locale) })).sort((a,b) => a.label.localeCompare(b.label))} onChange={(next) => { choiceRevision.current++; setCountry(next); setMessage(""); }} />
         <button type="button" disabled={busy} onClick={detect} className="my-4 flex items-center gap-2 text-sm font-medium text-primary disabled:opacity-50"><LocateFixed size={17} />{t(busy ? "Detecting region…" : "Suggest from my location")}</button>
         <p role="status" className="text-sm text-muted-foreground">{message}</p>
         <div className="mt-4 space-y-2 rounded-2xl bg-primary/5 p-4 text-sm" dir={preview.direction}>

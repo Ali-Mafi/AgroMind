@@ -1,7 +1,8 @@
 import { REGION_PROFILES, UNIT_OPTIONS } from "../constants/region-profiles";
+import { CALENDAR_OPTIONS, LANGUAGE_OPTIONS, RTL_LANGUAGES } from "../constants/locale-options";
 import type { Country, Preferences, ResolvedPreferences, UnitOverrides, Units } from "../types/preferences";
 
-export const AUTO_UNITS: UnitOverrides = { temperature: "auto", area: "auto", distance: "auto", length: "auto", wind: "auto", precipitation: "auto", volume: "auto", pressure: "auto" };
+export const AUTO_UNITS: UnitOverrides = { temperature: "auto", area: "auto", gardenArea: "auto", distance: "auto", length: "auto", wind: "auto", precipitation: "auto", volume: "auto", pressure: "auto" };
 export const DEFAULT_PREFERENCES: Preferences = { version: 1, country: "US", regionConfirmed: false, regionSource: "detected", language: "auto", units: AUTO_UNITS, calendar: "auto", hourCycle: "auto", numbering: "auto" };
 export function countryFromLocale(value: string | null | undefined): Country | null {
   if (!value) return null;
@@ -20,8 +21,8 @@ export function parsePreferences(raw: string | null, legacyRegion?: string | nul
     return { version: 1,
       country: Object.hasOwn(REGION_PROFILES, data.country) ? data.country : fallback.country,
       regionConfirmed: data.regionConfirmed === true && Object.hasOwn(REGION_PROFILES, data.country), regionSource: data.regionSource === "manual" ? "manual" : "detected",
-      language: ["en", "fa"].includes(data.language) ? data.language : "auto", units,
-      calendar: ["gregory", "persian", "buddhist"].includes(data.calendar) ? data.calendar : "auto",
+      language: LANGUAGE_OPTIONS.some((option) => option.value === data.language) ? data.language : "auto", units,
+      calendar: CALENDAR_OPTIONS.some((option) => option.value === data.calendar) ? data.calendar : "auto",
       hourCycle: ["h12", "h23"].includes(data.hourCycle) ? data.hourCycle : "auto",
       numbering: ["latn", "arabext"].includes(data.numbering) ? data.numbering : "auto",
     };
@@ -33,7 +34,7 @@ export function resolvePreferences(preferences: Preferences): ResolvedPreference
   const units = Object.fromEntries(Object.entries(profile.units).map(([key, value]) => [key,
     preferences.units[key as keyof Units] === "auto" ? value : preferences.units[key as keyof Units],
   ])) as unknown as Units;
-  return { country: preferences.country, language, direction: language === "fa" ? "rtl" : "ltr",
+  return { country: preferences.country, language, direction: RTL_LANGUAGES.has(language) ? "rtl" : "ltr",
     locale: `${language}-${preferences.country}`, units,
     calendar: preferences.calendar === "auto" ? profile.calendar : preferences.calendar,
     hourCycle: preferences.hourCycle === "auto" ? profile.hourCycle : preferences.hourCycle,

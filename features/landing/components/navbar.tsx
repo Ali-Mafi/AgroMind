@@ -37,7 +37,6 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Link href="/settings" className="text-sm font-medium text-gray-600 hover:text-green-700"><T text="Settings" /></Link>
             <Button variant="ghost"><T text="Sign In" /></Button>
 
             <Button><T text="Get Started" /></Button>
