@@ -305,9 +305,9 @@ export default function FarmDetailsPage({
                     <p className="text-xs font-medium text-muted-foreground"><T text="Irrigation Type" /></p>
 
                     <p className="mt-2 wrap-break-word text-sm font-semibold leading-5">
-                      {getIrrigationTypeLabel(
+                      {t(getIrrigationTypeLabel(
                         farm.irrigationType,
-                      )}
+                      ))}
                     </p>
                   </div>
                 </div>

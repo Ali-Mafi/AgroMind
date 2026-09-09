@@ -172,7 +172,7 @@ export function ActivePropertySummary({
               ? totalPlants > 0
                 ? format.number(totalPlants, 0)
                 : t("Not specified")
-              : irrigationLabel}
+              : t(irrigationLabel)}
           </p>
         </div>
       </div>
