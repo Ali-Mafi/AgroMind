@@ -398,3 +398,13 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Added smooth native-sheet entry/exit with focus restoration and reduced-motion handling. Isolated desktop background/canvas rendering, reduced raster buffer size without thinning heavy rain and avoided recomputing unchanged forecast cards.
 - Validation: 48 tests, repository lint, TypeScript and production build passed. Desktop dialog, Add farm and keyboard/focus behavior were checked in the browser. The live Open-Meteo call failed; no WeatherAPI key was present, so live mixed-data checks and target-device FPS remain unverified.
 - Details: `docs/weather-ten-day-update.md`; setup and account/device diagnostics: `docs/weather-realtime-setup.md`.
+
+## Step 008 — Landing installation and account entry flow — 2026-09-10
+
+- Header start action scrolls to the installation section. Sign In, the hero Start Farming action and the final CTA route to `/login`.
+- Installation offers Android as coming soon and an opt-in iOS Safari guide with a continuation to `/signup`. The installed PWA opens signup; installation is not inferred or automatically claimed.
+- Added localized login/signup entry screens. Account authentication is not configured in this repository: these screens clearly state availability, collect no credentials and create no fake sessions.
+- Smoothed landing anchor navigation, reveal easing, install-sheet transitions and the subtle preview float. Floating pauses outside the viewport and in hidden tabs; reduced-motion preferences disable movement and smooth scrolling. Flow pulses now animate transforms instead of layout coordinates.
+- Integrated upstream iPhone icons from `e111eeb`, retained their metadata and consolidated the duplicate manifest into `public/manifest.webmanifest`. Removed the nonexistent maskable-icon reference and excluded account routes from service-worker interception.
+- Status: implementation complete for navigation and installation guidance. Localization validation, 69 tests, lint, typecheck and production build passed. Production HTTP checks passed for the landing page, login, signup, manifest, all referenced install icons and service worker. The cloud browser could not access localhost; visual interaction, native iOS installation and physical-device smoothness still require device verification.
+- Next step: connect the account entry screens to the chosen authentication service.

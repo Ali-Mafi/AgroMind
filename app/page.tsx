@@ -9,7 +9,7 @@ import { Footer } from "@/features/landing/components/footer";
 
 export default function HomePage() {
   return (
-    <main className="overflow-x-clip">
+    <main data-landing-page className="overflow-x-clip">
       <Navbar />
 
       <Hero />

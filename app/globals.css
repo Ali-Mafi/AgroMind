@@ -179,3 +179,10 @@ html[lang="fa"] .tracking-widest,
 html[lang="fa"] .tracking-wide {
   letter-spacing: normal;
 }
+
+/* Keep touch/wheel scrolling native; smoothly follow landing-page anchors. */
+html:has([data-landing-page]) { scroll-behavior: smooth; }
+[data-landing-page] [id] { scroll-margin-top: 5.5rem; }
+@media (prefers-reduced-motion: reduce) {
+  html:has([data-landing-page]) { scroll-behavior: auto; }
+}

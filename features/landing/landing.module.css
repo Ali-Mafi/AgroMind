@@ -25,14 +25,23 @@
 .flowPulse {
   position: absolute;
   top: calc(2.25rem - 3px);
-  inset-inline-start: 8%;
+  inset-inline-start: 9%;
+  width: 82%;
+  height: 7px;
+  pointer-events: none;
+  animation: flow-pulse 6s linear infinite;
+}
+.flowPulse::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
   width: 7px;
   height: 7px;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 18px color-mix(in oklch, var(--accent) 75%, transparent);
-  animation: flow-pulse 5s linear infinite;
+  box-shadow: 0 0 14px color-mix(in oklch, var(--accent) 65%, transparent);
 }
+:global([dir="rtl"]) .flowPulse { animation-name: flow-pulse-rtl; }
 .livePanel {
   background: radial-gradient(circle at 78% 24%, rgb(112 210 142 / 19%), transparent 28rem), radial-gradient(circle at 18% 85%, rgb(220 178 77 / 11%), transparent 25rem), linear-gradient(145deg, #153c30, #0c241e 68%);
   box-shadow: 0 34px 90px rgb(7 38 28 / 22%);
@@ -40,10 +49,44 @@
 .terrain {
   background-image: repeating-radial-gradient(ellipse at 20% 120%, transparent 0 25px, rgb(255 255 255 / 5%) 26px 27px, transparent 28px 46px), linear-gradient(125deg, rgb(255 255 255 / 3%), transparent);
 }
-@keyframes flow-pulse { from { inset-inline-start: 8%; opacity: 0; } 10%, 90% { opacity: 1; } to { inset-inline-start: 91%; opacity: 0; } }
+@keyframes flow-pulse {
+  from { transform: translate3d(0, 0, 0); opacity: 0; }
+  12%, 88% { opacity: 1; }
+  to { transform: translate3d(100%, 0, 0); opacity: 0; }
+}
+@keyframes flow-pulse-rtl {
+  from { transform: translate3d(0, 0, 0); opacity: 0; }
+  12%, 88% { opacity: 1; }
+  to { transform: translate3d(-100%, 0, 0); opacity: 0; }
+}
 @media (max-width: 767px) {
   .flowTrack::before { inset-inline-start: 2.25rem; inset-inline-end: auto; top: 8%; bottom: 8%; width: 1px; height: auto; background: linear-gradient(transparent, color-mix(in oklch, var(--primary) 55%, transparent), transparent); }
-  .flowPulse { inset-inline-start: calc(2.25rem - 3px); top: 8%; animation: flow-pulse-mobile 5s linear infinite; }
+  .flowPulse, :global([dir="rtl"]) .flowPulse { inset-inline-start: calc(2.25rem - 3px); top: 8%; width: 7px; height: 82%; animation-name: flow-pulse-mobile; }
 }
-@keyframes flow-pulse-mobile { from { top: 8%; opacity: 0; } 10%, 90% { opacity: 1; } to { top: 91%; opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .flowPulse { animation: none; opacity: 0; } }
+@keyframes flow-pulse-mobile {
+  from { transform: translate3d(0, 0, 0); opacity: 0; }
+  12%, 88% { opacity: 1; }
+  to { transform: translate3d(0, 100%, 0); opacity: 0; }
+}
+.floating { animation: preview-float 9s ease-in-out infinite paused; }
+.floating[data-active="true"] { animation-play-state: running; }
+@keyframes preview-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+.installBackdrop { opacity: 1; transition: opacity 320ms ease; }
+.installDialog {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.installBackdrop[data-starting-style], .installBackdrop[data-ending-style] { opacity: 0; }
+.installDialog[data-starting-style], .installDialog[data-ending-style] { opacity: 0; transform: translate3d(0, 24px, 0); }
+.installDialog[data-ending-style] { transition-duration: 220ms; }
+@media (prefers-reduced-motion: reduce) {
+  .flowPulse, .floating { animation: none; }
+  .flowPulse { opacity: 0; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .installDialog, .installBackdrop { transition: none; }
+}

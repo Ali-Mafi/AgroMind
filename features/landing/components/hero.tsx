@@ -30,8 +30,8 @@ export function Hero() {
             <h1 className="mt-6 max-w-3xl font-heading text-4xl font-extrabold leading-[1.03] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-7xl">{t(HERO.title)}</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{t(HERO.subtitle)}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/dashboard" className={buttonVariants({ size: "lg", className: "min-h-12 rounded-2xl px-7 shadow-lg shadow-primary/15" })}>{t(HERO.primaryButton)} <ArrowRight className="rtl:rotate-180" /></Link>
-              <Link href="#live-farm" className={buttonVariants({ variant: "outline", size: "lg", className: "min-h-12 rounded-2xl border-primary/20 bg-background/55 px-7 backdrop-blur" })}>{t(HERO.secondaryButton)}</Link>
+              <Link href="/login" className={buttonVariants({ size: "lg", className: "min-h-12 rounded-2xl px-7 shadow-lg shadow-primary/15" })}>{t(HERO.primaryButton)} <ArrowRight className="rtl:rotate-180" /></Link>
+              <a href="#live-farm" className={buttonVariants({ variant: "outline", size: "lg", className: "min-h-12 rounded-2xl border-primary/20 bg-background/55 px-7 backdrop-blur" })}>{t(HERO.secondaryButton)}</a>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-muted-foreground sm:text-sm">
               <span className="flex items-center gap-2"><CloudSun className="size-4 text-primary" />{t("Hyper-local weather")}</span>
@@ -62,7 +62,7 @@ export function Hero() {
                     <PreviewMetric icon={Leaf} label={t("Crop health")} value={`${format.number(92, 0)}%`} detail={t("Stable")} />
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-[1.25fr_0.75fr]">
-                    <div className="rounded-2xl border border-white/10 bg-white/7 p-4 backdrop-blur-sm">
+                    <div className="rounded-2xl border border-white/10 bg-white/7 p-4">
                       <div className="flex items-center justify-between text-xs text-white/60"><span>{t("Moisture trend")}</span><span>{t("Last 24 hours")}</span></div>
                       <div className="mt-5 flex h-16 items-end gap-1.5" aria-hidden="true">
                         {[38, 46, 43, 55, 50, 62, 58, 70, 64, 76, 72, 81].map((height, index) => <span key={index} className="flex-1 rounded-t-full bg-linear-to-t from-emerald-500/35 to-emerald-200/90" style={{ height: `${height}%` }} />)}
@@ -85,5 +85,5 @@ export function Hero() {
 }
 
 function PreviewMetric({ icon: Icon, label, value, detail }: { icon: typeof CloudSun; label: string; value: string; detail: string }) {
-  return <div className="min-w-0 rounded-2xl border border-white/10 bg-white/7 p-3 backdrop-blur-sm sm:p-4"><Icon className="size-4 text-emerald-200" /><p className="mt-3 truncate text-[11px] text-white/55">{label}</p><strong className="mt-1 block truncate text-sm sm:text-base">{value}</strong><p className="mt-1 truncate text-[10px] text-white/45">{detail}</p></div>;
+  return <div className="min-w-0 rounded-2xl border border-white/10 bg-white/7 p-3 sm:p-4"><Icon className="size-4 text-emerald-200" /><p className="mt-3 truncate text-[11px] text-white/55">{label}</p><strong className="mt-1 block truncate text-sm sm:text-base">{value}</strong><p className="mt-1 truncate text-[10px] text-white/45">{detail}</p></div>;
 }

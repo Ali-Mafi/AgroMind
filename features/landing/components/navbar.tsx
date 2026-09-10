@@ -9,14 +9,14 @@ import { buttonVariants } from "@/components/ui/button";
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95">
       <AppContainer>
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
 
           <Link href="/" className="flex items-center gap-2 transition hover:opacity-80">
-            <img src="/logo/agromind-logo.png" alt="AgroMind" className="size-10 sm:size-11"/>
-              <span className="font-heading text-xl font-bold text-primary sm:text-2xl">
+            <img src="/logo/agromind-logo.png" alt="AgroMind" className="size-8 sm:size-11"/>
+              <span className="font-heading text-base font-bold text-primary sm:text-2xl">
                 {APP.name}
               </span>
           </Link>
@@ -25,20 +25,20 @@ export function Navbar() {
           {/* Navigation */}
           <nav className="hidden items-center gap-8 md:flex">
             {NAVIGATION.map((item) => (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-gray-600 transition hover:text-green-700"
+                className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary"
               >
                 <T text={item.label} />
-              </Link>
+              </a>
             ))}
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}><T text="Sign In" /></Link>
-            <Link href="/farms/new" className={buttonVariants({ className: "min-h-9 rounded-xl px-4" })}><T text="Get Started" /></Link>
+          <div className="flex items-center gap-1 sm:gap-3">
+            <Link href="/login" className={buttonVariants({ variant: "ghost", className: "min-h-11 px-2 text-xs sm:px-4 sm:text-sm" })}><T text="Sign In" /></Link>
+            <a href="#install" className={buttonVariants({ className: "min-h-11 rounded-xl px-2.5 text-xs sm:px-4 sm:text-sm" })}><T text="Start managing" /></a>
           </div>
         </div>
       </AppContainer>

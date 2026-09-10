@@ -42,6 +42,7 @@ export const metadata: Metadata = {
   title: "AgroMind",
   description: "Smart farm management powered by AgroMind",
   manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "default" },
   icons: {
     icon: [
       {
@@ -72,6 +73,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${inter.variable} ${manrope.variable} ${geistMono.variable} ${vazirmatn.variable} h-full antialiased`}
     >

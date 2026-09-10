@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "localization:check": "node scripts/check-localization.mjs",
-    "test": "node --test features/weather/tests/*.test.mjs features/settings/tests/*.test.mjs",
+    "test": "node --test features/weather/tests/*.test.mjs features/settings/tests/*.test.mjs features/landing/tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
