@@ -4,11 +4,11 @@ export const NAVIGATION = [
     href: "#features",
   },
   {
-    label: "About",
-    href: "#about",
+    label: "System",
+    href: "#system",
   },
   {
-    label: "Contact",
-    href: "#contact",
+    label: "Live farm",
+    href: "#live-farm",
   },
 ];

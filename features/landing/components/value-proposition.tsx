@@ -1,125 +1,35 @@
-"use client";
-import { useSettings } from "@/features/settings/context/settings-context";
-import { REGION_PROFILES } from "@/features/settings/constants/region-profiles";
+import { BrainCircuit, CloudSun, Droplets, Radio, UserRound } from "lucide-react";
+import { Section } from "@/components/layout/section";
 import { T } from "@/features/settings/components/translated-text";
-import {
-  BrainCircuit,
-  CheckCircle2,
-  CloudSun,
-  Droplets,
-  Waves,
-} from "lucide-react";import { Section } from "@/components/layout/section";
+import { Reveal } from "./landing-motion";
+import styles from "../landing.module.css";
 
-const FEATURES = [
-  "Hyper-local Weather",
-  "Smart Irrigation",
-  "AI Crop Recommendations",
-  "GPS Farm Management",
-  "Sensor Monitoring",
-  "Crop Planning",
-];
+const SYSTEM = [
+  { icon: Radio, title: "Sensors", detail: "Read the field" },
+  { icon: CloudSun, title: "Weather", detail: "Understand conditions" },
+  { icon: Droplets, title: "Irrigation", detail: "Control every drop" },
+  { icon: BrainCircuit, title: "AI", detail: "Turn data into action" },
+  { icon: UserRound, title: "Farmer", detail: "Decide with confidence" },
+] as const;
 
 export function ValueProposition() {
-  const { format, country } = useSettings();
   return (
-    <Section>
-      <div className="grid items-center gap-16 lg:grid-cols-2">
-        {/* Left Side */}
-
-        <div>
-          <span className="text-sm font-semibold uppercase tracking-widest text-green-600"><T text="Why AgroMind" /></span>
-
-          <h2 className="mt-4 text-4xl font-bold tracking-tight"><T text="Everything your farm needs," /><br /><T text="in one intelligent platform." /></h2>
-
-          <p className="mt-6 text-lg text-muted-foreground"><T text="AgroMind combines weather intelligence, irrigation management, AI recommendations, GPS mapping and crop planning into one powerful farming platform." /></p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((feature) => (
-              <div
-                key={feature}
-                className="flex items-center gap-3"
-              >
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-
-                <span><T text={feature} /></span>
-              </div>
-            ))}
+    <Section className="relative py-24 sm:py-28" variant="muted">
+      <div id="system" className="scroll-mt-24">
+      <Reveal className="mx-auto max-w-3xl text-center">
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary"><T text="Connected intelligence" /></span>
+        <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-5xl"><T text="One farm. One intelligent system." /></h2>
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg"><T text="AgroMind connects field signals, local weather and irrigation into one clear operating picture—then helps you act on it." /></p>
+      </Reveal>
+      <Reveal delay={0.12} className={`${styles.flowTrack} relative mt-14 grid gap-4 md:grid-cols-5 md:gap-3`}>
+        <span className={styles.flowPulse} aria-hidden="true" />
+        {SYSTEM.map(({ icon: Icon, title, detail }) => (
+          <div key={title} className="relative z-10 flex items-center gap-4 rounded-2xl border border-primary/10 bg-card/85 p-4 shadow-sm backdrop-blur md:flex-col md:border-0 md:bg-transparent md:p-0 md:text-center md:shadow-none">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/15 bg-background text-primary shadow-sm md:size-18 md:rounded-3xl"><Icon className="size-5 md:size-7" /></div>
+            <div><h3 className="font-semibold"><T text={title} /></h3><p className="mt-1 text-xs text-muted-foreground"><T text={detail} /></p></div>
           </div>
-        </div>
-
-        {/* Right Side */}
-
-{/* Right Side */}
-
-<div className="flex items-center justify-center">
-  <div className="w-full rounded-3xl border bg-card p-6 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground"><T text="Dashboard" /></p>
-
-        <h3 className="mt-1 text-lg font-semibold"><T text="Farm Overview" /></h3>
-      </div>
-
-      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"><T text="Sample farm" /></span>
-    </div>
-
-    <div className="mt-6 grid grid-cols-2 gap-4">
-      <div className="rounded-2xl border p-4">
-        <CloudSun className="h-5 w-5 text-primary" />
-
-        <p className="mt-3 text-sm text-muted-foreground"><T text="Weather" /></p>
-
-        <p className="mt-1 text-2xl font-bold">
-          {format.measure(REGION_PROFILES[country].example.temperature, "temperature", 0)}
-        </p>
-      </div>
-
-      <div className="rounded-2xl border p-4">
-        <Droplets className="h-5 w-5 text-primary" />
-
-        <p className="mt-3 text-sm text-muted-foreground"><T text="Soil Moisture" /></p>
-
-        <p className="mt-1 text-2xl font-bold">
-          48%
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-4 rounded-2xl border p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium"><T text="Irrigation" /></span>
-
-        <span className="text-sm font-semibold text-primary">
-          80%
-        </span>
-      </div>
-
-      <div className="mt-3 h-2 rounded-full bg-muted">
-        <div className="h-2 w-4/5 rounded-full bg-primary" />
-      </div>
-    </div>
-
-    <div className="mt-4 grid grid-cols-2 gap-4">
-      <div className="rounded-2xl border p-4">
-        <BrainCircuit className="h-5 w-5 text-primary" />
-
-        <p className="mt-3 text-sm text-muted-foreground"><T text="AI Status" /></p>
-
-        <p className="mt-1 font-semibold text-primary"><T text="Optimal" /></p>
-      </div>
-
-      <div className="rounded-2xl border p-4">
-        <Waves className="h-5 w-5 text-primary" />
-
-        <p className="mt-3 text-sm text-muted-foreground"><T text="Water Tank" /></p>
-
-        <p className="mt-1 text-2xl font-bold">
-          82%
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
+        ))}
+      </Reveal>
       </div>
     </Section>
   );

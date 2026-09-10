@@ -4,19 +4,19 @@ import Link from "next/link";
 import { APP } from "@/constants/app";
 import { NAVIGATION } from "@/constants/navigation";
 import { AppContainer } from "@/components/layout/app-container";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <AppContainer>
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
 
           <Link href="/" className="flex items-center gap-2 transition hover:opacity-80">
-            <img src="/logo/agromind-logo.png" alt="AgroMind" className="h-13 w-13"/>
-              <span className="text-2xl font-bold text-green-700">
+            <img src="/logo/agromind-logo.png" alt="AgroMind" className="size-10 sm:size-11"/>
+              <span className="font-heading text-xl font-bold text-primary sm:text-2xl">
                 {APP.name}
               </span>
           </Link>
@@ -37,9 +37,8 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost"><T text="Sign In" /></Button>
-
-            <Button><T text="Get Started" /></Button>
+            <Link href="/dashboard" className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}><T text="Sign In" /></Link>
+            <Link href="/farms/new" className={buttonVariants({ className: "min-h-9 rounded-xl px-4" })}><T text="Get Started" /></Link>
           </div>
         </div>
       </AppContainer>
