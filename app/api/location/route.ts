@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
   if (!latitude || !longitude) {
     return NextResponse.json(
       {
-        error: "Latitude and longitude are required.",
+        error: "coordinates_required",
       },
       {
         status: 400,
@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
   ) {
     return NextResponse.json(
       {
-        error: "Invalid coordinates.",
+        error: "invalid_coordinates",
       },
       {
         status: 400,
@@ -254,7 +254,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(
     {
-      error: "Unable to detect location.",
+      error: "location_unavailable",
     },
     {
       status: 502,

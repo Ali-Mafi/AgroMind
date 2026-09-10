@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { useRegion } from "@/features/region/context/region-context";
+import { T } from "@/features/settings/components/translated-text";
 
 type PermissionState =
   | "idle"
@@ -93,16 +94,15 @@ export function LocationPermission() {
 
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-              Location
+              <T text="Location" />
             </p>
 
             <h2 className="mt-1 text-base font-semibold sm:text-lg">
-              Make AgroMind more local
+              <T text="Make AgroMind more local" />
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm leading-5 text-muted-foreground">
-              Allow location access to personalize your
-              region, dates, weather, and local information.
+              <T text="Allow location access to personalize your region, dates, weather, and local information." />
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function LocationPermission() {
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
-            Not now
+            <T text="Not now" />
           </button>
 
           <button
@@ -127,12 +127,12 @@ export function LocationPermission() {
             {state === "requesting" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Detecting...
+                <T text="Detecting..." />
               </>
             ) : (
               <>
                 <Check className="h-4 w-4" />
-                Allow Location
+                <T text="Allow Location" />
               </>
             )}
           </button>

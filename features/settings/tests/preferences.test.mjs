@@ -22,8 +22,8 @@ test("region defaults, language and explicit unit choices stay independent", () 
   assert.equal(resolve({ country: "US", language: "fa" }).units.temperature, "fahrenheit");
   assert.equal(resolve({ country: "US", language: "fa" }).direction, "rtl");
   assert.equal(resolve({ country: "US", language: "fa" }).numbering, "arabext");
-  assert.equal(resolve({ country: "US", language: "ar" }).numbering, "arab");
-  assert.equal(resolve({ country: "JP" }).language, "ja");
+  assert.equal(resolve({ country: "US", language: "fa" }).numbering, "arabext");
+  assert.equal(resolve({ country: "JP" }).language, "en");
 });
 
 test("preferences restore valid choices, migrate legacy manual region and sanitize damaged storage", () => {
@@ -181,18 +181,16 @@ test("Settings renders country, independent language, units and live previews in
   }
 });
 
-test("Arabic, French and Chinese selections translate primary application UI", () => {
-  const { translator } = loadTs("features/settings/lib/translation.ts");
-  assert.equal(translator("fr")("Settings"), "Paramètres");
-  assert.equal(translator("ar")("Irrigation Management"), "إدارة الري");
-  assert.equal(translator("zh")("My Farms & Gardens"), "我的农场和花园");
-});
-
-test("every selectable language has a localized primary UI pack", () => {
+test("only complete locale catalogs are selectable and incomplete locale requests are rejected", () => {
   const { translator } = loadTs("features/settings/lib/translation.ts");
   const { LANGUAGE_OPTIONS } = loadTs("features/settings/constants/locale-options.ts");
+  assert.deepEqual(LANGUAGE_OPTIONS.map(({ value }) => value), ["en", "fa"]);
   for (const { value } of LANGUAGE_OPTIONS) {
     if (value === "en") continue;
     assert.notEqual(translator(value)("Settings"), "Settings", value);
+  }
+  for (const language of ["ar", "fr", "zh", "es", "de", "ru", "hi", "tr", "ja", "ko"]) {
+    const restored = parsePreferences(JSON.stringify({ ...DEFAULT_PREFERENCES, language }));
+    assert.equal(resolvePreferences(restored).language, "en", language);
   }
 });

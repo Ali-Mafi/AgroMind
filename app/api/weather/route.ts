@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
     latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
   ) {
-    return Response.json({ error: "Valid coordinates are required." }, { status: 400 });
+    return Response.json({ error: "invalid_coordinates" }, { status: 400 });
   }
 
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch {
-    return Response.json({ error: "Weather is unavailable. Please try again." }, {
+    return Response.json({ error: "weather_unavailable" }, {
       status: 502,
       headers: { "Cache-Control": "no-store" },
     });

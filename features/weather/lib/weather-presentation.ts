@@ -122,7 +122,7 @@ export const WEATHER_METRICS: Record<WeatherMetric, { title: string; unit: strin
   },
   overnight: {
     title: "Night temperature", unit: "°C",
-    description: "Forecast air temperature with a 0°C reference. Ground frost can occur at a different air temperature; sensitivity depends on the crop and its growth stage.",
+    description: "Forecast air temperature with a {value} reference. Ground frost can occur at a different air temperature; sensitivity depends on the crop and its growth stage.",
   },
   daylight: {
     title: "Daylight", unit: "",

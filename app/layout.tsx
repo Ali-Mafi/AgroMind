@@ -40,7 +40,6 @@ const vazirmatn = Vazirmatn({
 
 export const metadata: Metadata = {
   title: "AgroMind",
-  description: "smart farming",
 };
 
 export default function RootLayout({

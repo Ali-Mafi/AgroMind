@@ -161,7 +161,7 @@ export function WeatherDetail({ weather, asOf, selection, onSelection }: Weather
     <div className={styles.metricChips} role="group" aria-label={t("Weather measurement")}>
       {METRICS.map((metric) => <button type="button" key={metric} className={styles.metricChip}
         aria-pressed={selection.metric === metric} onClick={() => onSelection({ metric, date })}>
-        {WEATHER_METRICS[metric].title}
+        {t(WEATHER_METRICS[metric].title)}
       </button>)}
     </div>
     {selection.metric === "daylight" ? <div data-metric="daylight">

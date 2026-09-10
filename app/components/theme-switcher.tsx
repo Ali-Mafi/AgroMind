@@ -107,7 +107,7 @@ export function ThemeSwitcher() {
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-label={`${item.label} theme`}
+            aria-label={t("{theme} theme", { theme: t(item.label) })}
             onClick={() => handleThemeChange(item.value)}
             className="relative z-10 flex h-10 min-w-0 items-center justify-center rounded-xl px-2 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 sm:px-3"
           >

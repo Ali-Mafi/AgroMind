@@ -38,17 +38,18 @@ export const WeatherForecastOverview = memo(function WeatherForecastOverview({ w
         <div className={styles.hourStrip}>
           {cards.map((card) => {
             const isCurrent = card.kind === "current";
-            const label = isCurrent ? (isOld ? "Last report" : "Now") : weatherClock(card.time);
+            const label = isCurrent ? t(isOld ? "Last report" : "Now") : weatherClock(card.time);
             const date = isCurrent ? todayKey : card.time.slice(0, 10);
+            const period = isCurrent ? t("Latest report") : t("{day} forecast", { day: weatherDayLabel(date, todayKey) });
             return (
               <button type="button" key={card.key} className={styles.hour} data-current={isCurrent} data-weather-kind={card.kind}
-                aria-label={`${label}, ${isCurrent ? "latest report" : `${weatherDayLabel(date, todayKey)} forecast`}, ${temperature(card.temperature)} ${symbol("temperature")}, ${card.condition.label}. Open details`}
+                aria-label={t("{label}, {period}, {temperature}, {condition}. Open details", { label, period, temperature: `${temperature(card.temperature)} ${symbol("temperature")}`, condition: t(card.condition.label) })}
                 onClick={() => onOpen({ metric: "temperature", date, hour: isCurrent ? undefined : card.time })}>
                 <span className={styles.hourTime}>{label}</span>
                 <WeatherIcon condition={card.condition.condition} isDay={card.isDay} className={styles.weatherIcon} />
                 <span className={styles.hourChance} title={chanceLabel(card.precipitationProbabilityKind)}>
                   {card.precipitationProbability !== null && card.precipitationProbability > 0
-                    ? `${number(card.precipitationProbability, 0)}%` : isCurrent ? (weather.current.source === "weatherapi" ? "Report" : "Model") : ""}
+                    ? `${number(card.precipitationProbability, 0)}%` : isCurrent ? t(weather.current.source === "weatherapi" ? "Report" : "Model") : ""}
                 </span>
                 <span className={styles.hourTemperature}>{temperature(card.temperature)}</span>
               </button>
@@ -67,7 +68,7 @@ export const WeatherForecastOverview = memo(function WeatherForecastOverview({ w
               const currentPosition = Math.max(0, Math.min(100, (weather.current.temperature - minimum) / span * 100));
               return (
                 <button type="button" key={day.date} className={styles.day}
-                  aria-label={`${weatherDayLabel(day.date, todayKey, true)}, ${day.condition.label}, low ${temperature(day.temperatureMin)}, high ${temperature(day.temperatureMax)}, forecast precipitation ${rainAmount(day.precipitationSum)} ${symbol("precipitation")}. Open daily details`}
+                  aria-label={t("{day}, {condition}, low {low}, high {high}, forecast precipitation {rain}. Open daily details", { day: weatherDayLabel(day.date, todayKey, true), condition: t(day.condition.label), low: temperature(day.temperatureMin), high: temperature(day.temperatureMax), rain: `${rainAmount(day.precipitationSum)} ${symbol("precipitation")}` })}
                   onClick={() => onOpen({ metric: "temperature", date: day.date })}>
                   <span className={styles.dayName}>{weatherDayLabel(day.date, todayKey)}<small>{sourceName(weather, day)}</small></span>
                   <span className={styles.dayWeather}>
