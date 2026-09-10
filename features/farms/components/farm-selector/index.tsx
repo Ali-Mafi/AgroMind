@@ -2,6 +2,7 @@
 
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { T } from "@/features/settings/components/translated-text";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   Check,
@@ -174,7 +175,7 @@ export function FarmSelector({
                       </p>
 
                       <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
-                        {farm.type}
+                        {t(farmIsGarden ? "Garden" : "Farm")}
                       </span>
                     </div>
 
@@ -196,6 +197,11 @@ export function FarmSelector({
                 </button>
               );
             })}
+          </div>
+          <div className="mt-1 border-t p-1 pt-2">
+            <Link href="/farms" onClick={() => setOpen(false)} className="flex min-h-10 w-full items-center justify-center rounded-xl px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/8">
+              <T text="Manage farms" />
+            </Link>
           </div>
         </div>
       )}

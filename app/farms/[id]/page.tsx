@@ -107,7 +107,7 @@ export default function FarmDetailsPage({
                         : "bg-primary/10 text-primary"
                     }`}
                   >
-                    {farm.type}
+                    {t(isGarden ? "Garden" : "Farm")}
                   </span>
 
                   <h1 className="mt-3 wrap-break-word text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
@@ -191,7 +191,7 @@ export default function FarmDetailsPage({
                 <p className="text-sm text-muted-foreground"><T text="Type" /></p>
 
                 <p className="mt-1.5 text-xl font-bold capitalize">
-                  {farm.type}
+                  {t(isGarden ? "Garden" : "Farm")}
                 </p>
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function FarmDetailsPage({
                   <p className="text-sm text-muted-foreground"><T text="Irrigation" /></p>
 
                   <p className="mt-1.5 wrap-break-word text-base font-bold">
-                    {farm.irrigationType || t("Not specified")}
+                    {farm.irrigationType ? t(getIrrigationTypeLabel(farm.irrigationType)) : t("Not specified")}
                   </p>
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function FarmDetailsPage({
               <p className="text-xs font-medium text-muted-foreground"><T text="Type" /></p>
 
               <p className="mt-2 text-sm font-semibold capitalize">
-                {farm.type}
+                {t(isGarden ? "Garden" : "Farm")}
               </p>
             </div>
 

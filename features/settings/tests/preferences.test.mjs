@@ -21,6 +21,8 @@ test("region defaults, language and explicit unit choices stay independent", () 
   assert.equal(after.units.temperature, "fahrenheit"); assert.equal(after.units.area, "sqm"); assert.equal(after.units.wind, "kmh");
   assert.equal(resolve({ country: "US", language: "fa" }).units.temperature, "fahrenheit");
   assert.equal(resolve({ country: "US", language: "fa" }).direction, "rtl");
+  assert.equal(resolve({ country: "US", language: "fa" }).numbering, "arabext");
+  assert.equal(resolve({ country: "US", language: "ar" }).numbering, "arab");
   assert.equal(resolve({ country: "JP" }).language, "ja");
 });
 
@@ -42,7 +44,7 @@ test("UI unit boundaries preserve farm area, dimensions and US liquid-gallon cal
     assert.ok(Math.abs(fromCanonical(canonical, kind, US_UNITS) - displayed) < 1e-9, kind);
     assert.ok(Math.abs(toCanonical(displayed, kind, US_UNITS) - canonical) < 1e-9, kind);
   }
-  const metric = createFormatters(resolve({ country: "IR", language: "en", numbering: "latn" }));
+  const metric = createFormatters(resolve({ country: "IR", language: "en" }));
   const imperial = createFormatters(resolve({ country: "US" }));
   assert.equal(metric.parse("4", "area"), 40000);
   assert.equal(metric.input(40000, "area"), "4");
@@ -129,7 +131,7 @@ test("rendered US charts and forms show converted values; Persian preview stays 
   const { Hero } = us.load("features/landing/components/hero.tsx");
   const hero = us.renderToStaticMarkup(React.createElement(Hero));
   assert.match(hero, /Fresno, California/); assert.match(hero, /81°F|81 °F/); assert.match(hero, /20 ac/); assert.match(hero, /Not live data/);
-  const fa = localizedRenderer({ country: "IR", language: "auto", calendar: "auto", numbering: "auto" });
+  const fa = localizedRenderer({ country: "IR", language: "auto", calendar: "auto" });
   const PersianHero = fa.load("features/landing/components/hero.tsx").Hero;
   const persian = fa.renderToStaticMarkup(React.createElement(PersianHero));
   assert.match(persian, /قزوین، ایران/); assert.match(persian, /۲۷ °C/); assert.match(persian, /۴ ha/);
@@ -169,7 +171,7 @@ test("sensor water-flow displays convert US gallons without altering the time pe
 
 test("Settings renders country, independent language, units and live previews in either language", () => {
   const React = localRequire("react");
-  for (const preferences of [{ country: "US", language: "en" }, { country: "IR", language: "fa", calendar: "auto", numbering: "auto" }]) {
+  for (const preferences of [{ country: "US", language: "en" }, { country: "IR", language: "fa", calendar: "auto" }]) {
     const ui = localizedRenderer(preferences);
     const { SettingsPanel } = ui.load("features/settings/components/settings-panel.tsx");
     const html = ui.renderToStaticMarkup(React.createElement(SettingsPanel));
@@ -177,4 +179,11 @@ test("Settings renders country, independent language, units and live previews in
     assert.match(html, preferences.language === "fa" ? /منطقه و زبان/ : /Region &amp; language/);
     assert.match(html, preferences.country === "IR" ? /قزوین، ایران/ : /Fresno, California/);
   }
+});
+
+test("Arabic, French and Chinese selections translate primary application UI", () => {
+  const { translator } = loadTs("features/settings/lib/translation.ts");
+  assert.equal(translator("fr")("Settings"), "Paramètres");
+  assert.equal(translator("ar")("Irrigation Management"), "إدارة الري");
+  assert.equal(translator("zh")("My Farms & Gardens"), "我的农场和花园");
 });

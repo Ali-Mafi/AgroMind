@@ -18,7 +18,7 @@ import { useFarm } from "@/features/farms/context/farm-context";
 export default function FarmsPage() {
   const t = useTranslation();
   const { format } = useSettings();
-  const { farms } = useFarm();
+  const { farms, setSelectedFarmId } = useFarm();
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
@@ -49,11 +49,11 @@ export default function FarmsPage() {
             const isGarden = farm.type === "garden";
 
             return (
-              <Link
+              <article
                 key={farm.id}
-                href={`/farms/${farm.id}`}
                 className="group flex min-h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
+                <Link href={`/farms/${farm.id}`} className="flex flex-1 flex-col focus-visible:outline-none">
                 <div className="border-b px-5 py-5 sm:px-6 sm:py-6">
                   <div className="flex items-start gap-4">
                     <div
@@ -83,7 +83,7 @@ export default function FarmsPage() {
                               : "bg-primary/10 text-primary"
                           }`}
                         >
-                          {farm.type}
+                          {t(isGarden ? "Garden" : "Farm")}
                         </span>
                       </div>
 
@@ -125,14 +125,17 @@ export default function FarmsPage() {
                   )}
                 </div>
 
-                <div className="border-t bg-muted/20 px-5 py-4 sm:px-6">
-                  <div className="flex min-h-6 items-center justify-between">
-                    <span className="text-sm font-semibold text-primary"><T text="View details" /></span>
+                </Link>
 
-                    <ArrowRight className="h-4 w-4 text-primary transition-transform duration-200 group-hover:translate-x-1" />
-                  </div>
+                <div className="grid gap-2 border-t bg-muted/20 px-5 py-4 sm:px-6">
+                  <Link href={`/farms/${farm.id}`} className="flex min-h-9 items-center justify-between rounded-lg text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <T text="View details" /><ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                  </Link>
+                  <Link href="/dashboard" onClick={() => setSelectedFarmId(farm.id)} className="flex min-h-9 items-center justify-center rounded-lg border bg-background px-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <T text="Go to dashboard" />
+                  </Link>
                 </div>
-              </Link>
+              </article>
             );
           })}
         </section>

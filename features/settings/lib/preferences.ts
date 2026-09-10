@@ -3,7 +3,7 @@ import { CALENDAR_OPTIONS, LANGUAGE_OPTIONS, RTL_LANGUAGES } from "../constants/
 import type { Country, Preferences, ResolvedPreferences, UnitOverrides, Units } from "../types/preferences";
 
 export const AUTO_UNITS: UnitOverrides = { temperature: "auto", area: "auto", gardenArea: "auto", distance: "auto", length: "auto", wind: "auto", precipitation: "auto", volume: "auto", pressure: "auto" };
-export const DEFAULT_PREFERENCES: Preferences = { version: 1, country: "US", regionConfirmed: false, regionSource: "detected", language: "auto", units: AUTO_UNITS, calendar: "auto", hourCycle: "auto", numbering: "auto" };
+export const DEFAULT_PREFERENCES: Preferences = { version: 1, country: "US", regionConfirmed: false, regionSource: "detected", language: "auto", units: AUTO_UNITS, calendar: "auto", hourCycle: "auto" };
 export function countryFromLocale(value: string | null | undefined): Country | null {
   if (!value) return null;
   const code = value.split(/[-_]/).at(-1)?.toUpperCase();
@@ -24,7 +24,6 @@ export function parsePreferences(raw: string | null, legacyRegion?: string | nul
       language: LANGUAGE_OPTIONS.some((option) => option.value === data.language) ? data.language : "auto", units,
       calendar: CALENDAR_OPTIONS.some((option) => option.value === data.calendar) ? data.calendar : "auto",
       hourCycle: ["h12", "h23"].includes(data.hourCycle) ? data.hourCycle : "auto",
-      numbering: ["latn", "arabext"].includes(data.numbering) ? data.numbering : "auto",
     };
   } catch { return fallback; }
 }
@@ -38,6 +37,6 @@ export function resolvePreferences(preferences: Preferences): ResolvedPreference
     locale: `${language}-${preferences.country}`, units,
     calendar: preferences.calendar === "auto" ? profile.calendar : preferences.calendar,
     hourCycle: preferences.hourCycle === "auto" ? profile.hourCycle : preferences.hourCycle,
-    numbering: preferences.numbering === "auto" ? preferences.country === "IR" ? "arabext" : "latn" : preferences.numbering,
+    numbering: ({ fa:"arabext", ar:"arab", bn:"beng", hi:"deva", mr:"deva", ne:"deva", th:"thai", my:"mymr" } as Record<string,string>)[language] ?? "latn",
   };
 }

@@ -36,10 +36,9 @@ export function SettingsPanel() {
         <Group title={t("Region & language")} icon={<Globe2 size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">
             <PreferenceSelect label={t("Region")} value={settings.country} options={COUNTRY_CODES.map((value) => ({ value, label: countryDisplayName(value, settings.locale) })).sort((a,b) => a.label.localeCompare(b.label, settings.locale))} onChange={(country) => update({ country, regionConfirmed: true, regionSource: "manual" })} />
-            <PreferenceSelect<Language | "auto"> label={t("Website language")} value={preferences.language} options={[automatic, ...LANGUAGE_OPTIONS]} onChange={(language) => update({ language })} description={t("Language changes text and reading direction, independently of units.")} />
+            <PreferenceSelect<Language | "auto"> label={t("Language")} value={preferences.language} options={[automatic, ...LANGUAGE_OPTIONS]} onChange={(language) => update({ language })} description={t("Language changes text and reading direction, independently of units.")} />
           </div>
           <p className="text-sm leading-6 text-muted-foreground">{t("Changing region updates automatic preferences. Your custom choices stay the same.")}</p>
-          {!['en','fa'].includes(settings.language) && <p className="text-xs text-muted-foreground">{t("Interface translations for this language are being completed; untranslated text uses English.")}</p>}
         </Group>
         <Group title={t("Measurement units")} icon={<Ruler size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">{(Object.keys(UNIT_OPTIONS) as (keyof Units)[]).map((kind) => <PreferenceSelect key={kind} label={t(UNIT_LABELS[kind])} value={preferences.units[kind]} options={[{ ...automatic, label: `${t("Follow region")} · ${t(UNIT_NAMES[REGION_PROFILES[settings.country].units[kind]])}` }, ...UNIT_OPTIONS[kind].map((value) => ({ value, label: t(UNIT_NAMES[value]) }))]} onChange={(value) => setUnit(kind, value)} />)}</div>
@@ -49,7 +48,6 @@ export function SettingsPanel() {
           <div className="grid gap-5 sm:grid-cols-2">
             <PreferenceSelect<Calendar | "auto"> label={t("Calendar")} value={preferences.calendar} options={[automatic, ...CALENDAR_OPTIONS.map((option) => ({ ...option, label:t(option.label) }))]} onChange={(calendar) => update({ calendar })} />
             <PreferenceSelect label={t("Time format")} value={preferences.hourCycle} options={[automatic, { value: "h12", label: t("12-hour") }, { value: "h23", label: t("24-hour") }]} onChange={(hourCycle) => update({ hourCycle })} />
-            <PreferenceSelect label={t("Numerals")} value={preferences.numbering} options={[automatic, { value: "latn", label: "123" }, { value: "arabext", label: "۱۲۳" }]} onChange={(numbering) => update({ numbering })} />
           </div>
           <p className="text-xs leading-5 text-muted-foreground">{t("Weather times always follow the farm's time zone. Changing region never moves a farm.")}</p>
         </Group>

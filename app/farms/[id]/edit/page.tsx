@@ -503,7 +503,7 @@ export default function EditFarmPage() {
                   : "bg-primary/10 text-primary"
               }`}
             >
-              {farm.type}
+              {t(farm.type === "garden" ? "Garden" : "Farm")}
             </span>
 
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"><T text="Edit" />{" "}

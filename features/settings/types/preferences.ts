@@ -17,9 +17,9 @@ export type Calendar = string;
 export interface Preferences {
   version: 1; country: Country; regionConfirmed: boolean; regionSource: "manual" | "detected";
   language: Language | "auto"; units: UnitOverrides; calendar: Calendar | "auto";
-  hourCycle: "h12" | "h23" | "auto"; numbering: "latn" | "arabext" | "auto";
+  hourCycle: "h12" | "h23" | "auto";
 }
 export interface ResolvedPreferences {
   country: Country; language: Language; direction: "rtl" | "ltr"; locale: string;
-  units: Units; calendar: Calendar; hourCycle: "h12" | "h23"; numbering: "latn" | "arabext";
+  units: Units; calendar: Calendar; hourCycle: "h12" | "h23"; numbering: string;
 }

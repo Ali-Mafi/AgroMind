@@ -6,6 +6,7 @@ import { parseLocalDate } from "@/features/settings/lib/calendar";
 
 import Link from "next/link";
 import {
+  ArrowLeft,
   Plus,
   Sprout,
 } from "lucide-react";
@@ -80,6 +81,9 @@ useEffect(() => {
     return (
       <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
         <header>
+          <Link href="/dashboard" className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /><T text="Back to dashboard" />
+          </Link>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation" /></p>
 
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"><T text="Irrigation Management" /></h1>
@@ -146,6 +150,9 @@ const irrigationOverview:
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
       <header className="space-y-5">
+        <Link href="/dashboard" className="inline-flex min-h-10 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" /><T text="Back to dashboard" />
+        </Link>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation" /></p>

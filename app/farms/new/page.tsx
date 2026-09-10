@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FarmLocationPicker from "@/features/farms/components/farm-location-picker/farm-location-picker";
 import type { FarmLocation, FarmType } from "@/features/farms/types/farms";
-import type { IrrigationType } from "@/features/farms/constants/irrigation-types";
+import { getIrrigationTypeLabel, type IrrigationType } from "@/features/farms/constants/irrigation-types";
 import { IrrigationTypeSelector } from "@/features/farms/components/irrigation-type-selector";
 
 interface GardenPlant {
@@ -763,7 +763,7 @@ export default function NewFarmPage() {
                 <p className="text-xs text-muted-foreground"><T text="Type" /></p>
 
                 <p className="mt-1 font-semibold capitalize">
-                  {farmType}
+                  {t(farmType === "garden" ? "Garden" : "Farm")}
                 </p>
               </div>
 
@@ -807,7 +807,7 @@ export default function NewFarmPage() {
                     <p className="text-xs text-muted-foreground"><T text="Irrigation Type" /></p>
 
                     <p className="mt-1 font-semibold">
-                      {irrigationType || t("Not specified")}
+                      {irrigationType ? t(getIrrigationTypeLabel(irrigationType)) : t("Not specified")}
                     </p>
                   </div>
                 </>
