@@ -1,4 +1,4 @@
-import { COUNTRY_CODES } from "./locale-options";
+import { COUNTRY_CODES, LANGUAGE_OPTIONS } from "./locale-options";
 import type { Calendar, Country, Language, Units } from "../types/preferences";
 
 export const METRIC_UNITS: Units = { temperature: "celsius", area: "hectare", gardenArea: "sqm", distance: "km", length: "m", wind: "kmh", precipitation: "mm", volume: "litre", pressure: "hpa" };
@@ -20,7 +20,8 @@ const SPECIFIC: Record<string, Partial<RegionProfile>> = {
   SA:{ calendar:"islamic-umalqura" }, IL:{ calendar:"hebrew" }, ET:{ calendar:"ethiopic" }, IN:{ calendar:"indian" }, TW:{ calendar:"roc" }
 };
 function makeProfile(country: Country): RegionProfile {
-  const language = LANGUAGE_BY_COUNTRY[country] ?? "en";
+  const regionalLanguage = LANGUAGE_BY_COUNTRY[country] ?? "en";
+  const language = LANGUAGE_OPTIONS.some((option) => option.value === regionalLanguage) ? regionalLanguage : "en";
   let name = country;
   try { name = new Intl.DisplayNames(["en"], { type:"region" }).of(country) ?? country; } catch {}
   const base: RegionProfile = { name, locale:`${language}-${country}`, language, calendar:"gregory", hourCycle:"h23", units:METRIC_UNITS,

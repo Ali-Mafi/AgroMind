@@ -187,3 +187,12 @@ test("Arabic, French and Chinese selections translate primary application UI", (
   assert.equal(translator("ar")("Irrigation Management"), "إدارة الري");
   assert.equal(translator("zh")("My Farms & Gardens"), "我的农场和花园");
 });
+
+test("every selectable language has a localized primary UI pack", () => {
+  const { translator } = loadTs("features/settings/lib/translation.ts");
+  const { LANGUAGE_OPTIONS } = loadTs("features/settings/constants/locale-options.ts");
+  for (const { value } of LANGUAGE_OPTIONS) {
+    if (value === "en") continue;
+    assert.notEqual(translator(value)("Settings"), "Settings", value);
+  }
+});
