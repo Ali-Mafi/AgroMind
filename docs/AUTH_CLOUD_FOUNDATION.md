@@ -2,9 +2,17 @@
 
 ## Implementation and activation status
 
-The repository contains the complete application foundation and additive database migrations. Hosted activation is **pending**: the connected Supabase account exposes the AgroMind organization on a Free plan but no projects; the connected Vercel account exposes no teams, and this checkout has no Vercel CLI session or project link. No hosted migrations or email configuration have been applied.
+The application foundation is committed and the hosted Supabase database is provisioned. Project **AgroMind** (`gedwexwxaojpqyeiebwm`) belongs to the **AgroMind** organization, uses **Free** in Frankfurt (`eu-central-1`), and was created after the connector quoted **$0/month** and the owner authorized only zero-cost operations. No paid setting or upgrade was enabled.
 
-The Supabase connector explicitly requires an organization choice and confirmation of the quoted creation cost before creating a project. Do not assume that a Free organization guarantees a zero-cost project. Confirm the AgroMind organization and creation terms before provisioning. This is a deployment prerequisite, not an application placeholder to bypass.
+All three migrations are applied. Their repository filenames now match the hosted migration ledger; SQL contents are unchanged from the tested foundation. `lib/supabase/database.generated.ts` is generated from that hosted schema and `database.types.ts` preserves the application's domain aliases.
+
+Hosted SQL verification passed: all eight tables have RLS, anonymous table grants are absent, the Free entitlements match the seed, auth-user bootstrap succeeds, own-profile reads are isolated, farm creation/retries preserve the counter, a fourth farm is rejected, and irrigation cannot reference another owner's farm. The test transaction was rolled back; no test users or farms remain. Independent-session concurrency was also verified by the foundation GitHub CI run.
+
+Hosted Auth configuration is saved: canonical production URL and the two exact callback URLs below, email/password signup with email confirmation, anonymous sign-in disabled, and a minimum password length of 12. OTP and access-token expiry are 3600 seconds; compromised refresh-token detection/rotation is enabled with a 10-second reuse interval. Hosted throttling remains enabled (150 refreshes, 30 verifications and 30 sign-up/sign-in requests per five minutes). IP forwarding remains disabled; the app does not use secret API keys or trust client-supplied IP headers.
+
+**Production activation is still pending:** the connected Vercel account lists no teams and returns **403 Forbidden** for the actual project `ali-mafi/agro-mind`. This checkout has no Vercel CLI session or project link. Its production environment has therefore not been updated. The HTTPS Send Email Hook form was inspected but not created or enabled: its receiving endpoint first needs the shared signing secret in Vercel. The deployed sign-in/sign-up pages continue to fail closed until the required Supabase environment values are configured and a new build is deployed. Restore access to the owning Vercel account/team before continuing; do not recreate the Supabase project or reapply its migrations.
+
+Security Advisors report three intentional authenticated `SECURITY DEFINER` entry points (`get_entitlements`, `complete_onboarding`, `import_legacy_data`). These explicitly verify identity, restrict the operation to the caller's account, use empty search paths, and reject anonymous execution. Their restricted writes/read aggregation require privileges withheld from clients; they are reviewed API boundaries, not blanket grants. See the [Supabase advisory](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable). Performance Advisors only report the new `subscriptions_plan_id_idx` as unused; retain it for its foreign-key lookup purpose while the new database has no workload ([advisory](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)).
 
 ## Architecture
 
@@ -31,9 +39,9 @@ The Supabase connector explicitly requires an organization choice and confirmati
 
 Apply migrations in order:
 
-1. `20260913000100_auth_cloud_foundation.sql`: tables, constraints, profile/account/subscription bootstrap and existing-user backfill, RLS, limits, onboarding/import RPCs, versioned Free seed.
-2. `20260913000200_mutation_rpcs.sql`: session-derived, retry-safe farm creation and schedule upsert.
-3. `20260913100350_harden_entitlement_reads.sql`: entitlement verification guard, assigned retired-plan readability and subscription foreign-key index.
+1. `20260913185754_auth_cloud_foundation.sql`: tables, constraints, profile/account/subscription bootstrap and existing-user backfill, RLS, limits, onboarding/import RPCs, versioned Free seed.
+2. `20260913185809_mutation_rpcs.sql`: session-derived, retry-safe farm creation and schedule upsert.
+3. `20260913185824_harden_entitlement_reads.sql`: entitlement verification guard, assigned retired-plan readability and subscription foreign-key index.
 
 All eight tables have RLS enabled, explicit grants and no anonymous data access. Confirmed users can only access their personal workspace. Ownership, counters, subscription assignment and onboarding completion cannot be written directly by clients. Catalog writes are administrative only. Definer helpers use an empty search path, qualified objects, restricted execution and explicit identity checks. The `private` schema must **not** be exposed through the Data API.
 
@@ -84,14 +92,14 @@ No Supabase service-role key is required by the application. `.env.example` cont
 
 ## Hosted activation
 
-1. Confirm the Supabase organization and quoted project cost/region, then create AgroMind. Do not purchase an upgrade implicitly.
-2. Apply all three migrations using Supabase migrations/CLI. Check Security/Performance Advisors. Expose `public` only, and generate/compare database TypeScript types after applying.
-3. Enable email/password signup and email confirmation; disable anonymous sign-in. Set minimum password length 12, OTP expiry 3600 seconds, token expiry 3600 seconds, refresh rotation on and reuse interval 10 seconds.
-4. Site URL: `https://agromind.ir`. Allow only `https://agromind.ir/auth/callback` and `https://agromind.ir/auth/callback?next=/reset-password`. Add exact localhost callback URLs to a development project; avoid broad production wildcard redirects.
-5. Add the two Supabase public values and site origin to the correct Vercel project's environments, preserving its existing Resend key. Obtain access to that project first: the currently connected Vercel account does not list its team.
-6. Create a Send Email HTTPS Hook with the endpoint above. Generate its signing secret through Supabase and store it as `SUPABASE_AUTH_EMAIL_HOOK_SECRET` in Vercel, then redeploy. Do not paste secrets into source or logs.
-7. Keep Supabase's built-in email cooldown (60 seconds), verification/login/IP limits and refresh limits enabled. `supabase/config.toml` records a local starting configuration. Review hosted Auth rate limits because server-side calls share Vercel egress; do not trust client-forwarded IPs. Honeypots, bounded inputs, pending locks and generic email responses provide additional basic abuse protection. CAPTCHA and a persistent application-wide limiter are not implemented.
-8. Use an owner-provided test inbox to verify signup → inbox → confirmation → onboarding → farm → logout/login, recovery → password change → old session denial, sender identity and HTML/text MIME parts. Real inbox tests and hosted RLS/concurrency checks have not been performed in this workspace.
+1. **Done:** AgroMind created in the AgroMind organization on Free, Frankfurt, at the quoted $0/month. Further actions remain limited to $0 without new owner approval.
+2. **Done:** all three migrations applied, hosted RLS/limit/isolation checks passed, advisors reviewed, and database TypeScript types generated. Keep the `private` schema outside the Data API.
+3. **Done:** email/password signup and email confirmation enabled; anonymous sign-in disabled; minimum password length 12, OTP expiry 3600 seconds, token expiry 3600 seconds, refresh rotation on and reuse interval 10 seconds. Paid password-leak protection and paid session restrictions were not enabled.
+4. **Done:** Site URL is `https://agromind.ir`. Redirect allowlist contains only `https://agromind.ir/auth/callback` and `https://agromind.ir/auth/callback?next=/reset-password`. Add exact localhost callback URLs to a development project; avoid broad production wildcard redirects.
+5. **Pending access:** add the two Supabase public values and site origin to Vercel project `ali-mafi/agro-mind`, preserving its existing Resend key. The current connection returns 403 for this project and lists no teams; reconnect with access to its owner/team.
+6. **Pending Vercel configuration:** prepare a Send Email HTTPS Hook with the endpoint above. Generate its signing secret through Supabase, securely store the same value as `SUPABASE_AUTH_EMAIL_HOOK_SECRET` in Vercel and redeploy before enabling the hook. Do not paste secrets into source or logs. No hook or hook secret has been created yet.
+7. **Reviewed:** hosted refresh, verification and signup/login limits remain enabled at the values above; IP forwarding is off. Keep the built-in email cooldown (60 seconds) and review email sending limits when enabling the hook. `supabase/config.toml` records a local starting configuration. Server-side calls share Vercel egress; do not trust client-forwarded IPs. Honeypots, bounded inputs, pending locks and generic email responses provide additional basic abuse protection. CAPTCHA and a persistent application-wide limiter are not implemented.
+8. Use an owner-provided test inbox to verify signup → inbox → confirmation → onboarding → farm → logout/login, recovery → password change → old session denial, sender identity and HTML/text MIME parts. Real inbox tests remain pending. Hosted RLS/limit/isolation SQL checks passed; independent-session concurrency passed in GitHub CI against native PostgreSQL.
 
 Missing configuration fails closed; it never re-enables placeholder authentication or local business storage. A Git push/build alone does not activate the hosted services.
 
