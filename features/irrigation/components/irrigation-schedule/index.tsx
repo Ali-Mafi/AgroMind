@@ -21,7 +21,7 @@ interface IrrigationScheduleProps {
   farmName: string;
   farmId: string;
   schedule?: IrrigationScheduleData;
-  onSave: (schedule: IrrigationScheduleData) => void;
+  onSave: (schedule: IrrigationScheduleData) => Promise<boolean>;
 }
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90];
@@ -41,6 +41,8 @@ export function IrrigationSchedule({
   onSave,
 }: IrrigationScheduleProps) {
   const { format } = useSettings();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [date, setDate] = useState(schedule?.date ?? "");
   const [time, setTime] = useState(schedule?.time ?? "");
   const [duration, setDuration] = useState(
@@ -88,8 +90,8 @@ const canSave =
   currentTime !== null &&
   !isPastSchedule;
 
-  function handleSave() {
-    if (!canSave) {
+  async function handleSave() {
+    if (!canSave || saving) {
       return;
     }
 
@@ -102,7 +104,9 @@ const canSave =
         ? (schedule.revision ?? 1) + 1
         : 1;
 
-      onSave({
+      setSaving(true); setSaved(false);
+      try {
+      const success = await onSave({
         id: schedule?.id ?? crypto.randomUUID(),
         revision,
         date,
@@ -112,6 +116,8 @@ const canSave =
         createdAt: schedule?.createdAt ?? now,
         updatedAt: now,
       });
+      setSaved(success);
+      } finally { setSaving(false); }
   }
 
   return (
@@ -220,11 +226,12 @@ const canSave =
         </div>
       </div>
 
+      {saved && <p role="status" className="mt-4 text-sm text-primary"><T text="Schedule saved." /></p>}
       {/* Save */}
       <button
         type="button"
         onClick={handleSave}
-        disabled={!canSave}
+        disabled={!canSave || saving}
         className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
       >
         <Save className="h-4 w-4" /><T text="Save Schedule" /></button>

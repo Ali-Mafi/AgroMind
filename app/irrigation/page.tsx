@@ -75,6 +75,8 @@ useEffect(() => {
     setSelectedFarmId,
     irrigationSchedules,
     setIrrigationSchedule,
+    deleteIrrigationSchedule,
+    busy,
   } = useFarm();
 
   if (farms.length === 0) {
@@ -209,13 +211,14 @@ const irrigationOverview:
         farmName={selectedFarm.name}
         schedule={schedule}
         onSave={(newSchedule) => {
-          setIrrigationSchedule(
+          return setIrrigationSchedule(
             selectedFarm.id,
             newSchedule,
           );
         }}
       />
 
+      {schedule && <button type="button" disabled={busy} onClick={() => void deleteIrrigationSchedule(selectedFarm.id)} className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive">{t("Remove schedule")}</button>}
       <section aria-label={t("Irrigation control")}>
         <IrrigationControl
           farmName={selectedFarm.name}

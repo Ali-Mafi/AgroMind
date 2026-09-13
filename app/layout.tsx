@@ -7,8 +7,8 @@ import {
 } from "next/font/google";
 
 import "./globals.css";
+import { PwaSessionSafety } from "@/features/authentication/components/pwa-session-safety";
 
-import { FarmProvider } from "@/features/farms/context/farm-context";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
 import { RegionProvider } from "@/features/region/context/region-context";
@@ -79,12 +79,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          <PwaSessionSafety />
           <SettingsProvider>
             <RegionProvider>
-              <FarmProvider>
                 <RegionOnboarding />
                   {children}
-              </FarmProvider>
             </RegionProvider>
           </SettingsProvider>
         </ThemeProvider>

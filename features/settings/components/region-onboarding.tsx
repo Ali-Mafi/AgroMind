@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Globe2, LocateFixed, Sprout } from "lucide-react";
@@ -56,5 +57,6 @@ function RegionChoice() {
 }
 export function RegionOnboarding() {
   const { isHydrated, preferences } = useSettings();
-  return isHydrated && !preferences.regionConfirmed ? <RegionChoice /> : null;
+  const path = usePathname();
+  return path === "/" && isHydrated && !preferences.regionConfirmed ? <RegionChoice /> : null;
 }

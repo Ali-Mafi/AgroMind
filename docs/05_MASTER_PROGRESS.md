@@ -154,3 +154,12 @@ After every completed task:
 5. Stop and wait for user confirmation.
 
 Never continue to the next implementation step without user confirmation.
+
+## Authentication + Cloud Data Foundation — 2026-09-13
+
+- Implemented Supabase SSR cookie authentication, verification/recovery/sign-out, protected routes, account profile and resumable onboarding. Legacy login/signup and the existing design/localization remain supported.
+- Added personal account ownership, versioned Free entitlements, subscriptions, transaction-safe three-farm enforcement, cloud farms/schedules, RLS and a lossless retryable localStorage import with immutable backup.
+- Added signed Supabase Send Email Hook through the existing Resend service, explicit English/Persian HTML and plain text templates, and private-data-safe PWA caching.
+- Verification: application/auth/account tests, SQL/RLS/import tests, lint, typecheck, production build and HTTP route checks. Native concurrent-transaction testing is a separate GitHub workflow gate; local PGlite cannot exercise multiple connections. Browser access to localhost was blocked.
+- Hosted activation is pending: no Supabase project exists in the connected AgroMind organization; creation requires organization/cost confirmation. The Vercel connection does not expose the production team. No real test inbox was provided. Do not claim hosted auth/email or migrations are live.
+- Setup, migrations, environment names, policies and remaining acceptance checks: [AUTH_CLOUD_FOUNDATION.md](AUTH_CLOUD_FOUNDATION.md).

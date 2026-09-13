@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
-import { localRequire, root } from "../../weather/tests/helpers/load-ts.mjs";
+import { loadTs, localRequire, root } from "../../weather/tests/helpers/load-ts.mjs";
 
 const React = localRequire("react");
 for (const language of ["en", "fa"]) {
@@ -35,15 +35,10 @@ for (const language of ["en", "fa"]) {
     assert.ok(html.includes(language === "fa" ? "نصب روی آیفون یا آیپد" : "Install on iPhone or iPad"));
   });
 
-  test(`${language}: login and signup routes render honest localized entry screens`, () => {
-    const { load, renderToStaticMarkup: render } = localizedRenderer({ language });
-    for (const [route, destination] of [["login", "signup"], ["signup", "login"]]) {
-      const Page = load(`app/${route}/page.tsx`).default;
-      const html = render(React.createElement(Page));
-      assert.match(html, new RegExp(`href="/${destination}"`));
-      assert.match(html, /role="status"/);
-      assert.ok(html.includes(language === "fa" ? "هنوز فعال نیست" : "not available yet"));
-      assert.doesNotMatch(html, /<input|href="\/dashboard"/);
+  test(`${language}: legacy login and signup links redirect to the real auth routes`, async () => {
+    for (const [route, destination] of [["login", "sign-in"], ["signup", "sign-up"]]) {
+      const Page = loadTs(`app/${route}/page.tsx`, { "next/navigation": { redirect: path => { throw new Error("REDIRECT:" + path); } } }).default;
+      await assert.rejects(Promise.resolve().then(() => Page({ searchParams: Promise.resolve({}) })), error => new URL(error.message.slice("REDIRECT:".length), "https://agromind.ir").pathname === "/" + destination);
     }
   });
 }

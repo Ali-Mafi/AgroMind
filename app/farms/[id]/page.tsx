@@ -38,7 +38,7 @@ export default function FarmDetailsPage({
   const { id } = use(params);
   const router = useRouter();
 
-  const { farms, deleteFarm } = useFarm();
+  const { farms, deleteFarm, busy } = useFarm();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -64,8 +64,8 @@ export default function FarmDetailsPage({
 
   const isGarden = farm.type === "garden";
 
-  const handleDelete = () => {
-    deleteFarm(farm.id);
+  const handleDelete = async () => {
+    if (busy || !(await deleteFarm(farm.id))) return;
     setShowDeleteModal(false);
     router.push("/farms");
   };
@@ -469,6 +469,7 @@ export default function FarmDetailsPage({
               <button
                 type="button"
                 onClick={handleDelete}
+                disabled={busy}
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 sm:w-auto"
               >
                 <Trash2 className="h-4 w-4" /><T text="Confirm Delete" /></button>

@@ -1,228 +1,246 @@
 "use client";
-
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-
 import type { Farm } from "@/features/farms/types/farms";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
+import type { CloudResult, CloudSnapshot } from "@/features/cloud/types";
+import {
+  createFarmAction,
+  deleteFarmAction,
+  deleteScheduleAction,
+  loadCloudData,
+  saveScheduleAction,
+  updateFarmAction,
+} from "@/features/cloud/services/actions";
+import { can, getLimit } from "@/features/entitlements/lib/entitlements";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { Button } from "@/components/ui/button";
 
-const FARMS_STORAGE_KEY = "agromind-farms";
-const IRRIGATION_STORAGE_KEY = "agromind-irrigation-schedules";
-
-interface FarmContextValue {
+type FarmContextValue = {
   farms: Farm[];
   isHydrated: boolean;
-
   selectedFarmId: string;
-  setSelectedFarmId: (farmId: string) => void;
-
-  addFarm: (farm: Farm) => void;
-  updateFarm: (farmId: string, updates: Partial<Farm>) => void;
-  deleteFarm: (farmId: string) => void;
-
-  irrigationSchedules: Record<
-    string,
-    IrrigationSchedule | undefined
-  >;
-
+  setSelectedFarmId: (id: string) => void;
+  addFarm: (farm: Farm) => Promise<boolean>;
+  updateFarm: (id: string, changes: Partial<Farm>) => Promise<boolean>;
+  deleteFarm: (id: string) => Promise<boolean>;
+  irrigationSchedules: Record<string, IrrigationSchedule | undefined>;
   setIrrigationSchedule: (
-    farmId: string,
+    id: string,
     schedule: IrrigationSchedule,
-  ) => void;
-}
-
-const FarmContext = createContext<FarmContextValue | undefined>(
-  undefined,
-);
-
+  ) => Promise<boolean>;
+  deleteIrrigationSchedule: (id: string) => Promise<boolean>;
+  cloud: CloudSnapshot;
+  busy: boolean;
+  error: string;
+  farmLimit: number;
+  canCreateFarm: boolean;
+  run: (
+    operation: () => Promise<CloudResult<CloudSnapshot>>,
+  ) => Promise<boolean>;
+  reload: () => Promise<void>;
+};
+const FarmContext = createContext<FarmContextValue | undefined>(undefined);
 export function FarmProvider({
   children,
+  initialCloud,
 }: {
   children: ReactNode;
+  initialCloud: CloudSnapshot;
 }) {
-  const [farms, setFarms] = useState<Farm[]>([]);
-
-  const [selectedFarmId, setSelectedFarmId] = useState("");
-
-  const [irrigationSchedules, setIrrigationSchedules] =
-  useState<Record<string, IrrigationSchedule | undefined>>({});
-
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Load saved data from localStorage once on the client.
-  useEffect(() => {
-    try {
-      const storedFarms = localStorage.getItem(FARMS_STORAGE_KEY);
-
-      if (storedFarms) {
-        const parsedFarms = JSON.parse(storedFarms) as Farm[];
-
-        if (Array.isArray(parsedFarms)) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setFarms(parsedFarms);
-
-          setSelectedFarmId((current) => {
-            if (
-              current &&
-              parsedFarms.some((farm) => farm.id === current)
-            ) {
-              return current;
-            }
-
-            return parsedFarms[0]?.id ?? "";
-          });
-        }
-      }
-
-      const storedSchedules = localStorage.getItem(
-        IRRIGATION_STORAGE_KEY,
-      );
-
-      if (storedSchedules) {
-        const parsedSchedules = JSON.parse(
-          storedSchedules,
-        ) as Record<string, IrrigationSchedule | undefined>;
-
-        if (
-          parsedSchedules &&
-          typeof parsedSchedules === "object"
-        ) {
-          setIrrigationSchedules(parsedSchedules);
-        }
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load AgroMind data from localStorage:",
-        error,
-      );
-    } finally {
-      setIsHydrated(true);
-    }
-  }, []);
-
-  // Persist farms only after localStorage hydration has completed.
-  useEffect(() => {
-    if (!isHydrated) {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        FARMS_STORAGE_KEY,
-        JSON.stringify(farms),
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save farms to localStorage:",
-        error,
-      );
-    }
-  }, [farms, isHydrated]);
-
-  // Persist irrigation schedules only after hydration has completed.
-  useEffect(() => {
-    if (!isHydrated) {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        IRRIGATION_STORAGE_KEY,
-        JSON.stringify(irrigationSchedules),
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save irrigation schedules to localStorage:",
-        error,
-      );
-    }
-  }, [irrigationSchedules, isHydrated]);
-
-  function addFarm(farm: Farm) {
-    setFarms((current) => [...current, farm]);
-    setSelectedFarmId(farm.id);
-  }
-
-  function updateFarm(
-    farmId: string,
-    updates: Partial<Farm>,
-  ) {
-    setFarms((current) =>
-      current.map((farm) =>
-        farm.id === farmId
-          ? { ...farm, ...updates }
-          : farm,
-      ),
-    );
-  }
-
-  function deleteFarm(farmId: string) {
-    setFarms((current) => {
-      const next = current.filter(
-        (farm) => farm.id !== farmId,
-      );
-
-      if (selectedFarmId === farmId) {
-        setSelectedFarmId(next[0]?.id ?? "");
-      }
-
-      return next;
-    });
-
-    setIrrigationSchedules((current) => {
-      const next = { ...current };
-      delete next[farmId];
-      return next;
-    });
-  }
-
-  function setIrrigationSchedule(
-    farmId: string,
-    schedule: IrrigationSchedule,
-  ) {
-    setIrrigationSchedules((current) => ({
-      ...current,
-      [farmId]: schedule,
-    }));
-  }
-
-  const value = useMemo(
-    () => ({
-      farms,
-      isHydrated,
-      selectedFarmId,
-      setSelectedFarmId,
-      addFarm,
-      updateFarm,
-      deleteFarm,
-      irrigationSchedules,
-      setIrrigationSchedule,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [farms, selectedFarmId, irrigationSchedules, isHydrated],
+  const [cloud, setCloud] = useState(initialCloud);
+  const [selectedFarmId, setSelectedFarmId] = useState(
+    initialCloud.farms[0]?.id ?? "",
   );
-
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const revision = useRef(0);
+  const pending = useRef(false);
+  const t = useTranslation();
+  const { update: updateSettings } = useSettings();
+  const { country_code: profileCountry, language: profileLanguage } =
+    cloud.profile;
+  const userId = initialCloud.user.id;
+  const apply = useCallback(
+    (next: CloudSnapshot) => {
+      if (next.user.id !== userId) {
+        setEnded(true);
+        window.location.replace("/sign-in");
+        return;
+      }
+      setCloud(next);
+      setSelectedFarmId((id) =>
+        next.farms.some((farm) => farm.id === id)
+          ? id
+          : (next.farms[0]?.id ?? ""),
+      );
+    },
+    [userId],
+  );
+  const reload = useCallback(async () => {
+    if (pending.current) return;
+    const current = ++revision.current;
+    try {
+      const result = await loadCloudData();
+      if (current !== revision.current) return;
+      if (result.ok) {
+        apply(result.data);
+        setError("");
+      } else setError(result.error);
+    } catch {
+      setError("Your cloud data could not be loaded. Please try again.");
+    }
+  }, [apply]);
+  const run = useCallback(
+    async (operation: () => Promise<CloudResult<CloudSnapshot>>) => {
+      if (pending.current) return false;
+      pending.current = true;
+      revision.current++;
+      setBusy(true);
+      setError("");
+      try {
+        const result = await operation();
+        if (!result.ok) {
+          setError(result.error);
+          return false;
+        }
+        apply(result.data);
+        return result.data.user.id === userId;
+      } catch {
+        setError(
+          "The change could not be saved. Check your connection and try again.",
+        );
+        return false;
+      } finally {
+        pending.current = false;
+        setBusy(false);
+      }
+    },
+    [apply, userId],
+  );
+  useEffect(() => {
+    // Reconcile a new server render (e.g. router.refresh) with the client view.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    apply(initialCloud);
+  }, [initialCloud, apply]);
+  useEffect(() => {
+    if (!profileCountry) return;
+    updateSettings((previous) =>
+      previous.country === profileCountry &&
+      previous.language === profileLanguage &&
+      previous.regionConfirmed
+        ? previous
+        : {
+            ...previous,
+            country: profileCountry,
+            language: profileLanguage,
+            regionConfirmed: true,
+          },
+    );
+  }, [profileCountry, profileLanguage, updateSettings]);
+  useEffect(() => {
+    const channel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel("agromind-account")
+        : null;
+    const onMessage = (event: MessageEvent) => {
+      if (
+        event.data?.type === "signed-out" ||
+        (event.data?.type === "account" && event.data.userId !== userId)
+      ) {
+        setEnded(true);
+        revision.current++;
+        window.location.replace("/sign-in");
+      }
+    };
+    if (channel) {
+      channel.onmessage = onMessage;
+      channel.postMessage({ type: "account", userId });
+    }
+    const visible = () => {
+      if (document.visibilityState === "visible") void reload();
+    };
+    const restored = (event: PageTransitionEvent) => {
+      if (event.persisted) window.location.reload();
+    };
+    document.addEventListener("visibilitychange", visible);
+    window.addEventListener("online", reload);
+    window.addEventListener("pageshow", restored);
+    return () => {
+      channel?.close();
+      document.removeEventListener("visibilitychange", visible);
+      window.removeEventListener("online", reload);
+      window.removeEventListener("pageshow", restored);
+    };
+  }, [reload, userId]);
+  if (ended)
+    return (
+      <p role="status" className="p-6">
+        {t("Returning to sign in…")}
+      </p>
+    );
   return (
-    <FarmContext.Provider value={value}>
+    <FarmContext.Provider
+      value={{
+        farms: cloud.farms,
+        isHydrated: true,
+        selectedFarmId,
+        setSelectedFarmId,
+        cloud,
+        busy,
+        error,
+        farmLimit: getLimit(cloud.entitlements, "farms"),
+        canCreateFarm: can(
+          {
+            entitlements: cloud.entitlements,
+            farmCount: cloud.account.farm_count,
+          },
+          "farm:create",
+        ),
+        run,
+        reload,
+        addFarm: (farm) => run(() => createFarmAction(farm, userId)),
+        updateFarm: (id, changes) =>
+          run(() => updateFarmAction(id, changes, userId)),
+        deleteFarm: (id) => run(() => deleteFarmAction(id, userId)),
+        irrigationSchedules: cloud.irrigationSchedules,
+        setIrrigationSchedule: (id, schedule) =>
+          run(() => saveScheduleAction(id, schedule, userId)),
+        deleteIrrigationSchedule: (id) =>
+          run(() => deleteScheduleAction(id, userId)),
+      }}
+    >
+      {error && (
+        <div
+          role="alert"
+          className="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-6xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/20 bg-card p-4 text-sm"
+        >
+          <p>{t(error)}</p>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void reload()}
+          >
+            {t("Reload cloud data")}
+          </Button>
+        </div>
+      )}
       {children}
     </FarmContext.Provider>
   );
 }
-
 export function useFarm() {
-  const context = useContext(FarmContext);
-
-  if (!context) {
-    throw new Error(
-      "useFarm must be used inside FarmProvider",
-    );
-  }
-
-  return context;
+  const value = useContext(FarmContext);
+  if (!value) throw new Error("useFarm must be used inside FarmProvider");
+  return value;
 }

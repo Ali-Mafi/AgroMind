@@ -34,3 +34,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Authentication and cloud data
+
+Use Node.js 22 or later. Supabase is the source of truth for signed-in farm and irrigation data. Copy the names in `.env.example` into your local/Vercel environment and follow [the foundation setup guide](docs/AUTH_CLOUD_FOUNDATION.md) to apply migrations and configure the signed Resend email hook. Never commit secret values.
+
+Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. After a build, `npm run test:http` checks protected routes and auth forms without sending email. `npm run test:db:native` adds the concurrent farm-limit test on native PostgreSQL. Hosted activation and real email verification remain separate acceptance steps.

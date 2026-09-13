@@ -5,7 +5,7 @@ import { useSettings } from "@/features/settings/context/settings-context";
 import { MeasurementInput } from "@/features/settings/components/measurement-input";
 
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
@@ -86,7 +86,11 @@ function normalizePropertyName(value: string) {
 export default function NewFarmPage() {
   const t = useTranslation();
   const { format } = useSettings();
-  const { farms, addFarm } = useFarm();
+  const { farms, addFarm, busy, canCreateFarm, farmLimit, cloud } = useFarm();
+  const creationId = useRef<string | null>(null);
+  const creationPending = useRef(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [creationError, setCreationError] = useState("");
   const [step, setStep] = useState(1);
   const [farmType, setFarmType] = useState<FarmType | null>(null);
 
@@ -202,12 +206,16 @@ export default function NewFarmPage() {
       return;
     }
 
+    if (creationPending.current || busy || !canCreateFarm) return;
+    creationPending.current = true; setIsCreating(true); setCreationError("");
+    creationId.current ??= crypto.randomUUID();
+    try {
     const resolvedLocation =
       location.trim() ||
       (await resolveFarmLocationName(coordinates));
 
   const newFarm = {
-    id: `${farmType}-${Date.now()}`,
+    id: creationId.current,
     name: farmName.trim(),
     location: resolvedLocation,
     coordinates,
@@ -217,7 +225,7 @@ export default function NewFarmPage() {
       ? {
           crop: crop.trim()
             ? {
-                id: `crop-${Date.now()}`,
+                id: `crop-${creationId.current}`,
                 name: crop.trim(),
               }
             : undefined,
@@ -234,12 +242,15 @@ export default function NewFarmPage() {
         }),
   };
 
-  addFarm(newFarm);
-  router.push(`/farms/${newFarm.id}`);
+  if (await addFarm(newFarm)) router.push(cloud.profile.onboarding_completed ? `/farms/${newFarm.id}` : "/onboarding");
+  } catch { setCreationError("The change could not be saved. Check your connection and try again."); }
+  finally { creationPending.current = false; setIsCreating(false); }
 };
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-0">      
+      {!canCreateFarm && <p role="status" className="rounded-2xl border border-gold/30 bg-gold/10 p-4 text-sm">{t("Farm limit reached: {limit} farms.", { limit: farmLimit })} <Link href="/account/subscription" className="font-semibold text-primary underline">{t("View subscription")}</Link></p>}
+      {creationError && <p role="alert" className="text-sm text-destructive">{t(creationError)}</p>}
       <div className="space-y-1">
         <Link
           href="/farms"
@@ -845,9 +856,10 @@ export default function NewFarmPage() {
             <button
               type="button"
               onClick={handleCreateFarm}
+              disabled={busy || isCreating || !canCreateFarm}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              <Plus className="h-4 w-4" /><T text="Create" />{" "}{farmType === "farm" ? t("Farm") : t("Garden")}
+              <Plus className="h-4 w-4" />{isCreating ? t("Please wait…") : <><T text="Create" />{" "}{farmType === "farm" ? t("Farm") : t("Garden")}</>}
             </button>
           </div>
         )}

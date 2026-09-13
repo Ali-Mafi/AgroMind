@@ -353,6 +353,7 @@ export default function EditFarmPage() {
       }
 
       setIsSaving(true);
+      try {
 
       const area =
         Number(form.area);
@@ -363,7 +364,7 @@ export default function EditFarmPage() {
           form.coordinates,
         ));
 
-      updateFarm(farm.id, {
+      const saved = await updateFarm(farm.id, {
         name: form.name.trim(),
 
         location:
@@ -400,6 +401,7 @@ export default function EditFarmPage() {
           : undefined,
       });
 
+      if (!saved) return;
       setInitialForm({
         name:
           form.name.trim(),
@@ -435,6 +437,7 @@ export default function EditFarmPage() {
       router.push(
         `/farms/${farm.id}`,
       );
+      } finally { setIsSaving(false); }
     };
 
   const handleNavigation =

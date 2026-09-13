@@ -1,0 +1,32 @@
+const PRIVATE_PATH =
+  /^\/(dashboard|farms|irrigation|account|settings|weather|onboarding)(\/|$)/;
+export function isPrivatePath(path: string) {
+  return PRIVATE_PATH.test(path);
+}
+export function safeNextPath(value: unknown, fallback = "/dashboard") {
+  if (
+    typeof value !== "string" ||
+    !/^\/[A-Za-z0-9_/-]*$/.test(value) ||
+    value.includes("//") ||
+    !isPrivatePath(value)
+  )
+    return fallback;
+  return value;
+}
+export function siteOrigin() {
+  const url = new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://agromind.ir",
+  );
+  if (
+    url.username ||
+    url.password ||
+    (url.protocol !== "https:" &&
+      !(
+        process.env.NODE_ENV !== "production" &&
+        ["localhost", "127.0.0.1"].includes(url.hostname)
+      ))
+  ) {
+    throw new Error("Invalid site URL configuration.");
+  }
+  return url.origin;
+}

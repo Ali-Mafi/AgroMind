@@ -1,3 +1,4 @@
+import { ACCOUNT_PERSIAN } from "./account-persian";
 import { COMMON_PERSIAN } from "./common-persian";
 import { PERSIAN } from "./persian";
 import { WEATHER_PERSIAN } from "./weather-persian";
@@ -6,6 +7,7 @@ const persianValues: Record<string, string> = {
   ...WEATHER_PERSIAN,
   ...COMMON_PERSIAN,
   ...PERSIAN,
+  ...ACCOUNT_PERSIAN,
 };
 
 export const CANONICAL_KEYS = Object.freeze(Object.keys(persianValues).sort());

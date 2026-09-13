@@ -408,3 +408,13 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Integrated upstream iPhone icons from `e111eeb`, retained their metadata and consolidated the duplicate manifest into `public/manifest.webmanifest`. Removed the nonexistent maskable-icon reference and excluded account routes from service-worker interception.
 - Status: implementation complete for navigation and installation guidance. Localization validation, 69 tests, lint, typecheck and production build passed. Production HTTP checks passed for the landing page, login, signup, manifest, all referenced install icons and service worker. The cloud browser could not access localhost; visual interaction, native iOS installation and physical-device smoothness still require device verification.
 - Next step: connect the account entry screens to the chosen authentication service.
+
+
+## Authentication + Cloud Data Foundation — 2026-09-13
+
+- Implemented Supabase SSR cookie authentication, verification/recovery/sign-out, protected routes, account profile and resumable onboarding. Legacy login/signup and the existing design/localization remain supported.
+- Added personal account ownership, versioned Free entitlements, subscriptions, transaction-safe three-farm enforcement, cloud farms/schedules, RLS and a lossless retryable localStorage import with immutable backup.
+- Added signed Supabase Send Email Hook through the existing Resend service, explicit English/Persian HTML and plain text templates, and private-data-safe PWA caching.
+- Verification: application/auth/account tests, SQL/RLS/import tests, lint, typecheck, production build and HTTP route checks. Native concurrent-transaction testing is a separate GitHub workflow gate; local PGlite cannot exercise multiple connections. Browser access to localhost was blocked.
+- Hosted activation is pending: no Supabase project exists in the connected AgroMind organization; creation requires organization/cost confirmation. The Vercel connection does not expose the production team. No real test inbox was provided. Do not claim hosted auth/email or migrations are live.
+- Setup, migrations, environment names, policies and remaining acceptance checks: [AUTH_CLOUD_FOUNDATION.md](AUTH_CLOUD_FOUNDATION.md).
