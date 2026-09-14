@@ -45,10 +45,33 @@ export function Onboarding() {
   const t = useTranslation();
   const router = useRouter();
   const [step, setStep] = useState(Math.min(cloud.profile.onboarding_step, 3));
-  const [country, setCountry] = useState(cloud.profile.country_code ?? settings.country);
-  const [language, setLanguage] = useState(cloud.profile.language);
+  const [country, setCountry] = useState(
+    settings.preferences.regionConfirmed
+      ? settings.country
+      : (cloud.profile.country_code ?? settings.country),
+  );
+  const [language, setLanguage] = useState(
+    settings.preferences.language === "auto"
+      ? cloud.profile.language
+      : settings.language,
+  );
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
+
+  const chooseCountry = (nextCountry: string, source: "manual" | "detected") => {
+    setCountry(nextCountry);
+    settings.update({
+      country: nextCountry,
+      regionConfirmed: true,
+      regionSource: source,
+    });
+  };
+
+  const chooseLanguage = (nextLanguage: string) => {
+    const normalized = nextLanguage === "fa" ? "fa" : "en";
+    setLanguage(normalized);
+    settings.update({ language: normalized });
+  };
 
   const saveAndAdvance = async () => {
     const nextStep = Math.min(3, step + 1);
@@ -57,7 +80,7 @@ export function Onboarding() {
         {
           full_name: cloud.profile.full_name || cloud.user.email.split("@")[0],
           country_code: country,
-          language,
+          language: language === "fa" ? "fa" : "en",
           timezone: browserTimeZone(cloud.profile.timezone),
           onboarding_step: nextStep,
         },
@@ -78,7 +101,7 @@ export function Onboarding() {
         setLocationError("Location could not determine your region. Choose it manually.");
         return;
       }
-      setCountry(code);
+      chooseCountry(code, "detected");
     } catch {
       setLocationError("Location could not determine your region. Choose it manually.");
     } finally {
@@ -123,8 +146,12 @@ export function Onboarding() {
                 value,
                 label: countryDisplayName(value, settings.locale),
               }))}
-              onChange={setCountry}
+              onChange={(value) => chooseCountry(value, "manual")}
             />
+            <p className="flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-2 text-sm font-medium text-primary">
+              <CheckCircle2 className="size-4" />
+              {countryDisplayName(country, settings.locale)} · {t("Selected")}
+            </p>
             <Button
               type="button"
               variant="outline"
@@ -148,12 +175,18 @@ export function Onboarding() {
         )}
 
         {step === 2 && (
-          <PreferenceSelect
-            label={t("Language")}
-            value={language}
-            options={LANGUAGE_OPTIONS}
-            onChange={setLanguage}
-          />
+          <div className="space-y-4">
+            <PreferenceSelect
+              label={t("Language")}
+              value={language}
+              options={LANGUAGE_OPTIONS}
+              onChange={chooseLanguage}
+            />
+            <p className="flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-2 text-sm font-medium text-primary">
+              <CheckCircle2 className="size-4" />
+              {t(language === "fa" ? "Persian" : "English")} · {t("Selected")}
+            </p>
+          </div>
         )}
 
         {step === 3 && (
