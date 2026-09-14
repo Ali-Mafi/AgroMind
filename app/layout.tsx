@@ -8,6 +8,7 @@ import {
 
 import "./globals.css";
 import { PwaSessionSafety } from "@/features/authentication/components/pwa-session-safety";
+import { NavigationFeedback } from "@/features/navigation/components/navigation-feedback";
 
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
@@ -65,6 +66,7 @@ export const metadata: Metadata = {
     ],
   },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -80,10 +82,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <PwaSessionSafety />
+          <NavigationFeedback />
           <SettingsProvider>
             <RegionProvider>
-                <RegionOnboarding />
-                  {children}
+              <RegionOnboarding />
+              {children}
             </RegionProvider>
           </SettingsProvider>
         </ThemeProvider>
