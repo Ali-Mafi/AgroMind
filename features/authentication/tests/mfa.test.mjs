@@ -48,6 +48,23 @@ test("protected sessions require AAL2 after a verified factor is enrolled", () =
   assert.match(session, /redirect\(["']\/mfa["']\)/);
 });
 
+test("sign-in checks MFA before protected profile reads", () => {
+  const session = source("features/authentication/services/session.ts");
+  const actions = source("features/authentication/services/actions.ts");
+  const authEntry = source("features/authentication/components/auth-entry.tsx");
+
+  assert.ok(
+    session.indexOf("needsSecondFactor()") < session.indexOf('.from("profiles")'),
+    "authenticatedDestination must route aal1 MFA sessions before reading profiles",
+  );
+  assert.ok(
+    actions.indexOf("getAuthenticatorAssuranceLevel") < actions.indexOf('.from("profiles")'),
+    "signInAction must check AAL before reading profiles",
+  );
+  assert.match(actions, /mfaDestination\s*=\s*`\/mfa\?next=/);
+  assert.match(authEntry, /authenticatedDestination\(next\)/);
+});
+
 test("account security and MFA challenge routes are wired", () => {
   const shell = source("features/account/components/account-shell.tsx");
   const proxy = source("proxy.ts");
