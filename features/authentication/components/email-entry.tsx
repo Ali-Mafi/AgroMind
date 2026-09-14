@@ -2,10 +2,12 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { T } from "@/features/settings/components/translated-text";
-import { currentUser, authenticatedDestination } from "../services/session";
+import { currentUser } from "../services/session";
+import { readPendingSignup } from "../lib/pending-signup";
 import { tokenHashSchema } from "../lib/validation";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
+import { VerificationPending } from "./verification-pending";
 
 export async function EmailEntry({
   kind,
@@ -18,100 +20,84 @@ export async function EmailEntry({
 }) {
   const user = await currentUser();
   const validHash = tokenHashSchema.safeParse(hash);
+
   if (kind === "forgot")
     return (
-      <AuthShell
-        title="Forgot password?"
-        description="Enter your email and we will help you reset your password."
-      >
+      <AuthShell title="Forgot password?" description="Enter your email and we will help you reset your password.">
         <AuthForm mode="forgot" />
         <BackToSignIn />
       </AuthShell>
     );
-  if (kind === "verify" && user?.email_confirmed_at && !hash)
+
+  if (kind === "verify" && status === "success")
     return (
-      <AuthShell
-        title={
-          status === "success"
-            ? "Email verified"
-            : "Your email is already verified"
-        }
-        description="Your account is ready. Continue to your farms."
-      >
+      <AuthShell title="Email verified" description="Return to the AgroMind app to continue.">
         <CheckCircle2 className="mx-auto mb-6 size-12 text-primary" />
-        <Link
-          href={(await authenticatedDestination()) ?? "/onboarding"}
-          className={buttonVariants({
-            className: "min-h-12 w-full rounded-xl",
-          })}
-        >
-          <T text="Continue" />
-        </Link>
+        <p className="text-center text-sm leading-6 text-muted-foreground">
+          <T text="You can close this browser tab now." />
+        </p>
       </AuthShell>
     );
+
   if (hash && validHash.success)
     return (
       <AuthShell
         title={kind === "reset" ? "Reset your password" : "Verify your email"}
         description="Continue below to securely open your email link."
       >
-        <AuthForm
-          mode={kind === "reset" ? "recovery" : "verify"}
-          tokenHash={validHash.data}
-        />
+        <AuthForm mode={kind === "reset" ? "recovery" : "verify"} tokenHash={validHash.data} />
         <Link
           className="mt-5 inline-flex min-h-11 items-center text-sm text-primary"
-          href={kind === "reset" ? "/forgot-password" : "/verify-email"}
+          href={kind === "reset" ? "/forgot-password" : "/sign-up"}
         >
-          <T text="Request a new email" />
+          <T text={kind === "reset" ? "Request a new email" : "Back to sign up"} />
         </Link>
       </AuthShell>
     );
+
   if (kind === "reset" && user && !hash && !status)
     return (
-      <AuthShell
-        title="Choose a new password"
-        description="Use a unique password to keep your farms secure."
-      >
+      <AuthShell title="Choose a new password" description="Use a unique password to keep your farms secure.">
         <AuthForm mode="reset" expectedUserId={user.id} />
       </AuthShell>
     );
+
+  if (kind === "verify") {
+    const pending = await readPendingSignup();
+    if (pending)
+      return (
+        <AuthShell title="Check your inbox" description="Verify your email to continue setting up your AgroMind account.">
+          {(status === "invalid" || status === "expired") && (
+            <p role="alert" className="mb-5 rounded-xl bg-destructive/5 p-4 text-sm text-destructive">
+              <T text={status === "expired" ? "This link has expired or was already used. Request a new email." : "This link is invalid. Request a new email."} />
+            </p>
+          )}
+          <VerificationPending email={pending.email} />
+          <BackToSignIn />
+        </AuthShell>
+      );
+
+    return (
+      <AuthShell title="Verify your email" description="Verification is available after you create an account.">
+        <Link href="/sign-up" className={buttonVariants({ className: "min-h-12 w-full rounded-xl" })}>
+          <T text="Create an account" />
+        </Link>
+        <BackToSignIn />
+      </AuthShell>
+    );
+  }
+
   return (
-    <AuthShell
-      title={
-        kind === "verify" ? "Check your inbox" : "Request a new password reset"
-      }
-      description={
-        kind === "verify"
-          ? "Verify your email to save your farms securely and continue onboarding."
-          : "Open the link in your reset email to continue. You can request another email below."
-      }
-    >
-      {(hash || status === "invalid" || status === "expired") && (
-        <p
-          role="alert"
-          className="mb-5 rounded-xl bg-destructive/5 p-4 text-sm text-destructive"
-        >
-          <T
-            text={
-              status === "expired"
-                ? "This link has expired or was already used. Request a new email."
-                : "This link is invalid. Request a new email."
-            }
-          />
-        </p>
-      )}
-      <AuthForm mode={kind === "verify" ? "resend" : "forgot"} />
+    <AuthShell title="Request a new password reset" description="Open the link in your reset email to continue. You can request another email below.">
+      <AuthForm mode="forgot" />
       <BackToSignIn />
     </AuthShell>
   );
 }
+
 function BackToSignIn() {
   return (
-    <Link
-      className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary"
-      href="/sign-in"
-    >
+    <Link className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary" href="/sign-in">
       <T text="Back to sign in" />
     </Link>
   );
