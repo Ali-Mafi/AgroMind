@@ -27,7 +27,10 @@ export default async function Page({
       title="Two-step verification"
       description="Confirm your identity with the code from your authenticator app."
     >
-      <MfaChallenge next={destination} />
+      <MfaChallenge
+        next={destination}
+        recoveryCodesEnabled={state.recoveryCodes.enabled}
+      />
     </AuthShell>
   );
 }

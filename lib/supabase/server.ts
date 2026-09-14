@@ -8,6 +8,11 @@ export async function createClient() {
   const store = await cookies();
   const { url, key } = supabaseConfig();
   return createServerClient<Database>(url, key, {
+    auth: {
+      experimental: {
+        recoveryCodes: true,
+      },
+    },
     cookieOptions: sessionCookieOptions,
     cookies: {
       getAll: () => store.getAll(),
