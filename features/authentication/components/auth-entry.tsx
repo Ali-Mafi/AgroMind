@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { T } from "@/features/settings/components/translated-text";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { authenticatedDestination } from "../services/session";
-import { safeNextPath } from "../lib/redirects";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
 
@@ -16,8 +15,8 @@ export async function AuthEntry({
   next?: string;
   status?: string;
 }) {
-  const destination = await authenticatedDestination();
-  if (destination) redirect(destination === "/dashboard" ? safeNextPath(next) : destination);
+  const destination = await authenticatedDestination(next);
+  if (destination) redirect(destination);
   const signup = mode === "signup";
   return (
     <AuthShell
