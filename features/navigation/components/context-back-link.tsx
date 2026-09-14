@@ -48,7 +48,6 @@ export function ContextBackLink({ fallback = "/farms" }: { fallback?: string }) 
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTarget(safeInternalPath(intent.from, fallback));
     } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTarget(fallback);
     }
   }, [fallback, pathname]);
