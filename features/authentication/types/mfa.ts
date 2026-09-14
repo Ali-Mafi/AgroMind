@@ -9,6 +9,6 @@ export type MfaSecurityState = {
     id: string;
     friendlyName: string;
   }>;
-  currentLevel: "aal1" | "aal2" | null;
-  nextLevel: "aal1" | "aal2" | null;
+  currentLevel: string | null;
+  nextLevel: string | null;
 };
