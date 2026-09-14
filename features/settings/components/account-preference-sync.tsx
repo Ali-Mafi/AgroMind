@@ -15,14 +15,21 @@ export function AccountPreferenceSync({
   profileCountry,
   profileLanguage,
 }: Props) {
-  const settings = useSettings();
+  const {
+    country,
+    isHydrated,
+    language: resolvedLanguage,
+    preferences,
+    update,
+  } = useSettings();
+  const regionConfirmed = preferences.regionConfirmed;
 
   useEffect(() => {
-    if (!settings.isHydrated) return;
+    if (!isHydrated) return;
 
-    if (!settings.preferences.regionConfirmed) {
+    if (!regionConfirmed) {
       if (!profileCountry) return;
-      settings.update((previous) => ({
+      update((previous) => ({
         ...previous,
         country: profileCountry,
         language: profileLanguage === "fa" ? "fa" : "en",
@@ -31,30 +38,27 @@ export function AccountPreferenceSync({
       return;
     }
 
-    const language = settings.language === "fa" ? "fa" : "en";
-    if (
-      settings.country === profileCountry &&
-      language === profileLanguage
-    ) {
+    const language = resolvedLanguage === "fa" ? "fa" : "en";
+    if (country === profileCountry && language === profileLanguage) {
       return;
     }
 
     const timer = window.setTimeout(() => {
       void saveAccountPreferences(
-        { country_code: settings.country, language },
+        { country_code: country, language },
         userId,
       );
     }, 300);
 
     return () => window.clearTimeout(timer);
   }, [
+    country,
+    isHydrated,
     profileCountry,
     profileLanguage,
-    settings.country,
-    settings.isHydrated,
-    settings.language,
-    settings.preferences.regionConfirmed,
-    settings.update,
+    regionConfirmed,
+    resolvedLanguage,
+    update,
     userId,
   ]);
 
