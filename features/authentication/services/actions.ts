@@ -143,6 +143,7 @@ export async function signInAction(
   if (!parsed.success) return validationState(parsed.error);
 
   let destination = "/onboarding";
+  let mfaDestination: string | null = null;
   try {
     const identifier = parsed.data.identifier;
     const supabase = await createClient();
@@ -177,19 +178,31 @@ export async function signInAction(
       userId = result.user.id;
     }
 
-    const profile = await supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("id", userId)
-      .single();
-    if (profile.error) return unavailable;
-    if (profile.data.onboarding_completed) destination = safeNextPath(form.get("next"));
+    // RLS blocks protected cloud tables at aal1 after MFA is enrolled, so the
+    // assurance check must happen before reading the profile.
+    const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance.error) return unavailable;
+    if (
+      assurance.data.nextLevel === "aal2" &&
+      assurance.data.currentLevel !== "aal2"
+    ) {
+      mfaDestination = `/mfa?next=${encodeURIComponent(safeNextPath(form.get("next")))}`;
+    } else {
+      const profile = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", userId)
+        .single();
+      if (profile.error) return unavailable;
+      if (profile.data.onboarding_completed) destination = safeNextPath(form.get("next"));
+    }
     await clearPendingSignup();
   } catch {
     return unavailable;
   }
 
   revalidatePath("/", "layout");
+  if (mfaDestination) redirect(mfaDestination);
   redirect(destination);
 }
 
