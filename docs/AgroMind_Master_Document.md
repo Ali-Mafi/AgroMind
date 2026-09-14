@@ -418,3 +418,13 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Verification: application/auth/account tests, SQL/RLS/import tests, lint, typecheck, production build and HTTP route checks. Native concurrent-transaction testing is a separate GitHub workflow gate; local PGlite cannot exercise multiple connections. Browser access to localhost was blocked.
 - Hosted activation is pending: no Supabase project exists in the connected AgroMind organization; creation requires organization/cost confirmation. The Vercel connection does not expose the production team. No real test inbox was provided. Do not claim hosted auth/email or migrations are live.
 - Setup, migrations, environment names, policies and remaining acceptance checks: [AUTH_CLOUD_FOUNDATION.md](AUTH_CLOUD_FOUNDATION.md).
+
+## Step 010 — Account security and preference repair — 2026-09-14
+
+- Added MFA checks inside `complete_onboarding`, `import_legacy_data` and `get_entitlements`, including the paths that return an existing import receipt. The migration is applied to Production and the installed guards and anonymous EXECUTE restrictions were verified.
+- Handled the hosted experimental recovery endpoint's `validation_failed` / 404 response without blocking AAL2-authenticated TOTP removal. Unknown provider failures still stop removal so existing backup codes cannot be left active accidentally.
+- Made cloud profile country/language authoritative during account hydration and profile refresh. Settings now saves explicit region/language edits through the authenticated mutation flow, shows failures through the existing cloud error UI, and keeps device-specific measurement choices.
+- Restored verification resend after pending cookies expire or on another browser. Signup still shows the named inbox; the recovery form uses server validation, Supabase rate limits, a honeypot and generic account-existence responses.
+- Validation: lint, typecheck, 110 application tests, 12 PGlite database tests, localization and production build passed. HTTP checks passed for protected redirects, public forms, cookie-free resend and the named pending inbox. Native PostgreSQL execution is blocked locally by this container's single-UID mapping; CI runs the independent-session race test.
+- Remaining provider dependency: this project's experimental Supabase recovery-code API still returns 404. Native code generation/recovery sign-in are not claimed as activated; no custom JWT or MFA bypass was introduced. Live account changes and transactional email sends were not used for these regression checks.
+- Next step: verify hosted recovery-code support before activating code generation and testing one-time recovery with an authorized test account.

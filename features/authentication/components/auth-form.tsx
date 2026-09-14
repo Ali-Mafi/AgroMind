@@ -1,12 +1,14 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import {
   requestPasswordResetAction,
+  resendVerificationAction,
   resetPasswordAction,
   signInAction,
   signUpAction,
@@ -17,12 +19,13 @@ import type { AuthFormState } from "../lib/validation";
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
 
-type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify" | "recovery";
+type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify" | "recovery" | "resend";
 
 const ACTIONS = {
   "sign-in": signInAction,
   "sign-up": signUpAction,
   forgot: requestPasswordResetAction,
+  resend: resendVerificationAction,
   reset: resetPasswordAction,
   verify: verifyEmailAction,
   recovery: verifyEmailAction,
@@ -32,6 +35,7 @@ const LABELS = {
   "sign-in": "Sign In",
   "sign-up": "Create your account",
   forgot: "Send reset email",
+  resend: "Resend verification email",
   reset: "Update password",
   verify: "Verify email",
   recovery: "Continue to reset password",
@@ -127,7 +131,7 @@ export function AuthForm({
           </>
         )}
         {mode === "sign-in" && field("identifier", "Username or email", "text", "username")}
-        {(mode === "sign-up" || mode === "forgot") && field("email", "Email", "email", "email")}
+        {["sign-up", "forgot", "resend"].includes(mode) && field("email", "Email", "email", "email")}
 
         {withPassword && (
           <>
@@ -168,6 +172,11 @@ export function AuthForm({
           <p role="status" className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
             {t(state.success)}
           </p>
+        )}
+        {state.verificationRequired && (
+          <Link href="/verify-email?status=resend" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">
+            {t("Resend verification email")}
+          </Link>
         )}
         <Button type="submit" disabled={pending} className="min-h-12 w-full gap-2 rounded-xl">
           {pending && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}

@@ -244,7 +244,7 @@ test("login by email resumes onboarding and sanitizes the requested destination"
   );
 });
 
-test("forgot stays enumeration-safe and resend is restricted to pending signup", async () => {
+test("forgot and verification resend stay enumeration-safe with and without pending cookies", async () => {
   const results = [];
   for (const error of [
     null,
@@ -264,7 +264,7 @@ test("forgot stays enumeration-safe and resend is restricted to pending signup",
   const pending = harness();
   assert.match(
     (await pending.actions.resendVerificationAction({}, new FormData())).success,
-    /Verification email sent/,
+    /If an account matches/,
   );
   assert.equal(
     pending.calls.find((call) => call.name === "resend").args[0].email,
@@ -273,10 +273,22 @@ test("forgot stays enumeration-safe and resend is restricted to pending signup",
 
   const noPending = harness({ pendingSignup: null });
   assert.match(
-    (await noPending.actions.resendVerificationAction({}, form({ email: "other@example.test" }))).error,
-    /after you create an account/,
+    (await noPending.actions.resendVerificationAction({}, form({ email: "other@example.test" }))).success,
+    /If an account matches/,
   );
-  assert.equal(noPending.calls.some((call) => call.name === "resend"), false);
+  assert.equal(noPending.calls.find((call) => call.name === "resend").args[0].email, "other@example.test");
+  for (const error of [null, { code: "user_not_found", status: 400 }, { code: "email_already_confirmed", status: 400 }]) {
+    const h = harness({ error, pendingSignup: null });
+    assert.deepEqual(await h.actions.resendVerificationAction({}, form({ email: signup.email })), results[0]);
+  }
+  const invalid = harness({ pendingSignup: null });
+  assert.ok((await invalid.actions.resendVerificationAction({}, form({ email: "invalid" }))).fields.email);
+  assert.equal(invalid.calls.some((call) => call.name === "resend"), false);
+  const limited = harness({ error: { status: 429 }, pendingSignup: null });
+  assert.match((await limited.actions.resendVerificationAction({}, form({ email: signup.email }))).error, /Too many attempts/);
+  const bot = harness({ pendingSignup: null });
+  await bot.actions.resendVerificationAction({}, form({ email: signup.email, website: "bot" }));
+  assert.equal(bot.calls.length, 0);
 
   const h = harness();
   await h.actions.requestPasswordResetAction(
@@ -296,6 +308,30 @@ test("pending verification status uses the opaque signup watch instead of an ema
 
   const noPending = harness({ pendingSignup: null });
   assert.deepEqual(await noPending.actions.pendingVerificationStatusAction(), { verified: false });
+});
+
+test("unconfirmed login provides a path to request verification without signup cookies", async () => {
+  const h = harness({ error: { code: "email_not_confirmed", status: 400 }, pendingSignup: null });
+  const result = await h.actions.signInAction({}, form({ identifier: signup.email, password: signup.password }));
+  assert.equal(result.verificationRequired, true);
+  assert.match(result.error, /not verified/);
+});
+
+test("verification without cookies renders resend, while signup pending keeps the named inbox", async () => {
+  for (const pending of [null, { email: signup.email, username: signup.username, watchToken: "watch" }]) {
+    const ui = localizedRenderer({ language: "en" });
+    const { EmailEntry } = ui.load("features/authentication/components/email-entry.tsx", {
+      "../services/session": { currentUser: async () => null },
+      "../lib/pending-signup": { readPendingSignup: async () => pending },
+      "./verification-pending": { VerificationPending: ({ email }) => localRequire("react").createElement("p", null, email) },
+    });
+    const html = ui.renderToStaticMarkup(await EmailEntry({ kind: "verify" }));
+    if (!pending) assert.match(html, /name="email"/);
+    else { assert.match(html, /farmer@example.test/); assert.doesNotMatch(html, /name="email"/); }
+    const retry = ui.renderToStaticMarkup(await EmailEntry({ kind: "verify", status: "resend" }));
+    assert.match(retry, /name="email"/);
+    assert.match(retry, /Resend verification email/);
+  }
 });
 
 test("verification uses Supabase OTP verification and handles expired and invalid links", async () => {
@@ -446,6 +482,7 @@ for (const language of ["en", "fa"])
         "reset",
         "verify",
         "recovery",
+        "resend",
       ]) {
         const html = render(React.createElement(AuthForm, { mode }));
         assert.match(html, /<form/);

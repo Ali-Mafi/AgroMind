@@ -38,10 +38,15 @@ function logAuthError(scope: string, error: unknown) {
   });
 }
 
-function recoveryFeatureUnavailable(code: string) {
+function recoveryFeatureUnavailable(error: unknown) {
+  const code = authErrorCode(error);
   return (
     code.includes("mfa_recovery_codes_") && code.endsWith("_not_enabled")
-  ) || code === "not_implemented";
+  ) || code === "not_implemented" || (
+    // Hosted Auth versions without this experimental endpoint return this pair.
+    // Do not treat authorization, rate-limit or transient provider errors as absence.
+    code === "validation_failed" && authErrorStatus(error) === 404
+  );
 }
 
 async function signedInClient() {
@@ -83,7 +88,7 @@ export async function readMfaSecurityState(): Promise<MfaSecurityState> {
         const code = authErrorCode(status.error);
         if (code === "mfa_factor_not_found") {
           recoveryCodes.enabled = false;
-        } else if (recoveryFeatureUnavailable(code)) {
+        } else if (recoveryFeatureUnavailable(status.error)) {
           recoveryCodes.available = false;
         } else {
           logAuthError("recovery-status", status.error);
@@ -211,7 +216,7 @@ export async function generateRecoveryCodesAction(): Promise<RecoveryCodesResult
     if (!status.error)
       return { error: "Backup codes already exist. Regenerate them instead." };
     const statusCode = authErrorCode(status.error);
-    if (recoveryFeatureUnavailable(statusCode))
+    if (recoveryFeatureUnavailable(status.error))
       return { error: "Backup codes are not available for this project yet." };
     if (statusCode !== "mfa_factor_not_found") {
       logAuthError("recovery-status-before-generate", status.error);
@@ -223,7 +228,7 @@ export async function generateRecoveryCodesAction(): Promise<RecoveryCodesResult
     });
     if (generated.error) {
       logAuthError("recovery-generate", generated.error);
-      if (recoveryFeatureUnavailable(authErrorCode(generated.error)))
+      if (recoveryFeatureUnavailable(generated.error))
         return { error: "Backup codes are not available for this project yet." };
       return { error: unavailable };
     }
@@ -249,7 +254,7 @@ export async function regenerateRecoveryCodesAction(): Promise<RecoveryCodesResu
     const regenerated = await context.supabase.auth.mfa.recoveryCodes.regenerate();
     if (regenerated.error) {
       logAuthError("recovery-regenerate", regenerated.error);
-      if (recoveryFeatureUnavailable(authErrorCode(regenerated.error)))
+      if (recoveryFeatureUnavailable(regenerated.error))
         return { error: "Backup codes are not available for this project yet." };
       return { error: unavailable };
     }
@@ -298,14 +303,17 @@ export async function disableTotpAction(
         const statusCode = authErrorCode(status.error);
         if (
           statusCode !== "mfa_factor_not_found" &&
-          !recoveryFeatureUnavailable(statusCode)
+          !recoveryFeatureUnavailable(status.error)
         ) {
           logAuthError("recovery-status-before-totp-unenroll", status.error);
           return { error: unavailable };
         }
       }
     } catch (error) {
-      logAuthError("recovery-cleanup-before-totp-unenroll", error);
+      if (!recoveryFeatureUnavailable(error)) {
+        logAuthError("recovery-cleanup-before-totp-unenroll", error);
+        return { error: unavailable };
+      }
     }
 
     const removed = await context.supabase.auth.mfa.unenroll({ factorId });
@@ -384,7 +392,7 @@ export async function verifyRecoveryCodeAction(
         return {
           error: "Too many failed backup-code attempts. Please wait and try again.",
         };
-      if (recoveryFeatureUnavailable(errorCode))
+      if (recoveryFeatureUnavailable(verified.error))
         return { error: "Backup-code sign-in is not available right now." };
       return { error: "That backup code is invalid or has already been used." };
     }

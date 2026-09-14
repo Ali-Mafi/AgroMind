@@ -15,7 +15,7 @@ function wasmResult(result) {
     rowCount: result.rows.length || result.affectedRows || 0,
   };
 }
-function wasmClient(user) {
+function wasmClient(user, level = "aal1") {
   return {
     connect: async () => {},
     end: async () => {},
@@ -40,13 +40,16 @@ function wasmClient(user) {
           await tx.query("select set_config('request.jwt.claim.sub',$1,true)", [
             user,
           ]);
+        await tx.query("select set_config('request.jwt.claims',$1,true)", [
+          JSON.stringify({ sub: user, aal: level }),
+        ]);
         return wasmResult(await tx.query(sql, values));
       });
     },
   };
 }
 let postgres, admin, directory;
-const users = Array.from({ length: 10 }, () => randomUUID());
+const users = Array.from({ length: 12 }, () => randomUUID());
 const farm = (id, extra = {}) => ({
   id,
   name: "Test field",
@@ -72,13 +75,16 @@ async function port() {
   await new Promise((resolve) => server.close(resolve));
   return value;
 }
-async function asUser(user) {
-  if (!native) return wasmClient(user);
+async function asUser(user, level = "aal1") {
+  if (!native) return wasmClient(user, level);
   const client = postgres.getPgClient();
   await client.connect();
   await client.query("set role authenticated");
   await client.query("select set_config('request.jwt.claim.sub',$1,false)", [
     user,
+  ]);
+  await client.query("select set_config('request.jwt.claims',$1,false)", [
+    JSON.stringify({ sub: user, aal: level }),
   ]);
   return client;
 }
@@ -119,9 +125,12 @@ before(
     await admin.query(`
     create role anon nologin; create role authenticated nologin; create schema auth;
     create table auth.users (id uuid primary key, raw_user_meta_data jsonb not null default '{}', email_confirmed_at timestamptz);
+    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
     create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
+    create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
     grant usage on schema auth to authenticated,anon;
     grant execute on function auth.uid() to authenticated,anon;
+    grant execute on function auth.jwt() to authenticated,anon;
   `);
     for (const file of (await readdir("supabase/migrations"))
       .filter((n) => n.endsWith(".sql"))
@@ -147,6 +156,51 @@ after(async () => {
   await embedded?.close();
   if (directory) await rm(directory, { recursive: true, force: true });
 });
+test("MFA guards privileged RPCs, table access and writes until AAL2", async () => {
+  const user = users[10];
+  const factor = randomUUID();
+  await admin.query("insert into auth.mfa_factors values($1,$2,'verified')", [factor, user]);
+  const low = await asUser(user), high = await asUser(user, "aal2");
+  const snapshot = { farms: [farm("mfa-import")], schedules: { "mfa-import": schedule } };
+  const ids = '["mfa-import"]';
+  try {
+    assert.deepEqual((await low.query("select get_entitlements() as e")).rows[0].e, {});
+    assert.equal((await low.query("select * from profiles")).rowCount, 0);
+    await assert.rejects(low.query("select complete_onboarding()"), /MFA_REQUIRED/);
+    await assert.rejects(low.query("select import_legacy_data($1,$2)", [snapshot, ids]), /MFA_REQUIRED/);
+    await assert.rejects(create(low, farm("mfa-direct")), /row-level security/i);
+    assert.equal((await high.query("select * from farms")).rowCount, 0);
+    assert.equal((await high.query("select * from legacy_imports")).rowCount, 0);
+    assert.equal((await high.query("select get_entitlements() as e")).rows[0].e.max_farms, 3);
+    await high.query("select import_legacy_data($1,$2)", [snapshot, ids]);
+    await high.query("update profiles set country_code='IR'");
+    await high.query("select complete_onboarding()");
+    assert.equal((await high.query("select onboarding_completed from profiles")).rows[0].onboarding_completed, true);
+    // The existing receipt and populated account must not make AAL1 retries succeed.
+    await assert.rejects(low.query("select import_legacy_data($1,$2)", [snapshot, ids]), /MFA_REQUIRED/);
+    await assert.rejects(low.query("select complete_onboarding()"), /MFA_REQUIRED/);
+    assert.equal((await low.query("select * from farms")).rowCount, 0);
+    assert.equal((await low.query("update profiles set full_name='Blocked'")).rowCount, 0);
+    assert.equal((await low.query("delete from irrigation_schedules")).rowCount, 0);
+    assert.equal((await high.query("select * from irrigation_schedules")).rowCount, 1);
+    await admin.query("delete from auth.mfa_factors where id=$1", [factor]);
+    assert.equal((await low.query("select get_entitlements() as e")).rows[0].e.max_farms, 3);
+  } finally {
+    await low.end();
+    await high.end();
+  }
+});
+
+test("unverified MFA enrollment does not lock a password-only account", async () => {
+  const user = users[11];
+  await admin.query("insert into auth.mfa_factors values($1,$2,'unverified')", [randomUUID(), user]);
+  const c = await asUser(user);
+  try {
+    await create(c, farm("unverified-factor"));
+    assert.equal((await c.query("select * from farms")).rowCount, 1);
+  } finally { await c.end(); }
+});
+
 test("signup bootstrap creates a profile, account and data-driven Free subscription", async () => {
   const c = await asUser(users[0]);
   try {

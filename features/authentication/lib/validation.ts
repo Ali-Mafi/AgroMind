@@ -63,6 +63,7 @@ export const tokenHashSchema = z.string().regex(/^[A-Za-z0-9_-]{32,256}$/);
 export type AuthFormState = {
   error?: string;
   success?: string;
+  verificationRequired?: boolean;
   fields?: Record<string, string>;
 };
 

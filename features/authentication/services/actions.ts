@@ -157,6 +157,7 @@ export async function signInAction(
       userId = result.data.user?.id;
       if (result.error || !userId) {
         return {
+          verificationRequired: result.error?.code === "email_not_confirmed",
           error:
             result.error?.status === 429
               ? "Too many attempts. Please wait before trying again."
@@ -169,6 +170,7 @@ export async function signInAction(
       const result = await signInWithUsername(identifier, parsed.data.password);
       if ("error" in result) {
         return {
+          verificationRequired: result.error === "email_not_confirmed",
           error:
             result.error === "email_not_confirmed"
               ? "Your email is not verified yet. Check the verification email from sign up."
@@ -225,24 +227,30 @@ export async function requestPasswordResetAction(
 }
 
 export async function resendVerificationAction(
-  state: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
-  void state;
-  void form;
+  if (form.get("website")) return genericEmail;
   const pending = await readPendingSignup();
-  if (!pending) return { error: "Verification is available after you create an account." };
+  const parsed = emailSchema.safeParse(form.get("email") ?? pending?.email);
+  if (!parsed.success) return {
+    error: "Enter a valid email address.",
+    fields: { email: "Enter a valid email address." },
+    verificationRequired: true,
+  };
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({
       type: "signup",
-      email: pending.email,
+      email: parsed.data.toLowerCase(),
       options: { emailRedirectTo: `${siteOrigin()}/auth/callback` },
     });
     if (error?.status === 429)
       return { error: "Too many attempts. Please wait before trying again." };
-    if (error) return unavailable;
-    return { success: "Verification email sent. Check your inbox and spam folder." };
+    if (error && !["user_not_found", "email_exists", "email_already_confirmed"].includes(error.code ?? ""))
+      return unavailable;
+    // The same response covers pending, confirmed and nonexistent addresses.
+    return genericEmail;
   } catch {
     return unavailable;
   }

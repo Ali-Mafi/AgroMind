@@ -22,7 +22,6 @@ import {
 } from "@/features/cloud/services/actions";
 import { can, getLimit } from "@/features/entitlements/lib/entitlements";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
-import { useSettings } from "@/features/settings/context/settings-context";
 import { Button } from "@/components/ui/button";
 
 type FarmContextValue = {
@@ -62,8 +61,6 @@ export function FarmProvider({
   const revision = useRef(0);
   const pending = useRef(false);
   const t = useTranslation();
-  const { update: updateSettings, preferences } = useSettings();
-  const { country_code: profileCountry, language: profileLanguage } = cloud.profile;
   const userId = initialCloud.user.id;
 
   const apply = useCallback(
@@ -126,18 +123,6 @@ export function FarmProvider({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     apply(initialCloud);
   }, [initialCloud, apply]);
-
-  useEffect(() => {
-    // Only seed device preferences from the cloud once. Explicit changes in
-    // Settings must not be overwritten every time a protected route mounts.
-    if (!profileCountry || preferences.regionConfirmed) return;
-    updateSettings((previous) => ({
-      ...previous,
-      country: profileCountry,
-      language: profileLanguage,
-      regionConfirmed: true,
-    }));
-  }, [preferences.regionConfirmed, profileCountry, profileLanguage, updateSettings]);
 
   useEffect(() => {
     const channel =

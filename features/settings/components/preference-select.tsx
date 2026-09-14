@@ -3,13 +3,13 @@ import { useId } from "react";
 import { Select } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 
-export function PreferenceSelect<V extends string>({ label, value, options, onChange, description }: {
-  label: string; value: V; options: readonly { value: V; label: string }[]; onChange: (value: V) => void; description?: string;
+export function PreferenceSelect<V extends string>({ label, value, options, onChange, description, disabled = false }: {
+  label: string; value: V; options: readonly { value: V; label: string }[]; onChange: (value: V) => void; description?: string; disabled?: boolean;
 }) {
   const id = useId();
   return <div className="space-y-2">
     <label id={`${id}-label`} htmlFor={id} className="block text-sm font-semibold">{label}</label>
-    <Select.Root value={value} items={options} onValueChange={(next) => { if (next !== null) onChange(next); }}>
+    <Select.Root disabled={disabled} value={value} items={options} onValueChange={(next) => { if (next !== null) onChange(next); }}>
       <Select.Trigger id={id} aria-labelledby={`${id}-label`} aria-describedby={description ? `${id}-help` : undefined} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 text-start text-sm outline-none transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary">
         <Select.Value /><Select.Icon><ChevronDown size={16} /></Select.Icon>
       </Select.Trigger>

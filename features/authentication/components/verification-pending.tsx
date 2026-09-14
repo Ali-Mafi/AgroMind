@@ -2,6 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { LoaderCircle, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
@@ -74,6 +75,11 @@ export function VerificationPending({ email }: { email: string }) {
         <p role="status" className="rounded-xl bg-primary/5 p-4 text-sm">{t(state.success)}</p>
       )}
       <form action={action}>
+        {state.verificationRequired && (
+          <Link href="/verify-email?status=resend" className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">
+            {t("Request a new email")}
+          </Link>
+        )}
         <Button type="submit" variant="outline" disabled={pending} className="min-h-12 w-full rounded-xl">
           {pending && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}
           {t(pending ? "Please wait…" : "Resend verification email")}

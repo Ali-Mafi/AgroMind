@@ -9,7 +9,7 @@ import { REGION_PROFILES, UNIT_NAMES, UNIT_OPTIONS } from "../constants/region-p
 import { CALENDAR_OPTIONS, COUNTRY_CODES, LANGUAGE_OPTIONS, countryDisplayName } from "../constants/locale-options";
 import { AUTO_UNITS } from "../lib/preferences";
 import { PreferenceSelect } from "./preference-select";
-import type { Calendar, Language, Units } from "../types/preferences";
+import type { Calendar, Language, Preferences, Units } from "../types/preferences";
 import type { ReactNode } from "react";
 
 const UNIT_LABELS: Record<keyof Units, string> = { temperature: "Temperature", area: "Farm area", gardenArea: "Garden area", distance: "Distance", length: "Length & plant spacing", wind: "Wind speed", precipitation: "Rainfall", volume: "Water volume", pressure: "Pressure" };
@@ -18,13 +18,21 @@ function Group({ title, icon, children }: { title: string; icon: ReactNode; chil
     <h2 className="flex items-center gap-3 text-lg font-bold"><span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>{title}</h2>{children}
   </section>;
 }
-export function SettingsPanel() {
+export function SettingsPanel({ onLocaleChange, savingLocale = false }: {
+  onLocaleChange?: (change: Partial<Preferences>) => Promise<void>;
+  savingLocale?: boolean;
+} = {}) {
   const settings = useSettings();
   const { preferences, format, update, setUnit } = settings;
   const t = useTranslation();
   const motion = useWeatherMotion();
   const automatic = { value: "auto" as const, label: t("Follow region") };
   const sample = REGION_PROFILES[settings.country].example;
+  const changeLocale = (change: Partial<Preferences>) => {
+    if (savingLocale) return;
+    if (onLocaleChange) void onLocaleChange(change);
+    else update(change);
+  };
   return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <Link href="/dashboard" className="mb-7 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"><ArrowLeft size={17} className="rtl:rotate-180" />{t("Back to dashboard")}</Link>
     <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -35,8 +43,8 @@ export function SettingsPanel() {
       <div className="space-y-6">
         <Group title={t("Region & language")} icon={<Globe2 size={20} />}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <PreferenceSelect label={t("Region")} value={settings.country} options={COUNTRY_CODES.map((value) => ({ value, label: countryDisplayName(value, settings.locale) })).sort((a,b) => a.label.localeCompare(b.label, settings.locale))} onChange={(country) => update({ country, regionConfirmed: true, regionSource: "manual" })} />
-            <PreferenceSelect<Language | "auto"> label={t("Language")} value={preferences.language} options={[automatic, ...LANGUAGE_OPTIONS]} onChange={(language) => update({ language })} description={t("Language changes text and reading direction, independently of units.")} />
+            <PreferenceSelect disabled={savingLocale} label={t("Region")} value={settings.country} options={COUNTRY_CODES.map((value) => ({ value, label: countryDisplayName(value, settings.locale) })).sort((a,b) => a.label.localeCompare(b.label, settings.locale))} onChange={(country) => changeLocale({ country, regionConfirmed: true, regionSource: "manual" })} />
+            <PreferenceSelect<Language | "auto"> disabled={savingLocale} label={t("Language")} value={preferences.language} options={[automatic, ...LANGUAGE_OPTIONS]} onChange={(language) => changeLocale({ language })} description={t("Language changes text and reading direction, independently of units.")} />
           </div>
           <p className="text-sm leading-6 text-muted-foreground">{t("Changing region updates automatic preferences. Your custom choices stay the same.")}</p>
         </Group>

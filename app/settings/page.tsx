@@ -1,5 +1,5 @@
-import { SettingsPanel } from "@/features/settings/components/settings-panel";
+import { AccountSettingsPanel } from "@/features/settings/components/account-settings-panel";
 
 export default function SettingsPage() {
-  return <SettingsPanel />;
+  return <AccountSettingsPanel />;
 }

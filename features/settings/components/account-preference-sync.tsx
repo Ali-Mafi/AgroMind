@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSettings } from "@/features/settings/context/settings-context";
-import { saveAccountPreferences } from "@/features/settings/services/account-preferences";
+import { preferencesFromProfile } from "../lib/account-preferences";
 
 type Props = {
   userId: string;
@@ -15,52 +15,14 @@ export function AccountPreferenceSync({
   profileCountry,
   profileLanguage,
 }: Props) {
-  const {
-    country,
-    isHydrated,
-    language: resolvedLanguage,
-    preferences,
-    update,
-  } = useSettings();
-  const regionConfirmed = preferences.regionConfirmed;
+  const { isHydrated, update } = useSettings();
 
   useEffect(() => {
-    if (!isHydrated) return;
-
-    if (!regionConfirmed) {
-      if (!profileCountry) return;
-      update((previous) => ({
-        ...previous,
-        country: profileCountry,
-        language: profileLanguage === "fa" ? "fa" : "en",
-        regionConfirmed: true,
-      }));
-      return;
-    }
-
-    const language = resolvedLanguage === "fa" ? "fa" : "en";
-    if (country === profileCountry && language === profileLanguage) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      void saveAccountPreferences(
-        { country_code: country, language },
-        userId,
-      );
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    country,
-    isHydrated,
-    profileCountry,
-    profileLanguage,
-    regionConfirmed,
-    resolvedLanguage,
-    update,
-    userId,
-  ]);
+    if (!isHydrated || !profileCountry) return;
+    // Cloud values seed this account and reflect successful profile saves.
+    // Hydration and navigation must never write old device values to the server.
+    update((previous) => preferencesFromProfile(previous, profileCountry, profileLanguage));
+  }, [userId, profileCountry, profileLanguage, isHydrated, update]);
 
   return null;
 }

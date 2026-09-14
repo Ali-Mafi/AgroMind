@@ -1,4 +1,5 @@
 export const AUTH_STABILIZATION_PERSIAN: Record<string, string> = {
+  "Enter your signup email to request a new verification link.": "برای دریافت لینک تأیید جدید، ایمیلی را که با آن ثبت‌نام کرده‌اید وارد کنید.",
   Username: "نام کاربری",
   "Username or email": "نام کاربری یا ایمیل",
   "Enter your username or email.": "نام کاربری یا ایمیل خود را وارد کنید.",

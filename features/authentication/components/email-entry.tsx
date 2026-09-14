@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import { T } from "@/features/settings/components/translated-text";
 import { currentUser } from "../services/session";
 import { readPendingSignup } from "../lib/pending-signup";
@@ -48,9 +47,9 @@ export async function EmailEntry({
         <AuthForm mode={kind === "reset" ? "recovery" : "verify"} tokenHash={validHash.data} />
         <Link
           className="mt-5 inline-flex min-h-11 items-center text-sm text-primary"
-          href={kind === "reset" ? "/forgot-password" : "/sign-up"}
+          href={kind === "reset" ? "/forgot-password" : "/verify-email?status=resend"}
         >
-          <T text={kind === "reset" ? "Request a new email" : "Back to sign up"} />
+          <T text="Request a new email" />
         </Link>
       </AuthShell>
     );
@@ -64,7 +63,7 @@ export async function EmailEntry({
 
   if (kind === "verify") {
     const pending = await readPendingSignup();
-    if (pending)
+    if (pending && status !== "resend")
       return (
         <AuthShell title="Check your inbox" description="Verify your email to continue setting up your AgroMind account.">
           {(status === "invalid" || status === "expired") && (
@@ -78,10 +77,8 @@ export async function EmailEntry({
       );
 
     return (
-      <AuthShell title="Verify your email" description="Verification is available after you create an account.">
-        <Link href="/sign-up" className={buttonVariants({ className: "min-h-12 w-full rounded-xl" })}>
-          <T text="Create an account" />
-        </Link>
+      <AuthShell title="Verify your email" description="Enter your signup email to request a new verification link.">
+        <AuthForm mode="resend" />
         <BackToSignIn />
       </AuthShell>
     );

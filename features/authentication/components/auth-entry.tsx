@@ -45,9 +45,12 @@ export async function AuthEntry({
         </p>
       )}
       {!signup && (
-        <div className="mt-4 text-sm text-primary">
+        <div className="mt-4 flex flex-wrap justify-between gap-x-4 text-sm text-primary">
           <Link className="inline-flex min-h-11 items-center hover:underline" href="/forgot-password">
             <T text="Forgot password?" />
+          </Link>
+          <Link className="inline-flex min-h-11 items-center hover:underline" href="/verify-email?status=resend">
+            <T text="Verify your email" />
           </Link>
         </div>
       )}
