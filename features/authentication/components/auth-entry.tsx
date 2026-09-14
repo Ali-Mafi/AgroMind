@@ -17,8 +17,7 @@ export async function AuthEntry({
   status?: string;
 }) {
   const destination = await authenticatedDestination();
-  if (destination)
-    redirect(destination === "/dashboard" ? safeNextPath(next) : destination);
+  if (destination) redirect(destination === "/dashboard" ? safeNextPath(next) : destination);
   const signup = mode === "signup";
   return (
     <AuthShell
@@ -26,7 +25,7 @@ export async function AuthEntry({
       description={
         signup
           ? "Your farms and gardens, together in AgroMind."
-          : "Sign in to manage your farms and gardens."
+          : "Sign in with your username or email."
       }
     >
       {status === "password-updated" && (
@@ -34,29 +33,22 @@ export async function AuthEntry({
           <T text="Password updated. Sign in with your new password." />
         </p>
       )}
+      {status === "email-verified" && (
+        <p role="status" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Email verified. Sign in to continue in AgroMind." />
+        </p>
+      )}
       {isSupabaseConfigured() ? (
         <AuthForm mode={signup ? "sign-up" : "sign-in"} next={next} />
       ) : (
-        <p
-          role="status"
-          className="rounded-xl bg-primary/5 p-4 text-sm leading-6"
-        >
+        <p role="status" className="rounded-xl bg-primary/5 p-4 text-sm leading-6">
           <T text="Account services are temporarily unavailable. Please try again." />
         </p>
       )}
       {!signup && (
-        <div className="mt-4 flex flex-wrap justify-between gap-3 text-sm text-primary">
-          <Link
-            className="inline-flex min-h-11 items-center hover:underline"
-            href="/forgot-password"
-          >
+        <div className="mt-4 text-sm text-primary">
+          <Link className="inline-flex min-h-11 items-center hover:underline" href="/forgot-password">
             <T text="Forgot password?" />
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center hover:underline"
-            href="/verify-email"
-          >
-            <T text="Verify email" />
           </Link>
         </div>
       )}

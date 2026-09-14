@@ -206,6 +206,7 @@ export type Database = {
           onboarding_step: number;
           timezone: string;
           updated_at: string;
+          username: string | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -218,6 +219,7 @@ export type Database = {
           onboarding_step?: number;
           timezone?: string;
           updated_at?: string;
+          username?: string | null;
         };
         Update: {
           avatar_url?: string | null;
@@ -230,6 +232,7 @@ export type Database = {
           onboarding_step?: number;
           timezone?: string;
           updated_at?: string;
+          username?: string | null;
         };
         Relationships: [];
       };
@@ -296,10 +299,15 @@ export type Database = {
         Args: { p_selected_ids: Json; p_snapshot: Json };
         Returns: Json;
       };
+      pending_signup_verified: {
+        Args: { p_token_hash: string };
+        Returns: boolean;
+      };
       save_irrigation_schedule: {
         Args: { p_data: Json; p_farm_id: string };
         Returns: undefined;
       };
+      username_available: { Args: { p_username: string }; Returns: boolean };
     };
     Enums: {
       [_ in never]: never;

@@ -1,9 +1,11 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
+
 const require = createRequire(import.meta.url);
 const port = 3187;
 const base = "http://127.0.0.1:" + port;
+
 // Only public pages and unauthenticated redirects are exercised. These inert
 // local settings never point at a hosted project or send a real email.
 const server = spawn(
@@ -28,6 +30,7 @@ const server = spawn(
     },
   },
 );
+
 try {
   await new Promise((resolve, reject) => {
     const deadline = setTimeout(
@@ -50,6 +53,7 @@ try {
       reject(new Error("Local server exited"));
     });
   });
+
   for (const path of [
     "/dashboard",
     "/farms",
@@ -67,11 +71,11 @@ try {
     assert.match(response.headers.get("cache-control"), /no-store/);
     console.log("PASS protected route", path);
   }
+
   for (const path of [
     "/sign-up",
     "/sign-in",
     "/forgot-password",
-    "/verify-email?status=invalid",
     "/reset-password",
   ]) {
     const response = await fetch(base + path);
@@ -80,6 +84,22 @@ try {
     assert.match(response.headers.get("cache-control"), /no-store/);
     console.log("PASS public auth form", path);
   }
+
+  // Verification is intentionally not a generic public email form anymore.
+  // Without a pending signup cookie it should only explain how to start signup,
+  // preventing arbitrary verification resend requests from this route.
+  {
+    const path = "/verify-email?status=invalid";
+    const response = await fetch(base + path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert.doesNotMatch(html, /<form/);
+    assert.match(html, /Verification is available after you create an account/);
+    assert.match(html, /Create an account/);
+    assert.match(response.headers.get("cache-control"), /no-store/);
+    console.log("PASS restricted verification entry", path);
+  }
+
   for (const [path, next] of [
     ["/login", "/sign-in"],
     ["/signup", "/sign-up"],
