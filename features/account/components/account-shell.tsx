@@ -9,6 +9,7 @@ import { logoutAction } from "@/features/authentication/services/actions";
 const links = [
   ["/account", "Overview"],
   ["/account/profile", "Profile"],
+  ["/account/security", "Security"],
   ["/account/subscription", "Subscription"],
   ["/account/usage", "Usage"],
 ] as const;

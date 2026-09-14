@@ -76,6 +76,7 @@ export const config = {
     "/verify-email",
     "/forgot-password",
     "/reset-password",
+    "/mfa",
     "/auth/:path*",
   ],
 };
