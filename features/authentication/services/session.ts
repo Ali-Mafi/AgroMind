@@ -10,12 +10,23 @@ export const currentUser = cache(async () => {
   const { data, error } = await supabase.auth.getUser();
   return error ? null : data.user;
 });
+
+async function needsSecondFactor() {
+  const supabase = await createClient();
+  const { data, error } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error) throw new Error("Account services are temporarily unavailable.");
+  return data.nextLevel === "aal2" && data.currentLevel !== "aal2";
+}
+
 export const requireUser = cache(async () => {
   const user = await currentUser();
   if (!user) redirect("/sign-in");
   if (!user.email_confirmed_at) redirect("/verify-email");
+  if (await needsSecondFactor()) redirect("/mfa");
   return user;
 });
+
 export async function authenticatedDestination() {
   const user = await currentUser();
   if (!user) return null;
@@ -27,5 +38,8 @@ export async function authenticatedDestination() {
     .eq("id", user.id)
     .single();
   if (error) throw new Error("Account services are temporarily unavailable.");
-  return data.onboarding_completed ? "/dashboard" : "/onboarding";
+  const destination = data.onboarding_completed ? "/dashboard" : "/onboarding";
+  if (await needsSecondFactor())
+    return `/mfa?next=${encodeURIComponent(destination)}`;
+  return destination;
 }
