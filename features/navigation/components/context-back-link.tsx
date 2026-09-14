@@ -44,8 +44,11 @@ export function ContextBackLink({ fallback = "/farms" }: { fallback?: string }) 
       const isCurrentDestination = destination.pathname === pathname;
       const isRecent = Date.now() - intent.at < 10 * 60 * 1000;
       if (!isCurrentDestination || !isRecent) return;
+      // The source route is only available in the browser after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTarget(safeInternalPath(intent.from, fallback));
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTarget(fallback);
     }
   }, [fallback, pathname]);
