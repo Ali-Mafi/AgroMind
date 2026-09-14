@@ -21,6 +21,8 @@ export function NavigationFeedback() {
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Route completion clears feedback that was started by the previous click.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(false);
     if (timeoutRef.current !== null) {
       window.clearTimeout(timeoutRef.current);
