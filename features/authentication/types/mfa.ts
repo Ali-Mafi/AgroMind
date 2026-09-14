@@ -4,6 +4,7 @@ export type MfaActionState = {
 };
 
 export type RecoveryCodeState = {
+  available: boolean;
   enabled: boolean;
   total: number;
   remaining: number;
