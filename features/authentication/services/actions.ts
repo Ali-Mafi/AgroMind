@@ -114,13 +114,20 @@ export async function signUpAction(
       };
     }
 
+    // Email confirmation is part of the product security model. If a hosted
+    // setting accidentally disables it, fail closed rather than silently
+    // creating an authenticated session that skips verification.
+    if (data.session) {
+      await supabase.auth.signOut({ scope: "local" });
+      return unavailable;
+    }
     if (!data.user) return unavailable;
+
     await rememberPendingSignup({
       email: parsed.data.email,
       username: parsed.data.username,
       watchToken: watch.token,
     });
-    if (data.session) await supabase.auth.signOut({ scope: "local" });
   } catch {
     return unavailable;
   }
