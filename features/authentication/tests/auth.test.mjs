@@ -59,6 +59,12 @@ function harness({
       updateUser: record("update", { data: { user }, error }),
       signOut: record("signOut", { error }),
       exchangeCodeForSession: record("exchange", { error }),
+      mfa: {
+        getAuthenticatorAssuranceLevel: record("assurance", {
+          data: { currentLevel: "aal1", nextLevel: "aal1" },
+          error: null,
+        }),
+      },
     },
     rpc: async (name, args) => {
       calls.push({ name: "rpc", args: [name, args] });
