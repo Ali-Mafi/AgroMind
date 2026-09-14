@@ -70,7 +70,7 @@ async function signInWithUsername(username: string, password: string) {
 }
 
 export async function signUpAction(
-  _: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = signUpSchema.safeParse(Object.fromEntries(form));
@@ -101,9 +101,7 @@ export async function signUpAction(
     const duplicate =
       ["user_already_exists", "email_exists"].includes(error?.code ?? "") ||
       Boolean(data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
-    if (duplicate) {
-      return { error: "This account already exists. Sign in instead." };
-    }
+    if (duplicate) return { error: "This account already exists. Sign in instead." };
 
     if (error) {
       return {
@@ -131,7 +129,7 @@ export async function signUpAction(
 }
 
 export async function signInAction(
-  _: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = signInSchema.safeParse(Object.fromEntries(form));
@@ -142,7 +140,6 @@ export async function signInAction(
     const identifier = parsed.data.identifier;
     const supabase = await createClient();
     let userId: string | undefined;
-    let emailNotConfirmed = false;
 
     if (identifier.includes("@")) {
       const result = await supabase.auth.signInWithPassword({
@@ -150,13 +147,12 @@ export async function signInAction(
         password: parsed.data.password,
       });
       userId = result.data.user?.id;
-      emailNotConfirmed = result.error?.code === "email_not_confirmed";
       if (result.error || !userId) {
         return {
           error:
             result.error?.status === 429
               ? "Too many attempts. Please wait before trying again."
-              : emailNotConfirmed
+              : result.error?.code === "email_not_confirmed"
                 ? "Your email is not verified yet. Check the verification email from sign up."
                 : "Email or password is incorrect.",
         };
@@ -191,7 +187,7 @@ export async function signInAction(
 }
 
 export async function requestPasswordResetAction(
-  _: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = emailSchema.safeParse(form.get("email"));
@@ -209,9 +205,11 @@ export async function requestPasswordResetAction(
 }
 
 export async function resendVerificationAction(
-  _: AuthFormState,
-  _form: FormData,
+  state: AuthFormState,
+  form: FormData,
 ): Promise<AuthFormState> {
+  void state;
+  void form;
   const pending = await readPendingSignup();
   if (!pending) return { error: "Verification is available after you create an account." };
   try {
@@ -246,7 +244,7 @@ export async function pendingVerificationStatusAction(): Promise<{ verified: boo
 }
 
 export async function verifyEmailAction(
-  _: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const hash = tokenHashSchema.safeParse(form.get("token_hash"));
@@ -271,7 +269,7 @@ export async function verifyEmailAction(
 }
 
 export async function resetPasswordAction(
-  _: AuthFormState,
+  _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(form));

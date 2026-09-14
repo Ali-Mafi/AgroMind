@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, LoaderCircle, MapPin, Sprout } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -31,6 +31,14 @@ const steps = [
   "Your first farm",
 ];
 
+function browserTimeZone(fallback: string) {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || fallback || "UTC";
+  } catch {
+    return fallback || "UTC";
+  }
+}
+
 export function Onboarding() {
   const { cloud, run, busy } = useFarm();
   const settings = useSettings();
@@ -39,18 +47,8 @@ export function Onboarding() {
   const [step, setStep] = useState(Math.min(cloud.profile.onboarding_step, 3));
   const [country, setCountry] = useState(cloud.profile.country_code ?? settings.country);
   const [language, setLanguage] = useState(cloud.profile.language);
-  const [timezone, setTimezone] = useState(cloud.profile.timezone || "UTC");
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
-
-  useEffect(() => {
-    try {
-      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (detected) setTimezone(detected);
-    } catch {
-      // Keep the server-provided timezone when the browser cannot resolve one.
-    }
-  }, []);
 
   const saveAndAdvance = async () => {
     const nextStep = Math.min(3, step + 1);
@@ -60,7 +58,7 @@ export function Onboarding() {
           full_name: cloud.profile.full_name || cloud.user.email.split("@")[0],
           country_code: country,
           language,
-          timezone,
+          timezone: browserTimeZone(cloud.profile.timezone),
           onboarding_step: nextStep,
         },
         cloud.user.id,
@@ -69,7 +67,7 @@ export function Onboarding() {
     if (ok) setStep(nextStep);
   };
 
-  const useMyLocation = async () => {
+  const detectMyLocation = async () => {
     setDetectingLocation(true);
     setLocationError("");
     try {
@@ -132,7 +130,7 @@ export function Onboarding() {
               variant="outline"
               className="min-h-11 w-full gap-2 rounded-xl"
               disabled={busy || detectingLocation}
-              onClick={() => void useMyLocation()}
+              onClick={() => void detectMyLocation()}
             >
               {detectingLocation ? (
                 <LoaderCircle className="animate-spin motion-reduce:animate-none" />
