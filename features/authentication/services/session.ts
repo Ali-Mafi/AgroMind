@@ -3,6 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { safeNextPath } from "../lib/redirects";
 
 export const currentUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
@@ -27,10 +28,17 @@ export const requireUser = cache(async () => {
   return user;
 });
 
-export async function authenticatedDestination() {
+export async function authenticatedDestination(requestedNext?: unknown) {
   const user = await currentUser();
   if (!user) return null;
   if (!user.email_confirmed_at) return "/verify-email";
+
+  // Once MFA is enrolled, the database RLS gate intentionally blocks profile
+  // reads from an aal1 session. Check the assurance level first so sign-in can
+  // continue to the MFA challenge instead of failing on the protected query.
+  if (await needsSecondFactor())
+    return `/mfa?next=${encodeURIComponent(safeNextPath(requestedNext))}`;
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -38,8 +46,5 @@ export async function authenticatedDestination() {
     .eq("id", user.id)
     .single();
   if (error) throw new Error("Account services are temporarily unavailable.");
-  const destination = data.onboarding_completed ? "/dashboard" : "/onboarding";
-  if (await needsSecondFactor())
-    return `/mfa?next=${encodeURIComponent(destination)}`;
-  return destination;
+  return data.onboarding_completed ? safeNextPath(requestedNext) : "/onboarding";
 }
