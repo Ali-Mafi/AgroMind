@@ -14,13 +14,15 @@ const accountPreferencesSchema = z
   })
   .strict();
 
+const SAVE_ERROR = "The change could not be saved. Check your connection and try again.";
+
 export async function saveAccountPreferences(
   input: unknown,
   expectedUserId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const parsed = accountPreferencesSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Please check your region and language." };
+    return { ok: false, error: SAVE_ERROR };
   }
 
   const user = await requireUser();
@@ -38,6 +40,6 @@ export async function saveAccountPreferences(
     if (error) throw error;
     return { ok: true };
   } catch {
-    return { ok: false, error: "Your preferences could not be synced to your account." };
+    return { ok: false, error: SAVE_ERROR };
   }
 }
