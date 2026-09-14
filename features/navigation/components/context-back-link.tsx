@@ -21,13 +21,13 @@ function safeInternalPath(value: string | undefined, fallback: string) {
   }
 }
 
-function destinationLabel(path: string) {
-  if (path.startsWith("/weather")) return "Back to Weather";
-  if (path.startsWith("/irrigation")) return "Back to Irrigation";
-  if (path.startsWith("/dashboard")) return "Back to Dashboard";
-  if (path.startsWith("/settings")) return "Back to Settings";
-  if (path.startsWith("/account")) return "Back to Account";
-  return "Back to Farms";
+function destinationName(path: string) {
+  if (path.startsWith("/weather")) return "Weather";
+  if (path.startsWith("/irrigation")) return "Irrigation";
+  if (path.startsWith("/dashboard")) return "Dashboard";
+  if (path.startsWith("/settings")) return "Settings";
+  if (path.startsWith("/account")) return "Account";
+  return "Farms";
 }
 
 export function ContextBackLink({ fallback = "/farms" }: { fallback?: string }) {
@@ -59,7 +59,7 @@ export function ContextBackLink({ fallback = "/farms" }: { fallback?: string }) 
       className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-      {t(destinationLabel(target))}
+      {t("Back")} · {t(destinationName(target))}
     </Link>
   );
 }
