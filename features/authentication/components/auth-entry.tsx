@@ -49,9 +49,6 @@ export async function AuthEntry({
           <Link className="inline-flex min-h-11 items-center hover:underline" href="/forgot-password">
             <T text="Forgot password?" />
           </Link>
-          <Link className="inline-flex min-h-11 items-center hover:underline" href="/verify-email?status=resend">
-            <T text="Verify your email" />
-          </Link>
         </div>
       )}
       <p className="mt-6 text-center text-sm text-muted-foreground">

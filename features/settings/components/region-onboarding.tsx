@@ -31,11 +31,13 @@ function RegionChoice() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const choiceRevision = useRef(0);
+  const languageRevision = useRef(0);
   const preview = resolvePreferences({ ...settings.preferences, country, language });
   const format = createFormatters(preview);
 
   const detect = async () => {
     const revision = ++choiceRevision.current;
+    const requestedLanguageRevision = languageRevision.current;
     setBusy(true);
     setMessage("");
     try {
@@ -44,6 +46,11 @@ function RegionChoice() {
       if (revision !== choiceRevision.current) return;
       if (found) {
         setCountry(found);
+        // Only this first-visit suggestion couples region and language. Keep
+        // a language chosen manually while the location request was pending.
+        if (requestedLanguageRevision === languageRevision.current) {
+          setLanguage(REGION_PROFILES[found].language);
+        }
         setRegionSource("detected");
         setMessage(t("Suggested from your location. Confirm below."));
       } else setMessage(t("Choose your region manually."));
@@ -90,7 +97,10 @@ function RegionChoice() {
               label={t("Language")}
               value={language}
               options={LANGUAGE_OPTIONS}
-              onChange={setLanguage}
+              onChange={(next) => {
+                languageRevision.current++;
+                setLanguage(next);
+              }}
             />
           </div>
           <button

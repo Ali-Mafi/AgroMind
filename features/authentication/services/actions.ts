@@ -101,16 +101,20 @@ export async function signUpAction(
     const duplicate =
       ["user_already_exists", "email_exists"].includes(error?.code ?? "") ||
       Boolean(data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
-    if (duplicate) return { error: "This account already exists. Sign in instead." };
+    if (duplicate) return {
+      error: "This account already exists. Sign in instead.",
+      fields: { email: "This account already exists. Sign in instead." },
+    };
 
     if (error) {
+      if (error.status !== 429 && error.message.toLowerCase().includes("username")) {
+        return { fields: { username: "Username is already taken." } };
+      }
       return {
         error:
           error.status === 429
             ? "Too many attempts. Please wait before trying again."
-            : error.message.toLowerCase().includes("username")
-              ? "Username is already taken."
-              : unavailable.error,
+            : unavailable.error,
       };
     }
 

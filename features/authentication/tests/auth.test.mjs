@@ -186,6 +186,10 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
     (await duplicate.actions.signUpAction({}, form(signup))).error,
     /already exists/i,
   );
+  assert.match(
+    (await duplicate.actions.signUpAction({}, form(signup))).fields.email,
+    /already exists/i,
+  );
 
   const hiddenDuplicate = harness({
     user: { id: "user-a", email: signup.email, identities: [] },
@@ -194,6 +198,17 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
     (await hiddenDuplicate.actions.signUpAction({}, form(signup))).error,
     /already exists/i,
   );
+});
+
+test("signup attaches username availability errors to the field but retains rate-limit feedback", async () => {
+  const unavailableUsername = harness({ usernameAvailable: false });
+  assert.match((await unavailableUsername.actions.signUpAction({}, form(signup))).fields.username, /already taken/);
+  const collision = harness({ error: { status: 422, message: "username already exists" } });
+  assert.match((await collision.actions.signUpAction({}, form(signup))).fields.username, /already taken/);
+  const limited = harness({ error: { status: 429, message: "username request rate limited" } });
+  const feedback = await limited.actions.signUpAction({}, form(signup));
+  assert.match(feedback.error, /Too many attempts/);
+  assert.equal(feedback.fields, undefined);
 });
 
 test("signup fails closed if email confirmation was accidentally disabled", async () => {

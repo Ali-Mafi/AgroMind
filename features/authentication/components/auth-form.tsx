@@ -15,11 +15,14 @@ import {
   verifyEmailAction,
 } from "../services/actions";
 import type { AuthFormState } from "../lib/validation";
+import { signUpFeedback, type SignUpValues } from "../lib/sign-up-feedback";
 
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify" | "recovery" | "resend";
+
+const EMPTY_VALUES = { username: "", email: "", identifier: "", password: "", confirmPassword: "" };
 
 const ACTIONS = {
   "sign-in": signInAction,
@@ -55,6 +58,8 @@ export function AuthForm({
   const t = useTranslation();
   const { language } = useSettings();
   const [state, action, pending] = useActionState<AuthFormState, FormData>(ACTIONS[mode], {});
+  const [values, setValues] = useState(EMPTY_VALUES);
+  const [submittedValues, setSubmittedValues] = useState<SignUpValues | null>(null);
   const [visible, setVisible] = useState(false);
   const submitting = useRef(false);
 
@@ -63,8 +68,9 @@ export function AuthForm({
   }, [pending, state]);
 
   const withPassword = ["sign-in", "sign-up", "reset"].includes(mode);
+  const feedback = pending ? {} : mode === "sign-up" ? signUpFeedback(state, values, submittedValues) : state;
   const field = (
-    name: string,
+    name: keyof typeof EMPTY_VALUES,
     label: string,
     type: string,
     autoComplete: string,
@@ -80,19 +86,24 @@ export function AuthForm({
           id={`${mode}-${name}`}
           name={name}
           type={type}
+          value={values[name]}
+          onChange={(event) => {
+            const value = event.target.value;
+            setValues((current) => ({ ...current, [name]: value }));
+          }}
           autoComplete={autoComplete}
           minLength={minLength}
           maxLength={maxLength}
           dir="ltr"
           spellCheck={false}
           autoCapitalize={name === "username" || name === "identifier" ? "none" : undefined}
-          aria-invalid={Boolean(state.fields?.[name])}
-          aria-describedby={state.fields?.[name] ? `${mode}-${name}-error` : undefined}
+          aria-invalid={Boolean(feedback.fields?.[name])}
+          aria-describedby={feedback.fields?.[name] ? `${mode}-${name}-error` : undefined}
           className={accountInputClass}
         />
-        {state.fields?.[name] && (
+        {feedback.fields?.[name] && (
           <p id={`${mode}-${name}-error`} className="text-xs text-destructive">
-            {t(state.fields[name])}
+            {t(feedback.fields[name])}
           </p>
         )}
       </div>
@@ -105,7 +116,10 @@ export function AuthForm({
       noValidate
       onSubmit={(event) => {
         if (submitting.current || pending) event.preventDefault();
-        else submitting.current = true;
+        else {
+          submitting.current = true;
+          setSubmittedValues(values);
+        }
       }}
       className="space-y-5"
     >
@@ -163,17 +177,17 @@ export function AuthForm({
           </>
         )}
 
-        {state.error && (
+        {feedback.error && (
           <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6 text-destructive">
-            {t(state.error)}
+            {t(feedback.error)}
           </p>
         )}
-        {state.success && (
+        {feedback.success && (
           <p role="status" className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
-            {t(state.success)}
+            {t(feedback.success)}
           </p>
         )}
-        {state.verificationRequired && (
+        {mode !== "sign-in" && feedback.verificationRequired && (
           <Link href="/verify-email?status=resend" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">
             {t("Resend verification email")}
           </Link>

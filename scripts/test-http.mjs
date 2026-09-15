@@ -80,7 +80,12 @@ try {
   ]) {
     const response = await fetch(base + path);
     assert.equal(response.status, 200, path);
-    assert.match(await response.text(), /<form/);
+    const html = await response.text();
+    assert.match(html, /<form/);
+    if (path === "/sign-in") {
+      assert.doesNotMatch(html, /href="\/verify-email/);
+      assert.match(html, /href="\/forgot-password"/);
+    }
     assert.match(response.headers.get("cache-control"), /no-store/);
     console.log("PASS public auth form", path);
   }
