@@ -1,6 +1,7 @@
 import { ACCOUNT_PERSIAN } from "./account-persian";
 import { AUTH_STABILIZATION_PERSIAN } from "./auth-stabilization-persian";
 import { COMMON_PERSIAN } from "./common-persian";
+import { SECURITY_PERSIAN } from "./security-persian";
 import { MFA_PERSIAN } from "./mfa-persian";
 import { PERSIAN } from "./persian";
 import { WEATHER_PERSIAN } from "./weather-persian";
@@ -12,6 +13,7 @@ const persianValues: Record<string, string> = {
   ...ACCOUNT_PERSIAN,
   ...AUTH_STABILIZATION_PERSIAN,
   ...MFA_PERSIAN,
+  ...SECURITY_PERSIAN,
 };
 
 export const CANONICAL_KEYS = Object.freeze(Object.keys(persianValues).sort());

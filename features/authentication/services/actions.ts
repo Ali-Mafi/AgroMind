@@ -40,7 +40,11 @@ async function usernameAvailable(username: string) {
   return result.data === true;
 }
 
-async function signInWithUsername(username: string, password: string) {
+async function signInWithUsername(
+  username: string,
+  password: string,
+  captchaToken: string,
+) {
   const { url, key } = supabaseConfig();
   const response = await fetch(`${url}/functions/v1/username-login`, {
     method: "POST",
@@ -50,7 +54,12 @@ async function signInWithUsername(username: string, password: string) {
       apikey: key,
       authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({
+      username,
+      password,
+      captcha_token: captchaToken.slice(0, 2048),
+    }),
+    signal: AbortSignal.timeout(15000),
   });
   const payload = (await response.json().catch(() => ({}))) as {
     access_token?: string;
@@ -65,7 +74,8 @@ async function signInWithUsername(username: string, password: string) {
     access_token: payload.access_token,
     refresh_token: payload.refresh_token,
   });
-  if (session.error || !session.data.user) return { error: "invalid_credentials" } as const;
+  if (session.error || !session.data.user)
+    return { error: "invalid_credentials" } as const;
   return { user: session.data.user } as const;
 }
 
@@ -100,14 +110,22 @@ export async function signUpAction(
 
     const duplicate =
       ["user_already_exists", "email_exists"].includes(error?.code ?? "") ||
-      Boolean(data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
-    if (duplicate) return {
-      error: "This account already exists. Sign in instead.",
-      fields: { email: "This account already exists. Sign in instead." },
-    };
+      Boolean(
+        data.user &&
+          Array.isArray(data.user.identities) &&
+          data.user.identities.length === 0,
+      );
+    if (duplicate)
+      return {
+        error: "This account already exists. Sign in instead.",
+        fields: { email: "This account already exists. Sign in instead." },
+      };
 
     if (error) {
-      if (error.status !== 429 && error.message.toLowerCase().includes("username")) {
+      if (
+        error.status !== 429 &&
+        error.message.toLowerCase().includes("username")
+      ) {
         return { fields: { username: "Username is already taken." } };
       }
       return {
@@ -171,14 +189,22 @@ export async function signInAction(
         };
       }
     } else {
-      const result = await signInWithUsername(identifier, parsed.data.password);
+      const result = await signInWithUsername(
+        identifier,
+        parsed.data.password,
+        String(form.get("captcha_token") ?? ""),
+      );
       if ("error" in result) {
         return {
           verificationRequired: result.error === "email_not_confirmed",
           error:
-            result.error === "email_not_confirmed"
-              ? "Your email is not verified yet. Check the verification email from sign up."
-              : "Email or password is incorrect.",
+            result.error === "too_many_attempts"
+              ? "Too many attempts. Please wait before trying again."
+              : result.error === "verification_required"
+                ? "Complete the security verification and try again."
+                : result.error === "email_not_confirmed"
+                  ? "Your email is not verified yet. Check the verification email from sign up."
+                  : "Email or password is incorrect.",
         };
       }
       userId = result.user.id;
@@ -200,7 +226,8 @@ export async function signInAction(
         .eq("id", userId)
         .single();
       if (profile.error) return unavailable;
-      if (profile.data.onboarding_completed) destination = safeNextPath(form.get("next"));
+      if (profile.data.onboarding_completed)
+        destination = safeNextPath(form.get("next"));
     }
     await clearPendingSignup();
   } catch {
@@ -217,7 +244,8 @@ export async function requestPasswordResetAction(
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = emailSchema.safeParse(form.get("email"));
-  if (!parsed.success) return { fields: { email: "Enter a valid email address." } };
+  if (!parsed.success)
+    return { fields: { email: "Enter a valid email address." } };
   if (form.get("website")) return genericEmail;
   try {
     const supabase = await createClient();
@@ -237,11 +265,12 @@ export async function resendVerificationAction(
   if (form.get("website")) return genericEmail;
   const pending = await readPendingSignup();
   const parsed = emailSchema.safeParse(form.get("email") ?? pending?.email);
-  if (!parsed.success) return {
-    error: "Enter a valid email address.",
-    fields: { email: "Enter a valid email address." },
-    verificationRequired: true,
-  };
+  if (!parsed.success)
+    return {
+      error: "Enter a valid email address.",
+      fields: { email: "Enter a valid email address." },
+      verificationRequired: true,
+    };
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({
@@ -251,7 +280,12 @@ export async function resendVerificationAction(
     });
     if (error?.status === 429)
       return { error: "Too many attempts. Please wait before trying again." };
-    if (error && !["user_not_found", "email_exists", "email_already_confirmed"].includes(error.code ?? ""))
+    if (
+      error &&
+      !["user_not_found", "email_exists", "email_already_confirmed"].includes(
+        error.code ?? "",
+      )
+    )
       return unavailable;
     // The same response covers pending, confirmed and nonexistent addresses.
     return genericEmail;
@@ -260,7 +294,9 @@ export async function resendVerificationAction(
   }
 }
 
-export async function pendingVerificationStatusAction(): Promise<{ verified: boolean }> {
+export async function pendingVerificationStatusAction(): Promise<{
+  verified: boolean;
+}> {
   const pending = await readPendingSignup();
   if (!pending) return { verified: false };
   try {
@@ -281,10 +317,14 @@ export async function verifyEmailAction(
 ): Promise<AuthFormState> {
   const hash = tokenHashSchema.safeParse(form.get("token_hash"));
   const type = form.get("type") === "recovery" ? "recovery" : "signup";
-  if (!hash.success) return { error: "This link is invalid. Request a new email." };
+  if (!hash.success)
+    return { error: "This link is invalid. Request a new email." };
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({ token_hash: hash.data, type });
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: hash.data,
+      type,
+    });
     if (error)
       return {
         error:
@@ -297,7 +337,9 @@ export async function verifyEmailAction(
     return unavailable;
   }
   revalidatePath("/", "layout");
-  redirect(type === "recovery" ? "/reset-password" : "/verify-email?status=success");
+  redirect(
+    type === "recovery" ? "/reset-password" : "/verify-email?status=success",
+  );
 }
 
 export async function resetPasswordAction(
@@ -310,10 +352,19 @@ export async function resetPasswordAction(
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user)
-      return { error: "Your session has expired. Request a new password reset email." };
+      return {
+        error: "Your session has expired. Request a new password reset email.",
+      };
+    const active = await supabase.rpc("get_current_session");
+    if (active.error || !active.data)
+      return {
+        error: "Your session has expired. Request a new password reset email.",
+      };
     if (data.user.id !== form.get("expected_user_id"))
       return { error: "Your account changed. Reload before saving." };
-    const updated = await supabase.auth.updateUser({ password: parsed.data.password });
+    const updated = await supabase.auth.updateUser({
+      password: parsed.data.password,
+    });
     if (updated.error)
       return {
         error:
@@ -323,7 +374,10 @@ export async function resetPasswordAction(
       };
     const signedOut = await supabase.auth.signOut({ scope: "global" });
     if (signedOut.error)
-      return { success: "Password updated. Sign out from your account before signing in again." };
+      return {
+        success:
+          "Password updated. Sign out from your account before signing in again.",
+      };
   } catch {
     return unavailable;
   }

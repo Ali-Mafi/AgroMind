@@ -5,7 +5,7 @@ import { loadTs } from "../../weather/tests/helpers/load-ts.mjs";
 function harness({ level = "aal2", statusError = null, statusThrow, cleanupError = null } = {}) {
   const calls = [];
   const mfa = {
-    listFactors: async () => ({ data: { totp: [{ id: "factor-a", status: "verified" }] }, error: null }),
+    listFactors: async () => ({ data: { all: [{ id: "factor-a", factor_type: "totp", status: "verified" }], totp: [{ id: "factor-a", factor_type: "totp", status: "verified" }] }, error: null }),
     getAuthenticatorAssuranceLevel: async () => ({ data: { currentLevel: level, nextLevel: "aal2" }, error: null }),
     unenroll: async ({ factorId }) => { calls.push(["totp", factorId]); return { error: null }; },
     recoveryCodes: {
@@ -18,9 +18,10 @@ function harness({ level = "aal2", statusError = null, statusThrow, cleanupError
     },
   };
   const actions = loadTs("features/authentication/services/mfa-actions.ts", {
-    "@/lib/supabase/server": { createClient: async () => ({ auth: {
+    "@/lib/supabase/server": { createClient: async () => ({ rpc: async () => ({data:{created_at:"2026-09-16"},error:null}), auth: {
       mfa, refreshSession: async () => { calls.push(["refresh"]); return { error: null }; },
     } }) },
+    "./fresh-auth": { verifyFreshIdentity: async () => null },
     "./session": { currentUser: async () => ({ id: "user-a", email_confirmed_at: "2026-09-14" }) },
     "next/cache": { revalidatePath: () => {} },
   });

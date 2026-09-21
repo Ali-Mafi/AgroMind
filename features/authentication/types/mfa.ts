@@ -21,6 +21,8 @@ export type MfaSecurityState = {
     friendlyName: string;
   }>;
   currentLevel: string | null;
+  pendingFactors?: Array<{ id: string; friendlyName: string }>;
+  currentSession?: { createdAt: string } | null;
   nextLevel: string | null;
   recoveryCodes: RecoveryCodeState;
 };

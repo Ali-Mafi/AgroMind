@@ -68,6 +68,7 @@ function harness({
     },
     rpc: async (name, args) => {
       calls.push({ name: "rpc", args: [name, args] });
+      if (name === "get_current_session") return {data:{created_at:"2026-09-16"},error:null};
       if (name === "username_available") return { data: usernameAvailable, error: null };
       if (name === "pending_signup_verified") return { data: pendingVerified, error: null };
       return { data: null, error: null };

@@ -15,7 +15,7 @@ function wasmResult(result) {
     rowCount: result.rows.length || result.affectedRows || 0,
   };
 }
-function wasmClient(user, level = "aal1") {
+function wasmClient(user, level = "aal1", sessionId = user) {
   return {
     connect: async () => {},
     end: async () => {},
@@ -41,7 +41,7 @@ function wasmClient(user, level = "aal1") {
             user,
           ]);
         await tx.query("select set_config('request.jwt.claims',$1,true)", [
-          JSON.stringify({ sub: user, aal: level }),
+          JSON.stringify({ sub: user, aal: level, session_id: sessionId }),
         ]);
         return wasmResult(await tx.query(sql, values));
       });
@@ -75,8 +75,8 @@ async function port() {
   await new Promise((resolve) => server.close(resolve));
   return value;
 }
-async function asUser(user, level = "aal1") {
-  if (!native) return wasmClient(user, level);
+async function asUser(user, level = "aal1", sessionId = user) {
+  if (!native) return wasmClient(user, level, sessionId);
   const client = postgres.getPgClient();
   await client.connect();
   await client.query("set role authenticated");
@@ -84,7 +84,7 @@ async function asUser(user, level = "aal1") {
     user,
   ]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level }),
+    JSON.stringify({ sub: user, aal: level, session_id: sessionId }),
   ]);
   return client;
 }
@@ -123,8 +123,11 @@ before(
       admin = wasmClient();
     }
     await admin.query(`
-    create role anon nologin; create role authenticated nologin; create schema auth;
+    create role anon nologin; create role authenticated nologin; create role service_role nologin; create schema auth;
     create table auth.users (id uuid primary key, raw_user_meta_data jsonb not null default '{}', email_confirmed_at timestamptz);
+    create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz);
+    create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
+    create trigger test_session after insert on auth.users for each row execute function auth.test_session();
     create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
     create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
     create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
@@ -619,4 +622,55 @@ test("retired plans remain visible to their subscriber but grant no entitlements
   } finally {
     await c.end();
   }
+});
+
+test("revoked, expired, missing and cross-user session claims fail closed", async () => {
+  const user=users[9], valid=await asUser(user), other=await asUser(user,"aal1",users[8]);
+  const missing=await asUser(user,"aal1",null), malformed=await asUser(user,"aal1","not-a-uuid");
+  try {
+    assert.ok((await valid.query("select get_current_session() as s")).rows[0].s.created_at);
+    for(const c of [other,missing,malformed]) {
+      assert.equal((await c.query("select get_current_session() as s")).rows[0].s,null);
+      assert.equal((await c.query("select * from profiles")).rowCount,0);
+      assert.deepEqual((await c.query("select get_entitlements() as e")).rows[0].e,{});
+      await assert.rejects(c.query("select complete_onboarding()"),/AUTH_REQUIRED/);
+    }
+    await admin.query("update auth.sessions set not_after=now()-interval '1 second' where id=$1",[user]);
+    assert.equal((await valid.query("select get_current_session() as s")).rows[0].s,null);
+    await admin.query("delete from auth.sessions where id=$1",[user]);
+    assert.equal((await valid.query("select * from accounts")).rowCount,0);
+    await assert.rejects(create(valid,farm("revoked-farm")),/AUTH_REQUIRED|row-level security/);
+    await assert.rejects(valid.query("select import_legacy_data($1,$2)",[{farms:[],schedules:{}},[]]),/AUTH_REQUIRED/);
+  } finally {
+    await admin.query("insert into auth.sessions(id,user_id) values($1,$1) on conflict(id) do update set not_after=null",[user]);
+    for(const c of [valid,other,missing,malformed])await c.end();
+  }
+});
+
+test("missing MFA infrastructure denies opted-out users too", async()=>{
+  const c=await asUser(users[0]);
+  try {
+    await admin.query("alter table auth.mfa_factors rename to unavailable_factors");
+    assert.equal((await c.query("select private.mfa_access_allowed() as allowed")).rows[0].allowed,false);
+    assert.equal((await c.query("select * from farms")).rowCount,0);
+  } finally {await admin.query("alter table auth.unavailable_factors rename to mfa_factors");await c.end();}
+});
+
+test("username login limits are durable, atomic and inaccessible to users",async()=>{
+  const c=await asUser(users[0]);
+  await admin.query("delete from private.username_login_limits");
+  try {
+    await assert.rejects(c.query("select consume_username_login_attempt($1)",["a".repeat(64)]),/permission denied/);
+    await assert.rejects(c.query("select * from private.username_login_limits"),/permission denied/);
+    const clients=native?await Promise.all(Array.from({length:20},async()=>{const x=postgres.getPgClient();await x.connect();return x;})):Array.from({length:20},()=>admin);
+    try {
+      const results=await Promise.all(clients.map(x=>x.query("select consume_username_login_attempt($1) as ok",["a".repeat(64)])));
+      assert.equal(results.filter(r=>r.rows[0].ok).length,10);
+    } finally {if(native)await Promise.all(clients.map(x=>x.end()));}
+    await admin.query("update private.username_login_limits set expires_at=now()-interval '1 second'");
+    assert.equal((await admin.query("select consume_username_login_attempt($1) as ok",["a".repeat(64)])).rows[0].ok,true);
+    await admin.query("update private.username_login_limits set attempts=300 where bucket='global'");
+    assert.equal((await admin.query("select consume_username_login_attempt($1) as ok",["b".repeat(64)])).rows[0].ok,false);
+    assert.equal((await admin.query("select * from private.username_login_limits where bucket=$1",["user:"+"b".repeat(64)])).rowCount,0);
+  }finally{await c.end();await admin.query("delete from private.username_login_limits");}
 });

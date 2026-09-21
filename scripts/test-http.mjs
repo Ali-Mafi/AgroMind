@@ -59,6 +59,8 @@ try {
     "/farms",
     "/irrigation",
     "/account/profile",
+    "/account/security",
+    "/mfa",
     "/settings",
     "/onboarding",
   ]) {

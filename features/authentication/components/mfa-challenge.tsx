@@ -14,9 +14,11 @@ const initialState: MfaActionState = {};
 export function MfaChallenge({
   next,
   recoveryCodesEnabled = false,
+  factors = [],
 }: {
   next: string;
   recoveryCodesEnabled?: boolean;
+  factors?: Array<{ id: string; friendlyName: string }>;
 }) {
   const t = useTranslation();
   const [mode, setMode] = useState<"authenticator" | "backup">("authenticator");
@@ -34,7 +36,10 @@ export function MfaChallenge({
       <form action={backupAction} className="space-y-5">
         <input type="hidden" name="next" value={next} />
         <div className="space-y-2">
-          <label htmlFor="mfa-recovery-code" className="block text-sm font-semibold">
+          <label
+            htmlFor="mfa-recovery-code"
+            className="block text-sm font-semibold"
+          >
             {t("Backup code")}
           </label>
           <input
@@ -51,7 +56,9 @@ export function MfaChallenge({
           />
         </div>
         <p className="text-sm leading-6 text-muted-foreground">
-          {t("Enter one of your unused backup codes. Each code can be used only once.")}
+          {t(
+            "Enter one of your unused backup codes. Each code can be used only once.",
+          )}
         </p>
         {backupState.error && (
           <p role="alert" className="text-sm text-destructive">
@@ -81,6 +88,31 @@ export function MfaChallenge({
     <form action={totpAction} className="space-y-5">
       <input type="hidden" name="next" value={next} />
       <div className="space-y-2">
+        <label htmlFor="mfa-factor" className="block text-sm font-semibold">
+          {t("Authenticator")}
+        </label>
+        <select
+          id="mfa-factor"
+          name="factor_id"
+          required
+          defaultValue={factors[0]?.id}
+          className="min-h-12 w-full rounded-xl border bg-background px-4 py-3"
+        >
+          {factors.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.friendlyName}
+            </option>
+          ))}
+        </select>
+        {factors.length > 1 && (
+          <p className="text-sm text-muted-foreground">
+            {t(
+              "Lost your main authenticator? Select your backup authenticator and enter its code.",
+            )}
+          </p>
+        )}
+      </div>
+      <div className="space-y-2">
         <label htmlFor="mfa-code" className="block text-sm font-semibold">
           {t("6-digit code")}
         </label>
@@ -98,7 +130,9 @@ export function MfaChallenge({
         />
       </div>
       <p className="text-sm leading-6 text-muted-foreground">
-        {t("Open your authenticator app and enter the newest code for AgroMind.")}
+        {t(
+          "Open your authenticator app and enter the newest code for AgroMind.",
+        )}
       </p>
       {totpState.error && (
         <p role="alert" className="text-sm text-destructive">
