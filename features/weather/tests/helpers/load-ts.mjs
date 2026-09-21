@@ -21,6 +21,7 @@ export function loadTs(relative, mocks = {}, cache = new Map()) {
   function requireModule(id) {
     if (Object.hasOwn(mocks, id)) return mocks[id];
     if (id.endsWith(".module.css")) return { default: new Proxy({}, { get: (_target, key) => key }) };
+    if (id.endsWith(".css")) return {};
     if (id === "server-only") return {};
     if (id.startsWith("@/")) return loadTs(id.slice(2), mocks, cache);
     if (id.startsWith(".")) return loadTs(path.resolve(path.dirname(filename), id), mocks, cache);

@@ -5,10 +5,11 @@ import { useWeatherFormat } from "../hooks/use-weather-format";
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, Check, CloudOff, List, MapPin, MapPinOff, Pause, Play, Plus, RefreshCw, Sprout } from "lucide-react";
+import { Check, CloudOff, List, MapPin, MapPinOff, Pause, Play, Plus, RefreshCw, Sprout } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { useWeather } from "../hooks/use-weather";
 import { useWeatherMotion } from "../hooks/use-weather-motion";
+import { BackButton } from "@/features/navigation/components/back-button";
 import { WeatherBackground } from "../weather-background";
 import { WeatherForecastOverview } from "../weather-forecast-overview";
 import { WeatherMetricGrid } from "../weather-metric-grid";
@@ -110,7 +111,7 @@ export function WeatherExperience({ initialFarmId, returnTo = "/dashboard" }: { 
       </div>
 
       <nav className={styles.dock} aria-label={t("Weather navigation")}>
-        <Link href={returnTo} className={styles.iconButton} aria-label={t(returnTo === "/irrigation" ? "Back to irrigation" : "Back to dashboard")} title={t(returnTo === "/irrigation" ? "Back to irrigation" : "Back to dashboard")}><ArrowLeft size={23} /></Link>
+        <BackButton className={styles.iconButton} />
         <div className={styles.dockCenter}>
           <span>{farm?.name ?? t("Your locations")}</span>
           <div className={styles.farmDots} aria-hidden="true">

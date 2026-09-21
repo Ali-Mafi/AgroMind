@@ -2,7 +2,7 @@ import { loadTs, localRequire } from "../../../weather/tests/helpers/load-ts.mjs
 
 export function localizedRenderer(overrides = {}) {
   const cache = new Map();
-  const load = (path, mocks = {}) => loadTs(path, mocks, cache);
+  const load = (path, mocks = {}) => loadTs(path, { "next/navigation": { useRouter: () => ({ back() {}, replace() {}, push() {} }), usePathname: () => "/account", useSearchParams: () => new URLSearchParams() }, ...mocks }, cache);
   const React = localRequire("react");
   const server = localRequire("react-dom/server");
   const { SettingsProvider } = load("features/settings/context/settings-context.tsx");

@@ -1,4 +1,5 @@
 "use client";
+import { ArrowLeft } from "lucide-react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -222,7 +223,7 @@ export function Onboarding() {
               className="min-h-12 rounded-xl"
               onClick={() => setStep(step - 1)}
             >
-              {t("Back")}
+              <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden="true" /><span className="sr-only">{t("Back")}</span>
             </Button>
           )}
           {step < 3 ? (

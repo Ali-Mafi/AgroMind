@@ -66,7 +66,7 @@ test("sign-in checks MFA before protected profile reads", () => {
 });
 
 test("account security and MFA challenge routes are wired", () => {
-  const shell = source("features/account/components/account-shell.tsx");
+  const shell = source("features/account/components/account-overview.tsx");
   const proxy = source("proxy.ts");
   const challenge = source("features/authentication/components/mfa-challenge.tsx");
   assert.match(shell, /\/account\/security/);

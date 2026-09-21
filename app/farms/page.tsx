@@ -1,161 +1,26 @@
 "use client";
-import { useTranslation } from "@/features/settings/hooks/use-translation";
-import { T } from "@/features/settings/components/translated-text";
-import { useSettings } from "@/features/settings/context/settings-context";
-
 import Link from "next/link";
-import {
-  ArrowRight,
-  MapPin,
-  Plus,
-  Ruler,
-  TreePine,
-  Wheat,
-} from "lucide-react";
-
+import { MapPin, Plus, Sprout, TreePine, ArrowUpRight } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/ui/workspace";
 
 export default function FarmsPage() {
-  const t = useTranslation();
+  const { farms, irrigationSchedules } = useFarm();
   const { format } = useSettings();
-  const { farms, setSelectedFarmId } = useFarm();
-
-  return (
-    <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
-      <header className="space-y-6">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Farm Management" /></p>
-
-            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"><T text="My Farms & Gardens" /></h1>
-
-            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground"><T text="Manage your farms and gardens in one place." /></p>
-          </div>
-
-          <Link
-            href="/farms/new"
-            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:w-auto"
-          >
-            <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
-        </div>
-      </header>
-
-      {farms.length > 0 ? (
-        <section
-          aria-label={t("My farms and gardens")}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
-        >
-          {farms.map((farm) => {
-            const isGarden = farm.type === "garden";
-
-            return (
-              <article
-                key={farm.id}
-                className="group flex min-h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                <Link href={`/farms/${farm.id}`} className="flex flex-1 flex-col focus-visible:outline-none">
-                <div className="border-b px-5 py-5 sm:px-6 sm:py-6">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-                        isGarden
-                          ? "bg-gold/15 text-gold"
-                          : "bg-primary/10 text-primary"
-                      }`}
-                    >
-                      {isGarden ? (
-                        <TreePine className="h-5 w-5" />
-                      ) : (
-                        <Wheat className="h-5 w-5" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-base font-semibold sm:text-lg">
-                          {farm.name}
-                        </h2>
-
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
-                            isGarden
-                              ? "bg-gold/15 text-gold"
-                              : "bg-primary/10 text-primary"
-                          }`}
-                        >
-                          {t(isGarden ? "Garden" : "Farm")}
-                        </span>
-                      </div>
-
-                      <div className="mt-2.5 flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{farm.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col gap-5 p-5 sm:p-6">
-                  <div className="rounded-xl bg-muted/40 p-4">
-                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                      <Ruler className="h-3.5 w-3.5" /><T text="Area" /></div>
-
-                    <p className="mt-2 text-lg font-bold tracking-tight">
-                      {format.measure(farm.area, isGarden ? "gardenArea" : "area")}
-
-                    </p>
-                  </div>
-
-                  {farm.type === "farm" && farm.crop && (
-                    <div className="rounded-xl border border-primary/10 bg-primary/4 p-4">
-                      <p className="text-xs font-medium text-muted-foreground"><T text="Crop" /></p>
-
-                      <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5">
-                        {farm.crop.name}
-                      </p>
-                    </div>
-                  )}
-
-                  {isGarden && (
-                    <div className="rounded-xl border border-gold/20 bg-gold/[0.06] p-4">
-                      <p className="text-xs font-medium text-muted-foreground"><T text="Property type" /></p>
-
-                      <p className="mt-2 text-sm font-semibold"><T text="Garden / Orchard" /></p>
-                    </div>
-                  )}
-                </div>
-
-                </Link>
-
-                <div className="grid gap-2 border-t bg-muted/20 px-5 py-4 sm:px-6">
-                  <Link href={`/farms/${farm.id}`} className="flex min-h-9 items-center justify-between rounded-lg text-sm font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                    <T text="View details" /><ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                  </Link>
-                  <Link href="/dashboard" onClick={() => setSelectedFarmId(farm.id)} className="flex min-h-9 items-center justify-center rounded-lg border bg-background px-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                    <T text="Go to dashboard" />
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </section>
-      ) : (
-        <section className="rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <Wheat className="h-6 w-6 text-primary" />
-          </div>
-
-          <h2 className="mt-5 text-lg font-semibold"><T text="No farms or gardens yet" /></h2>
-
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="Add your first farm or garden to start managing irrigation, crops, weather, and AI recommendations." /></p>
-
-          <Link
-            href="/farms/new"
-            className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
-        </section>
-      )}
-    </main>
-  );
+  const t = useTranslation();
+  const add = <Link href="/farms/new" className="app-primary-link"><Plus size={18} />{t("Add Farm")}</Link>;
+  return <main className="app-page"><PageHeader title={t("My Farms")} description={t("A place for everything you grow.")} action={farms.length ? add : undefined} />
+    {farms.length ? <section aria-label={t("My farms and gardens")} className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">{farms.map(farm => {
+      const garden = farm.type === "garden";
+      return <article key={farm.id} className="app-card overflow-hidden"><Link href={`/farms/${farm.id}`} className="app-card-link block h-full p-5 sm:p-6">
+        <div className="mb-7 flex items-center justify-between"><span className="flex size-11 items-center justify-center rounded-2xl bg-primary/8 text-primary">{garden ? <TreePine size={23} /> : <Sprout size={23} />}</span><span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{t(garden ? "Garden" : "Farm")}</span></div>
+        <h2 className="break-words text-xl font-semibold">{farm.name}</h2><p className="mt-2 flex items-start gap-2 text-sm leading-6 text-muted-foreground"><MapPin size={15} className="mt-1 shrink-0" aria-hidden="true" />{farm.location}</p>
+        <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-5"><div><dt className="text-xs text-muted-foreground">{t("Area")}</dt><dd className="mt-1.5 text-sm font-medium"><bdi>{format.measure(farm.area, garden ? "gardenArea" : "area")}</bdi></dd></div><div><dt className="text-xs text-muted-foreground">{t(garden ? "Plants / Trees" : "Crop")}</dt><dd className="mt-1.5 break-words text-sm font-medium">{garden ? format.number(farm.plants?.length ?? 0) : farm.crop?.name || t("Not specified")}</dd></div></dl>
+        <div className="mt-6 flex items-center justify-between gap-2 text-sm"><span className="inline-flex items-center gap-2 text-muted-foreground"><span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />{t(irrigationSchedules[farm.id] ? "Irrigation scheduled" : "No irrigation scheduled")}</span><ArrowUpRight size={18} className="shrink-0 text-primary rtl:-rotate-90" aria-hidden="true" /></div>
+      </Link></article>;
+    })}</section> : <EmptyState title={t("No farms or gardens yet")} description={t("Add a farm or garden to keep weather, crops and irrigation together.")} action={add} />}
+  </main>;
 }

@@ -1,104 +1,130 @@
 "use client";
-
-import { T } from "@/features/settings/components/translated-text";
 import Link from "next/link";
 import {
-  ArrowRight,
+  CalendarClock,
+  MapPin,
   Plus,
   Sprout,
+  ArrowUpRight,
 } from "lucide-react";
-
-import { ActivePropertySummary } from "@/features/dashboard/components/active-property-summary";
-import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
-import { useFarm } from "@/features/farms/context/farm-context";
-import WeatherDashboard from "@/features/weather/components/weather-dashboard";
-import { IrrigationWidget } from "@/features/dashboard/components/irrigation-widget";
-import { SensorSummary } from "@/features/dashboard/components/sensor-summary";
-import { QuickActions } from "@/features/dashboard/components/quick-actions";
-import { AIRecommendation } from "@/features/dashboard/components/ai-recommendation";
+import { PageHeader } from "@/components/layout/page-header";
+import {
+  EmptyState,
+  SectionHeader,
+  StatusCard,
+} from "@/components/ui/workspace";
+import { FarmSwitcher } from "@/features/farms/components/farm-switcher";
+import { FarmOverviewCards } from "@/features/farms/components/farm-overview-cards";
+import { useWorkspaceFarm } from "@/features/farms/hooks/use-workspace-farm";
+import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { useSettings } from "@/features/settings/context/settings-context";
+import { parseLocalDate } from "@/features/settings/lib/calendar";
 
 export function DashboardOverview() {
-  const {
-  farms,
-  selectedFarmId,
-  irrigationSchedules,
-} = useFarm();
-
-  if (farms.length === 0) {
+  const { farms, farm, selectFarm, irrigationSchedules } = useWorkspaceFarm();
+  const t = useTranslation();
+  const { format } = useSettings();
+  if (!farm)
     return (
-      <div className="space-y-6">
-        <DashboardHeader />
-
-        <section className="flex min-h-105 items-center justify-center rounded-2xl border bg-card px-6 py-12 shadow-sm">
-          <div className="mx-auto max-w-md text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-              <Sprout className="h-7 w-7 text-primary" />
-            </div>
-
-            <h2 className="mt-6 text-xl font-bold tracking-tight sm:text-2xl"><T text="Start with your first farm" /></h2>
-
-            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base"><T text="Add a farm or garden to start monitoring weather, irrigation, field conditions, and future AI insights." /></p>
-
-            <Link
-              href="/farms/new"
-              className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              <Plus className="h-4 w-4" /><T text="Add Farm / Garden" /></Link>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  const selectedFarm =
-    farms.find(
-      (farm) => farm.id === selectedFarmId,
-    ) ?? farms[0];
-
-  if (!selectedFarm) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-6">
-      <DashboardHeader />
-
-      <ActivePropertySummary farm={selectedFarm} />
-
-      <IrrigationWidget
-        schedule={irrigationSchedules[selectedFarm.id]}
-      />
-
-      <SensorSummary />
-
-      {selectedFarm.coordinates ? (
-        <WeatherDashboard
-          coordinates={selectedFarm.coordinates}
-          farmId={selectedFarm.id}
-          returnTo="/dashboard"
+      <main className="app-page">
+        <PageHeader
+          title={t("Home")}
+          description={t("A clear view of your growing day.")}
         />
-      ) : (
-        <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><T text="Weather" /></p>
-
-            <h2 className="mt-2 text-lg font-semibold"><T text="Farm location is not configured" /></h2>
-
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground"><T text="Add the exact farm location to enable live weather data for this property." /></p>
-
-            <Link
-              href={`/farms/${selectedFarm.id}/edit`}
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-            ><T text="Add farm location" /><ArrowRight className="h-4 w-4" />
+        <EmptyState
+          title={t("Start with your first farm")}
+          description={t(
+            "Add a farm or garden to keep weather, crops and irrigation together.",
+          )}
+          action={
+            <Link href="/farms/new" className="app-primary-link">
+              <Plus size={18} />
+              {t("Add Farm")}
             </Link>
-          </div>
-        </section>
-      )}
-
-      <QuickActions farmId={selectedFarm.id} />
-
-      <AIRecommendation farmName={selectedFarm.name} />
-
-    </div>
+          }
+        />
+      </main>
+    );
+  const schedule = irrigationSchedules[farm.id];
+  const needsLocation = !farm.coordinates;
+  return (
+    <main className="app-page">
+      <PageHeader
+        eyebrow={t("Home")}
+        title={farm.name}
+        description={
+          <span className="inline-flex items-center gap-2">
+            <MapPin size={16} aria-hidden="true" />
+            {farm.location}
+          </span>
+        }
+        action={
+          <FarmSwitcher
+            farms={farms}
+            selectedFarmId={farm.id}
+            onFarmChange={selectFarm}
+          />
+        }
+      />
+      <StatusCard
+        label={t("Your farm today")}
+        title={t(
+          needsLocation
+            ? "Give your farm a location"
+            : schedule
+              ? "Irrigation is on your calendar"
+              : "Plan your next irrigation",
+        )}
+        icon={
+          needsLocation ? (
+            <MapPin size={38} />
+          ) : schedule ? (
+            <CalendarClock size={38} />
+          ) : (
+            <Sprout size={38} />
+          )
+        }
+        action={
+          <Link
+            href={
+              needsLocation
+                ? `/farms/${farm.id}/edit`
+                : `/irrigation?farm=${encodeURIComponent(farm.id)}`
+            }
+            className="inline-flex min-h-12 items-center gap-3 rounded-xl bg-card px-5 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+          >
+            {t(
+              needsLocation
+                ? "Add farm location"
+                : schedule
+                  ? "Review schedule"
+                  : "Schedule irrigation",
+            )}
+            <ArrowUpRight size={17} className="rtl:-rotate-90" />
+          </Link>
+        }
+      >
+        {needsLocation
+          ? t("Local weather starts with the right place.")
+          : schedule
+            ? `${format.date(parseLocalDate(schedule.date) ?? new Date())} · ${format.clock(schedule.time)} · ${format.number(schedule.duration)} ${t("min")}`
+            : t("Choose a time and keep your next watering easy to find.")}
+      </StatusCard>
+      <section>
+        <SectionHeader
+          title={t("At a glance")}
+          action={
+            <Link
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary"
+              href={`/farms/${farm.id}`}
+            >
+              {t("Farm overview")}
+              <ArrowUpRight size={17} />
+            </Link>
+          }
+        />
+        <FarmOverviewCards farm={farm} schedule={schedule} />
+      </section>
+    </main>
   );
 }

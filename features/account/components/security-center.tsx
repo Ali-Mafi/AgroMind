@@ -268,7 +268,7 @@ export function SecurityCenter({
         {initialState.enabled &&
           initialState.factors.length < 2 &&
           !initialState.recoveryCodes.enabled && (
-            <p className="mt-3 text-sm text-amber-700 dark:text-amber-400">
+            <p className="mt-3 text-sm text-[var(--app-gold)]">
               {t(
                 "Add a backup before you lose access. Password reset does not bypass two-step verification.",
               )}
@@ -288,7 +288,7 @@ export function SecurityCenter({
               width={220}
               height={220}
               unoptimized
-              className="mx-auto rounded-xl bg-white p-3"
+              className="mx-auto rounded-xl bg-[var(--app-code-surface)] p-3"
             />
             <p className="text-sm">
               {t("Enter this setup key manually in your authenticator app.")}
@@ -355,7 +355,7 @@ export function SecurityCenter({
             </p>
           ) : backupCodes.length ? (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-amber-700 dark:text-amber-400">
+              <p className="text-sm text-[var(--app-gold)]">
                 {t(
                   "Store these codes somewhere safe. They are shown only once.",
                 )}

@@ -24,7 +24,7 @@ export async function EmailEntry({
     return (
       <AuthShell title="Forgot password?" description="Enter your email and we will help you reset your password.">
         <AuthForm mode="forgot" />
-        <BackToSignIn />
+        <SignInLink />
       </AuthShell>
     );
 
@@ -72,14 +72,14 @@ export async function EmailEntry({
             </p>
           )}
           <VerificationPending email={pending.email} />
-          <BackToSignIn />
+          <SignInLink />
         </AuthShell>
       );
 
     return (
       <AuthShell title="Verify your email" description="Enter your signup email to request a new verification link.">
         <AuthForm mode="resend" />
-        <BackToSignIn />
+        <SignInLink />
       </AuthShell>
     );
   }
@@ -87,15 +87,15 @@ export async function EmailEntry({
   return (
     <AuthShell title="Request a new password reset" description="Open the link in your reset email to continue. You can request another email below.">
       <AuthForm mode="forgot" />
-      <BackToSignIn />
+      <SignInLink />
     </AuthShell>
   );
 }
 
-function BackToSignIn() {
+function SignInLink() {
   return (
     <Link className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary" href="/sign-in">
-      <T text="Back to sign in" />
+      <T text="Sign in" />
     </Link>
   );
 }
