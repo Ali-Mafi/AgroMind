@@ -61,7 +61,7 @@ for (const language of ["en", "fa"])
       const overview = render(React.createElement(AccountOverview));
       assert.match(overview, /Cloud Farmer/);
       assert.match(overview, /Research access/);
-      assert.match(overview, /2 \/ 8/);
+      assert.match(overview, language === "fa" ? /۲ \/ ۸/ : /2 \/ 8/);
       assert.match(overview, /href="\/onboarding"/);
       const { SubscriptionOverview } = load(
         "features/account/components/subscription-overview.tsx",

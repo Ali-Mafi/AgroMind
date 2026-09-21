@@ -5,8 +5,9 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { parseLocalDate } from "@/features/settings/lib/calendar";
 
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
+import { useWorkspaceFarm } from "@/features/farms/hooks/use-workspace-farm";
 import {
-  ArrowLeft,
   Plus,
   Sprout,
 } from "lucide-react";
@@ -71,27 +72,18 @@ useEffect(() => {
 
   const {
     farms,
-    selectedFarmId,
-    setSelectedFarmId,
     irrigationSchedules,
     setIrrigationSchedule,
     deleteIrrigationSchedule,
     busy,
   } = useFarm();
 
+  const { farm: selectedFarm, selectFarm } = useWorkspaceFarm();
+
   if (farms.length === 0) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
-        <header>
-          <Link href="/dashboard" className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /><T text="Back to dashboard" />
-          </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation" /></p>
-
-          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"><T text="Irrigation Management" /></h1>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base"><T text="Monitor and manage irrigation for your farms and gardens." /></p>
-        </header>
+      <main className="app-page">
+        <PageHeader back title={t("Irrigation")} description={t("Monitor and manage irrigation for your farms and gardens.")} />
 
         <section className="mt-8 flex min-h-105 items-center justify-center rounded-2xl border bg-card px-6 py-12 shadow-sm">
           <div className="mx-auto max-w-md text-center">
@@ -113,11 +105,6 @@ useEffect(() => {
       </main>
     );
   }
-
-  const selectedFarm =
-    farms.find(
-      (farm) => farm.id === selectedFarmId,
-    ) ?? farms[0];
 
   if (!selectedFarm) {
     return null;
@@ -150,29 +137,8 @@ const irrigationOverview:
   : null;
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-8 pt-6 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
-      <header className="space-y-5">
-        <Link href="/dashboard" className="inline-flex min-h-10 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
-          <ArrowLeft className="h-4 w-4 rtl:rotate-180" /><T text="Back to dashboard" />
-        </Link>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"><T text="Irrigation" /></p>
-
-            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"><T text="Irrigation Management" /></h1>
-
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base"><T text="Monitor and manage irrigation for your farm." /></p>
-          </div>
-
-          <div className="w-full lg:w-auto lg:min-w-64">
-            <FarmSelector
-              farms={farms}
-              selectedFarmId={selectedFarm.id}
-              onFarmChange={setSelectedFarmId}
-            />
-          </div>
-        </div>
-      </header>
+    <main className="app-page space-y-6">
+      <PageHeader back title={t("Irrigation")} description={selectedFarm.name} action={<FarmSelector farms={farms} selectedFarmId={selectedFarm.id} onFarmChange={selectFarm} />} />
 
       <TodayDateCard />
 
@@ -219,7 +185,7 @@ const irrigationOverview:
       />
 
       {schedule && <button type="button" disabled={busy} onClick={() => void deleteIrrigationSchedule(selectedFarm.id)} className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive">{t("Remove schedule")}</button>}
-      <section aria-label={t("Irrigation control")}>
+      <details className="app-card p-5"><summary className="cursor-pointer py-2 font-semibold">{t("Controls & sensors")}</summary><section className="mt-5" aria-label={t("Irrigation control")}>
         <IrrigationControl
           farmName={selectedFarm.name}
         />
@@ -229,6 +195,7 @@ const irrigationOverview:
         sensors={[]}
         farmName={selectedFarm.name}
       />
+      </details>
     </main>
   );
 }

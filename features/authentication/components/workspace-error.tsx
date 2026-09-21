@@ -5,7 +5,7 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 export default function WorkspaceError({ reset }: { reset: () => void }) {
   const t = useTranslation();
   return (
-    <main className="mx-auto my-12 w-[calc(100%-2rem)] max-w-lg space-y-5 rounded-3xl border bg-card p-7">
+    <main className="mx-auto my-12 w-[calc(100%_-_2rem)] max-w-lg space-y-5 rounded-3xl border bg-card p-7">
       <h1 className="text-2xl font-bold">
         {t("Your cloud data could not be loaded.")}
       </h1>
@@ -19,7 +19,7 @@ export default function WorkspaceError({ reset }: { reset: () => void }) {
         href="/sign-in"
         className="ms-4 inline-flex min-h-11 items-center text-sm text-primary"
       >
-        {t("Back to sign in")}
+        {t("Sign in")}
       </Link>
     </main>
   );

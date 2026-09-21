@@ -1,0 +1,139 @@
+/* Scoped to the workspace: the immersive Weather experience keeps its tokens. */
+.agromind-app {
+  --background: oklch(0.98 0.006 95);
+  --foreground: oklch(0.25 0.023 155);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --primary: oklch(0.39 0.078 158);
+  --primary-foreground: oklch(0.99 0.003 95);
+  --muted: oklch(0.95 0.01 115);
+  --muted-foreground: oklch(0.48 0.018 145);
+  --border: oklch(0.91 0.012 110);
+  --input: var(--border);
+  --ring: var(--primary);
+  --app-gold: oklch(0.5 0.09 83);
+  --gold: var(--app-gold);
+  --app-hero: oklch(0.33 0.061 158);
+  --app-hero-foreground: oklch(0.98 0.006 95);
+  --app-shadow: 0 3px 18px oklch(0.25 0.03 150 / 0.035);
+  --app-code-surface: oklch(1 0 0);
+  --app-radius: 1.5rem;
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100dvh;
+  isolation: isolate;
+}
+.dark .agromind-app {
+  --background: oklch(0.175 0.013 155);
+  --foreground: oklch(0.94 0.009 110);
+  --card: oklch(0.215 0.016 155);
+  --primary: oklch(0.77 0.102 151);
+  --primary-foreground: oklch(0.2 0.025 150);
+  --muted: oklch(0.265 0.016 155);
+  --muted-foreground: oklch(0.75 0.015 120);
+  --border: oklch(0.35 0.015 150);
+  --app-gold: oklch(0.8 0.1 83);
+  --app-hero: oklch(0.285 0.046 158);
+  --app-hero-foreground: oklch(0.97 0.008 110);
+  --app-shadow: 0 3px 18px oklch(0 0 0 / 0.06);
+}
+.agromind-app
+  :where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+.app-content {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+.app-content > main {
+  width: 100%;
+}
+.app-card {
+  border: 1px solid var(--border);
+  border-radius: var(--app-radius);
+  background: var(--card);
+  box-shadow: var(--app-shadow);
+}
+.app-card-link {
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+.app-card-link:hover {
+  border-color: var(--primary);
+}
+.app-card-link:active {
+  transform: scale(0.99);
+}
+.app-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 76rem;
+  padding: 1.5rem 1rem 2rem;
+}
+.app-page > * + * {
+  margin-top: 1.75rem;
+}
+.app-primary-link {
+  display: inline-flex;
+  min-height: 2.875rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  padding: 0.75rem 1.15rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.app-primary-link:hover {
+  opacity: 0.9;
+}
+.app-secondary-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--card);
+}
+.app-secondary-link:hover {
+  background: var(--muted);
+}
+@media (min-width: 640px) {
+  .app-page {
+    padding: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .app-content {
+    padding-inline-start: 15rem;
+    padding-bottom: 0;
+  }
+  .app-page {
+    padding: 2.5rem clamp(1.5rem, 3vw, 3.5rem) 3rem;
+  }
+  .app-page > * + * {
+    margin-top: 2rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agromind-app *,
+  .agromind-app *::before,
+  .agromind-app *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.agromind-app :where(input, select, textarea) {
+  font-size: 1rem;
+}

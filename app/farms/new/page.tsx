@@ -6,6 +6,7 @@ import { MeasurementInput } from "@/features/settings/components/measurement-inp
 
 
 import { useMemo, useRef, useState } from "react";
+import { BackButton } from "@/features/navigation/components/back-button";
 import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
@@ -248,15 +249,11 @@ export default function NewFarmPage() {
 };
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-0">      
+    <main className="app-page !max-w-3xl space-y-8">
       {!canCreateFarm && <p role="status" className="rounded-2xl border border-gold/30 bg-gold/10 p-4 text-sm">{t("Farm limit reached: {limit} farms.", { limit: farmLimit })} <Link href="/account/subscription" className="font-semibold text-primary underline">{t("View subscription")}</Link></p>}
       {creationError && <p role="alert" className="text-sm text-destructive">{t(creationError)}</p>}
       <div className="space-y-1">
-        <Link
-          href="/farms"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
+        <BackButton />
 
         <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-primary"><T text="Farm Management" /></p>
 
@@ -870,9 +867,9 @@ export default function NewFarmPage() {
             type="button"
             onClick={previousStep}
             disabled={step === 1}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="h-4 w-4" /><T text="Previous" /></button>
+            <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" /><span className="sr-only"><T text="Previous" /></span></button>
 
           {step < totalSteps && (
             <button

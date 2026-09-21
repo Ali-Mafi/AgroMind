@@ -56,6 +56,11 @@ try {
 
   for (const path of [
     "/dashboard",
+    "/assistant",
+    "/account/help",
+    "/account/about",
+    "/farms/example/sensors",
+    "/farms/example/insights",
     "/farms",
     "/irrigation",
     "/account/profile",

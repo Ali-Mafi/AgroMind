@@ -6,9 +6,10 @@ import { MeasurementInput } from "@/features/settings/components/measurement-inp
 
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { BackButton } from "@/features/navigation/components/back-button";
+import { Dialog } from "@base-ui/react/dialog";
+import { navigateBack } from "@/features/navigation/lib/history";
 import {
-  ArrowLeft,
   Plus,
   Save,
   Trash2,
@@ -187,11 +188,7 @@ export default function EditFarmPage() {
   if (!farm) {
     return (
       <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link
-          href="/farms"
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <ArrowLeft className="h-4 w-4" /><T text="Back to Farms" /></Link>
+        <BackButton />
 
         <section className="mt-8 rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
           <h1 className="text-2xl font-bold"><T text="Farm not found" /></h1>
@@ -443,10 +440,7 @@ export default function EditFarmPage() {
   const handleNavigation =
     () => {
       if (!isDirty) {
-        router.push(
-          `/farms/${farm.id}`,
-        );
-
+        navigateBack(router);
         return;
       }
 
@@ -461,27 +455,14 @@ export default function EditFarmPage() {
         false,
       );
 
-      router.push(
-        `/farms/${farm.id}`,
-      );
+      navigateBack(router);
     };
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-0">
+    <main className="app-page !max-w-3xl space-y-8">
       {/* Header */}
       <header className="space-y-6">
-        <button
-          type="button"
-          onClick={
-            handleNavigation
-          }
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <ArrowLeft className="h-4 w-4" /><T text="Back to" />{" "}
-          {isGarden
-            ? t("Garden")
-            : t("Farm")}
-        </button>
+        <BackButton onClick={handleNavigation} />
 
         <div className="flex items-start gap-4">
           <div
@@ -934,21 +915,17 @@ export default function EditFarmPage() {
       </form>
 
       {/* Unsaved Changes Dialog */}
-      {showUnsavedDialog && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-6 sm:px-6"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="unsaved-changes-title"
-        >
-          <div className="w-full max-w-lg rounded-3xl border bg-card p-6 shadow-2xl sm:p-8">
+      <Dialog.Root open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/40" />
+          <Dialog.Popup className="fixed start-1/2 top-1/2 z-[90] max-h-[calc(100dvh_-_3rem)] w-[calc(100%_-_2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-xl sm:p-8 rtl:translate-x-1/2">
             <div>
-              <h2
+              <Dialog.Title
                 id="unsaved-changes-title"
                 className="text-xl font-bold tracking-tight sm:text-2xl"
-              ><T text="Unsaved Changes" /></h2>
+              ><T text="Unsaved Changes" /></Dialog.Title>
 
-              <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="You have unsaved changes. Do you want to save them before leaving this page?" /></p>
+              <Dialog.Description className="mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="You have unsaved changes. Do you want to save them before leaving this page?" /></Dialog.Description>
 
               {hasValidationError && (
                 <p className="mt-3 text-xs font-medium leading-5 text-destructive"><T text="Fix the validation errors before saving. You can still discard the changes." /></p>
@@ -996,9 +973,9 @@ export default function EditFarmPage() {
                 </span>
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
     </main>
   );
 }

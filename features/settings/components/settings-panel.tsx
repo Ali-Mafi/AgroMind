@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
-import { ArrowLeft, Check, Globe2, Ruler, CalendarDays, Palette, SlidersHorizontal } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import { Check, Globe2, Ruler, CalendarDays, Palette, SlidersHorizontal } from "lucide-react";
 import { ThemeSwitcher } from "@/app/components/theme-switcher";
 import { useWeatherMotion } from "@/features/weather/components/hooks/use-weather-motion";
 import { useSettings } from "../context/settings-context";
@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 
 const UNIT_LABELS: Record<keyof Units, string> = { temperature: "Temperature", area: "Farm area", gardenArea: "Garden area", distance: "Distance", length: "Length & plant spacing", wind: "Wind speed", precipitation: "Rainfall", volume: "Water volume", pressure: "Pressure" };
 function Group({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
-  return <section className="space-y-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-7">
+  return <section className="app-card space-y-6 p-5 sm:p-7">
     <h2 className="flex items-center gap-3 text-lg font-bold"><span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>{title}</h2>{children}
   </section>;
 }
@@ -33,12 +33,9 @@ export function SettingsPanel({ onLocaleChange, savingLocale = false }: {
     if (onLocaleChange) void onLocaleChange(change);
     else update(change);
   };
-  return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-    <Link href="/dashboard" className="mb-7 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"><ArrowLeft size={17} className="rtl:rotate-180" />{t("Back to dashboard")}</Link>
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
-      <div><p className="text-xs font-bold uppercase tracking-widest text-primary">AgroMind</p><h1 className="mt-2 text-3xl font-bold sm:text-4xl">{t("Settings")}</h1><p className="mt-3 text-sm text-muted-foreground">{t("Your region. Your language. Your way of measuring.")}</p></div>
-      <p role="status" className="flex items-center gap-2 text-xs text-muted-foreground"><Check size={16} className="text-primary" />{t(settings.saved ? "Saved on this device" : "Saved for this tab only. Browser storage is unavailable.")}</p>
-    </header>
+  return <main className="app-page">
+    <PageHeader back title={t("Preferences")} description={t("Your region. Your language. Your way of measuring.")} />
+    <p role="status" className="mb-6 flex items-center gap-2 text-xs text-muted-foreground"><Check size={16} className="text-primary" />{t(settings.saved ? "Saved on this device" : "Saved for this tab only. Browser storage is unavailable.")}</p>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="space-y-6">
         <Group title={t("Region & language")} icon={<Globe2 size={20} />}>
