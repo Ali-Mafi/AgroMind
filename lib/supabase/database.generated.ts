@@ -292,6 +292,8 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_current_session: { Args: never; Returns: Json };
+      consume_username_login_attempt: { Args: { p_identifier_hash: string }; Returns: boolean };
       complete_onboarding: { Args: never; Returns: undefined };
       create_farm: { Args: { p_data: Json }; Returns: undefined };
       get_entitlements: { Args: never; Returns: Json };

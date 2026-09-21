@@ -9,7 +9,11 @@ export const currentUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
-  return error ? null : data.user;
+  if (error || !data.user) return null;
+  const session = await supabase.rpc("get_current_session");
+  if (session.error)
+    throw new Error("Account services are temporarily unavailable.");
+  return session.data ? data.user : null;
 });
 
 async function needsSecondFactor() {
@@ -46,5 +50,7 @@ export async function authenticatedDestination(requestedNext?: unknown) {
     .eq("id", user.id)
     .single();
   if (error) throw new Error("Account services are temporarily unavailable.");
-  return data.onboarding_completed ? safeNextPath(requestedNext) : "/onboarding";
+  return data.onboarding_completed
+    ? safeNextPath(requestedNext)
+    : "/onboarding";
 }

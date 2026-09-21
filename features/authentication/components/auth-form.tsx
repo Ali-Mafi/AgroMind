@@ -16,13 +16,27 @@ import {
 } from "../services/actions";
 import type { AuthFormState } from "../lib/validation";
 import { signUpFeedback, type SignUpValues } from "../lib/sign-up-feedback";
+import { LoginCaptcha } from "./login-captcha";
 
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
 
-type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify" | "recovery" | "resend";
+type Mode =
+  | "sign-in"
+  | "sign-up"
+  | "forgot"
+  | "reset"
+  | "verify"
+  | "recovery"
+  | "resend";
 
-const EMPTY_VALUES = { username: "", email: "", identifier: "", password: "", confirmPassword: "" };
+const EMPTY_VALUES = {
+  username: "",
+  email: "",
+  identifier: "",
+  password: "",
+  confirmPassword: "",
+};
 
 const ACTIONS = {
   "sign-in": signInAction,
@@ -57,9 +71,14 @@ export function AuthForm({
 }) {
   const t = useTranslation();
   const { language } = useSettings();
-  const [state, action, pending] = useActionState<AuthFormState, FormData>(ACTIONS[mode], {});
+  const [state, action, pending] = useActionState<AuthFormState, FormData>(
+    ACTIONS[mode],
+    {},
+  );
   const [values, setValues] = useState(EMPTY_VALUES);
-  const [submittedValues, setSubmittedValues] = useState<SignUpValues | null>(null);
+  const [submittedValues, setSubmittedValues] = useState<SignUpValues | null>(
+    null,
+  );
   const [visible, setVisible] = useState(false);
   const submitting = useRef(false);
 
@@ -68,7 +87,11 @@ export function AuthForm({
   }, [pending, state]);
 
   const withPassword = ["sign-in", "sign-up", "reset"].includes(mode);
-  const feedback = pending ? {} : mode === "sign-up" ? signUpFeedback(state, values, submittedValues) : state;
+  const feedback = pending
+    ? {}
+    : mode === "sign-up"
+      ? signUpFeedback(state, values, submittedValues)
+      : state;
   const field = (
     name: keyof typeof EMPTY_VALUES,
     label: string,
@@ -76,10 +99,18 @@ export function AuthForm({
     autoComplete: string,
     minLength?: number,
   ) => {
-    const maxLength = name === "email" || name === "identifier" ? 254 : name === "username" ? 30 : 128;
+    const maxLength =
+      name === "email" || name === "identifier"
+        ? 254
+        : name === "username"
+          ? 30
+          : 128;
     return (
       <div className="space-y-2">
-        <label htmlFor={`${mode}-${name}`} className="block text-sm font-semibold">
+        <label
+          htmlFor={`${mode}-${name}`}
+          className="block text-sm font-semibold"
+        >
           {t(label)}
         </label>
         <input
@@ -96,9 +127,13 @@ export function AuthForm({
           maxLength={maxLength}
           dir="ltr"
           spellCheck={false}
-          autoCapitalize={name === "username" || name === "identifier" ? "none" : undefined}
+          autoCapitalize={
+            name === "username" || name === "identifier" ? "none" : undefined
+          }
           aria-invalid={Boolean(feedback.fields?.[name])}
-          aria-describedby={feedback.fields?.[name] ? `${mode}-${name}-error` : undefined}
+          aria-describedby={
+            feedback.fields?.[name] ? `${mode}-${name}-error` : undefined
+          }
           className={accountInputClass}
         />
         {feedback.fields?.[name] && (
@@ -123,11 +158,23 @@ export function AuthForm({
       }}
       className="space-y-5"
     >
-      <input type="hidden" name="expected_user_id" value={expectedUserId ?? ""} />
+      <input
+        type="hidden"
+        name="expected_user_id"
+        value={expectedUserId ?? ""}
+      />
       <input type="hidden" name="next" value={next ?? "/dashboard"} />
-      <input type="hidden" name="language" value={language === "fa" ? "fa" : "en"} />
+      <input
+        type="hidden"
+        name="language"
+        value={language === "fa" ? "fa" : "en"}
+      />
       {tokenHash && <input type="hidden" name="token_hash" value={tokenHash} />}
-      <input type="hidden" name="type" value={mode === "recovery" ? "recovery" : "signup"} />
+      <input
+        type="hidden"
+        name="type"
+        value={mode === "recovery" ? "recovery" : "signup"}
+      />
       <div hidden aria-hidden="true">
         <label>
           Website
@@ -144,8 +191,10 @@ export function AuthForm({
             </p>
           </>
         )}
-        {mode === "sign-in" && field("identifier", "Username or email", "text", "username")}
-        {["sign-up", "forgot", "resend"].includes(mode) && field("email", "Email", "email", "email")}
+        {mode === "sign-in" &&
+          field("identifier", "Username or email", "text", "username")}
+        {["sign-up", "forgot", "resend"].includes(mode) &&
+          field("email", "Email", "email", "email")}
 
         {withPassword && (
           <>
@@ -159,9 +208,17 @@ export function AuthForm({
             {mode !== "sign-in" && (
               <>
                 <p className="text-xs text-muted-foreground">
-                  {t("Use at least 12 characters. A longer, unique passphrase is best.")}
+                  {t(
+                    "Use at least 12 characters. A longer, unique passphrase is best.",
+                  )}
                 </p>
-                {field("confirmPassword", "Confirm password", visible ? "text" : "password", "new-password", 12)}
+                {field(
+                  "confirmPassword",
+                  "Confirm password",
+                  visible ? "text" : "password",
+                  "new-password",
+                  12,
+                )}
               </>
             )}
             <Button
@@ -177,23 +234,41 @@ export function AuthForm({
           </>
         )}
 
+        {mode === "sign-in" && !values.identifier.includes("@") && (
+          <LoginCaptcha attempt={state} />
+        )}
         {feedback.error && (
-          <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6 text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
+          >
             {t(feedback.error)}
           </p>
         )}
         {feedback.success && (
-          <p role="status" className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
+          <p
+            role="status"
+            className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6"
+          >
             {t(feedback.success)}
           </p>
         )}
         {mode !== "sign-in" && feedback.verificationRequired && (
-          <Link href="/verify-email?status=resend" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">
+          <Link
+            href="/verify-email?status=resend"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline"
+          >
             {t("Resend verification email")}
           </Link>
         )}
-        <Button type="submit" disabled={pending} className="min-h-12 w-full gap-2 rounded-xl">
-          {pending && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}
+        <Button
+          type="submit"
+          disabled={pending}
+          className="min-h-12 w-full gap-2 rounded-xl"
+        >
+          {pending && (
+            <LoaderCircle className="animate-spin motion-reduce:animate-none" />
+          )}
           {t(pending ? "Please wait…" : LABELS[mode])}
         </Button>
       </fieldset>

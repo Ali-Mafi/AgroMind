@@ -29,6 +29,7 @@ export default async function Page({
     >
       <MfaChallenge
         next={destination}
+        factors={state.factors}
         recoveryCodesEnabled={state.recoveryCodes.enabled}
       />
     </AuthShell>
