@@ -232,10 +232,9 @@
 
 .security-action-dialog__actions {
   position: sticky;
-  bottom: -1.25rem;
+  bottom: 0;
   z-index: 3;
   margin-inline: -1.25rem;
-  margin-bottom: -1.25rem;
   padding: 0.9rem 1.25rem max(0.9rem, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   background: color-mix(in oklab, var(--card) 96%, transparent);
@@ -260,9 +259,15 @@
 
 @media (max-width: 639px) {
   .security-action-dialog {
-    inset: auto 1rem max(1rem, env(safe-area-inset-bottom)) 1rem;
+    inset:
+      max(0.75rem, env(safe-area-inset-top))
+      0.75rem
+      max(0.75rem, env(safe-area-inset-bottom))
+      0.75rem;
     width: auto;
+    height: auto;
     max-width: none;
+    max-height: none;
     margin: 0;
     border-radius: 1.75rem;
     animation-name: security-sheet-in;
@@ -270,6 +275,7 @@
 
   .security-action-dialog__body {
     min-height: 0;
+    scroll-padding-bottom: 5.5rem;
   }
 
   @keyframes security-sheet-in {
