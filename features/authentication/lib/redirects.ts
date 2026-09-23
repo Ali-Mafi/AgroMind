@@ -13,6 +13,11 @@ export function safeNextPath(value: unknown, fallback = "/dashboard") {
     return fallback;
   return value;
 }
+export function safeMfaNextPath(value: unknown) {
+  if (value === "/reset-password") return "/reset-password";
+  return safeNextPath(value);
+}
+
 export function siteOrigin() {
   const url = new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://agromind.ir",

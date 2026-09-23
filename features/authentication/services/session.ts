@@ -16,7 +16,7 @@ export const currentUser = cache(async () => {
   return session.data ? data.user : null;
 });
 
-async function needsSecondFactor() {
+export async function needsSecondFactor() {
   const supabase = await createClient();
   const { data, error } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

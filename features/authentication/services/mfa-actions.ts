@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { safeNextPath } from "../lib/redirects";
+import { safeMfaNextPath } from "../lib/redirects";
 import { currentUser } from "./session";
 import { verifyFreshIdentity } from "./fresh-auth";
 import type {
@@ -477,7 +477,7 @@ export async function verifyMfaChallengeAction(
   form: FormData,
 ): Promise<MfaActionState> {
   const code = String(form.get("code") ?? "").replace(/\s/g, "");
-  const destination = safeNextPath(form.get("next"));
+  const destination = safeMfaNextPath(form.get("next"));
   if (!codePattern.test(code))
     return { error: "Enter the 6-digit code from your authenticator app." };
 
@@ -524,7 +524,7 @@ export async function verifyRecoveryCodeAction(
   if (process.env.SUPABASE_RECOVERY_CODES_ENABLED !== "true")
     return { error: "Backup-code sign-in is not available right now." };
   const code = String(form.get("recovery_code") ?? "").trim();
-  const destination = safeNextPath(form.get("next"));
+  const destination = safeMfaNextPath(form.get("next"));
   if (code.length < 8 || code.length > 128)
     return { error: "Enter one of your backup codes." };
 

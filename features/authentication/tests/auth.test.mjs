@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { loadTs, localRequire } from "../../weather/tests/helpers/load-ts.mjs";
 import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
 
-const { safeNextPath, isPrivatePath } = loadTs(
+const { safeNextPath, safeMfaNextPath, isPrivatePath } = loadTs(
   "features/authentication/lib/redirects.ts",
 );
 const { signInSchema, signUpSchema, passwordRequirementStatus } = loadTs(
@@ -40,6 +40,7 @@ function harness({
     watchToken: "watch-token",
   },
   pendingVerified = false,
+  assurance = { currentLevel: "aal1", nextLevel: "aal1" },
 } = {}) {
   const calls = [];
   const record =
@@ -63,7 +64,7 @@ function harness({
       exchangeCodeForSession: record("exchange", { error }),
       mfa: {
         getAuthenticatorAssuranceLevel: record("assurance", {
-          data: { currentLevel: "aal1", nextLevel: "aal1" },
+          data: assurance,
           error: null,
         }),
       },
@@ -140,6 +141,8 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
   ])
     assert.equal(isPrivatePath(next), true);
   assert.equal(isPrivatePath("/dashboard-public"), false);
+  assert.equal(safeMfaNextPath("/reset-password"), "/reset-password");
+  assert.equal(safeMfaNextPath("https://evil.test"), "/dashboard");
 });
 
 test("signup validates username, email and password without returning password values", async () => {
@@ -420,6 +423,22 @@ test("password reset requires the current account, then globally signs out", asy
     (await expired.actions.resetPasswordAction({}, form(signup))).error,
     /session has expired/,
   );
+});
+
+test("password recovery requires MFA before changing a password on MFA-enabled accounts", async () => {
+  const h = harness({
+    assurance: { currentLevel: "aal1", nextLevel: "aal2" },
+  });
+
+  await assert.rejects(
+    h.actions.resetPasswordAction(
+      {},
+      form({ ...signup, expected_user_id: "user-a" }),
+    ),
+    /REDIRECT:\/mfa\?next=\/reset-password/,
+  );
+  assert.equal(h.calls.some((call) => call.name === "update"), false);
+  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
 });
 
 test("logout calls Supabase, reports failures safely, and does not pretend success", async () => {

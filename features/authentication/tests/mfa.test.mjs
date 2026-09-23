@@ -205,3 +205,22 @@ test("security dialog renders only one footer container", () => {
   );
   assert.doesNotMatch(security, /security-action-dialog__actions/);
 });
+
+
+test("password recovery routes MFA-enabled recovery sessions through the MFA challenge", () => {
+  const emailEntry = source("features/authentication/components/email-entry.tsx");
+  const actions = source("features/authentication/services/actions.ts");
+  const redirects = source("features/authentication/lib/redirects.ts");
+  const mfaPage = source("app/mfa/page.tsx");
+  const mfaActions = source("features/authentication/services/mfa-actions.ts");
+
+  assert.match(emailEntry, /needsSecondFactor\(\)/);
+  assert.match(emailEntry, /redirect\("\/mfa\?next=\/reset-password"\)/);
+  assert.match(actions, /getAuthenticatorAssuranceLevel/);
+  assert.match(actions, /mfaRequired/);
+  assert.match(actions, /redirect\("\/mfa\?next=\/reset-password"\)/);
+  assert.match(redirects, /safeMfaNextPath/);
+  assert.match(redirects, /value === "\/reset-password"/);
+  assert.match(mfaPage, /safeMfaNextPath/);
+  assert.match(mfaActions, /safeMfaNextPath/);
+});

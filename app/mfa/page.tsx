@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { MfaChallenge } from "@/features/authentication/components/mfa-challenge";
-import { safeNextPath } from "@/features/authentication/lib/redirects";
+import { safeMfaNextPath } from "@/features/authentication/lib/redirects";
 import { readMfaSecurityState } from "@/features/authentication/services/mfa-actions";
 import { currentUser } from "@/features/authentication/services/session";
 
@@ -13,7 +13,7 @@ export default async function Page({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const destination = safeNextPath(params.next);
+  const destination = safeMfaNextPath(params.next);
   const user = await currentUser();
 
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(destination)}`);
