@@ -22,7 +22,8 @@ import {
   reverseGeocode,
 } from "@/features/region/services/location-service";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { accountInputClass, LogoutButton } from "./account-shell";
+import { accountInputClass } from "@/features/authentication/components/auth-form";
+import { LogoutButton } from "./account-shell";
 
 const steps = [
   "Welcome to AgroMind",
