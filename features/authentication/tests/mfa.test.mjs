@@ -224,3 +224,27 @@ test("password recovery routes MFA-enabled recovery sessions through the MFA cha
   assert.match(mfaPage, /safeMfaNextPath/);
   assert.match(mfaActions, /safeMfaNextPath/);
 });
+
+
+test("backup authenticator confirmation is concise and does not repeat its explanation", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const fresh = source(
+    "features/authentication/components/fresh-identity-fields.tsx",
+  );
+  const actions = source("features/authentication/services/mfa-actions.ts");
+
+  assert.match(security, /backupSetup/);
+  assert.match(security, /Add backup authenticator/);
+  assert.match(
+    security,
+    /Confirm with your current authenticator, then add a second authenticator as your backup\./,
+  );
+  assert.doesNotMatch(
+    fresh,
+    /A fresh confirmation is required for this action\./,
+  );
+  assert.match(fresh, /Current authenticator/);
+  assert.match(fresh, /type="hidden"[\s\S]*name="proof_factor_id"/);
+  assert.match(actions, /AgroMind Backup Authenticator/);
+  assert.match(actions, /mfa_factor_name_conflict/);
+});
