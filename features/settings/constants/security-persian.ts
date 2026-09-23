@@ -31,6 +31,17 @@ export const SECURITY_PERSIAN: Record<string, string> = {
   "Confirm your identity with a fresh code or your current password.":
     "هویت خود را با یک کد تازه یا رمز عبور فعلی تأیید کنید.",
   "Add backup authenticator": "افزودن برنامه احراز هویت پشتیبان",
+  "Current authenticator": "برنامه احراز هویت فعلی",
+  "Confirm with your current authenticator, then add a second authenticator as your backup.":
+    "ابتدا با برنامه احراز هویت فعلی هویت خود را تأیید کنید، سپس یک برنامه دوم را به‌عنوان پشتیبان اضافه کنید.",
+  "Confirm your identity, then add your authenticator.":
+    "ابتدا هویت خود را تأیید کنید، سپس برنامه احراز هویت را اضافه کنید.",
+  "Scan this QR code with the authenticator app on your backup device.":
+    "این کد QR را با برنامه احراز هویت روی دستگاه پشتیبان اسکن کنید.",
+  "Scan this QR code with your authenticator app.":
+    "این کد QR را با برنامه احراز هویت خود اسکن کنید.",
+  "A backup authenticator already exists. Refresh the page and try again.":
+    "یک برنامه احراز هویت پشتیبان از قبل وجود دارد. صفحه را تازه کنید و دوباره تلاش کنید.",
   "Authenticator removed. Your other authenticator remains active.":
     "برنامه احراز هویت حذف شد. برنامه دیگر شما فعال باقی می‌ماند.",
   "Incomplete setup removed.": "راه‌اندازی ناتمام حذف شد.",

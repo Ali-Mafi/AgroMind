@@ -226,11 +226,25 @@ export function SecurityCenter({
     (code) => code.match(/.{1,4}/g)?.join("-") ?? code,
   );
 
+  const backupSetup = initialState.enabled;
+  const dialogTitle =
+    operation === "setup"
+      ? backupSetup
+        ? "Add backup authenticator"
+        : "Set up authenticator"
+      : operation
+        ? labels[operation]
+        : "Security";
+
   const dialogDescription =
     operation === "setup"
       ? setup
-        ? "Open Google Authenticator, tap Add account, then scan this QR code."
-        : "A fresh confirmation is required for this action."
+        ? backupSetup
+          ? "Scan this QR code with the authenticator app on your backup device."
+          : "Scan this QR code with your authenticator app."
+        : backupSetup
+          ? "Confirm with your current authenticator, then add a second authenticator as your backup."
+          : "Confirm your identity, then add your authenticator."
       : operation === "disable" ||
           (operation === "remove" && initialState.factors.length === 1)
         ? "Your account will return to password-only sign in until you enable an authenticator again."
@@ -266,7 +280,7 @@ export function SecurityCenter({
           aria-busy={busy}
           onClick={() => freshIdentityFormRef.current?.requestSubmit()}
         >
-          {busy ? loadingIcon : t("Confirm")}
+          {busy ? loadingIcon : t("Continue")}
         </Button>
       </>
     ) : operation === "setup" && setup ? (
@@ -533,7 +547,7 @@ export function SecurityCenter({
 
       <SecurityActionDialog
         open={operation !== null}
-        title={operation ? labels[operation] : "Security"}
+        title={dialogTitle}
         description={dialogDescription}
         busy={busy}
         variant={setup || backupCodes.length ? "sheet" : "compact"}

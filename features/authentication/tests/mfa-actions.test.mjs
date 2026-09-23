@@ -84,3 +84,58 @@ test("known missing capability is shown honestly without logging a runtime error
   assert.equal(state.recoveryCodes.enabled, false);
   assert.equal(log.mock.callCount(), 0);
 });
+
+
+test("adding a backup authenticator uses a distinct provider-friendly name", async () => {
+  const calls = [];
+  const primary = {
+    id: "factor-primary",
+    factor_type: "totp",
+    status: "verified",
+    friendly_name: "AgroMind Authenticator",
+  };
+  const mfa = {
+    listFactors: async () => ({
+      data: { all: [primary], totp: [primary] },
+      error: null,
+    }),
+    unenroll: async () => ({ error: null }),
+    enroll: async (options) => {
+      calls.push(options);
+      return {
+        data: {
+          id: "factor-backup",
+          type: "totp",
+          totp: {
+            qr_code: "data:image/svg+xml;base64,PHN2Zy8+",
+            secret: "TESTSECRET",
+          },
+        },
+        error: null,
+      };
+    },
+  };
+  const actions = loadTs("features/authentication/services/mfa-actions.ts", {
+    "@/lib/supabase/server": {
+      createClient: async () => ({
+        auth: { mfa },
+      }),
+    },
+    "./fresh-auth": { verifyFreshIdentity: async () => null },
+    "./session": {
+      currentUser: async () => ({
+        id: "user-a",
+        email_confirmed_at: "2026-09-14",
+      }),
+    },
+    "next/cache": { revalidatePath: () => {} },
+  });
+
+  const result = await actions.beginTotpEnrollmentAction(new FormData());
+  assert.equal("error" in result, false);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0], {
+    factorType: "totp",
+    friendlyName: "AgroMind Backup Authenticator",
+  });
+});
