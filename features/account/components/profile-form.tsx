@@ -17,10 +17,23 @@ import type { MfaSecurityState } from "@/features/authentication/types/mfa";
 import { AccountShell, accountCardClass } from "./account-shell";
 import { UsernameForm } from "./username-form";
 
+const DEFAULT_SECURITY_STATE: MfaSecurityState = {
+  enabled: false,
+  factors: [],
+  currentLevel: null,
+  nextLevel: null,
+  recoveryCodes: {
+    available: false,
+    enabled: false,
+    total: 0,
+    remaining: 0,
+  },
+};
+
 export function ProfileForm({
-  securityState,
+  securityState = DEFAULT_SECURITY_STATE,
 }: {
-  securityState: MfaSecurityState;
+  securityState?: MfaSecurityState;
 }) {
   const { cloud, run, busy } = useFarm();
   const settings = useSettings();
