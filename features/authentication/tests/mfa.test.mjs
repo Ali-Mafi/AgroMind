@@ -156,7 +156,7 @@ test("fresh identity confirmation uses a compact popup while QR setup keeps the 
   );
   assert.match(
     css,
-    /\.security-action-dialog--compact\s*\{[\s\S]*height:\s*fit-content[\s\S]*margin:\s*auto/,
+    /\.security-action-dialog--compact\s*\{[\s\S]*height:\s*auto[\s\S]*translate:\s*-50% -50%/,
   );
   assert.match(
     css,
