@@ -293,6 +293,99 @@ export async function resendVerificationAction(
   }
 }
 
+export async function changePendingSignupEmailAction(
+  _state: AuthFormState,
+  form: FormData,
+): Promise<AuthFormState> {
+  const pending = await readPendingSignup();
+  if (!pending) {
+    return {
+      error: "Verification is available after you create an account.",
+      verificationRequired: true,
+    };
+  }
+
+  const parsed = emailSchema.safeParse(form.get("email"));
+  if (!parsed.success) {
+    return {
+      error: "Enter a valid email address.",
+      fields: { email: "Enter a valid email address." },
+      verificationRequired: true,
+    };
+  }
+
+  const email = parsed.data.toLowerCase();
+  try {
+    const { url, key } = supabaseConfig();
+    const response = await fetch(`${url}/functions/v1/change-pending-email`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "content-type": "application/json",
+        apikey: key,
+        authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        token_hash: hashVerificationWatch(pending.watchToken),
+        email,
+        redirect_to: `${siteOrigin()}/auth/callback`,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as {
+      updated?: boolean;
+      sent?: boolean;
+      reason?: string;
+      error?: string;
+    };
+
+    if (!response.ok || payload.error) {
+      if (payload.error === "email_taken") {
+        return {
+          error: "This email is already in use.",
+          fields: { email: "This email is already in use." },
+          verificationRequired: true,
+        };
+      }
+      if (payload.error === "pending_signup_expired") {
+        return {
+          error: "Your signup session has expired. Please create your account again.",
+          verificationRequired: true,
+        };
+      }
+      if (payload.error === "already_verified") {
+        return {
+          success: "Your email is already verified. Sign in to continue.",
+        };
+      }
+      return unavailable;
+    }
+
+    if (payload.updated !== true) return unavailable;
+
+    await rememberPendingSignup({ ...pending, email });
+
+    if (payload.sent === true) {
+      return {
+        success: "Email updated. A new verification email was sent.",
+      };
+    }
+    if (payload.reason === "rate_limited") {
+      return {
+        success:
+          "Email updated. Please wait a moment, then resend the verification email.",
+      };
+    }
+    return {
+      success:
+        "Email updated. Use resend verification email to send a new link.",
+    };
+  } catch {
+    return unavailable;
+  }
+}
+
 export async function pendingVerificationStatusAction(): Promise<{
   verified: boolean;
 }> {
