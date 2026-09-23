@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { T } from "@/features/settings/components/translated-text";
-import { currentUser } from "../services/session";
+import { currentUser, needsSecondFactor } from "../services/session";
 import { readPendingSignup } from "../lib/pending-signup";
 import { tokenHashSchema } from "../lib/validation";
 import { AuthShell } from "./auth-shell";
@@ -54,12 +55,16 @@ export async function EmailEntry({
       </AuthShell>
     );
 
-  if (kind === "reset" && user && !hash && !status)
+  if (kind === "reset" && user && !hash && !status) {
+    if (await needsSecondFactor()) {
+      redirect("/mfa?next=/reset-password");
+    }
     return (
       <AuthShell title="Choose a new password" description="Use a unique password to keep your farms secure.">
         <AuthForm mode="reset" expectedUserId={user.id} />
       </AuthShell>
     );
+  }
 
   if (kind === "verify") {
     const pending = await readPendingSignup();
