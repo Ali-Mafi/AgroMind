@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { navigateBack, NAVIGATION_COMPLETE } from "../lib/history";
 
@@ -53,7 +53,7 @@ export function BackButton({
         navigateBack(router, fallback);
       }}
     >
-      <ArrowLeft size={20} className="rtl:rotate-180" aria-hidden="true" />
+      <NavigationArrow toward="back" size={20} />
     </button>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Disclosure } from "@/components/ui/disclosure";
 import { T } from "@/features/settings/components/translated-text";
 import { useWeatherFormat } from "../hooks/use-weather-format";
 import { useMemo, useState } from "react";
@@ -119,8 +120,7 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
     <p className={styles.detailNote}>{forecastSourceNames(weather, hours)} · {weather.timezone}{" "}<T text="· Earlier hours on this chart remain forecasts." /></p>
     {new Set(hours.map((entry) => entry.source ?? weather.forecastSource)).size > 1 && <p className={styles.detailNote}><T text="This night spans two forecast providers. Lines stop at the provider change; each reading shows its source." /></p>}
 
-    {points.length > 0 && <details className={styles.dataDisclosure}>
-      <summary><T text="View hourly values" /></summary>
+    {points.length > 0 && <Disclosure className={styles.dataDisclosure} title={<T text="View hourly values" />}>
       <div className={styles.tableWrap}>
         <table className={styles.dataTable}>
           <caption className="sr-only">{t(WEATHER_METRICS[metric].title)}{" "}<T text="forecasts for" />{" "}{date}{" "}<T text="in" />{" "}{weather.timezone}</caption>
@@ -140,7 +140,7 @@ function HourlyDetail({ weather, asOf, selection }: Omit<WeatherDetailProps, "on
           </tr>)}</tbody>
         </table>
       </div>
-    </details>}
+    </Disclosure>}
   </div>;
 }
 

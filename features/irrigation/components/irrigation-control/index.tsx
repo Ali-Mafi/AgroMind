@@ -274,7 +274,7 @@ export function IrrigationControl({
               >
                 {option}
 
-                <span className="ml-1 text-xs font-medium opacity-80"><T text="min" /></span>
+                <span className="ms-1 text-xs font-medium opacity-80"><T text="min" /></span>
               </button>
             );
           })}

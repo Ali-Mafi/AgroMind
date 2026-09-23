@@ -635,10 +635,10 @@ export default function EditFarmPage() {
                 aria-invalid={Boolean(
                   areaErrorMessage,
                 )}
-                className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
+                className="w-full rounded-xl border bg-background px-3 py-2.5 pe-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/15"
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(isGarden ? "gardenArea" : "area")}</span>
+              <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(isGarden ? "gardenArea" : "area")}</span>
             </div>
 
             {areaErrorMessage && (
@@ -827,10 +827,10 @@ export default function EditFarmPage() {
                                   canonical,
                                 )
                               }
-                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pe-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{format.symbol("length")}</span>
+                            <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{format.symbol("length")}</span>
                           </div>
                         </div>
 
@@ -861,10 +861,10 @@ export default function EditFarmPage() {
                                     .value,
                                 )
                               }
-                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"><T text="yrs" /></span>
+                            <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"><T text="yrs" /></span>
                           </div>
                         </div>
                       </div>
@@ -917,8 +917,8 @@ export default function EditFarmPage() {
       {/* Unsaved Changes Dialog */}
       <Dialog.Root open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/40" />
-          <Dialog.Popup className="fixed start-1/2 top-1/2 z-[90] max-h-[calc(100dvh_-_3rem)] w-[calc(100%_-_2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-xl sm:p-8 rtl:translate-x-1/2">
+          <Dialog.Backdrop className="app-backdrop fixed inset-0 z-[80] bg-foreground/40" />
+          <Dialog.Popup className="agromind-surface app-dialog fixed start-1/2 top-1/2 z-[90] max-h-[calc(100dvh_-_3rem)] w-[calc(100%_-_2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-xl sm:p-8 rtl:translate-x-1/2">
             <div>
               <Dialog.Title
                 id="unsaved-changes-title"

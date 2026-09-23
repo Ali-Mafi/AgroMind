@@ -167,7 +167,7 @@
 .detailNote { font-size: .875rem; color: var(--weather-muted); line-height: 1.7; margin: 14px 0 !important; }
 .chartEmpty { border-radius: 16px; border: 1px dashed var(--weather-border); padding: 45px 20px; text-align: center; color: var(--weather-muted); margin: 22px 0 !important; }
 .dataDisclosure { margin-top: 20px; border-top: 1px solid var(--weather-border); padding-top: 16px; }
-.dataDisclosure summary { font-size: .875rem; color: var(--weather-muted); cursor: pointer; min-height: 38px; }
+.dataDisclosure :global(.app-disclosure-trigger) { font-size: .875rem; color: var(--weather-muted); cursor: pointer; min-height: 44px; }
 .tableWrap { overflow-x: auto; }
 .dataTable { width: 100%; border-collapse: collapse; font-size: .875rem; white-space: nowrap; }
 .dataTable th, .dataTable td { padding: 10px 12px; text-align: end; border-bottom: 1px solid var(--weather-border); }

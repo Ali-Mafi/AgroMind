@@ -3,11 +3,8 @@ import { T } from "@/features/settings/components/translated-text";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useState } from "react";
+import { Popover } from "@base-ui/react/popover";
 import {
   Check,
   ChevronDown,
@@ -54,11 +51,8 @@ export function TimePicker({
   value,
   onChange,
 }: TimePickerProps) {
-  const { format, hourCycle } = useSettings();
+  const { format, hourCycle, direction } = useSettings();
   const t = useTranslation();
-  const wrapperRef =
-    useRef<HTMLDivElement>(null);
-
   const [isOpen, setIsOpen] =
     useState(false);
 
@@ -71,66 +65,6 @@ export function TimePicker({
   const [minute, setMinute] = useState(
     parsedTime.minute,
   );
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    function handlePointerDown(
-      event: MouseEvent,
-    ) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target as Node,
-        )
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(
-      event: KeyboardEvent,
-    ) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handlePointerDown,
-    );
-
-    document.addEventListener(
-      "keydown",
-      handleKeyDown,
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handlePointerDown,
-      );
-
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
-    };
-  }, [isOpen]);
-
-  function openPicker() {
-    if (!isOpen && value) {
-      const parsed = parseTime(value);
-
-      setHour(parsed.hour);
-      setMinute(parsed.minute);
-    }
-
-    setIsOpen((current) => !current);
-  }
 
   function increaseHour() {
     setHour((current) =>
@@ -172,17 +106,16 @@ export function TimePicker({
   }
 
   return (
-    <div
-      ref={wrapperRef}
-      className="relative mt-3"
-    >
-      <button
+    <Popover.Root open={isOpen} onOpenChange={(next) => {
+      if (next && value) { const parsed = parseTime(value); setHour(parsed.hour); setMinute(parsed.minute); }
+      setIsOpen(next);
+    }}>
+      <Popover.Trigger
         id={id}
         type="button"
-        onClick={openPicker}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        className="flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-start outline-none transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
+        className="app-control mt-3 flex min-h-11 w-full items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-start outline-none transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
       >
         <Clock3 className="h-4 w-4 shrink-0 text-primary" />
 
@@ -201,13 +134,11 @@ export function TimePicker({
             isOpen ? "rotate-180" : ""
           }`}
         />
-      </button>
-
-      {isOpen && (
-        <div
-          role="dialog"
+      </Popover.Trigger>
+      <Popover.Portal><Popover.Positioner sideOffset={8} align="start" collisionPadding={12} className="z-[80]">
+        <Popover.Popup dir={direction}
           aria-label={t("Choose irrigation time")}
-          className="absolute left-0 top-full z-50 mt-2 w-full min-w-72.5 rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl"
+          className="agromind-surface app-popup w-80 max-w-[calc(100vw-1.5rem)] max-h-[var(--available-height)] overflow-y-auto rounded-2xl border bg-popover p-4 text-popover-foreground shadow-xl"
         >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary"><T text="Start Time" /></p>
@@ -224,7 +155,7 @@ export function TimePicker({
                 type="button"
                 onClick={increaseHour}
                 aria-label={t("Increase hour")}
-                className="mx-auto mt-2 flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
+                className="mx-auto mt-2 flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronUp className="h-4 w-4" />
               </button>
@@ -239,7 +170,7 @@ export function TimePicker({
                 type="button"
                 onClick={decreaseHour}
                 aria-label={t("Decrease hour")}
-                className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
+                className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -257,7 +188,7 @@ export function TimePicker({
                 type="button"
                 onClick={increaseMinute}
                 aria-label={t("Increase minute")}
-                className="mx-auto mt-2 flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
+                className="mx-auto mt-2 flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronUp className="h-4 w-4" />
               </button>
@@ -272,7 +203,7 @@ export function TimePicker({
                 type="button"
                 onClick={decreaseMinute}
                 aria-label={t("Decrease minute")}
-                className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-muted"
+                className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-muted"
               >
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -294,8 +225,8 @@ export function TimePicker({
             className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-90"
           >
             <Check className="h-4 w-4" /><T text="Done" /></button>
-        </div>
-      )}
-    </div>
+        </Popover.Popup>
+      </Popover.Positioner></Popover.Portal>
+    </Popover.Root>
   );
 }

@@ -1,9 +1,11 @@
 /* Scoped to the workspace: the immersive Weather experience keeps its tokens. */
-.agromind-app {
+.agromind-app, .agromind-surface {
   --background: oklch(0.98 0.006 95);
   --foreground: oklch(0.25 0.023 155);
   --card: oklch(1 0 0);
   --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
   --primary: oklch(0.39 0.078 158);
   --primary-foreground: oklch(0.99 0.003 95);
   --muted: oklch(0.95 0.01 115);
@@ -18,12 +20,11 @@
   --app-shadow: 0 3px 18px oklch(0.25 0.03 150 / 0.035);
   --app-code-surface: oklch(1 0 0);
   --app-radius: 1.5rem;
-  background: var(--background);
   color: var(--foreground);
-  min-height: 100dvh;
-  isolation: isolate;
+
 }
-.dark .agromind-app {
+.agromind-app { background: var(--background); min-height: 100dvh; isolation: isolate; }
+.dark .agromind-app, .dark .agromind-surface {
   --background: oklch(0.175 0.013 155);
   --foreground: oklch(0.94 0.009 110);
   --card: oklch(0.215 0.016 155);
@@ -136,4 +137,34 @@
 
 .agromind-app :where(input, select, textarea) {
   font-size: 1rem;
+}
+
+/* Shared interaction treatment, with the original workspace palette intact. */
+.agromind-app { --app-bottom-navigation-height: calc(4.5rem + env(safe-area-inset-bottom)); }
+.app-primary-link, .app-secondary-link, .app-navigation-link {
+  transition: background-color var(--motion-micro) ease, color var(--motion-micro) ease, border-color var(--motion-micro) ease, opacity var(--motion-micro) ease, transform var(--motion-micro) var(--motion-ease);
+}
+.app-primary-link:active, .app-secondary-link:active, .app-navigation-link:active { transform: scale(0.98); }
+.app-navigation-link svg { transition: transform var(--motion-micro) var(--motion-ease); }
+.app-navigation-link[aria-current="page"] svg { transform: translateY(-1px); }
+.app-icon-container { display: inline-flex; align-items: center; justify-content: center; border-radius: 0.875rem; width: 2.5rem; height: 2.5rem; background: color-mix(in oklch, var(--primary) 8%, transparent); color: var(--primary); }
+@media (hover: hover) { .app-card-link:hover { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .app-card-link:hover, .app-card-link:active, .app-primary-link:active, .app-secondary-link:active, .app-navigation-link:active, .app-navigation-link[aria-current="page"] svg { transform: none; }
+}
+
+.assistant-page { min-height: calc(100dvh - var(--app-bottom-navigation-height)); padding-bottom: calc(var(--composer-height, 12rem) + 1rem); }
+.assistant-composer {
+  position: fixed;
+  inset-inline: 1rem;
+  bottom: max(var(--app-bottom-navigation-height), var(--composer-keyboard-inset, 0px));
+  z-index: 40;
+  margin: 0 auto !important;
+  max-width: 42rem;
+  padding-block: 0.5rem;
+  background: var(--background);
+}
+@media (min-width: 1024px) {
+  .assistant-page { min-height: 100dvh; padding-bottom: 2rem; }
+  .assistant-composer { position: sticky; inset-inline: auto; bottom: 1rem; width: 100%; margin-top: 1.5rem !important; }
 }

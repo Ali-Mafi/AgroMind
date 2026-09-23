@@ -1,7 +1,8 @@
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { T } from "@/features/settings/components/translated-text";
 import { useWeatherFormat } from "../hooks/use-weather-format";
 import { memo } from "react";
-import { ChevronRight, Droplets, Gauge, Moon, Sunrise, Thermometer, Umbrella, Waves, Wind, type LucideIcon } from "lucide-react";
+import { Droplets, Gauge, Moon, Sunrise, Thermometer, Umbrella, Waves, Wind, type LucideIcon } from "lucide-react";
 import { WeatherSparkline } from "../weather-sparkline";
 import { normalizeWindDirection } from "@/features/weather/lib/normalize-weather";
 import {
@@ -75,7 +76,7 @@ export const WeatherMetricGrid = memo(function WeatherMetricGrid({ weather, asOf
         <button type="button" key={metric} className={`${styles.glass} ${styles.metricCard}`} data-metric={metric}
           onClick={() => onOpen({ metric, date: metric === "overnight" ? night[0]?.time.slice(0, 10) ?? todayKey : todayKey })}
           aria-label={`${t(title)}: ${value}${unit ? ` ${unit}` : ""}. ${t(subtitle)}. ${t("Open chart and details")}`}>
-          <span className={styles.sectionTitle}><span><Icon />{t(title)}</span><ChevronRight size={14} /></span>
+          <span className={styles.sectionTitle}><span><Icon />{t(title)}</span><NavigationArrow chevron size={14} /></span>
           <span className={styles.metricValue}>{value}{unit && <> <small>{unit}</small></>}</span>
           <span className={styles.metricSubtitle}>{t(subtitle)}</span>
           {metric === "daylight" ? <DaylightGraphic sunrise={today?.sunrise ?? null} sunset={today?.sunset ?? null} />

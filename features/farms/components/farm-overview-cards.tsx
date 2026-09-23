@@ -28,6 +28,7 @@ export function FarmOverviewCards({
           title={t("Weather")}
           icon={<MapPin size={18} />}
           href={`/farms/${farm.id}/edit`}
+          footer={t("Add farm location")}
         >
           <p className="text-lg font-semibold">{t("Add farm location")}</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -38,7 +39,7 @@ export function FarmOverviewCards({
         </SummaryCard>
       )}
       <SummaryCard
-        title={t("Irrigation")}
+        title={t("Next irrigation")}
         icon={<Droplets size={18} />}
         href={`/irrigation?farm=${encodeURIComponent(farm.id)}`}
         footer={t(schedule ? "Manage irrigation" : "Schedule irrigation")}
@@ -55,7 +56,7 @@ export function FarmOverviewCards({
         </p>
       </SummaryCard>
       <SummaryCard
-        title={t("Crop insights")}
+        title={t(farm.type === "garden" ? "Plants / Trees" : "Crop")}
         icon={<Sprout size={18} />}
         href={`/farms/${farm.id}/insights`}
         footer={t("View crop details")}
@@ -73,7 +74,7 @@ export function FarmOverviewCards({
       </SummaryCard>
       {showSensors && (
         <SummaryCard
-          title={t("Sensors")}
+          title={t("Soil monitoring")}
           icon={<RadioTower size={18} />}
           href={`/farms/${farm.id}/sensors`}
           footer={t("View sensors")}

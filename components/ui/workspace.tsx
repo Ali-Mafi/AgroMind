@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight, Sprout } from "lucide-react";
+import { Sprout } from "lucide-react";
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { T } from "@/features/settings/components/translated-text";
 
 export function SectionHeader({
@@ -41,20 +42,15 @@ export function SummaryCard({
     <>
       <div className="flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground">
-          {icon}
+          {icon && <span className="app-icon-container" aria-hidden="true">{icon}</span>}
           {title}
         </h3>
-        {href && (
-          <ArrowUpRight
-            className="size-4 text-muted-foreground rtl:-rotate-90"
-            aria-hidden="true"
-          />
-        )}
+
       </div>
       <div className="mt-5">{children}</div>
       {footer && (
-        <div className="mt-5 border-t pt-4 text-sm text-muted-foreground">
-          {footer}
+        <div className="mt-5 flex items-center justify-between gap-3 border-t pt-4 text-sm font-medium text-primary">
+          {footer}{href && <NavigationArrow size={16} />}
         </div>
       )}
     </>
@@ -100,7 +96,7 @@ export function StatusCard({
         </div>
         {icon && (
           <div className="hidden rounded-2xl border border-current/15 p-4 text-[var(--app-gold)] sm:block">
-            {icon}
+            {icon && <span className="app-icon-container" aria-hidden="true">{icon}</span>}
           </div>
         )}
       </div>
@@ -119,7 +115,7 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <section className="app-card px-6 py-12 text-center sm:py-16">
+    <section className="app-card app-state-enter px-6 py-12 text-center sm:py-16">
       <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-primary/8 text-primary">
         {icon}
       </div>

@@ -44,8 +44,9 @@ export function FarmInformation({
             icon={<RadioTower size={28} />}
             title={t("No sensors connected")}
             description={t(
-              "Soil readings will appear when a sensor is connected.",
+              "No sensor is connected to this farm. Sensor connections are not available yet; you can still check weather and plan irrigation.",
             )}
+            action={<Link href={`/farms/${id}`} className="app-secondary-link">{t("Farm overview")}</Link>}
           />
         </>
       ) : (

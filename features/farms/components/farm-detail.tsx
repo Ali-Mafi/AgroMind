@@ -10,6 +10,7 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState, SectionHeader } from "@/components/ui/workspace";
 import { Button } from "@/components/ui/button";
+import { Disclosure } from "@/components/ui/disclosure";
 import { FarmSectionNavigation } from "./farm-section-navigation";
 import { FarmOverviewCards } from "./farm-overview-cards";
 import { getIrrigationTypeLabel } from "../constants/irrigation-types";
@@ -75,10 +76,8 @@ export function FarmDetail({ id }: { id: string }) {
           showSensors
         />
       </section>
-      <details className="app-card p-5 sm:p-6">
-        <summary className="min-h-11 cursor-pointer text-base font-semibold">
-          {t(garden ? "Garden Information" : "Farm Information")}
-        </summary>
+      <Disclosure className="app-card p-5 sm:p-6" title={t(garden ? "Garden Information" : "Farm Information")}>
+
         <dl className="mt-4 grid gap-5 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-muted-foreground">{t("Area")}</dt>
@@ -128,7 +127,7 @@ export function FarmDetail({ id }: { id: string }) {
             ))}
           </ul>
         )}
-      </details>
+      </Disclosure>
       <Dialog.Root open={deleting} onOpenChange={setDeleting}>
         <Dialog.Trigger
           render={
@@ -139,8 +138,8 @@ export function FarmDetail({ id }: { id: string }) {
           {t("Delete")} {t(garden ? "Garden" : "Farm")}
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/40" />
-          <Dialog.Popup className="fixed start-1/2 top-1/2 z-[90] w-[calc(100%_-_2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border bg-card p-6 text-foreground shadow-xl rtl:translate-x-1/2">
+          <Dialog.Backdrop className="app-backdrop fixed inset-0 z-[80] bg-foreground/40" />
+          <Dialog.Popup className="agromind-surface app-dialog fixed start-1/2 top-1/2 z-[90] w-[calc(100%_-_2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border bg-card p-6 text-foreground shadow-xl rtl:translate-x-1/2">
             <Dialog.Title className="text-xl font-semibold">
               {t("Delete")} {farm.name}?
             </Dialog.Title>

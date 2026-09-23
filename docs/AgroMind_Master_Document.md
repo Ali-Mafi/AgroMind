@@ -437,3 +437,12 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Attached duplicate-email and username-collision responses to their respective fields. Passwords are never returned in action state, logged or written to browser storage. Existing rate limits and duplicate-submit protection are preserved.
 - Validation: regression tests cover first-visit detection, manual overrides, failed geolocation, controlled input retention, live error correction, password dependencies, identity collisions and sign-in CTA removal. Lint, typecheck, application/database tests, localization, production build and HTTP route checks passed. No database migration, provider configuration change, live credential entry or email send was needed.
 - Next step: check the first-visit popup and signup correction experience on the user's iPhone/PWA.
+
+## Step 013 — Workspace UX polish — 2026-09-22
+
+- Verified real main and Production at PR #8 merge `e139830`; preserved the completed calm redesign.
+- Polished shared motion, theme switching, selects/popovers, accessible disclosures, RTL navigation, farm-limit presentation, status-first farm cards and the mobile Assistant composer. Expanded Help/About and reviewed Persian workspace copy.
+- No auth/security/business/data/provider rules changed. A thin onboarding route wrapper preserves the existing ProtectedLayout behavior while satisfying Next's build-time route props check.
+- Status: implementation and local automated verification complete. 167 application tests and 15 PGlite tests pass; localization, lint, typecheck, Webpack production build and 21 HTTP checks pass. Native PostgreSQL is blocked locally by `EINVAL`; default Turbopack font retrieval is restricted. CI retains both normal build and native DB gates.
+- No real ticket backend or official support address exists; the support form is explicitly draft-only, with no simulated submission. Schema/RLS/service decisions are a separate task.
+- Next step: review PR/CI and verify the authenticated iOS Safari/PWA experience, including keyboard, safe areas and visual motion. Details: [UX polish progress](progress/2026-09-22.md).

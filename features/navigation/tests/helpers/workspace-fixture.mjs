@@ -6,6 +6,7 @@ export function workspaceFixture({
   page = "dashboard",
   empty = false,
   garden = false,
+  canCreateFarm = true,
 } = {}) {
   const ui = localizedRenderer({ language });
   const farms = empty
@@ -63,7 +64,7 @@ export function workspaceFixture({
     },
     cloud,
     farmLimit: 3,
-    canCreateFarm: true,
+    canCreateFarm,
     busy: false,
     setSelectedFarmId() {},
     run: async () => true,
@@ -113,6 +114,8 @@ export function workspaceFixture({
     },
   };
   const routes = {
+    help: ["features/account/components/account-information.tsx", "AccountInformation"],
+    about: ["features/account/components/account-information.tsx", "AccountInformation"],
     dashboard: [
       "features/dashboard/components/dashboard-overview/index.tsx",
       "DashboardOverview",
@@ -142,6 +145,7 @@ export function workspaceFixture({
   const Component = ui.load(path, mocks)[name];
   const { AppShell } = ui.load("components/layout/app-shell.tsx", mocks);
   const props =
+    page === "help" || page === "about" ? { kind: page } :
     page === "farm"
       ? { id: "fixture-farm" }
       : page === "security"

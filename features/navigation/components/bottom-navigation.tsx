@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { House, Sprout, MessageCircle, UserRound } from "lucide-react";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 
@@ -12,6 +13,21 @@ const items = [
 ] as const;
 
 export function BottomNavigation() {
+  const navigation = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const element = navigation.current;
+    const workspace = element?.closest<HTMLElement>(".agromind-app");
+    if (!element || !workspace) return;
+    // Respect safe areas, translated labels and larger system text sizes.
+    const measure = () => workspace.style.setProperty("--app-bottom-navigation-height", `${element.offsetHeight}px`);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    measure();
+    return () => {
+      observer.disconnect();
+      workspace.style.removeProperty("--app-bottom-navigation-height");
+    };
+  }, []);
   const pathname = usePathname();
   const t = useTranslation();
   const params = useSearchParams();
@@ -25,7 +41,7 @@ export function BottomNavigation() {
       ? "/farms"
       : pathname;
   return (
-    <aside className="fixed inset-x-0 bottom-0 z-50 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:inset-x-auto lg:inset-y-0 lg:start-0 lg:flex lg:w-60 lg:flex-col lg:border-e lg:border-t-0 lg:p-6">
+    <aside ref={navigation} className="app-navigation fixed inset-x-0 bottom-0 z-50 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:inset-x-auto lg:inset-y-0 lg:start-0 lg:flex lg:w-60 lg:flex-col lg:border-e lg:border-t-0 lg:p-6">
       <Link
         href={target("/dashboard")}
         className="mb-14 hidden min-h-12 items-center gap-3 text-xl font-bold tracking-tight lg:flex"
@@ -47,7 +63,7 @@ export function BottomNavigation() {
               key={href}
               href={target(href)}
               aria-current={selected ? "page" : undefined}
-              className={`flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs transition-colors lg:min-h-12 lg:flex-row lg:justify-start lg:gap-3 lg:px-4 lg:text-sm ${selected ? "bg-primary/8 font-semibold text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              className={`app-navigation-link flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs transition-colors lg:min-h-12 lg:flex-row lg:justify-start lg:gap-3 lg:px-4 lg:text-sm ${selected ? "bg-primary/8 font-semibold text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
             >
               <Icon
                 size={21}

@@ -1,0 +1,137 @@
+:root {
+  --motion-micro: 160ms;
+  --motion-panel: 220ms;
+  --motion-dialog: 260ms;
+  --motion-theme: 240ms;
+  --motion-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.app-control,
+[data-slot="button"] {
+  transition-property:
+    color, background-color, border-color, opacity, transform;
+  transition-duration: var(--motion-micro);
+  transition-timing-function: var(--motion-ease);
+}
+.app-control:active:not(:disabled),
+[data-slot="button"]:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.app-select-trigger > [data-slot="select-icon"] {
+  transition: transform var(--motion-panel) var(--motion-ease);
+}
+.app-select-trigger[data-popup-open] > [data-slot="select-icon"] {
+  transform: rotate(180deg);
+}
+.app-popup {
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity var(--motion-panel) var(--motion-ease),
+    transform var(--motion-panel) var(--motion-ease);
+}
+.app-popup[data-starting-style],
+.app-popup[data-ending-style] {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+.app-popup[data-side="top"][data-starting-style],
+.app-popup[data-side="top"][data-ending-style] {
+  transform: translateY(4px) scale(0.98);
+}
+.app-dialog {
+  transition:
+    opacity var(--motion-dialog) var(--motion-ease),
+    scale var(--motion-dialog) var(--motion-ease);
+}
+.app-dialog[data-starting-style],
+.app-dialog[data-ending-style] {
+  opacity: 0;
+  scale: 0.97;
+}
+.app-backdrop {
+  transition: opacity var(--motion-dialog) var(--motion-ease);
+}
+.app-backdrop[data-starting-style],
+.app-backdrop[data-ending-style] {
+  opacity: 0;
+}
+.app-disclosure-trigger {
+  transition: color var(--motion-micro) ease;
+}
+.app-disclosure-trigger:hover,
+.app-disclosure-trigger[data-panel-open] {
+  color: var(--primary);
+}
+.app-disclosure-chevron {
+  transition: transform var(--motion-panel) var(--motion-ease);
+}
+.app-disclosure-trigger[data-panel-open] .app-disclosure-chevron {
+  transform: rotate(180deg);
+}
+/* A bounded height transition is needed to move adjacent accordion content. */
+.app-disclosure-panel {
+  height: var(--accordion-panel-height);
+  overflow: hidden;
+  transition:
+    height var(--motion-panel) var(--motion-ease),
+    opacity var(--motion-panel) ease;
+}
+.app-disclosure-panel[data-starting-style],
+.app-disclosure-panel[data-ending-style] {
+  height: 0;
+  opacity: 0;
+}
+.app-state-enter {
+  animation: app-state-enter var(--motion-panel) var(--motion-ease);
+}
+@keyframes app-state-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scoped, event-free color transitions, enabled only after theme hydration. */
+html[data-theme-ready] .agromind-app,
+html[data-theme-ready]
+  .agromind-app
+  :where(.app-card, .app-navigation, .app-theme-surface, input, textarea),
+html[data-theme-ready] :where(.app-popup, .app-dialog) {
+  transition-property:
+    background-color, border-color, color, opacity, transform, scale;
+  transition-duration: var(--motion-theme);
+  transition-timing-function: var(--motion-ease);
+}
+/* Defence for any native disclosure in future content, including WebKit. */
+summary {
+  list-style: none;
+}
+summary::marker {
+  content: "";
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-micro: 0ms;
+    --motion-panel: 0ms;
+    --motion-dialog: 0ms;
+    --motion-theme: 0ms;
+  }
+  .app-state-enter {
+    animation: none;
+  }
+  .app-control:active:not(:disabled),
+  [data-slot="button"]:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+html[data-theme-ready] .agromind-app :where(h1, h2, h3, p, label, dt, dd, .app-icon-container, .app-theme-fill) {
+  transition: color var(--motion-theme) ease, background-color var(--motion-theme) ease, border-color var(--motion-theme) ease;
+}

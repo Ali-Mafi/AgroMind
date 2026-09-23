@@ -1,7 +1,8 @@
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { T } from "@/features/settings/components/translated-text";
 import { useWeatherFormat } from "../hooks/use-weather-format";
 import { memo, type CSSProperties } from "react";
-import { CalendarDays, ChevronRight, Clock3, Sprout } from "lucide-react";
+import { CalendarDays, Clock3, Sprout } from "lucide-react";
 import { WeatherIcon } from "../weather-icon";
 import { buildWeatherTimeline } from "@/features/weather/lib/build-weather-timeline";
 import {
@@ -33,7 +34,7 @@ export const WeatherForecastOverview = memo(function WeatherForecastOverview({ w
         <p className={styles.outlook}>{fieldOutlook(hours)}</p>
         <div className={`${styles.sectionTitle} ${styles.hourlyHeader}`}>
           <span><Clock3 />{" "}<T text="Hourly forecast" /></span>
-          <button type="button" className={styles.sectionLink} onClick={() => onOpen({ metric: "temperature", date: todayKey })}><T text="Chart" />{" "}<ChevronRight size={16} /></button>
+          <button type="button" className={styles.sectionLink} onClick={() => onOpen({ metric: "temperature", date: todayKey })}><T text="Chart" />{" "}<NavigationArrow chevron size={16} /></button>
         </div>
         <div className={styles.hourStrip}>
           {cards.map((card) => {
@@ -101,7 +102,7 @@ export const WeatherForecastOverview = memo(function WeatherForecastOverview({ w
             <div className={styles.fieldFact}><strong>{hours.length ? `${number(Math.min(...hours.map((hour) => hour.humidity)), 0)}–${number(Math.max(...hours.map((hour) => hour.humidity)), 0)}%` : "—"}</strong><T text="Forecast humidity range" /></div>
           </div>
           <p className={styles.fieldCaption}><T text="Wind and humidity use available forecasts within the next 24 hours. Check rain timing before adjusting irrigation; soil moisture and crop needs are separate inputs." /></p>
-          <button type="button" className={styles.sectionLink} onClick={() => onOpen({ metric: "precipitation", date: todayKey })}><T text="Rain timing & amounts" />{" "}<ChevronRight size={16} /></button>
+          <button type="button" className={styles.sectionLink} onClick={() => onOpen({ metric: "precipitation", date: todayKey })}><T text="Rain timing & amounts" />{" "}<NavigationArrow chevron size={16} /></button>
         </section>
       </div>
     </>
