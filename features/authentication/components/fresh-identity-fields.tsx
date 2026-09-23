@@ -86,7 +86,7 @@ export function FreshIdentityFields({ state }: { state: MfaSecurityState }) {
                     </p>
                     <p className="mt-1 font-medium" dir="auto">
                       {state.factors[0]?.friendlyName ??
-                        t("AgroMind Authenticator")}
+                        "AgroMind Authenticator"}
                     </p>
                   </div>
                 </>
