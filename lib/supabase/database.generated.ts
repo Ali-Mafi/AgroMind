@@ -199,8 +199,10 @@ export type Database = {
           avatar_url: string | null;
           country_code: string | null;
           created_at: string;
+          first_name: string;
           full_name: string;
           id: string;
+          last_name: string;
           language: string;
           onboarding_completed: boolean;
           onboarding_step: number;
@@ -212,8 +214,10 @@ export type Database = {
           avatar_url?: string | null;
           country_code?: string | null;
           created_at?: string;
+          first_name?: string;
           full_name?: string;
           id: string;
+          last_name?: string;
           language?: string;
           onboarding_completed?: boolean;
           onboarding_step?: number;
@@ -225,8 +229,10 @@ export type Database = {
           avatar_url?: string | null;
           country_code?: string | null;
           created_at?: string;
+          first_name?: string;
           full_name?: string;
           id?: string;
+          last_name?: string;
           language?: string;
           onboarding_completed?: boolean;
           onboarding_step?: number;
