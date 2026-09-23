@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Check, Copy, KeyRound, ShieldCheck, ShieldOff } from "lucide-react";
+import {
+  Check,
+  Copy,
+  KeyRound,
+  ShieldCheck,
+  ShieldOff,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +28,7 @@ import type {
   MfaSecurityState,
 } from "@/features/authentication/types/mfa";
 import { AccountShell, accountCardClass } from "./account-shell";
+import { SecurityActionDialog } from "./security-action-dialog";
 
 type Setup = { factorId: string; qrCode: string; secret: string };
 type Operation =
@@ -32,6 +39,7 @@ type Operation =
   | "regenerate"
   | "others"
   | "global";
+
 const labels: Record<Operation, string> = {
   setup: "Set up authenticator",
   remove: "Remove authenticator",
@@ -41,6 +49,7 @@ const labels: Record<Operation, string> = {
   others: "Sign out other sessions",
   global: "Sign out all sessions",
 };
+
 const inputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-primary/25";
 
@@ -76,6 +85,7 @@ export function SecurityCenter({
   const [message, setMessage] = useState<MfaActionState>({});
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [copied, setCopied] = useState<"secret" | "backup" | null>(null);
+
   async function run(task: () => Promise<void>) {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -93,12 +103,15 @@ export function SecurityCenter({
       setBusy(false);
     }
   }
+
   function choose(next: Operation, factorId = "") {
+    setSetup(null);
     setBackupCodes([]);
     setMessage({});
     setTarget(factorId);
     setOperation(next);
   }
+
   async function copy(value: string, type: "secret" | "backup") {
     try {
       await copyText(value);
@@ -108,6 +121,7 @@ export function SecurityCenter({
       setMessage({ error: "Copy failed. Please select and copy it manually." });
     }
   }
+
   async function submit(form: FormData) {
     await run(async () => {
       if (operation === "setup") {
@@ -117,9 +131,10 @@ export function SecurityCenter({
           return;
         }
         setSetup(result);
-        setOperation(null);
+        setMessage({});
         return;
       }
+
       if (operation === "generate" || operation === "regenerate") {
         const result =
           operation === "generate"
@@ -130,10 +145,11 @@ export function SecurityCenter({
           return;
         }
         setBackupCodes(result.codes);
-        setOperation(null);
+        setMessage({});
         router.refresh();
         return;
       }
+
       let result: MfaActionState;
       if (operation === "others" || operation === "global") {
         form.set("scope", operation);
@@ -143,6 +159,7 @@ export function SecurityCenter({
         form.set("remove_only", operation === "remove" ? "true" : "false");
         result = await disableTotpAction({}, form);
       }
+
       setMessage(result);
       if (result.success) {
         setOperation(null);
@@ -150,29 +167,64 @@ export function SecurityCenter({
       }
     });
   }
+
   async function cancelSetup(factorId: string) {
     await run(async () => {
       const result = await cancelTotpEnrollmentAction(factorId);
-      setMessage(result);
-      if (result.success) {
-        setSetup(null);
-        router.refresh();
+      if (result.error) {
+        setMessage(result);
+        return;
       }
+      setSetup(null);
+      setOperation(null);
+      setMessage({});
+      router.refresh();
     });
   }
+
+  function closeDialog() {
+    if (busy) return;
+    if (setup) {
+      void cancelSetup(setup.factorId);
+      return;
+    }
+    setOperation(null);
+    setBackupCodes([]);
+    setMessage({});
+  }
+
   async function verifySetup(form: FormData) {
     await run(async () => {
       const result = await verifyTotpEnrollmentAction({}, form);
       setMessage(result);
       if (result.success) {
         setSetup(null);
+        setOperation(null);
         router.refresh();
       }
     });
   }
+
   const formattedBackupCodes = backupCodes.map(
     (code) => code.match(/.{1,4}/g)?.join("-") ?? code,
   );
+
+  const dialogDescription =
+    operation === "setup"
+      ? setup
+        ? "Open Google Authenticator, tap Add account, then scan this QR code."
+        : "A fresh confirmation is required for this action."
+      : operation === "disable" ||
+          (operation === "remove" && initialState.factors.length === 1)
+        ? "Your account will return to password-only sign in until you enable an authenticator again."
+        : operation === "regenerate"
+          ? "Generating new backup codes will invalidate every old backup code."
+          : operation === "generate"
+            ? "Store these codes somewhere safe. They are shown only once."
+            : operation === "others" || operation === "global"
+              ? "AgroMind blocks revoked sessions from cloud data immediately. Previously issued tokens may remain valid at the authentication provider until they expire."
+              : undefined;
+
   return (
     <AccountShell title="Security">
       <section className={accountCardClass}>
@@ -198,14 +250,15 @@ export function SecurityCenter({
             </p>
           </div>
         </div>
+
         <div className="mt-5 space-y-3">
-          {initialState.factors.map((f) => (
+          {initialState.factors.map((factor) => (
             <div
-              key={f.id}
+              key={factor.id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-background/70 p-4"
             >
               <div>
-                <p className="font-semibold">{f.friendlyName}</p>
+                <p className="font-semibold">{factor.friendlyName}</p>
                 <p className="text-sm text-muted-foreground">
                   {t("Verified authenticator factor")}
                 </p>
@@ -213,58 +266,60 @@ export function SecurityCenter({
               <Button
                 variant="outline"
                 disabled={busy || !!setup}
-                onClick={() => choose("remove", f.id)}
+                onClick={() => choose("remove", factor.id)}
               >
                 {t("Remove authenticator")}
               </Button>
             </div>
           ))}
+
           {!setup &&
-            (initialState.pendingFactors ?? []).map((f) => (
+            (initialState.pendingFactors ?? []).map((factor) => (
               <div
-                key={f.id}
+                key={factor.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3"
               >
                 <p className="text-sm">
-                  {t("Incomplete authenticator setup")}: {f.friendlyName}
+                  {t("Incomplete authenticator setup")}: {factor.friendlyName}
                 </p>
                 <Button
                   variant="outline"
                   disabled={busy}
-                  onClick={() => cancelSetup(f.id)}
+                  onClick={() => cancelSetup(factor.id)}
                 >
                   {t("Discard incomplete setup")}
                 </Button>
               </div>
             ))}
         </div>
-        {!setup && (
-          <div className="mt-5 flex flex-wrap gap-3">
-            {initialState.factors.length < 2 && (
-              <Button disabled={busy} onClick={() => choose("setup")}>
-                {t(
-                  initialState.enabled
-                    ? "Add backup authenticator"
-                    : "Set up authenticator",
-                )}
-              </Button>
-            )}
-            {initialState.enabled && (
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() => choose("disable")}
-              >
-                {t("Disable authenticator")}
-              </Button>
-            )}
-          </div>
-        )}
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          {initialState.factors.length < 2 && (
+            <Button disabled={busy} onClick={() => choose("setup")}>
+              {t(
+                initialState.enabled
+                  ? "Add backup authenticator"
+                  : "Set up authenticator",
+              )}
+            </Button>
+          )}
+          {initialState.enabled && (
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => choose("disable")}
+            >
+              {t("Disable authenticator")}
+            </Button>
+          )}
+        </div>
+
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
           {t(
             "Keep a second authenticator on a separate device. If you lose one, sign in with the other and remove the lost authenticator.",
           )}
         </p>
+
         {initialState.enabled &&
           initialState.factors.length < 2 &&
           !initialState.recoveryCodes.enabled && (
@@ -274,121 +329,19 @@ export function SecurityCenter({
               )}
             </p>
           )}
-        {setup && (
-          <div className="mt-6 space-y-4 rounded-2xl border bg-background/70 p-4 sm:p-5">
-            <h3 className="font-bold">{t("Scan the QR code")}</h3>
-            <p className="text-sm text-muted-foreground">
-              {t(
-                "Open Google Authenticator, tap Add account, then scan this QR code.",
-              )}
-            </p>
-            <Image
-              src={setup.qrCode}
-              alt={t("Authenticator QR code")}
-              width={220}
-              height={220}
-              unoptimized
-              className="mx-auto rounded-xl bg-[var(--app-code-surface)] p-3"
-            />
-            <p className="text-sm">
-              {t("Enter this setup key manually in your authenticator app.")}
-            </p>
-            <code
-              dir="ltr"
-              className="block break-all rounded-xl border p-3 text-center"
-            >
-              {setup.secret}
-            </code>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => copy(setup.secret, "secret")}
-            >
-              {copied === "secret" ? <Check /> : <Copy />}
-              {t(copied === "secret" ? "Copied" : "Copy")}
-            </Button>
-            <form action={verifySetup} className="space-y-3">
-              <input type="hidden" name="factor_id" value={setup.factorId} />
-              <label
-                htmlFor="enrollment-code"
-                className="block text-sm font-semibold"
-              >
-                {t("6-digit code")}
-              </label>
-              <input
-                id="enrollment-code"
-                name="code"
-                required
-                pattern="[0-9]{6}"
-                maxLength={6}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                dir="ltr"
-                className={inputClass}
-              />
-              <div className="flex flex-wrap gap-3">
-                <Button disabled={busy}>
-                  {t(busy ? "Please wait…" : "Verify and enable")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => cancelSetup(setup.factorId)}
-                >
-                  {t("Cancel")}
-                </Button>
-              </div>
-            </form>
-          </div>
-        )}
       </section>
+
       {initialState.enabled && (
         <section className={accountCardClass}>
           <h2 className="flex items-center gap-2 text-xl font-bold">
             <KeyRound />
             {t("Backup codes")}
           </h2>
+
           {!initialState.recoveryCodes.available ? (
             <p className="mt-3 text-sm text-muted-foreground">
               {t("Backup codes are not available for this project yet.")}
             </p>
-          ) : backupCodes.length ? (
-            <div className="mt-4 space-y-4">
-              <p className="text-sm text-[var(--app-gold)]">
-                {t(
-                  "Store these codes somewhere safe. They are shown only once.",
-                )}
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2" dir="ltr">
-                {formattedBackupCodes.map((code) => (
-                  <code
-                    key={code}
-                    className="select-all rounded-xl border p-3 text-center"
-                  >
-                    {code}
-                  </code>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    copy(formattedBackupCodes.join("\n"), "backup")
-                  }
-                >
-                  {t(copied === "backup" ? "Copied" : "Copy all backup codes")}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setBackupCodes([]);
-                    router.refresh();
-                  }}
-                >
-                  {t("I saved my backup codes")}
-                </Button>
-              </div>
-            </div>
           ) : (
             <div className="mt-4 space-y-3">
               {initialState.recoveryCodes.enabled && (
@@ -419,6 +372,7 @@ export function SecurityCenter({
           )}
         </section>
       )}
+
       <section className={accountCardClass}>
         <h2 className="text-xl font-bold">{t("Sessions")}</h2>
         {initialState.currentSession && (
@@ -456,76 +410,222 @@ export function SecurityCenter({
           </Button>
         </div>
       </section>
-      {operation && (
-        <section className={accountCardClass}>
-          <h2 className="text-lg font-bold">{t(labels[operation])}</h2>
-          {(operation === "disable" ||
-            (operation === "remove" && initialState.factors.length === 1)) && (
-            <p className="mt-3 text-sm text-destructive">
-              {t(
-                "Your account will return to password-only sign in until you enable an authenticator again.",
-              )}
-            </p>
-          )}
-          {operation === "regenerate" && (
-            <p className="mt-3 text-sm text-muted-foreground">
-              {t(
-                "Generating new backup codes will invalidate every old backup code.",
-              )}
-            </p>
-          )}
-          <form
-            key={`${operation}:${target}`}
-            action={submit}
-            className="mt-4 space-y-4"
-          >
-            {operation === "setup" && (
-              <>
-                <label
-                  htmlFor="factor-name"
-                  className="block text-sm font-semibold"
-                >
-                  {t("Authenticator name")}
-                </label>
-                <input
-                  id="factor-name"
-                  name="friendly_name"
-                  required
-                  maxLength={60}
-                  className={inputClass}
-                />
-              </>
-            )}
-            <FreshIdentityFields state={initialState} />
-            <div className="flex flex-wrap gap-3">
-              <Button disabled={busy}>
-                {t(busy ? "Please wait…" : "Confirm")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy}
-                onClick={() => {
-                  setOperation(null);
-                  setMessage({});
-                }}
-              >
-                {t("Cancel")}
-              </Button>
-            </div>
-          </form>
-        </section>
-      )}
-      {message.error && (
+
+      {!operation && message.error && (
         <p role="alert" className="text-sm text-destructive">
           {t(message.error)}
         </p>
       )}
-      {message.success && (
+      {!operation && message.success && (
         <p role="status" className="text-sm font-medium text-primary">
           {t(message.success)}
         </p>
       )}
+
+      <SecurityActionDialog
+        open={operation !== null}
+        title={operation ? labels[operation] : "Security"}
+        description={dialogDescription}
+        busy={busy}
+        onClose={closeDialog}
+      >
+        {operation === "setup" && !setup && (
+          <form action={submit} className="space-y-5">
+            <FreshIdentityFields state={initialState} />
+            {message.error && (
+              <p
+                role="alert"
+                className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm leading-6 text-destructive"
+              >
+                {t(message.error)}
+              </p>
+            )}
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={closeDialog}
+              >
+                {t("Cancel")}
+              </Button>
+              <Button disabled={busy}>
+                {t(busy ? "Please wait…" : "Confirm")}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {operation === "setup" && setup && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border bg-background/70 p-4">
+              <h3 className="font-bold">{t("Scan the QR code")}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {t(
+                  "Open Google Authenticator, tap Add account, then scan this QR code.",
+                )}
+              </p>
+              <Image
+                src={setup.qrCode}
+                alt={t("Authenticator QR code")}
+                width={220}
+                height={220}
+                unoptimized
+                className="mx-auto mt-4 rounded-xl bg-[var(--app-code-surface)] p-3"
+              />
+            </div>
+
+            <div className="rounded-2xl border bg-background/70 p-4">
+              <p className="text-sm font-semibold">{t("Cannot scan it?")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t(
+                  "Enter this setup key manually in your authenticator app.",
+                )}
+              </p>
+              <code
+                dir="ltr"
+                className="mt-3 block break-all rounded-xl border bg-card p-3 text-center"
+              >
+                {setup.secret}
+              </code>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3"
+                onClick={() => copy(setup.secret, "secret")}
+              >
+                {copied === "secret" ? <Check /> : <Copy />}
+                {t(copied === "secret" ? "Copied" : "Copy")}
+              </Button>
+            </div>
+
+            <form action={verifySetup} className="space-y-4">
+              <input type="hidden" name="factor_id" value={setup.factorId} />
+              <div className="space-y-2">
+                <label
+                  htmlFor="enrollment-code"
+                  className="block text-sm font-semibold"
+                >
+                  {t("6-digit code")}
+                </label>
+                <input
+                  id="enrollment-code"
+                  name="code"
+                  required
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  dir="ltr"
+                  autoFocus
+                  className={inputClass}
+                />
+              </div>
+
+              {message.error && (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm leading-6 text-destructive"
+                >
+                  {t(message.error)}
+                </p>
+              )}
+
+              <div className="flex flex-wrap justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => cancelSetup(setup.factorId)}
+                >
+                  {t("Cancel")}
+                </Button>
+                <Button disabled={busy}>
+                  {t(busy ? "Please wait…" : "Verify and enable")}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {(operation === "generate" || operation === "regenerate") &&
+        backupCodes.length ? (
+          <div className="space-y-5">
+            <p className="text-sm leading-6 text-[var(--app-gold)]">
+              {t(
+                "Store these codes somewhere safe. They are shown only once.",
+              )}
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2" dir="ltr">
+              {formattedBackupCodes.map((code) => (
+                <code
+                  key={code}
+                  className="select-all rounded-xl border bg-background p-3 text-center"
+                >
+                  {code}
+                </code>
+              ))}
+            </div>
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  copy(formattedBackupCodes.join("\n"), "backup")
+                }
+              >
+                {copied === "backup" ? <Check /> : <Copy />}
+                {t(copied === "backup" ? "Copied" : "Copy all backup codes")}
+              </Button>
+              <Button
+                onClick={() => {
+                  setBackupCodes([]);
+                  setOperation(null);
+                  setMessage({
+                    success: "Backup codes are ready. Save them somewhere safe now.",
+                  });
+                  router.refresh();
+                }}
+              >
+                {t("I saved my backup codes")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          operation &&
+          operation !== "setup" && (
+            <form
+              key={`${operation}:${target}`}
+              action={submit}
+              className="space-y-5"
+            >
+              <FreshIdentityFields state={initialState} />
+
+              {message.error && (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm leading-6 text-destructive"
+                >
+                  {t(message.error)}
+                </p>
+              )}
+
+              <div className="flex flex-wrap justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={closeDialog}
+                >
+                  {t("Cancel")}
+                </Button>
+                <Button disabled={busy}>
+                  {t(busy ? "Please wait…" : "Confirm")}
+                </Button>
+              </div>
+            </form>
+          )
+        )}
+      </SecurityActionDialog>
     </AccountShell>
   );
 }
