@@ -197,4 +197,28 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
     "تغییرات ذخیره نشد. اینترنت را بررسی کنید و دوباره تلاش کنید.",
   "Choose a valid time zone.": "یک منطقه زمانی معتبر انتخاب کنید.",
   "Choose a valid country.": "یک کشور معتبر انتخاب کنید.",
+  "Use the guides above, email support, or prepare a ticket draft.":
+    "از راهنماهای بالا استفاده کنید، به پشتیبانی ایمیل بزنید یا پیش‌نویس تیکت آماده کنید.",
+  Username: "نام کاربری",
+  "Current username": "نام کاربری فعلی",
+  "Username not set": "نام کاربری تعیین نشده",
+  "Your username is separate from your full name and can be used to sign in.":
+    "نام کاربری از نام و نام خانوادگی جداست و می‌توانید با آن وارد حساب شوید.",
+  "Your full name is separate from your username.":
+    "نام و نام خانوادگی از نام کاربری جداست.",
+  "Two-step verification required": "تأیید دومرحله‌ای لازم است",
+  "Enable two-step verification before setting or changing your username.":
+    "برای تعیین یا تغییر نام کاربری، ابتدا تأیید دومرحله‌ای را فعال کنید.",
+  "Open Security": "رفتن به امنیت",
+  "New username": "نام کاربری جدید",
+  "This username is already taken.": "این نام کاربری قبلاً گرفته شده است.",
+  "Sign in again before changing your username.":
+    "برای تغییر نام کاربری دوباره وارد حساب شوید.",
+  "Enter a fresh code from your authenticator to change your username.":
+    "برای تغییر نام کاربری، کد جدید برنامه احراز هویت را وارد کنید.",
+  "Username is already set to this value.": "نام کاربری همین مقدار است.",
+  "Username changed.": "نام کاربری تغییر کرد.",
+  "Username set.": "نام کاربری تعیین شد.",
+  "Change username": "تغییر نام کاربری",
+  "Set username": "تعیین نام کاربری",
 };
