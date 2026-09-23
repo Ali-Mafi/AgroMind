@@ -456,7 +456,7 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Separated Full Name from Username in Account/Profile. Legacy accounts with no canonical username now show an explicit unset state instead of deriving identity from `full_name`.
 - Added a dedicated username mutation flow that requires a fresh TOTP challenge, uses the existing username availability function, and relies on the existing `profiles_username_lower_unique` index for race-safe duplicate rejection. The migration adds only the MFA-gated mutation RPC; it does not add a redundant index.
 - Production database audit found no duplicate non-null usernames. Six profiles existed: three with usernames and three with `username = NULL`; Auth username metadata matched profile usernames where present.
-- Validation: migration syntax checked in a rolled-back hosted transaction; GitHub Foundation checks passed lint, typecheck, application tests, native PostgreSQL tests, localization, production build and HTTP checks; Vercel preview is green.
+- Validation: migration syntax checked in a rolled-back hosted transaction and `secure_username_change` applied successfully to Production; GitHub Foundation checks passed lint, typecheck, application tests, native PostgreSQL tests, localization, production build and HTTP checks; Vercel preview is green.
 - Deferred by design: Signup redesign, Home/Dashboard visual redesign and a real support-ticket backend.
 - Details: [2026-09-23 progress](progress/2026-09-23.md).
 
