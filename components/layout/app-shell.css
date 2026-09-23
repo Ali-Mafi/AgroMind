@@ -258,7 +258,7 @@
 }
 
 @media (max-width: 639px) {
-  .security-action-dialog {
+  .security-action-dialog--sheet {
     inset:
       max(0.75rem, env(safe-area-inset-top))
       0.75rem
@@ -273,7 +273,35 @@
     animation-name: security-sheet-in;
   }
 
-  .security-action-dialog__body {
+  .security-action-dialog--compact {
+    inset: 0;
+    width: min(calc(100vw - 2rem), 30rem);
+    height: fit-content;
+    max-width: 30rem;
+    max-height: calc(
+      100dvh - max(2rem, env(safe-area-inset-top) + env(safe-area-inset-bottom))
+    );
+    margin: auto;
+    border-radius: 1.5rem;
+    animation-name: security-dialog-in;
+  }
+
+  .security-action-dialog--compact[open] {
+    grid-template-rows: auto auto;
+  }
+
+  .security-action-dialog--compact .security-action-dialog__body {
+    overflow-y: auto;
+    scroll-padding-bottom: 1rem;
+  }
+
+  .security-action-dialog--compact .security-action-dialog__actions {
+    position: static;
+    margin-top: 1.25rem;
+    margin-bottom: -1.25rem;
+  }
+
+  .security-action-dialog--sheet .security-action-dialog__body {
     min-height: 0;
     scroll-padding-bottom: 5.5rem;
   }

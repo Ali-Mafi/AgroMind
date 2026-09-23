@@ -135,10 +135,31 @@ test("security sheet exposes the final action and shows loading feedback on iOS"
     "security submit actions should expose busy state",
   );
   assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*0/);
-  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*-1\.25rem/);
+  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*\n\s*bottom:\s*-1\.25rem/);
   assert.match(
     css,
-    /@media \(max-width: 639px\)[\s\S]*\.security-action-dialog\s*\{[\s\S]*safe-area-inset-top[\s\S]*safe-area-inset-bottom/,
+    /@media \(max-width: 639px\)[\s\S]*\.security-action-dialog--sheet\s*\{[\s\S]*safe-area-inset-top[\s\S]*safe-area-inset-bottom/,
   );
   assert.match(css, /scroll-padding-bottom:\s*5\.5rem/);
+});
+
+
+test("fresh identity confirmation uses a compact popup while QR setup keeps the scrollable sheet", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const dialog = source("features/account/components/security-action-dialog.tsx");
+  const css = source("components/layout/app-shell.css");
+
+  assert.match(dialog, /variant\?: ["']compact["'] \| ["']sheet["']/);
+  assert.match(
+    security,
+    /variant=\{setup \|\| backupCodes\.length \? ["']sheet["'] : ["']compact["']\}/,
+  );
+  assert.match(
+    css,
+    /\.security-action-dialog--compact\s*\{[\s\S]*height:\s*fit-content[\s\S]*margin:\s*auto/,
+  );
+  assert.match(
+    css,
+    /\.security-action-dialog--compact \.security-action-dialog__actions\s*\{[\s\S]*position:\s*static/,
+  );
 });

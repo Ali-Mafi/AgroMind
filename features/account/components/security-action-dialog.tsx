@@ -9,6 +9,7 @@ export function SecurityActionDialog({
   title,
   description,
   busy = false,
+  variant = "sheet",
   onClose,
   children,
 }: {
@@ -16,6 +17,7 @@ export function SecurityActionDialog({
   title: string;
   description?: string;
   busy?: boolean;
+  variant?: "compact" | "sheet";
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -41,7 +43,7 @@ export function SecurityActionDialog({
   return (
     <dialog
       ref={dialogRef}
-      className="security-action-dialog"
+      className={`security-action-dialog security-action-dialog--${variant}`}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onCancel={(event) => {

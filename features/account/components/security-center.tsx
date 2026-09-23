@@ -431,6 +431,7 @@ export function SecurityCenter({
         title={operation ? labels[operation] : "Security"}
         description={dialogDescription}
         busy={busy}
+        variant={setup || backupCodes.length ? "sheet" : "compact"}
         onClose={closeDialog}
       >
         {operation === "setup" && !setup && (
