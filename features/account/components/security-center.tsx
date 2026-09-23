@@ -83,6 +83,9 @@ export function SecurityCenter({
   const [target, setTarget] = useState("");
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
+  const freshIdentityFormRef = useRef<HTMLFormElement>(null);
+  const verifySetupFormRef = useRef<HTMLFormElement>(null);
+  const operationFormRef = useRef<HTMLFormElement>(null);
   const [message, setMessage] = useState<MfaActionState>({});
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [copied, setCopied] = useState<"secret" | "backup" | null>(null);
@@ -238,6 +241,98 @@ export function SecurityCenter({
             : operation === "others" || operation === "global"
               ? "AgroMind blocks revoked sessions from cloud data immediately. Previously issued tokens may remain valid at the authentication provider until they expire."
               : undefined;
+
+  const loadingIcon = (
+    <LoaderCircle
+      className="animate-spin motion-reduce:animate-none"
+      aria-hidden="true"
+    />
+  );
+
+  const dialogFooter =
+    operation === "setup" && !setup ? (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={closeDialog}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button
+          type="button"
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => freshIdentityFormRef.current?.requestSubmit()}
+        >
+          {busy ? loadingIcon : t("Confirm")}
+        </Button>
+      </>
+    ) : operation === "setup" && setup ? (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => cancelSetup(setup.factorId)}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button
+          type="button"
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => verifySetupFormRef.current?.requestSubmit()}
+        >
+          {busy ? loadingIcon : t("Verify and enable")}
+        </Button>
+      </>
+    ) : (operation === "generate" || operation === "regenerate") &&
+      backupCodes.length ? (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => copy(formattedBackupCodes.join("\n"), "backup")}
+        >
+          {copied === "backup" ? <Check /> : <Copy />}
+          {t(copied === "backup" ? "Copied" : "Copy all backup codes")}
+        </Button>
+        <Button
+          type="button"
+          onClick={() => {
+            setBackupCodes([]);
+            setOperation(null);
+            setMessage({
+              success: "Backup codes are ready. Save them somewhere safe now.",
+            });
+            router.refresh();
+          }}
+        >
+          {t("I saved my backup codes")}
+        </Button>
+      </>
+    ) : operation && operation !== "setup" ? (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={closeDialog}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button
+          type="button"
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => operationFormRef.current?.requestSubmit()}
+        >
+          {busy ? loadingIcon : t("Confirm")}
+        </Button>
+      </>
+    ) : null;
 
   return (
     <AccountShell title="Security">
@@ -443,9 +538,11 @@ export function SecurityCenter({
         busy={busy}
         variant={setup || backupCodes.length ? "sheet" : "compact"}
         onClose={closeDialog}
+        footer={dialogFooter}
       >
         {operation === "setup" && !setup && (
           <form
+            ref={freshIdentityFormRef}
             onSubmit={(event) => submitForm(event, submit)}
             className="space-y-5"
           >
@@ -458,26 +555,6 @@ export function SecurityCenter({
                 {t(message.error)}
               </p>
             )}
-            <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy}
-                onClick={closeDialog}
-              >
-                {t("Cancel")}
-              </Button>
-              <Button type="submit" disabled={busy} aria-busy={busy}>
-                {busy ? (
-                  <LoaderCircle
-                    className="animate-spin motion-reduce:animate-none"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  t("Confirm")
-                )}
-              </Button>
-            </div>
           </form>
         )}
 
@@ -525,6 +602,7 @@ export function SecurityCenter({
             </div>
 
             <form
+              ref={verifySetupFormRef}
               onSubmit={(event) => submitForm(event, verifySetup)}
               className="space-y-4"
             >
@@ -558,26 +636,6 @@ export function SecurityCenter({
                 </p>
               )}
 
-              <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => cancelSetup(setup.factorId)}
-                >
-                  {t("Cancel")}
-                </Button>
-                <Button type="submit" disabled={busy} aria-busy={busy}>
-                  {busy ? (
-                    <LoaderCircle
-                      className="animate-spin motion-reduce:animate-none"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    t("Verify and enable")
-                  )}
-                </Button>
-              </div>
             </form>
           </div>
         )}
@@ -600,34 +658,12 @@ export function SecurityCenter({
                 </code>
               ))}
             </div>
-            <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  copy(formattedBackupCodes.join("\n"), "backup")
-                }
-              >
-                {copied === "backup" ? <Check /> : <Copy />}
-                {t(copied === "backup" ? "Copied" : "Copy all backup codes")}
-              </Button>
-              <Button
-                onClick={() => {
-                  setBackupCodes([]);
-                  setOperation(null);
-                  setMessage({
-                    success: "Backup codes are ready. Save them somewhere safe now.",
-                  });
-                  router.refresh();
-                }}
-              >
-                {t("I saved my backup codes")}
-              </Button>
-            </div>
           </div>
         ) : (
           operation &&
           operation !== "setup" && (
             <form
+              ref={operationFormRef}
               key={`${operation}:${target}`}
               onSubmit={(event) => submitForm(event, submit)}
               className="space-y-5"
@@ -643,26 +679,6 @@ export function SecurityCenter({
                 </p>
               )}
 
-              <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={closeDialog}
-                >
-                  {t("Cancel")}
-                </Button>
-                <Button type="submit" disabled={busy} aria-busy={busy}>
-                {busy ? (
-                  <LoaderCircle
-                    className="animate-spin motion-reduce:animate-none"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  t("Confirm")
-                )}
-              </Button>
-              </div>
             </form>
           )
         )}
