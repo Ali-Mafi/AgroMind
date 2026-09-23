@@ -13,11 +13,11 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Reset password": "بازیابی رمز عبور",
 
   "Your account": "حساب کاربری شما",
-  Profile: "پروفایل",
-  "Edit profile": "ویرایش پروفایل",
+  Profile: "مشخصات من",
+  "Edit profile": "ویرایش مشخصات",
   Account: "حساب کاربری",
   "Account status": "وضعیت حساب",
-  "Current plan": "پلن فعلی",
+  "Current plan": "طرح فعلی",
   "Farm usage": "تعداد مزرعه‌ها",
   "Account navigation": "بخش‌های حساب کاربری",
   Overview: "نمای کلی",
@@ -35,11 +35,11 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Hide password": "پنهان‌کردن رمز عبور",
   "Sign out": "خروج از حساب",
   "Sign out failed. Please try again.": "خروج انجام نشد. دوباره تلاش کنید.",
-  "Please wait…": "لطفاً صبر کنید…",
+  "Please wait…": "در حال انجام…",
   "Country / Region": "کشور / منطقه",
   "Time zone": "منطقه زمانی",
   "Account created": "تاریخ ایجاد حساب",
-  "Profile saved.": "پروفایل ذخیره شد.",
+  "Profile saved.": "مشخصات ذخیره شد.",
   "Save changes": "ذخیره تغییرات",
   "Your verified email is managed separately for account security.":
     "برای امنیت حساب، تغییر ایمیل تأییدشده فرایند جداگانه‌ای دارد.",
@@ -59,7 +59,7 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "A few simple steps will make AgroMind yours. Your progress is saved as you continue.":
     "با چند مرحله ساده، AgroMind را برای خودتان تنظیم کنید. پیشرفت شما در هر مرحله ذخیره می‌شود.",
   "Create first farm": "ایجاد اولین مزرعه",
-  "Open dashboard": "ورود به داشبورد",
+  "Open dashboard": "رفتن به خانه",
   Back: "بازگشت",
   "Your first farm is ready. You can now open your dashboard.":
     "اولین مزرعه شما آماده است. اکنون می‌توانید وارد داشبورد شوید.",
@@ -72,8 +72,8 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Advanced irrigation": "آبیاری پیشرفته",
   "Automation access": "دسترسی به خودکارسازی",
   "Advanced analytics": "تحلیل پیشرفته",
-  Included: "شامل می‌شود",
-  "Not included": "شامل نمی‌شود",
+  Included: "فعال در این طرح",
+  "Not included": "در این طرح ارائه نمی‌شود",
   Started: "شروع اشتراک",
   Ends: "پایان اشتراک",
   active: "فعال",
@@ -84,7 +84,7 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Saved irrigation schedules": "برنامه‌های آبیاری ذخیره‌شده",
   "Schedules stored securely with your farms.":
     "برنامه‌ها همراه اطلاعات مزرعه‌های شما به‌صورت امن ذخیره شده‌اند.",
-  "Additional usage": "سایر موارد استفاده",
+  "Additional usage": "سایر امکانات",
   "Sensor, team and AI usage tracking is not active yet.":
     "ثبت میزان استفاده از حسگرها، تیم و هوش مصنوعی هنوز فعال نیست.",
   "Local backup imported": "نسخه محلی منتقل شد",
@@ -156,9 +156,9 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
     "نشست شما منقضی شده است. ایمیل جدیدی برای بازیابی رمز عبور درخواست کنید.",
   "Choose a password different from your current password.":
     "رمز عبوری متفاوت با رمز فعلی انتخاب کنید.",
-  "Your cloud data could not be loaded.": "دریافت اطلاعات ابری انجام نشد.",
+  "Your cloud data could not be loaded.": "اطلاعات حساب دریافت نشد.",
   "Your cloud data could not be loaded. Please try again.":
-    "دریافت اطلاعات ابری انجام نشد. دوباره تلاش کنید.",
+    "اطلاعات حساب دریافت نشد. دوباره تلاش کنید.",
   "Please try again. No local data has been removed.":
     "دوباره تلاش کنید. هیچ داده محلی حذف نشده است.",
   "Move your farms to the cloud": "انتقال مزرعه‌ها به فضای ابری",
@@ -190,11 +190,11 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Create or import your first farm to continue.":
     "برای ادامه، اولین مزرعه را ایجاد یا منتقل کنید.",
   "Complete your profile to continue.":
-    "برای ادامه، پروفایل خود را تکمیل کنید.",
+    "برای ادامه، مشخصات خود را کامل کنید.",
   "This farm ID already exists with different data. Reload before trying again.":
     "مزرعه‌ای با این شناسه و اطلاعات متفاوت موجود است. پیش از تلاش مجدد، صفحه را بارگذاری کنید.",
   "The change could not be saved. Check your connection and try again.":
-    "تغییر ذخیره نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.",
+    "تغییرات ذخیره نشد. اینترنت را بررسی کنید و دوباره تلاش کنید.",
   "Choose a valid time zone.": "یک منطقه زمانی معتبر انتخاب کنید.",
   "Choose a valid country.": "یک کشور معتبر انتخاب کنید.",
 };

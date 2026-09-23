@@ -160,13 +160,13 @@ export default function FarmLocationPicker({
               <button
                 type="button"
                 onClick={handleUseCurrentLocation}
-                className="absolute bottom-4 right-4 z-500 inline-flex items-center gap-2 rounded-xl border bg-card/95 px-4 py-3 text-sm font-semibold shadow-lg backdrop-blur transition-all hover:border-primary hover:bg-card hover:text-primary"
+                className="absolute bottom-4 end-4 z-500 inline-flex items-center gap-2 rounded-xl border bg-card/95 px-4 py-3 text-sm font-semibold shadow-lg backdrop-blur transition-all hover:border-primary hover:bg-card hover:text-primary"
               >
                 <Crosshair className="h-4 w-4" /><T text="Use my location" /></button>
 
               {/* Coordinates */}
               {selectedLocation && (
-                <div className="absolute left-4 top-4 z-500 rounded-xl border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
+                <div className="absolute start-4 top-4 z-500 rounded-xl border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
                   <p className="text-[11px] font-medium text-muted-foreground"><T text="Selected coordinates" /></p>
 
                   <p className="mt-1 text-xs font-semibold">

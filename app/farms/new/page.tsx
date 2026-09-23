@@ -7,7 +7,7 @@ import { MeasurementInput } from "@/features/settings/components/measurement-inp
 
 import { useMemo, useRef, useState } from "react";
 import { BackButton } from "@/features/navigation/components/back-button";
-import { ArrowLeft, ArrowRight, MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2, Sprout, Wheat, TreePine } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,10 @@ import FarmLocationPicker from "@/features/farms/components/farm-location-picker
 import type { FarmLocation, FarmType } from "@/features/farms/types/farms";
 import { getIrrigationTypeLabel, type IrrigationType } from "@/features/farms/constants/irrigation-types";
 import { IrrigationTypeSelector } from "@/features/farms/components/irrigation-type-selector";
+
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
+import { EmptyState } from "@/components/ui/workspace";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface GardenPlant {
   id: number;
@@ -248,9 +252,21 @@ export default function NewFarmPage() {
   finally { creationPending.current = false; setIsCreating(false); }
 };
 
+  // Presentation only: the existing entitlement remains the source of truth.
+  if (!canCreateFarm) return (
+    <main className="app-page !max-w-3xl">
+      <PageHeader back title={t("Add Farm")} />
+      <EmptyState
+        icon={<Sprout size={28} />}
+        title={t("Your plan's farm limit is reached")}
+        description={<>{t("You've reached the farm limit for your current plan.")}{Number.isFinite(farmLimit) && <span className="mt-3 block font-medium text-foreground">{t("Current plan: up to {limit} farms.", { limit: format.number(farmLimit) })}</span>}</>}
+        action={<Link href="/account/subscription" className="app-primary-link">{t("View subscription")}</Link>}
+      />
+    </main>
+  );
+
   return (
     <main className="app-page !max-w-3xl space-y-8">
-      {!canCreateFarm && <p role="status" className="rounded-2xl border border-gold/30 bg-gold/10 p-4 text-sm">{t("Farm limit reached: {limit} farms.", { limit: farmLimit })} <Link href="/account/subscription" className="font-semibold text-primary underline">{t("View subscription")}</Link></p>}
       {creationError && <p role="alert" className="text-sm text-destructive">{t(creationError)}</p>}
       <div className="space-y-1">
         <BackButton />
@@ -279,7 +295,7 @@ export default function NewFarmPage() {
                 }`}
               />
 
-              <p className="mt-2 text-xs text-muted-foreground"><T text="Step" />{" "}{item}
+              <p className="mt-2 text-xs text-muted-foreground"><T text="Step" />{" "}{format.number(item)}
               </p>
             </div>
           ),
@@ -289,7 +305,7 @@ export default function NewFarmPage() {
       <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
         {/* STEP 1 */}
         {step === 1 && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold"><T text="What do you want to manage?" /></h2>
 
@@ -300,13 +316,14 @@ export default function NewFarmPage() {
               <button
                 type="button"
                 onClick={() => setFarmType("farm")}
-                className={`group rounded-2xl border p-6 text-start transition-all ${
+                aria-pressed={farmType === "farm"}
+                className={`app-control group rounded-2xl border p-6 text-start transition-all ${
                   farmType === "farm"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "bg-background hover:border-primary/50 hover:bg-primary/5"
                 }`}
               >
-                <div className="text-4xl">🌾</div>
+                <div className="app-icon-container"><Wheat size={25} aria-hidden="true" /></div>
 
                 <h3 className="mt-4 text-lg font-bold"><T text="Farm" /></h3>
 
@@ -320,13 +337,14 @@ export default function NewFarmPage() {
               <button
                 type="button"
                 onClick={() => setFarmType("garden")}
-                className={`group rounded-2xl border p-6 text-start transition-all ${
+                aria-pressed={farmType === "garden"}
+                className={`app-control group rounded-2xl border p-6 text-start transition-all ${
                   farmType === "garden"
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "bg-background hover:border-primary/50 hover:bg-primary/5"
                 }`}
               >
-                <div className="text-4xl">🌳</div>
+                <div className="app-icon-container"><TreePine size={25} aria-hidden="true" /></div>
 
                 <h3 className="mt-4 text-lg font-bold"><T text="Garden" /></h3>
 
@@ -342,7 +360,7 @@ export default function NewFarmPage() {
 
         {/* STEP 2 */}
         {step === 2 && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold">
                 {farmType === "farm"
@@ -362,7 +380,7 @@ export default function NewFarmPage() {
                   className="text-sm font-medium"
                 >
                   {farmType === "farm" ? t("Farm Name") : t("Garden Name")}
-                    <span className="ml-1 text-destructive">*</span>
+                    <span className="ms-1 text-destructive">*</span>
                 </label>
 
                 <input
@@ -397,7 +415,7 @@ export default function NewFarmPage() {
                 </div>
 
                 <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <MapPin className="pointer-events-none absolute start-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
                   <input
                     id="farm-location"
@@ -407,12 +425,12 @@ export default function NewFarmPage() {
                       setLocation(event.target.value)
                     }
                     placeholder={t("e.g. Qazvin, Iran")}
-                    className="w-full rounded-xl border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-xl border bg-background py-2.5 ps-10 pe-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium"><T text="Exact Location" /><span className="ml-1 text-destructive">*</span>
+                  <p className="text-sm font-medium"><T text="Exact Location" /><span className="ms-1 text-destructive">*</span>
                   </p>
 
                   {coordinates && (
@@ -433,7 +451,7 @@ export default function NewFarmPage() {
 
         {/* STEP 3 */}
         {step === 3 && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold"><T text="Area" /></h2>
 
@@ -484,10 +502,10 @@ export default function NewFarmPage() {
                     value={area}
                     onValueChange={(canonical) => setArea(canonical)}
                     placeholder={format.input(6000, farmType === "garden" ? "gardenArea" : "area")}
-                    className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-xl border bg-background px-3 py-2.5 pe-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
 
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(farmType === "garden" ? "gardenArea" : "area")}</span>
+                  <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(farmType === "garden" ? "gardenArea" : "area")}</span>
                 </div>
               </div>
             )}
@@ -510,10 +528,10 @@ export default function NewFarmPage() {
                           setLength(canonical)
                         }
                         placeholder={format.input(100, "length")}
-                        className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
 
@@ -532,10 +550,10 @@ export default function NewFarmPage() {
                           setWidth(canonical)
                         }
                         placeholder={format.input(60, "length")}
-                        className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
                 </div>
@@ -570,7 +588,7 @@ export default function NewFarmPage() {
 
         {/* STEP 4 */}
         {step === 4 && farmType === "farm" && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold"><T text="Crop" /></h2>
 
@@ -597,7 +615,7 @@ export default function NewFarmPage() {
 
         {/* STEP 4 GARDEN */}
         {step === 4 && farmType === "garden" && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold"><T text="Plants & Trees" /></h2>
 
@@ -690,10 +708,10 @@ export default function NewFarmPage() {
                               )
                             }
                             placeholder={format.input(6, "length")}
-                            className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
 
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                          <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                         </div>
                       </div>
 
@@ -713,10 +731,10 @@ export default function NewFarmPage() {
                               )
                             }
                             placeholder={t("e.g. 4")}
-                            className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
 
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"><T text="yrs" /></span>
+                          <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"><T text="yrs" /></span>
                         </div>
                       </div>
                     </div>
@@ -741,7 +759,7 @@ export default function NewFarmPage() {
 
         {/* STEP 5 FARM - IRRIGATION */}
           {step === 5 && farmType === "farm" && (
-            <div className="space-y-6">
+            <div className="app-state-enter space-y-6">
               <div>
                 <h2 className="text-xl font-bold"><T text="Irrigation" /></h2>
 
@@ -758,7 +776,7 @@ export default function NewFarmPage() {
         {/* REVIEW */}
         {((step === 6 && farmType === "farm") ||
           (step === 5 && farmType === "garden")) && (
-          <div className="space-y-6">
+          <div className="app-state-enter space-y-6">
             <div>
               <h2 className="text-xl font-bold"><T text="Review" />{" "}{farmType === "farm" ? t("Farm") : t("Garden")}
               </h2>
@@ -869,7 +887,7 @@ export default function NewFarmPage() {
             disabled={step === 1}
             className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" /><span className="sr-only"><T text="Previous" /></span></button>
+            <NavigationArrow toward="back" size={20} /><T text="Previous" /></button>
 
           {step < totalSteps && (
             <button
@@ -880,7 +898,7 @@ export default function NewFarmPage() {
                 (step === 2 && !canContinueStep2)
               }
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            ><T text="Next" /><ArrowRight className="h-4 w-4" />
+            ><T text="Next" /><NavigationArrow size={16} />
             </button>
           )}
         </div>

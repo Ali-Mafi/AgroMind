@@ -1,11 +1,11 @@
 "use client";
+import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import Link from "next/link";
 import {
   CalendarClock,
   MapPin,
   Plus,
   Sprout,
-  ArrowUpRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -100,7 +100,7 @@ export function DashboardOverview() {
                   ? "Review schedule"
                   : "Schedule irrigation",
             )}
-            <ArrowUpRight size={17} className="rtl:-rotate-90" />
+            <NavigationArrow size={17} />
           </Link>
         }
       >
@@ -119,7 +119,7 @@ export function DashboardOverview() {
               href={`/farms/${farm.id}`}
             >
               {t("Farm overview")}
-              <ArrowUpRight size={17} />
+              <NavigationArrow size={17} />
             </Link>
           }
         />

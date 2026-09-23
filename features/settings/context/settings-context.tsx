@@ -1,5 +1,6 @@
 "use client";
 
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import {
   createContext,
   useContext,
@@ -84,7 +85,7 @@ export function SettingsProvider({
     document.documentElement.dir = value.direction;
   }, [value.language, value.direction]);
 
-  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
+  return <SettingsContext.Provider value={value}><DirectionProvider direction={value.direction}>{children}</DirectionProvider></SettingsContext.Provider>;
 }
 
 export function useSettings() {

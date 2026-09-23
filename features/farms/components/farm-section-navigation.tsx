@@ -25,7 +25,7 @@ export function FarmSectionNavigation({
           key={label}
           href={href}
           aria-current={label === active ? "page" : undefined}
-          className={`flex min-h-11 items-center justify-center rounded-xl px-2 text-xs font-medium transition-colors sm:px-5 sm:text-sm ${label === active ? "bg-primary/8 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+          className={`app-navigation-link flex min-h-11 items-center justify-center rounded-xl px-2 text-xs font-medium transition-colors sm:px-5 sm:text-sm ${label === active ? "bg-primary/8 text-primary" : "text-muted-foreground hover:bg-muted"}`}
         >
           {t(label)}
         </Link>

@@ -1,4 +1,5 @@
 "use client";
+import { Disclosure } from "@/components/ui/disclosure";
 import { T } from "@/features/settings/components/translated-text";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
@@ -185,7 +186,7 @@ const irrigationOverview:
       />
 
       {schedule && <button type="button" disabled={busy} onClick={() => void deleteIrrigationSchedule(selectedFarm.id)} className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive">{t("Remove schedule")}</button>}
-      <details className="app-card p-5"><summary className="cursor-pointer py-2 font-semibold">{t("Controls & sensors")}</summary><section className="mt-5" aria-label={t("Irrigation control")}>
+      <Disclosure className="app-card p-5" title={t("Controls & sensors")}><section className="mt-5" aria-label={t("Irrigation control")}>
         <IrrigationControl
           farmName={selectedFarm.name}
         />
@@ -195,7 +196,7 @@ const irrigationOverview:
         sensors={[]}
         farmName={selectedFarm.name}
       />
-      </details>
+      </Disclosure>
     </main>
   );
 }

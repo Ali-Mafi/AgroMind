@@ -95,7 +95,7 @@ export function SensorStatus({
             <p className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
               {reading.value}
 
-              <span className="ml-1 text-sm font-medium text-muted-foreground sm:text-base">
+              <span className="ms-1 text-sm font-medium text-muted-foreground sm:text-base">
                 {reading.unit}
               </span>
             </p>
