@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -14,7 +14,11 @@ import {
   signUpAction,
   verifyEmailAction,
 } from "../services/actions";
-import type { AuthFormState } from "../lib/validation";
+import {
+  PASSWORD_MIN_LENGTH,
+  passwordRequirementStatus,
+  type AuthFormState,
+} from "../lib/validation";
 import { signUpFeedback, type SignUpValues } from "../lib/sign-up-feedback";
 import { LoginCaptcha } from "./login-captcha";
 
@@ -80,6 +84,8 @@ export function AuthForm({
     null,
   );
   const [visible, setVisible] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] =
+    useState(false);
   const submitting = useRef(false);
 
   useEffect(() => {
@@ -87,6 +93,37 @@ export function AuthForm({
   }, [pending, state]);
 
   const withPassword = ["sign-in", "sign-up", "reset"].includes(mode);
+  const passwordStatus = passwordRequirementStatus(
+    values.password,
+    values.confirmPassword,
+  );
+  const passwordRequirements = [
+    {
+      key: "length",
+      label: "At least 8 characters",
+      met: passwordStatus.length,
+    },
+    {
+      key: "symbol",
+      label: "At least one symbol (for example: ! @ # $ %)",
+      met: passwordStatus.symbol,
+    },
+    {
+      key: "englishLetter",
+      label: "At least one English letter",
+      met: passwordStatus.englishLetter,
+    },
+    {
+      key: "number",
+      label: "At least one number",
+      met: passwordStatus.number,
+    },
+    {
+      key: "match",
+      label: "Passwords match",
+      met: passwordStatus.match,
+    },
+  ] as const;
   const feedback = pending
     ? {}
     : mode === "sign-up"
@@ -121,6 +158,20 @@ export function AuthForm({
           onChange={(event) => {
             const value = event.target.value;
             setValues((current) => ({ ...current, [name]: value }));
+            if (
+              mode !== "sign-in" &&
+              (name === "password" || name === "confirmPassword")
+            ) {
+              setShowPasswordRequirements(true);
+            }
+          }}
+          onFocus={() => {
+            if (
+              mode !== "sign-in" &&
+              (name === "password" || name === "confirmPassword")
+            ) {
+              setShowPasswordRequirements(true);
+            }
           }}
           autoComplete={autoComplete}
           minLength={minLength}
@@ -185,9 +236,11 @@ export function AuthForm({
       <fieldset disabled={pending} className="space-y-5 disabled:opacity-65">
         {mode === "sign-up" && (
           <>
-{field("username", "Username", "text", "username", 3)}
+            {field("username", "Username", "text", "username", 6)}
             <p className="text-xs text-muted-foreground">
-              {t("Use 3–30 lowercase letters, numbers, or underscores.")}
+              {t(
+                "Use 6–30 lowercase English letters, numbers, or underscores.",
+              )}
             </p>
           </>
         )}
@@ -203,21 +256,53 @@ export function AuthForm({
               mode === "reset" ? "New password" : "Password",
               visible ? "text" : "password",
               mode === "sign-in" ? "current-password" : "new-password",
-              mode === "sign-in" ? 1 : 12,
+              mode === "sign-in" ? 1 : PASSWORD_MIN_LENGTH,
             )}
             {mode !== "sign-in" && (
               <>
-                <p className="text-xs text-muted-foreground">
-                  {t(
-                    "Use at least 12 characters. A longer, unique passphrase is best.",
-                  )}
-                </p>
+                {(showPasswordRequirements ||
+                  Boolean(
+                    feedback.fields?.password ||
+                      feedback.fields?.confirmPassword,
+                  )) && (
+                  <div
+                    id={`${mode}-password-requirements`}
+                    className="rounded-2xl border bg-muted/25 p-4"
+                    aria-live="polite"
+                  >
+                    <ul className="space-y-2">
+                      {passwordRequirements.map((requirement) => (
+                        <li
+                          key={requirement.key}
+                          className={`flex items-center gap-2 text-xs font-medium ${
+                            requirement.met
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {requirement.met ? (
+                            <CheckCircle2
+                              className="size-4 shrink-0"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <X
+                              className="size-4 shrink-0 text-destructive"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <span>{t(requirement.label)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {field(
                   "confirmPassword",
                   "Confirm password",
                   visible ? "text" : "password",
                   "new-password",
-                  12,
+                  PASSWORD_MIN_LENGTH,
                 )}
               </>
             )}
