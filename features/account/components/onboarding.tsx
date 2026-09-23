@@ -1,10 +1,9 @@
 "use client";
-import { ArrowLeft } from "lucide-react";
 
+import { ArrowLeft, CheckCircle2, LoaderCircle, MapPin, Sprout } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CheckCircle2, LoaderCircle, MapPin, Sprout } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
@@ -23,10 +22,11 @@ import {
   reverseGeocode,
 } from "@/features/region/services/location-service";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { LogoutButton } from "./account-shell";
+import { accountInputClass, LogoutButton } from "./account-shell";
 
 const steps = [
   "Welcome to AgroMind",
+  "Your name",
   "Your region",
   "Your language",
   "Your first farm",
@@ -45,7 +45,17 @@ export function Onboarding() {
   const settings = useSettings();
   const t = useTranslation();
   const router = useRouter();
-  const [step, setStep] = useState(Math.min(cloud.profile.onboarding_step, 3));
+  const hasNames = Boolean(
+    cloud.profile.first_name.trim() && cloud.profile.last_name.trim(),
+  );
+  const [step, setStep] = useState(
+    hasNames
+      ? Math.min(cloud.profile.onboarding_step, 4)
+      : Math.min(cloud.profile.onboarding_step, 1),
+  );
+  const [firstName, setFirstName] = useState(cloud.profile.first_name);
+  const [lastName, setLastName] = useState(cloud.profile.last_name);
+  const [nameError, setNameError] = useState("");
   const [country, setCountry] = useState(
     settings.preferences.regionConfirmed
       ? settings.country
@@ -75,15 +85,26 @@ export function Onboarding() {
   };
 
   const saveAndAdvance = async () => {
-    const nextStep = Math.min(3, step + 1);
+    if (step === 0) {
+      setStep(1);
+      return;
+    }
+
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    if (!trimmedFirstName || !trimmedLastName) {
+      setNameError("Enter your first and last name.");
+      if (step !== 1) setStep(1);
+      return;
+    }
+
+    setNameError("");
+    const nextStep = Math.min(4, step + 1);
     const ok = await run(() =>
       saveProfileAction(
         {
-          first_name:
-            cloud.profile.first_name ||
-            cloud.profile.full_name ||
-            cloud.user.email.split("@")[0],
-          last_name: cloud.profile.last_name,
+          first_name: trimmedFirstName,
+          last_name: trimmedLastName,
           country_code: country,
           language: language === "fa" ? "fa" : "en",
           timezone: browserTimeZone(cloud.profile.timezone),
@@ -103,12 +124,16 @@ export function Onboarding() {
       const location = await reverseGeocode(coordinates);
       const code = location.countryCode?.toUpperCase();
       if (!code || !COUNTRY_CODES.some((value) => value === code)) {
-        setLocationError("Location could not determine your region. Choose it manually.");
+        setLocationError(
+          "Location could not determine your region. Choose it manually.",
+        );
         return;
       }
       chooseCountry(code, "detected");
     } catch {
-      setLocationError("Location could not determine your region. Choose it manually.");
+      setLocationError(
+        "Location could not determine your region. Choose it manually.",
+      );
     } finally {
       setDetectingLocation(false);
     }
@@ -126,7 +151,10 @@ export function Onboarding() {
 
       <section className="space-y-6 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm sm:p-9">
         <p className="text-sm font-semibold text-primary">
-          {t("Step {current} of {total}", { current: step + 1, total: steps.length })}
+          {t("Step {current} of {total}", {
+            current: step + 1,
+            total: steps.length,
+          })}
         </p>
         <progress
           aria-label={t("Onboarding progress")}
@@ -138,11 +166,64 @@ export function Onboarding() {
 
         {step === 0 && (
           <p className="text-sm leading-7 text-muted-foreground">
-            {t("A few simple steps will make AgroMind yours. Your progress is saved as you continue.")}
+            {t(
+              "A few simple steps will make AgroMind yours. Your progress is saved as you continue.",
+            )}
           </p>
         )}
 
         {step === 1 && (
+          <div className="space-y-5">
+            <p className="text-sm leading-7 text-muted-foreground">
+              {t("Tell us your name to personalize your AgroMind account.")}
+            </p>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="onboarding-first-name" className="text-sm font-semibold">
+                  {t("First name")}
+                </label>
+                <input
+                  id="onboarding-first-name"
+                  required
+                  maxLength={60}
+                  autoComplete="given-name"
+                  dir="auto"
+                  value={firstName}
+                  onChange={(event) => {
+                    setFirstName(event.target.value);
+                    setNameError("");
+                  }}
+                  className={accountInputClass}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="onboarding-last-name" className="text-sm font-semibold">
+                  {t("Last name")}
+                </label>
+                <input
+                  id="onboarding-last-name"
+                  required
+                  maxLength={60}
+                  autoComplete="family-name"
+                  dir="auto"
+                  value={lastName}
+                  onChange={(event) => {
+                    setLastName(event.target.value);
+                    setNameError("");
+                  }}
+                  className={accountInputClass}
+                />
+              </div>
+            </div>
+            {nameError && (
+              <p role="alert" className="text-sm text-destructive">
+                {t(nameError)}
+              </p>
+            )}
+          </div>
+        )}
+
+        {step === 2 && (
           <div className="space-y-4">
             <PreferenceSelect
               label={t("Country / Region")}
@@ -179,7 +260,7 @@ export function Onboarding() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="space-y-4">
             <PreferenceSelect
               label={t("Language")}
@@ -194,7 +275,7 @@ export function Onboarding() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-5">
             <p className="text-sm leading-6 text-muted-foreground">
               {t(
@@ -211,7 +292,9 @@ export function Onboarding() {
             ) : (
               <Link
                 href="/farms/new"
-                className={buttonVariants({ className: "min-h-12 w-full rounded-xl" })}
+                className={buttonVariants({
+                  className: "min-h-12 w-full rounded-xl",
+                })}
               >
                 {t("Create first farm")}
               </Link>
@@ -225,18 +308,32 @@ export function Onboarding() {
               variant="outline"
               disabled={busy}
               className="min-h-12 rounded-xl"
-              onClick={() => setStep(step - 1)}
+              onClick={() => {
+                setNameError("");
+                setStep(step - 1);
+              }}
             >
-              <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden="true" /><span className="sr-only">{t("Back")}</span>
+              <ArrowLeft
+                className="size-5 rtl:rotate-180"
+                aria-hidden="true"
+              />
+              <span className="sr-only">{t("Back")}</span>
             </Button>
           )}
-          {step < 3 ? (
+          {step < 4 ? (
             <Button
               disabled={busy || detectingLocation}
               className="min-h-12 flex-1 rounded-xl"
               onClick={() => void saveAndAdvance()}
             >
-              {t(busy ? "Please wait…" : "Continue")}
+              {busy ? (
+                <LoaderCircle
+                  className="animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+              ) : (
+                t("Continue")
+              )}
             </Button>
           ) : (
             cloud.farms.length > 0 && (
@@ -250,7 +347,14 @@ export function Onboarding() {
                   }
                 }}
               >
-                {t("Open dashboard")}
+                {busy ? (
+                  <LoaderCircle
+                    className="animate-spin motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  t("Open dashboard")
+                )}
               </Button>
             )
           )}
