@@ -141,6 +141,8 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Enter your password.": "رمز عبور خود را وارد کنید.",
   "Enter your full name.": "نام و نام خانوادگی را وارد کنید.",
   "Enter your name.": "این بخش را وارد کنید.",
+  "Enter your first name.": "نام خود را وارد کنید.",
+  "Enter your last name.": "نام خانوادگی خود را وارد کنید.",
   "Use no more than 60 characters.": "حداکثر ۶۰ کاراکتر وارد کنید.",
   "Passwords do not match.": "رمزهای عبور یکسان نیستند.",
   "Please check the highlighted fields.":
