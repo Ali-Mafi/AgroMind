@@ -17,12 +17,14 @@ test("profile keeps first name, last name and username as separate account conce
   assert.match(username, /Username not set/);
   assert.match(username, /FreshIdentityFields/);
   assert.match(username, /href="\/account\/security"/);
+  assert.match(username, /minLength=\{6\}/);
+  assert.match(username, /\{6,30\}/);
 });
 
 test("username mutation requires fresh MFA and preserves database uniqueness", () => {
   const action = read("features/account/services/username-actions.ts");
   const migration = read(
-    "supabase/migrations/20260923111500_secure_username_change.sql",
+    "supabase/migrations/20260923205500_stronger_signup_credentials.sql",
   );
   assert.match(action, /username_available/);
   assert.match(action, /verifyFreshIdentity/);
@@ -33,6 +35,8 @@ test("username mutation requires fresh MFA and preserves database uniqueness", (
   assert.match(migration, /MFA_CHALLENGE_REQUIRED/);
   assert.match(migration, /auth\.jwt\(\)->>'aal'/);
   assert.match(migration, /unique_violation/);
+  assert.match(migration, /\^\[a-z0-9_\]\{6,30\}\$/);
+  assert.match(migration, /INVALID_USERNAME/);
   assert.doesNotMatch(migration, /create unique index/i);
 });
 
