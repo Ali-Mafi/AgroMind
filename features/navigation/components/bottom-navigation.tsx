@@ -41,7 +41,7 @@ export function BottomNavigation() {
       ? "/farms"
       : pathname;
   return (
-    <aside ref={navigation} className="app-navigation fixed inset-x-0 bottom-0 z-50 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:inset-x-auto lg:inset-y-0 lg:start-0 lg:flex lg:w-60 lg:flex-col lg:border-e lg:border-t-0 lg:p-6">
+    <aside ref={navigation} className="app-navigation app-bottom-navigation fixed inset-x-0 bottom-0 z-50 border-t bg-card pb-[env(safe-area-inset-bottom)] transition-[transform,opacity] duration-200 ease-out lg:inset-x-auto lg:inset-y-0 lg:start-0 lg:flex lg:w-60 lg:flex-col lg:border-e lg:border-t-0 lg:p-6">
       <Link
         href={target("/dashboard")}
         className="mb-14 hidden min-h-12 items-center gap-3 text-xl font-bold tracking-tight lg:flex"

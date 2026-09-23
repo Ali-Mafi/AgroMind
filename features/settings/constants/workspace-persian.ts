@@ -13,7 +13,7 @@ export const WORKSPACE_PERSIAN: Record<string, string> = {
   "A place for everything you grow.": "مزرعه‌ها و باغ‌هایتان را یکجا مدیریت کنید.",
   "Add a farm or garden to keep weather, crops and irrigation together.":
     "مزرعه یا باغ خود را اضافه کنید تا آب‌وهوا، محصول و آبیاری را یکجا ببینید.",
-  "Controls & sensors": "تجهیزات و حسگرها",
+  "Controls & sensors": "کنترل و حسگرها",
   "Skip to content": "رفتن به محتوای اصلی",
   "Loading…": "در حال بارگذاری…",
   "Simple tools for everything you grow": "ابزارهای ساده برای هر آنچه می‌کارید",

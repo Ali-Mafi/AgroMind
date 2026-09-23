@@ -83,6 +83,13 @@ export function AccountOverview() {
             <h2 className="break-words text-xl font-semibold">
               {cloud.profile.full_name || t("Your account")}
             </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {cloud.profile.username ? (
+                <bdi>@{cloud.profile.username}</bdi>
+              ) : (
+                t("Username not set")
+              )}
+            </p>
             <p className="mt-1 break-all text-sm text-muted-foreground">
               <bdi>{cloud.user.email}</bdi>
             </p>

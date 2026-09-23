@@ -446,3 +446,20 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 - Status: implementation and local automated verification complete. 167 application tests and 15 PGlite tests pass; localization, lint, typecheck, Webpack production build and 21 HTTP checks pass. Native PostgreSQL is blocked locally by `EINVAL`; default Turbopack font retrieval is restricted. CI retains both normal build and native DB gates.
 - No real ticket backend or official support address exists; the support form is explicitly draft-only, with no simulated submission. Schema/RLS/service decisions are a separate task.
 - Next step: review PR/CI and verify the authenticated iOS Safari/PWA experience, including keyboard, safe areas and visual motion. Details: [UX polish progress](progress/2026-09-22.md).
+
+
+## Step 014 — Mobile support, account identity and RTL follow-up — 2026-09-23
+
+- Improved Help & Support topic navigation with smooth question-section scrolling and activated the official support email at `support@agromind.ir`; ticket submission remains draft-only.
+- Hid the mobile bottom navigation while the Assistant composer is focused, preserved iOS safe-area/visual-viewport behavior, and left desktop navigation unchanged.
+- Renamed Persian Controls & sensors to «کنترل و حسگرها», separated the irrigation-control and sensor cards, and fixed RTL measurement-unit overlap in Add/Edit Farm.
+- Separated Full Name from Username in Account/Profile. Legacy accounts with no canonical username now show an explicit unset state instead of deriving identity from `full_name`.
+- Added a dedicated username mutation flow that requires a fresh TOTP challenge, uses the existing username availability function, and relies on the existing `profiles_username_lower_unique` index for race-safe duplicate rejection. The migration adds only the MFA-gated mutation RPC; it does not add a redundant index.
+- Production database audit found no duplicate non-null usernames. Six profiles existed: three with usernames and three with `username = NULL`; Auth username metadata matched profile usernames where present.
+- Validation: migration syntax checked in a rolled-back hosted transaction and `secure_username_change` applied successfully to Production; GitHub Foundation checks passed lint, typecheck, application tests, native PostgreSQL tests, localization, production build and HTTP checks; Vercel preview is green.
+- Deferred by design: Signup redesign, Home/Dashboard visual redesign and a real support-ticket backend.
+- Details: [2026-09-23 progress](progress/2026-09-23.md).
+
+### Next task
+
+Review and merge PR #10, then perform the separate Signup UX pass before the later Dashboard redesign.

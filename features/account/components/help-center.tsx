@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   BookOpen,
   Sprout,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { Disclosure } from "@/components/ui/disclosure";
 import { NavigationArrow } from "@/components/ui/navigation-arrow";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { HELP_TOPICS } from "../constants/help";
 import { SupportTicketForm } from "./support-ticket-form";
@@ -26,11 +26,27 @@ const icons = [
   ShieldCheck,
   SlidersHorizontal,
 ];
+
+const SUPPORT_EMAIL = "support@agromind.ir";
+
 export function HelpCenter() {
   const t = useTranslation();
+  const reducedMotion = useReducedMotion();
+  const questionsRef = useRef<HTMLElement>(null);
   const [topicId, setTopicId] = useState<string>("start");
   const topic =
     HELP_TOPICS.find((item) => item.id === topicId) ?? HELP_TOPICS[0];
+
+  const selectTopic = (nextTopicId: string) => {
+    setTopicId(nextTopicId);
+    requestAnimationFrame(() => {
+      questionsRef.current?.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  };
+
   return (
     <>
       <p className="max-w-2xl text-base leading-7 text-muted-foreground">
@@ -48,7 +64,7 @@ export function HelpCenter() {
               type="button"
               aria-pressed={topicId === item.id}
               aria-controls="help-questions"
-              onClick={() => setTopicId(item.id)}
+              onClick={() => selectTopic(item.id)}
               className="app-card app-control flex min-h-20 items-center gap-4 p-4 text-start text-sm font-semibold hover:border-primary/40 aria-pressed:border-primary/50 aria-pressed:bg-primary/5"
             >
               <span className="app-icon-container shrink-0">
@@ -60,6 +76,7 @@ export function HelpCenter() {
         })}
       </section>
       <section
+        ref={questionsRef}
         id="help-questions"
         aria-labelledby="help-questions-heading"
         className="app-card scroll-mt-6 p-5 sm:p-7"
@@ -100,9 +117,7 @@ export function HelpCenter() {
           <h2 className="text-lg font-semibold">{t("Need more help?")}</h2>
         </div>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          {t(
-            "Support contact options are being prepared. The guides above are available now.",
-          )}
+          {t("Use the guides above, email support, or prepare a ticket draft.")}
         </p>
         <Disclosure
           title={t("Submit Support Ticket")}
@@ -111,20 +126,16 @@ export function HelpCenter() {
           <SupportTicketForm />
         </Disclosure>
         <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-5">
-          <Button
-            disabled
-            variant="outline"
-            className="min-h-11 rounded-xl px-4"
-            aria-describedby="email-support-availability"
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="app-secondary-link min-h-11 rounded-xl px-4"
+            aria-label={t("Email Support")}
           >
             <Mail size={17} aria-hidden="true" />
             {t("Email Support")}
-          </Button>
-          <p
-            id="email-support-availability"
-            className="text-sm text-muted-foreground"
-          >
-            {t("An official support email has not been published yet.")}
+          </a>
+          <p className="text-sm text-muted-foreground">
+            <bdi>{SUPPORT_EMAIL}</bdi>
           </p>
         </div>
       </section>
