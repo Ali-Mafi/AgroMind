@@ -168,9 +168,10 @@ export async function saveProfileAction(
       error: "Please check your name, country, language and time zone.",
     };
   return mutate(async ({ supabase, user }) => {
+    const fullName = `${parsed.data.first_name} ${parsed.data.last_name}`.trim();
     const { error } = await supabase
       .from("profiles")
-      .update(parsed.data)
+      .update({ ...parsed.data, full_name: fullName })
       .eq("id", user.id);
     if (error) throw error;
   }, expectedUserId);
