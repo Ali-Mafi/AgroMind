@@ -12,6 +12,7 @@ export function SecurityActionDialog({
   variant = "sheet",
   onClose,
   children,
+  footer,
 }: {
   open: boolean;
   title: string;
@@ -20,6 +21,7 @@ export function SecurityActionDialog({
   variant?: "compact" | "sheet";
   onClose: () => void;
   children: ReactNode;
+  footer?: ReactNode;
 }) {
   const t = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -79,6 +81,9 @@ export function SecurityActionDialog({
         </button>
       </div>
       <div className="security-action-dialog__body">{children}</div>
+      {footer && (
+        <div className="security-action-dialog__footer">{footer}</div>
+      )}
     </dialog>
   );
 }

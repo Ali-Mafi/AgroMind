@@ -96,13 +96,15 @@ test("account security actions use a focused modal flow instead of appending set
 });
 
 
-test("security dialog primary actions are explicit submit buttons", () => {
+test("security dialog footer submits the correct form exactly once", () => {
   const security = source("features/account/components/security-center.tsx");
-  const submitButtons = [...security.matchAll(/<Button\s+type=["']submit["']/g)];
-  assert.ok(
-    submitButtons.length >= 3,
-    "fresh identity, enrollment verification and generic security actions must submit their forms",
-  );
+  const dialog = source("features/account/components/security-action-dialog.tsx");
+
+  assert.match(security, /freshIdentityFormRef\.current\?\.requestSubmit\(\)/);
+  assert.match(security, /verifySetupFormRef\.current\?\.requestSubmit\(\)/);
+  assert.match(security, /operationFormRef\.current\?\.requestSubmit\(\)/);
+  assert.match(dialog, /footer\?: ReactNode/);
+  assert.match(dialog, /security-action-dialog__footer/);
 });
 
 
@@ -111,36 +113,32 @@ test("security setup keeps mobile controls reachable after fresh identity confir
   const css = source("components/layout/app-shell.css");
 
   assert.match(security, /document\.activeElement\.blur\(\)/);
-  assert.ok(
-    [...security.matchAll(/security-action-dialog__actions/g)].length >= 3,
-    "security dialog action rows should use the sticky footer treatment",
+  assert.doesNotMatch(security, /security-action-dialog__actions/);
+  assert.match(
+    css,
+    /\.security-action-dialog\[open\]\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/,
   );
-  assert.match(css, /\.security-action-dialog\[open\]\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\)/);
   assert.match(css, /\.security-action-dialog__body\s*\{[\s\S]*overflow-y:\s*auto/);
   assert.match(css, /-webkit-overflow-scrolling:\s*touch/);
-  assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*position:\s*sticky/);
+  assert.match(css, /\.security-action-dialog__footer\s*\{/);
+  assert.doesNotMatch(css, /\.security-action-dialog__footer\s*\{[\s\S]*position:\s*sticky/);
 });
 
 
-test("security sheet exposes the final action and shows loading feedback on iOS", () => {
+test("security sheet exposes one final action footer and shows loading feedback on iOS", () => {
   const security = source("features/account/components/security-center.tsx");
   const css = source("components/layout/app-shell.css");
 
   assert.ok(
-    [...security.matchAll(/LoaderCircle/g)].length >= 3,
-    "security submit actions should show a spinner while busy",
-  );
-  assert.ok(
     [...security.matchAll(/aria-busy=\{busy\}/g)].length >= 3,
     "security submit actions should expose busy state",
   );
-  assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*0/);
-  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*\n\s*bottom:\s*-1\.25rem/);
+  assert.match(css, /\.security-action-dialog__footer\s*\{[\s\S]*padding:/);
+  assert.doesNotMatch(css, /security-action-dialog__actions/);
   assert.match(
     css,
     /@media \(max-width: 639px\)[\s\S]*\.security-action-dialog--sheet\s*\{[\s\S]*safe-area-inset-top[\s\S]*safe-area-inset-bottom/,
   );
-  assert.match(css, /scroll-padding-bottom:\s*5\.5rem/);
 });
 
 
@@ -160,7 +158,7 @@ test("fresh identity confirmation uses a compact popup while QR setup keeps the 
   );
   assert.match(
     css,
-    /\.security-action-dialog--compact \.security-action-dialog__actions\s*\{[\s\S]*position:\s*static/,
+    /\.security-action-dialog--compact \.security-action-dialog__footer\s*\{[\s\S]*padding-bottom:/,
   );
 });
 
@@ -181,7 +179,7 @@ test("security confirmation renders as a true compact popup and busy state is ev
   );
   assert.match(
     css,
-    /\.security-action-dialog--compact\[open\]\s*\{[\s\S]*display:\s*block/,
+    /\.security-action-dialog--compact\[open\]\s*\{[\s\S]*display:\s*grid/,
   );
 });
 
@@ -190,7 +188,20 @@ test("security submit loading state uses spinner only", () => {
   const security = source("features/account/components/security-center.tsx");
   assert.doesNotMatch(security, /Please wait…/);
   assert.ok(
-    [...security.matchAll(/\{busy \? \(/g)].length >= 3,
-    "security submit buttons should swap their label for a spinner while busy",
+    [...security.matchAll(/\{busy \? loadingIcon :/g)].length >= 3,
+    "security action footer should swap its labels for a spinner while busy",
   );
+});
+
+
+test("security dialog renders only one footer container", () => {
+  const dialog = source("features/account/components/security-action-dialog.tsx");
+  const security = source("features/account/components/security-center.tsx");
+
+  assert.equal(
+    [...dialog.matchAll(/security-action-dialog__footer/g)].length,
+    1,
+    "dialog component must own exactly one footer container",
+  );
+  assert.doesNotMatch(security, /security-action-dialog__actions/);
 });
