@@ -827,7 +827,7 @@ export default function EditFarmPage() {
                                   canonical,
                                 )
                               }
-                              className="w-full rounded-xl border bg-card px-3 py-2.5 pe-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{format.symbol("length")}</span>
@@ -861,7 +861,7 @@ export default function EditFarmPage() {
                                     .value,
                                 )
                               }
-                              className="w-full rounded-xl border bg-card px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              className="w-full rounded-xl border bg-card px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
 
                             <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"><T text="yrs" /></span>
