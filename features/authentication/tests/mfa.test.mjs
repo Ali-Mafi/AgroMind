@@ -104,3 +104,19 @@ test("security dialog primary actions are explicit submit buttons", () => {
     "fresh identity, enrollment verification and generic security actions must submit their forms",
   );
 });
+
+
+test("security setup keeps mobile controls reachable after fresh identity confirmation", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const css = source("components/layout/app-shell.css");
+
+  assert.match(security, /document\.activeElement\.blur\(\)/);
+  assert.ok(
+    [...security.matchAll(/security-action-dialog__actions/g)].length >= 3,
+    "security dialog action rows should use the sticky footer treatment",
+  );
+  assert.match(css, /\.security-action-dialog\[open\]\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\)/);
+  assert.match(css, /\.security-action-dialog__body\s*\{[\s\S]*overflow-y:\s*auto/);
+  assert.match(css, /-webkit-overflow-scrolling:\s*touch/);
+  assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*position:\s*sticky/);
+});
