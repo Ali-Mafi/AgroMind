@@ -166,9 +166,6 @@
 }
 
 @media (max-width: 1023px) {
-  html[data-assistant-composer-focus="true"] .agromind-app {
-    --app-bottom-navigation-height: env(safe-area-inset-bottom);
-  }
   html[data-assistant-composer-focus="true"] .app-bottom-navigation {
     transform: translateY(calc(100% + env(safe-area-inset-bottom)));
     opacity: 0;
@@ -176,6 +173,12 @@
   }
   html[data-assistant-composer-focus="true"] .app-content {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  html[data-assistant-composer-focus="true"] .assistant-page {
+    min-height: 100dvh;
+  }
+  html[data-assistant-composer-focus="true"] .assistant-composer {
+    bottom: max(env(safe-area-inset-bottom), var(--composer-keyboard-inset, 0px));
   }
 }
 
