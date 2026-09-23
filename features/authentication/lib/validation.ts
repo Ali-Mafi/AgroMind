@@ -19,10 +19,16 @@ export const passwordSchema = z
   .min(12, "Use at least 12 characters.")
   .max(128, "Use no more than 128 characters.");
 
-export const personNameSchema = z
+export const firstNameSchema = z
   .string()
   .trim()
-  .min(1, "Enter your name.")
+  .min(1, "Enter your first name.")
+  .max(60, "Use no more than 60 characters.");
+
+export const lastNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter your last name.")
   .max(60, "Use no more than 60 characters.");
 
 const identifierSchema = z
@@ -46,8 +52,8 @@ export const signInSchema = z.object({
 
 export const signUpSchema = z
   .object({
-    firstName: personNameSchema,
-    lastName: personNameSchema,
+    firstName: firstNameSchema,
+    lastName: lastNameSchema,
     username: usernameSchema,
     email: emailSchema.transform((value) => value.toLowerCase()),
     password: passwordSchema,
