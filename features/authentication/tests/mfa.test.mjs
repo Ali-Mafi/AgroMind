@@ -120,3 +120,25 @@ test("security setup keeps mobile controls reachable after fresh identity confir
   assert.match(css, /-webkit-overflow-scrolling:\s*touch/);
   assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*position:\s*sticky/);
 });
+
+
+test("security sheet exposes the final action and shows loading feedback on iOS", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const css = source("components/layout/app-shell.css");
+
+  assert.ok(
+    [...security.matchAll(/LoaderCircle/g)].length >= 3,
+    "security submit actions should show a spinner while busy",
+  );
+  assert.ok(
+    [...security.matchAll(/aria-busy=\{busy\}/g)].length >= 3,
+    "security submit actions should expose busy state",
+  );
+  assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*0/);
+  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*-1\.25rem/);
+  assert.match(
+    css,
+    /@media \(max-width: 639px\)[\s\S]*\.security-action-dialog\s*\{[\s\S]*safe-area-inset-top[\s\S]*safe-area-inset-bottom/,
+  );
+  assert.match(css, /scroll-padding-bottom:\s*5\.5rem/);
+});
