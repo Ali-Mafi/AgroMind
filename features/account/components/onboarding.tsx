@@ -79,7 +79,11 @@ export function Onboarding() {
     const ok = await run(() =>
       saveProfileAction(
         {
-          full_name: cloud.profile.full_name || cloud.user.email.split("@")[0],
+          first_name:
+            cloud.profile.first_name ||
+            cloud.profile.full_name ||
+            cloud.user.email.split("@")[0],
+          last_name: cloud.profile.last_name,
           country_code: country,
           language: language === "fa" ? "fa" : "en",
           timezone: browserTimeZone(cloud.profile.timezone),

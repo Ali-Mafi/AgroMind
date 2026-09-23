@@ -15,6 +15,8 @@ const form = (values) => {
 };
 
 const signup = {
+  firstName: "Test",
+  lastName: "Farmer",
   username: "test_farmer",
   email: "farmer@example.test",
   password: "A long test passphrase",
@@ -140,9 +142,11 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
   assert.equal(isPrivatePath("/dashboard-public"), false);
 });
 
-test("signup validates username, email and password without returning password values", async () => {
+test("signup validates names, username, email and password without returning password values", async () => {
   const h = harness();
   for (const input of [
+    { ...signup, firstName: "" },
+    { ...signup, lastName: "" },
     { ...signup, email: "wrong" },
     { ...signup, username: "Bad Name" },
     { ...signup, password: "short" },
@@ -167,7 +171,9 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
   assert.equal(sent.options.emailRedirectTo, "https://agromind.ir/auth/callback");
   assert.deepEqual(sent.options.data, {
     username: "test_farmer",
-    full_name: "test_farmer",
+    first_name: "Test",
+    last_name: "Farmer",
+    full_name: "Test Farmer",
     language: "fa",
     verification_watch_hash: "a".repeat(64),
   });
@@ -509,6 +515,10 @@ for (const language of ["en", "fa"])
           assert.match(html, new RegExp('for="' + mode + '-password"'));
         }
         if (mode === "sign-up") {
+          assert.match(html, /name="firstName"/);
+          assert.match(html, /name="lastName"/);
+          assert.match(html, /autoComplete="given-name"/);
+          assert.match(html, /autoComplete="family-name"/);
           assert.match(html, /name="username"/);
           assert.match(html, /name="confirmPassword"/);
         }

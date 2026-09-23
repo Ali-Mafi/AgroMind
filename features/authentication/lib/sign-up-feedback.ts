@@ -1,16 +1,29 @@
 import { signUpSchema, validationState, type AuthFormState } from "./validation";
 
 export type SignUpValues = {
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
 };
 
-const fields = ["username", "email", "password", "confirmPassword"] as const;
+const fields = [
+  "firstName",
+  "lastName",
+  "username",
+  "email",
+  "password",
+  "confirmPassword",
+] as const;
 
 function comparableValue(name: keyof SignUpValues, value: string) {
-  return name === "username" || name === "email" ? value.trim().toLowerCase() : value;
+  if (name === "username" || name === "email") {
+    return value.trim().toLowerCase();
+  }
+  if (name === "firstName" || name === "lastName") return value.trim();
+  return value;
 }
 
 // Derive feedback from the same schema used on the server. Values stay in the

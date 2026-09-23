@@ -64,6 +64,13 @@ export function AccountOverview() {
   const { cloud, farmLimit } = useFarm();
   const t = useTranslation();
   const { format } = useSettings();
+  const displayName =
+    [cloud.profile.first_name, cloud.profile.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    cloud.profile.full_name ||
+    t("Your account");
   return (
     <AccountShell title="Account">
       {!cloud.profile.onboarding_completed && (
@@ -81,7 +88,7 @@ export function AccountOverview() {
           </div>
           <div className="min-w-0">
             <h2 className="break-words text-xl font-semibold">
-              {cloud.profile.full_name || t("Your account")}
+              {displayName}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {cloud.profile.username ? (

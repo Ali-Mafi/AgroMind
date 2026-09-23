@@ -38,7 +38,8 @@ export function ProfileForm({
   const { cloud, run, busy } = useFarm();
   const settings = useSettings();
   const t = useTranslation();
-  const [name, setName] = useState(cloud.profile.full_name);
+  const [firstName, setFirstName] = useState(cloud.profile.first_name);
+  const [lastName, setLastName] = useState(cloud.profile.last_name);
   const [country, setCountry] = useState(
     cloud.profile.country_code ?? settings.country,
   );
@@ -56,7 +57,13 @@ export function ProfileForm({
           setSaved(
             await run(() =>
               saveProfileAction(
-                { full_name: name, country_code: country, language, timezone },
+                {
+                  first_name: firstName,
+                  last_name: lastName,
+                  country_code: country,
+                  language,
+                  timezone,
+                },
                 cloud.user.id,
               ),
             ),
@@ -66,25 +73,48 @@ export function ProfileForm({
         <fieldset disabled={busy} className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2">
             <label
-              htmlFor="profile-name"
+              htmlFor="profile-first-name"
               className="block text-sm font-semibold"
             >
-              {t("Full name")}
+              {t("First name")}
             </label>
             <input
-              id="profile-name"
+              id="profile-first-name"
               required
-              maxLength={120}
-              autoComplete="name"
-              value={name}
+              maxLength={60}
+              autoComplete="given-name"
+              dir="auto"
+              value={firstName}
               onChange={(event) => {
-                setName(event.target.value);
+                setFirstName(event.target.value);
                 setSaved(false);
               }}
               className={accountInputClass}
             />
-            <p className="text-xs leading-5 text-muted-foreground">
-              {t("Your full name is separate from your username.")}
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="profile-last-name"
+              className="block text-sm font-semibold"
+            >
+              {t("Last name")}
+            </label>
+            <input
+              id="profile-last-name"
+              required
+              maxLength={60}
+              autoComplete="family-name"
+              dir="auto"
+              value={lastName}
+              onChange={(event) => {
+                setLastName(event.target.value);
+                setSaved(false);
+              }}
+              className={accountInputClass}
+            />
+            <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
+              {t("Your name is separate from your username.")}
             </p>
           </div>
 
