@@ -449,7 +449,7 @@ export function SecurityCenter({
               >
                 {t("Cancel")}
               </Button>
-              <Button disabled={busy}>
+              <Button type="submit" disabled={busy}>
                 {t(busy ? "Please wait…" : "Confirm")}
               </Button>
             </div>
@@ -539,7 +539,7 @@ export function SecurityCenter({
                 >
                   {t("Cancel")}
                 </Button>
-                <Button disabled={busy}>
+                <Button type="submit" disabled={busy}>
                   {t(busy ? "Please wait…" : "Verify and enable")}
                 </Button>
               </div>
@@ -617,7 +617,7 @@ export function SecurityCenter({
                 >
                   {t("Cancel")}
                 </Button>
-                <Button disabled={busy}>
+                <Button type="submit" disabled={busy}>
                   {t(busy ? "Please wait…" : "Confirm")}
                 </Button>
               </div>
