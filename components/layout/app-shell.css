@@ -204,7 +204,7 @@
 
 .security-action-dialog[open] {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .security-action-dialog::backdrop {
@@ -230,15 +230,14 @@
   padding: 1.25rem;
 }
 
-.security-action-dialog__actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-  margin-inline: -1.25rem;
+.security-action-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
   padding: 0.9rem 1.25rem max(0.9rem, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
-  background: color-mix(in oklab, var(--card) 96%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--card);
 }
 
 @keyframes security-dialog-in {
@@ -291,7 +290,8 @@
   }
 
   .security-action-dialog--compact[open] {
-    display: block;
+    display: grid;
+    grid-template-rows: auto auto auto;
   }
 
   .security-action-dialog--compact .security-action-dialog__body {
@@ -301,10 +301,8 @@
     scroll-padding-bottom: 1rem;
   }
 
-  .security-action-dialog--compact .security-action-dialog__actions {
-    position: static;
-    margin-top: 1.25rem;
-    margin-bottom: -1.25rem;
+  .security-action-dialog--compact .security-action-dialog__footer {
+    padding-bottom: 1.25rem;
   }
 
   .security-action-dialog--sheet .security-action-dialog__body {
