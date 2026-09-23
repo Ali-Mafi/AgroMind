@@ -36,4 +36,5 @@ export const SECURITY_PERSIAN: Record<string, string> = {
   "Incomplete setup removed.": "راه‌اندازی ناتمام حذف شد.",
   "Other sessions have been signed out.": "نشست‌های دیگر بسته شدند.",
   Confirm: "تأیید",
+  Close: "بستن",
 };

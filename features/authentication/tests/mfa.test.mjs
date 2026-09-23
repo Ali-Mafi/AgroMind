@@ -74,3 +74,23 @@ test("account security and MFA challenge routes are wired", () => {
   assert.match(challenge, /autoComplete=["']one-time-code["']/);
   assert.match(challenge, /pattern=["']\[0-9\]\{6\}["']/);
 });
+
+
+test("account security actions use a focused modal flow instead of appending setup forms to the page", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const dialog = source("features/account/components/security-action-dialog.tsx");
+  const css = source("components/layout/app-shell.css");
+
+  assert.match(security, /<SecurityActionDialog/);
+  assert.match(security, /<FreshIdentityFields state=\{initialState\}/);
+  assert.match(security, /Scan the QR code/);
+  assert.doesNotMatch(security, /Authenticator name/);
+  assert.doesNotMatch(security, /name=["']friendly_name["']/);
+
+  assert.match(dialog, /<dialog/);
+  assert.match(dialog, /showModal\(\)/);
+  assert.match(dialog, /onCancel=/);
+  assert.match(css, /\.security-action-dialog/);
+  assert.match(css, /@media \(max-width: 639px\)/);
+  assert.match(css, /prefers-reduced-motion/);
+});
