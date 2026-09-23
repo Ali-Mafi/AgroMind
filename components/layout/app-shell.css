@@ -164,6 +164,21 @@
   padding-block: 0.5rem;
   background: var(--background);
 }
+
+@media (max-width: 1023px) {
+  html[data-assistant-composer-focus="true"] .agromind-app {
+    --app-bottom-navigation-height: env(safe-area-inset-bottom);
+  }
+  html[data-assistant-composer-focus="true"] .app-bottom-navigation {
+    transform: translateY(calc(100% + env(safe-area-inset-bottom)));
+    opacity: 0;
+    pointer-events: none;
+  }
+  html[data-assistant-composer-focus="true"] .app-content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @media (min-width: 1024px) {
   .assistant-page { min-height: 100dvh; padding-bottom: 2rem; }
   .assistant-composer { position: sticky; inset-inline: auto; bottom: 1rem; width: 100%; margin-top: 1.5rem !important; }
