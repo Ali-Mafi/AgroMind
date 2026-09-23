@@ -468,13 +468,14 @@ export function SecurityCenter({
                 {t("Cancel")}
               </Button>
               <Button type="submit" disabled={busy} aria-busy={busy}>
-                {busy && (
+                {busy ? (
                   <LoaderCircle
                     className="animate-spin motion-reduce:animate-none"
                     aria-hidden="true"
                   />
+                ) : (
+                  t("Confirm")
                 )}
-                {t(busy ? "Please wait…" : "Confirm")}
               </Button>
             </div>
           </form>
@@ -567,13 +568,14 @@ export function SecurityCenter({
                   {t("Cancel")}
                 </Button>
                 <Button type="submit" disabled={busy} aria-busy={busy}>
-                  {busy && (
+                  {busy ? (
                     <LoaderCircle
                       className="animate-spin motion-reduce:animate-none"
                       aria-hidden="true"
                     />
+                  ) : (
+                    t("Verify and enable")
                   )}
-                  {t(busy ? "Please wait…" : "Verify and enable")}
                 </Button>
               </div>
             </form>
@@ -651,14 +653,15 @@ export function SecurityCenter({
                   {t("Cancel")}
                 </Button>
                 <Button type="submit" disabled={busy} aria-busy={busy}>
-                  {busy && (
-                    <LoaderCircle
-                      className="animate-spin motion-reduce:animate-none"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {t(busy ? "Please wait…" : "Confirm")}
-                </Button>
+                {busy ? (
+                  <LoaderCircle
+                    className="animate-spin motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  t("Confirm")
+                )}
+              </Button>
               </div>
             </form>
           )
