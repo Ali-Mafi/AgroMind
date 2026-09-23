@@ -102,9 +102,9 @@ export function UsernameForm({
               id="profile-username"
               name="username"
               required
-              minLength={3}
+              minLength={6}
               maxLength={30}
-              pattern="[a-z0-9_]{3,30}"
+              pattern="[a-z0-9_]{6,30}"
               autoComplete="username"
               autoCapitalize="none"
               spellCheck={false}
@@ -125,7 +125,9 @@ export function UsernameForm({
               id="profile-username-help"
               className="text-xs leading-5 text-muted-foreground"
             >
-              {t("Use 3–30 lowercase letters, numbers, or underscores.")}
+              {t(
+                "Use 6–30 lowercase English letters, numbers, or underscores.",
+              )}
             </p>
             {state.fields?.username && (
               <p

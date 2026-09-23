@@ -8,8 +8,8 @@ const { signUpSchema, validationState } = loadTs("features/authentication/lib/va
 const valid = {
   username: "test_farmer",
   email: "farmer@example.test",
-  password: "A test-only long passphrase",
-  confirmPassword: "A test-only long passphrase",
+  password: "AgroMind#1384",
+  confirmPassword: "AgroMind#1384",
 };
 const errors = (values) => validationState(signUpSchema.safeParse(values).error);
 
@@ -42,19 +42,19 @@ test("invalid edits retain feedback and fixing one field preserves the other err
 });
 
 test("confirmation feedback follows changes to either password field", () => {
-  const submitted = { ...valid, confirmPassword: "Another test-only passphrase" };
+  const submitted = { ...valid, confirmPassword: "Another#Pass1384" };
   const state = errors(submitted);
   const corrected = { ...submitted, password: submitted.confirmPassword };
   assert.equal(signUpFeedback(state, corrected, submitted).error, undefined);
   assert.equal(signUpFeedback(state, corrected, submitted).fields.confirmPassword, undefined);
-  const changedAgain = { ...corrected, password: "Another different test-only passphrase" };
+  const changedAgain = { ...corrected, password: "Different#Pass1384" };
   assert.match(signUpFeedback(state, changedAgain, submitted).fields.confirmPassword, /do not match/);
 });
 
 test("server identity errors clear only after that identity changes, not unrelated edits or normalization", () => {
   for (const field of ["username", "email"]) {
     const state = { fields: { [field]: "Identity already exists" } };
-    const unrelated = { ...valid, password: "Another test-only passphrase" };
+    const unrelated = { ...valid, password: "Another#Pass1384" };
     assert.equal(signUpFeedback(state, unrelated, valid).fields[field], state.fields[field]);
     assert.equal(signUpFeedback(state, { ...valid, [field]: ` ${valid[field].toUpperCase()} ` }, valid).fields[field], state.fields[field]);
     const changed = { ...valid, [field]: field === "email" ? "another@example.test" : "another_farmer" };
@@ -132,3 +132,20 @@ test("signin never renders a verification CTA even for an unconfirmed-account er
   assert.equal(elements(h.render()).some((node) => node.props.role === "alert"), true);
 });
 
+
+
+test("password checklist appears on focus and tracks all five requirements", () => {
+  const h = formHarness();
+  h.input("password").onFocus();
+  let rows = elements(h.render()).filter(
+    (node) => node.type === "li" && typeof node.props.className === "string",
+  );
+  assert.equal(rows.length >= 5, true);
+
+  h.input("password").onChange({ target: { value: "AgroMind#1384" } });
+  h.input("confirmPassword").onChange({ target: { value: "AgroMind#1384" } });
+  rows = elements(h.render()).filter(
+    (node) => node.type === "li" && typeof node.props.className === "string",
+  );
+  assert.equal(rows.slice(-5).every((node) => node.props.className.includes("text-primary")), true);
+});

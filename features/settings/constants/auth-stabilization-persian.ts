@@ -4,7 +4,7 @@ export const AUTH_STABILIZATION_PERSIAN: Record<string, string> = {
   "Username or email": "نام کاربری یا ایمیل",
   "Enter your username or email.": "نام کاربری یا ایمیل خود را وارد کنید.",
   "Enter a valid username or email.": "یک نام کاربری یا ایمیل معتبر وارد کنید.",
-  "Use 3–30 lowercase letters, numbers, or underscores.": "از ۳ تا ۳۰ حرف انگلیسی کوچک، عدد یا زیرخط استفاده کنید.",
+  "Use 6–30 lowercase English letters, numbers, or underscores.": "نام کاربری باید ۶ تا ۳۰ کاراکتر و فقط شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
   "Username is already taken.": "این نام کاربری قبلاً انتخاب شده است.",
   "This account already exists. Sign in instead.": "این حساب قبلاً ساخته شده است. وارد حساب شوید.",
   "Email or password is incorrect.": "ایمیل یا رمز عبور نادرست است.",

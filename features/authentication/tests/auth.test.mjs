@@ -6,7 +6,9 @@ import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
 const { safeNextPath, isPrivatePath } = loadTs(
   "features/authentication/lib/redirects.ts",
 );
-const { signUpSchema } = loadTs("features/authentication/lib/validation.ts");
+const { signInSchema, signUpSchema, passwordRequirementStatus } = loadTs(
+  "features/authentication/lib/validation.ts",
+);
 
 const form = (values) => {
   const value = new FormData();
@@ -17,8 +19,8 @@ const form = (values) => {
 const signup = {
   username: "test_farmer",
   email: "farmer@example.test",
-  password: "A long test passphrase",
-  confirmPassword: "A long test passphrase",
+  password: "AgroMind#1384",
+  confirmPassword: "AgroMind#1384",
   language: "fa",
 };
 
@@ -145,7 +147,11 @@ test("signup validates username, email and password without returning password v
   for (const input of [
     { ...signup, email: "wrong" },
     { ...signup, username: "Bad Name" },
+    { ...signup, username: "hello" },
     { ...signup, password: "short" },
+    { ...signup, password: "AgroMind1384" },
+    { ...signup, password: "########" },
+    { ...signup, password: "AgroMind#" },
     { ...signup, confirmPassword: "different" },
   ]) {
     const state = await h.actions.signUpAction({}, form(input));
@@ -155,6 +161,18 @@ test("signup validates username, email and password without returning password v
   assert.equal(h.calls.length, 0);
   assert.equal(signUpSchema.parse(signup).language, "fa");
   assert.equal(signUpSchema.parse({ ...signup, username: "TEST_FARMER" }).username, "test_farmer");
+  assert.equal(signUpSchema.safeParse({ ...signup, username: "hello" }).success, false);
+  assert.equal(
+    signInSchema.safeParse({ identifier: "admin", password: signup.password }).success,
+    true,
+  );
+  assert.deepEqual(passwordRequirementStatus("AgroMind#1384", "AgroMind#1384"), {
+    length: true,
+    symbol: true,
+    englishLetter: true,
+    number: true,
+    match: true,
+  });
 });
 
 test("signup stores pending identity and rejects duplicate accounts explicitly", async () => {
