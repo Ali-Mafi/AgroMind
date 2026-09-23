@@ -83,16 +83,21 @@ export const legacySnapshotSchema = z
     }
   });
 
-const profileName = z
+const profileFirstName = z
   .string()
   .trim()
   .min(1, "Enter your name.")
   .max(60, "Use no more than 60 characters.");
 
+const profileLastName = z
+  .string()
+  .trim()
+  .max(60, "Use no more than 60 characters.");
+
 export const profileSchema = z
   .object({
-    first_name: profileName,
-    last_name: profileName,
+    first_name: profileFirstName,
+    last_name: profileLastName,
     country_code: z
       .string()
       .refine((value) => COUNTRY_CODES.includes(value), "Choose a valid country."),
