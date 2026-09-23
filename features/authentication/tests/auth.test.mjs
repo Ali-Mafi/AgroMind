@@ -517,8 +517,8 @@ for (const language of ["en", "fa"])
         if (mode === "sign-up") {
           assert.match(html, /name="firstName"/);
           assert.match(html, /name="lastName"/);
-          assert.match(html, /autocomplete="given-name"/);
-          assert.match(html, /autocomplete="family-name"/);
+          assert.match(html, /autoComplete="given-name"/);
+          assert.match(html, /autoComplete="family-name"/);
           assert.match(html, /name="username"/);
           assert.match(html, /name="confirmPassword"/);
         }
