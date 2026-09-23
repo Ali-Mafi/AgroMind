@@ -93,7 +93,8 @@ for (const language of ["en", "fa"]) {
         ? /ارسال درخواست هنوز فعال نیست/
         : /Ticket submission is not available yet/,
     );
-    assert.doesNotMatch(help, /mailto:|ticket.*success|<summary|<details/);
+    assert.match(help, /mailto:support@agromind\.ir/);
+    assert.doesNotMatch(help, /ticket.*success|<summary|<details/);
     const about = workspaceFixture({ language, page: "about" });
     assert.match(about, /href="\/account\/help"/);
     assert.doesNotMatch(about, /href="\/(privacy|terms)/);
@@ -160,6 +161,18 @@ test("mobile composer follows the visual viewport, ignores pinch zoom, and reset
   );
   assert.match(css, /padding-bottom: calc\(var\(--composer-height/);
   assert.match(css, /safe-area-inset-bottom/);
+  assert.match(css, /data-assistant-composer-focus="true"/);
+  assert.match(css, /\.app-bottom-navigation/);
+  assert.match(
+    css,
+    /\.assistant-composer \{[\s\S]*bottom: max\(env\(safe-area-inset-bottom\), var\(--composer-keyboard-inset/,
+  );
+  const composerHook = readFileSync(
+    path.join(root, "features/assistant/hooks/use-composer-layout.ts"),
+    "utf8",
+  );
+  assert.match(composerHook, /assistantComposerFocus/);
+  assert.match(composerHook, /container\.contains\(document\.activeElement\)/);
 });
 
 test("a starter fills the real assistant draft and edit clears its selected feedback; send stays disabled", () => {
