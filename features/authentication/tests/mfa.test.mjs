@@ -184,3 +184,13 @@ test("security confirmation renders as a true compact popup and busy state is ev
     /\.security-action-dialog--compact\[open\]\s*\{[\s\S]*display:\s*block/,
   );
 });
+
+
+test("security submit loading state uses spinner only", () => {
+  const security = source("features/account/components/security-center.tsx");
+  assert.doesNotMatch(security, /Please wait…/);
+  assert.ok(
+    [...security.matchAll(/\{busy \? \(/g)].length >= 3,
+    "security submit buttons should swap their label for a spinner while busy",
+  );
+});
