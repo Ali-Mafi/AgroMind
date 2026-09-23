@@ -517,7 +517,6 @@ export function SecurityCenter({
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   dir="ltr"
-                  autoFocus
                   className={inputClass}
                 />
               </div>
