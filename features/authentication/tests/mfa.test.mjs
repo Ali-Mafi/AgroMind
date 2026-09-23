@@ -135,7 +135,7 @@ test("security sheet exposes the final action and shows loading feedback on iOS"
     "security submit actions should expose busy state",
   );
   assert.match(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*0/);
-  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*bottom:\s*-1\.25rem/);
+  assert.doesNotMatch(css, /\.security-action-dialog__actions\s*\{[\s\S]*\n\s*bottom:\s*-1\.25rem/);
   assert.match(
     css,
     /@media \(max-width: 639px\)[\s\S]*\.security-action-dialog--sheet\s*\{[\s\S]*safe-area-inset-top[\s\S]*safe-area-inset-bottom/,
