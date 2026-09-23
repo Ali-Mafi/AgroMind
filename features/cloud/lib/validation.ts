@@ -86,7 +86,7 @@ export const legacySnapshotSchema = z
 const profileFirstName = z
   .string()
   .trim()
-  .min(1, "Enter your name.")
+  .min(1, "Enter your first name.")
   .max(60, "Use no more than 60 characters.");
 
 const profileLastName = z
