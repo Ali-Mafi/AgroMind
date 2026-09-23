@@ -94,3 +94,13 @@ test("account security actions use a focused modal flow instead of appending set
   assert.match(css, /@media \(max-width: 639px\)/);
   assert.match(css, /prefers-reduced-motion/);
 });
+
+
+test("security dialog primary actions are explicit submit buttons", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const submitButtons = [...security.matchAll(/<Button\s+type=["']submit["']/g)];
+  assert.ok(
+    submitButtons.length >= 3,
+    "fresh identity, enrollment verification and generic security actions must submit their forms",
+  );
+});
