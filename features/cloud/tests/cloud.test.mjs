@@ -140,7 +140,8 @@ test("schedule and profile validation reject impossible dates, zones and hidden 
   ])
     assert.equal(scheduleSchema.safeParse(bad).success, false);
   const profile = {
-    full_name: "User",
+    first_name: "Test",
+    last_name: "User",
     country_code: "IR",
     language: "fa",
     timezone: "Asia/Tehran",
