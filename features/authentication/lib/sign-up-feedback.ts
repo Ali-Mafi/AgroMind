@@ -19,9 +19,11 @@ const fields = [
 ] as const;
 
 function comparableValue(name: keyof SignUpValues, value: string) {
-  return name === "username" || name === "email"
-    ? value.trim().toLowerCase()
-    : value.trim();
+  if (name === "username" || name === "email") {
+    return value.trim().toLowerCase();
+  }
+  if (name === "firstName" || name === "lastName") return value.trim();
+  return value;
 }
 
 // Derive feedback from the same schema used on the server. Values stay in the
