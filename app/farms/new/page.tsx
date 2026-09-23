@@ -502,10 +502,10 @@ export default function NewFarmPage() {
                     value={area}
                     onValueChange={(canonical) => setArea(canonical)}
                     placeholder={format.input(6000, farmType === "garden" ? "gardenArea" : "area")}
-                    className="w-full rounded-xl border bg-background px-3 py-2.5 pe-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-xl border bg-background px-3 py-2.5 pr-14 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
 
-                  <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(farmType === "garden" ? "gardenArea" : "area")}</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol(farmType === "garden" ? "gardenArea" : "area")}</span>
                 </div>
               </div>
             )}
@@ -528,10 +528,10 @@ export default function NewFarmPage() {
                           setLength(canonical)
                         }
                         placeholder={format.input(100, "length")}
-                        className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
 
@@ -550,10 +550,10 @@ export default function NewFarmPage() {
                           setWidth(canonical)
                         }
                         placeholder={format.input(60, "length")}
-                        className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
 
-                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                     </div>
                   </div>
                 </div>
@@ -708,10 +708,10 @@ export default function NewFarmPage() {
                               )
                             }
                             placeholder={format.input(6, "length")}
-                            className="w-full rounded-xl border bg-background px-3 py-2.5 pe-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
 
-                          <span className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{format.symbol("length")}</span>
                         </div>
                       </div>
 
