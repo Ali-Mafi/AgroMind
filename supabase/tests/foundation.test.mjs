@@ -194,6 +194,32 @@ test("MFA guards privileged RPCs, table access and writes until AAL2", async () 
   }
 });
 
+test("new usernames reject short handles while valid handles stay available", async () => {
+  const c = await asUser(users[0]);
+  try {
+    assert.equal(
+      (await c.query("select username_available('hello') as available")).rows[0]
+        .available,
+      false,
+    );
+    assert.equal(
+      (await c.query("select username_available('admin') as available")).rows[0]
+        .available,
+      false,
+    );
+    assert.equal(
+      (
+        await c.query(
+          "select username_available('farmer_1384') as available",
+        )
+      ).rows[0].available,
+      true,
+    );
+  } finally {
+    await c.end();
+  }
+});
+
 test("unverified MFA enrollment does not lock a password-only account", async () => {
   const user = users[11];
   await admin.query("insert into auth.mfa_factors values($1,$2,'unverified')", [randomUUID(), user]);
