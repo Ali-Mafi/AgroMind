@@ -152,13 +152,18 @@ export async function beginTotpEnrollmentAction(
       logAuthError("list-before-enroll", factors.error);
       return { error: unavailable };
     }
-    if (factors.data.totp.filter((f) => f.status === "verified").length >= 2)
+    const verifiedFactors = factors.data.totp.filter(
+      (factor) => factor.status === "verified",
+    );
+    if (verifiedFactors.length >= 2)
       return {
         error:
           "You already have two authenticators. Remove one before adding another.",
       };
+
     for (const factor of factors.data.all.filter(
-      (f) => f.factor_type === "totp" && f.status === "unverified",
+      (factor) =>
+        factor.factor_type === "totp" && factor.status === "unverified",
     )) {
       const removed = await context.supabase.auth.mfa.unenroll({
         factorId: factor.id,
@@ -166,18 +171,36 @@ export async function beginTotpEnrollmentAction(
       if (removed.error) return { error: unavailable };
     }
 
+    const preferredName =
+      verifiedFactors.length > 0
+        ? "AgroMind Backup Authenticator"
+        : "AgroMind Authenticator";
+    const takenNames = new Set(
+      verifiedFactors
+        .map((factor) => factor.friendly_name?.trim())
+        .filter((name): name is string => Boolean(name)),
+    );
+    let friendlyName = preferredName;
+    let suffix = 2;
+    while (takenNames.has(friendlyName)) {
+      friendlyName = `${preferredName} ${suffix}`;
+      suffix += 1;
+    }
+
     const enrolled = await context.supabase.auth.mfa.enroll({
       factorType: "totp",
-      friendlyName:
-        String(form.get("friendly_name") ?? "")
-          .trim()
-          .slice(0, 60) || "AgroMind Authenticator",
+      friendlyName,
     });
     if (enrolled.error) {
       logAuthError("totp-enroll", enrolled.error);
       if (authErrorCode(enrolled.error) === "mfa_totp_enroll_not_enabled")
         return {
           error: "Authenticator enrollment is not enabled for this project.",
+        };
+      if (authErrorCode(enrolled.error) === "mfa_factor_name_conflict")
+        return {
+          error:
+            "A backup authenticator already exists. Refresh the page and try again.",
         };
       return {
         error: "Authenticator setup could not be started. Please try again.",
