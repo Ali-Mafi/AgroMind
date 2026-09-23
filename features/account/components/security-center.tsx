@@ -130,6 +130,9 @@ export function SecurityCenter({
           setMessage(result);
           return;
         }
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
         setSetup(result);
         setMessage({});
         return;
@@ -440,7 +443,7 @@ export function SecurityCenter({
                 {t(message.error)}
               </p>
             )}
-            <div className="flex flex-wrap justify-end gap-3">
+            <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
@@ -530,7 +533,7 @@ export function SecurityCenter({
                 </p>
               )}
 
-              <div className="flex flex-wrap justify-end gap-3">
+              <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -565,7 +568,7 @@ export function SecurityCenter({
                 </code>
               ))}
             </div>
-            <div className="flex flex-wrap justify-end gap-3">
+            <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
               <Button
                 variant="outline"
                 onClick={() =>
@@ -608,7 +611,7 @@ export function SecurityCenter({
                 </p>
               )}
 
-              <div className="flex flex-wrap justify-end gap-3">
+              <div className="security-action-dialog__actions flex flex-wrap justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
