@@ -440,6 +440,8 @@ export async function resetPasswordAction(
 ): Promise<AuthFormState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
+
+  let mfaRequired = false;
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
@@ -447,32 +449,49 @@ export async function resetPasswordAction(
       return {
         error: "Your session has expired. Request a new password reset email.",
       };
+
     const active = await supabase.rpc("get_current_session");
     if (active.error || !active.data)
       return {
         error: "Your session has expired. Request a new password reset email.",
       };
+
     if (data.user.id !== form.get("expected_user_id"))
       return { error: "Your account changed. Reload before saving." };
-    const updated = await supabase.auth.updateUser({
-      password: parsed.data.password,
-    });
-    if (updated.error)
-      return {
-        error:
-          updated.error.code === "same_password"
-            ? "Choose a password different from your current password."
-            : unavailable.error,
-      };
-    const signedOut = await supabase.auth.signOut({ scope: "global" });
-    if (signedOut.error)
-      return {
-        success:
-          "Password updated. Sign out from your account before signing in again.",
-      };
+
+    const assurance =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance.error) return unavailable;
+
+    mfaRequired =
+      assurance.data.nextLevel === "aal2" &&
+      assurance.data.currentLevel !== "aal2";
+
+    if (!mfaRequired) {
+      const updated = await supabase.auth.updateUser({
+        password: parsed.data.password,
+      });
+      if (updated.error)
+        return {
+          error:
+            updated.error.code === "same_password"
+              ? "Choose a password different from your current password."
+              : unavailable.error,
+        };
+
+      const signedOut = await supabase.auth.signOut({ scope: "global" });
+      if (signedOut.error)
+        return {
+          success:
+            "Password updated. Sign out from your account before signing in again.",
+        };
+    }
   } catch {
     return unavailable;
   }
+
+  if (mfaRequired) redirect("/mfa?next=/reset-password");
+
   revalidatePath("/", "layout");
   redirect("/sign-in?status=password-updated");
 }
