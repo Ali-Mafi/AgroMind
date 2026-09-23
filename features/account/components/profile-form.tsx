@@ -147,6 +147,7 @@ export function ProfileForm({
       </form>
 
       <UsernameForm
+        key={cloud.profile.username ?? "username-unset"}
         currentUsername={cloud.profile.username}
         securityState={securityState}
       />
