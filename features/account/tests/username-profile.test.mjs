@@ -6,10 +6,13 @@ import { root } from "../../weather/tests/helpers/load-ts.mjs";
 
 const read = (file) => readFileSync(path.join(root, file), "utf8");
 
-test("profile keeps full name and username as separate account concepts", () => {
+test("profile keeps first name, last name and username as separate account concepts", () => {
   const profile = read("features/account/components/profile-form.tsx");
   const username = read("features/account/components/username-form.tsx");
-  assert.match(profile, /Full name/);
+  assert.match(profile, /First name/);
+  assert.match(profile, /Last name/);
+  assert.match(profile, /first_name/);
+  assert.match(profile, /last_name/);
   assert.match(profile, /<UsernameForm/);
   assert.match(username, /Username not set/);
   assert.match(username, /FreshIdentityFields/);
