@@ -33,10 +33,6 @@ export function UsernameForm({
   );
 
   useEffect(() => {
-    setUsername(currentUsername ?? "");
-  }, [currentUsername]);
-
-  useEffect(() => {
     if (state.success) void reload();
   }, [reload, state.success]);
 
