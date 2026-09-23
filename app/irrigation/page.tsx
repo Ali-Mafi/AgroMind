@@ -186,16 +186,13 @@ const irrigationOverview:
       />
 
       {schedule && <button type="button" disabled={busy} onClick={() => void deleteIrrigationSchedule(selectedFarm.id)} className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive">{t("Remove schedule")}</button>}
-      <Disclosure className="app-card p-5" title={t("Controls & sensors")}><section className="mt-5" aria-label={t("Irrigation control")}>
-        <IrrigationControl
-          farmName={selectedFarm.name}
-        />
-      </section>
-
-      <SensorStatus
-        sensors={[]}
-        farmName={selectedFarm.name}
-      />
+      <Disclosure className="app-card p-5" title={t("Controls & sensors")}>
+        <div className="mt-5 space-y-5">
+          <section aria-label={t("Irrigation control")}>
+            <IrrigationControl farmName={selectedFarm.name} />
+          </section>
+          <SensorStatus sensors={[]} farmName={selectedFarm.name} />
+        </div>
       </Disclosure>
     </main>
   );
