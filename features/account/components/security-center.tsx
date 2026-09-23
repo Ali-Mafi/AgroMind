@@ -10,7 +10,7 @@ import {
   ShieldOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -207,6 +207,16 @@ export function SecurityCenter({
         router.refresh();
       }
     });
+  }
+
+
+  function submitForm(
+    event: FormEvent<HTMLFormElement>,
+    handler: (form: FormData) => Promise<void>,
+  ) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void handler(form);
   }
 
   const formattedBackupCodes = backupCodes.map(
@@ -435,7 +445,10 @@ export function SecurityCenter({
         onClose={closeDialog}
       >
         {operation === "setup" && !setup && (
-          <form action={submit} className="space-y-5">
+          <form
+            onSubmit={(event) => submitForm(event, submit)}
+            className="space-y-5"
+          >
             <FreshIdentityFields state={initialState} />
             {message.error && (
               <p
@@ -510,7 +523,10 @@ export function SecurityCenter({
               </Button>
             </div>
 
-            <form action={verifySetup} className="space-y-4">
+            <form
+              onSubmit={(event) => submitForm(event, verifySetup)}
+              className="space-y-4"
+            >
               <input type="hidden" name="factor_id" value={setup.factorId} />
               <div className="space-y-2">
                 <label
@@ -611,7 +627,7 @@ export function SecurityCenter({
           operation !== "setup" && (
             <form
               key={`${operation}:${target}`}
-              action={submit}
+              onSubmit={(event) => submitForm(event, submit)}
               className="space-y-5"
             >
               <FreshIdentityFields state={initialState} />
