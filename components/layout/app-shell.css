@@ -202,6 +202,11 @@
   animation: security-dialog-in 180ms ease-out;
 }
 
+.security-action-dialog[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .security-action-dialog::backdrop {
   background: rgb(6 18 12 / 0.4);
   backdrop-filter: blur(6px);
@@ -218,10 +223,23 @@
 }
 
 .security-action-dialog__body {
-  max-height: calc(min(82dvh, 46rem) - 5.5rem);
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 1.25rem;
+}
+
+.security-action-dialog__actions {
+  position: sticky;
+  bottom: -1.25rem;
+  z-index: 3;
+  margin-inline: -1.25rem;
+  margin-bottom: -1.25rem;
+  padding: 0.9rem 1.25rem max(0.9rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 @keyframes security-dialog-in {
@@ -251,7 +269,7 @@
   }
 
   .security-action-dialog__body {
-    max-height: min(72dvh, 42rem);
+    min-height: 0;
   }
 
   @keyframes security-sheet-in {
