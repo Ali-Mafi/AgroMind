@@ -163,3 +163,24 @@ test("fresh identity confirmation uses a compact popup while QR setup keeps the 
     /\.security-action-dialog--compact \.security-action-dialog__actions\s*\{[\s\S]*position:\s*static/,
   );
 });
+
+
+test("security confirmation renders as a true compact popup and busy state is event-driven", () => {
+  const security = source("features/account/components/security-center.tsx");
+  const css = source("components/layout/app-shell.css");
+
+  assert.ok(
+    [...security.matchAll(/onSubmit=\{/g)].length >= 3,
+    "security forms should use explicit onSubmit handlers so busy state can paint before async work",
+  );
+  assert.match(security, /setBusy\(true\)/);
+  assert.match(security, /LoaderCircle/);
+  assert.match(
+    css,
+    /\.security-action-dialog--compact\s*\{[\s\S]*top:\s*50%[\s\S]*left:\s*50%[\s\S]*translate:\s*-50% -50%/,
+  );
+  assert.match(
+    css,
+    /\.security-action-dialog--compact\[open\]\s*\{[\s\S]*display:\s*block/,
+  );
+});
