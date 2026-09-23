@@ -27,6 +27,8 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Manage farms": "مدیریت مزرعه‌ها",
   Free: "رایگان",
   "Full name": "نام و نام خانوادگی",
+  "First name": "نام",
+  "Last name": "نام خانوادگی",
   Email: "ایمیل",
   Password: "رمز عبور",
   "New password": "رمز عبور جدید",
@@ -138,6 +140,8 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Use no more than 128 characters.": "حداکثر ۱۲۸ کاراکتر وارد کنید.",
   "Enter your password.": "رمز عبور خود را وارد کنید.",
   "Enter your full name.": "نام و نام خانوادگی را وارد کنید.",
+  "Enter your name.": "این بخش را وارد کنید.",
+  "Use no more than 60 characters.": "حداکثر ۶۰ کاراکتر وارد کنید.",
   "Passwords do not match.": "رمزهای عبور یکسان نیستند.",
   "Please check the highlighted fields.":
     "لطفاً بخش‌های مشخص‌شده را بررسی کنید.",
@@ -205,6 +209,8 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
   "Your username is separate from your full name and can be used to sign in.":
     "نام کاربری از نام و نام خانوادگی جداست و می‌توانید با آن وارد حساب شوید.",
   "Your full name is separate from your username.":
+    "نام و نام خانوادگی از نام کاربری جداست.",
+  "Your name is separate from your username.":
     "نام و نام خانوادگی از نام کاربری جداست.",
   "Two-step verification required": "تأیید دومرحله‌ای لازم است",
   "Enable two-step verification before setting or changing your username.":
