@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -12,8 +13,15 @@ import {
 import { saveProfileAction } from "@/features/cloud/services/actions";
 import { Button } from "@/components/ui/button";
 import { accountInputClass } from "@/features/authentication/components/auth-form";
+import type { MfaSecurityState } from "@/features/authentication/types/mfa";
 import { AccountShell, accountCardClass } from "./account-shell";
-export function ProfileForm() {
+import { UsernameForm } from "./username-form";
+
+export function ProfileForm({
+  securityState,
+}: {
+  securityState: MfaSecurityState;
+}) {
   const { cloud, run, busy } = useFarm();
   const settings = useSettings();
   const t = useTranslation();
@@ -24,6 +32,7 @@ export function ProfileForm() {
   const [language, setLanguage] = useState(cloud.profile.language);
   const [timezone, setTimezone] = useState(cloud.profile.timezone);
   const [saved, setSaved] = useState(false);
+
   return (
     <AccountShell title="Profile">
       <form
@@ -61,7 +70,11 @@ export function ProfileForm() {
               }}
               className={accountInputClass}
             />
+            <p className="text-xs leading-5 text-muted-foreground">
+              {t("Your full name is separate from your username.")}
+            </p>
           </div>
+
           <div className="space-y-2">
             <p className="text-sm font-semibold">{t("Email")}</p>
             <p className="rounded-xl border bg-muted/30 px-4 py-3 text-sm break-all">
@@ -73,6 +86,7 @@ export function ProfileForm() {
               )}
             </p>
           </div>
+
           <PreferenceSelect
             label={t("Country / Region")}
             value={country}
@@ -116,11 +130,13 @@ export function ProfileForm() {
             </p>
           </div>
         </fieldset>
+
         {saved && (
           <p role="status" className="text-sm text-primary">
             {t("Profile saved.")}
           </p>
         )}
+
         <Button
           type="submit"
           disabled={busy}
@@ -129,6 +145,11 @@ export function ProfileForm() {
           {t(busy ? "Please wait…" : "Save changes")}
         </Button>
       </form>
+
+      <UsernameForm
+        currentUsername={cloud.profile.username}
+        securityState={securityState}
+      />
     </AccountShell>
   );
 }
