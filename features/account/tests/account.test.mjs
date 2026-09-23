@@ -19,6 +19,8 @@ for (const language of ["en", "fa"])
           createdAt: "2026-09-13T00:00:00Z",
         },
         profile: {
+          first_name: "Cloud",
+          last_name: "Farmer",
           full_name: "Cloud Farmer",
           country_code: "IR",
           language,

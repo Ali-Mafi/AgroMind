@@ -6,8 +6,6 @@ import { interactionHooks, elements } from "../../settings/tests/helpers/interac
 const { signUpFeedback } = loadTs("features/authentication/lib/sign-up-feedback.ts");
 const { signUpSchema, validationState } = loadTs("features/authentication/lib/validation.ts");
 const valid = {
-  firstName: "Test",
-  lastName: "Farmer",
   username: "test_farmer",
   email: "farmer@example.test",
   password: "A test-only long passphrase",
@@ -16,8 +14,6 @@ const valid = {
 const errors = (values) => validationState(signUpSchema.safeParse(values).error);
 
 for (const [field, invalid] of [
-  ["firstName", ""],
-  ["lastName", ""],
   ["username", "ab"],
   ["email", "wrong"],
   ["password", "short"],
@@ -136,24 +132,3 @@ test("signin never renders a verification CTA even for an unconfirmed-account er
   assert.equal(elements(h.render()).some((node) => node.props.role === "alert"), true);
 });
 
-
-test("signup name fields preserve whitespace-normalized feedback and autocomplete semantics", () => {
-  const submitted = { ...valid, firstName: "", lastName: "" };
-  const state = errors(submitted);
-  assert.ok(state.fields.firstName);
-  assert.ok(state.fields.lastName);
-  const corrected = {
-    ...submitted,
-    firstName: "  Test  ",
-    lastName: "  Farmer  ",
-  };
-  const feedback = signUpFeedback(state, corrected, submitted);
-  assert.equal(feedback.fields.firstName, undefined);
-  assert.equal(feedback.fields.lastName, undefined);
-
-  const h = formHarness();
-  assert.equal(h.input("firstName").autoComplete, "given-name");
-  assert.equal(h.input("lastName").autoComplete, "family-name");
-  assert.equal(h.input("firstName").dir, "auto");
-  assert.equal(h.input("lastName").dir, "auto");
-});

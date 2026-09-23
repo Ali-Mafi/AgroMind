@@ -103,6 +103,6 @@ export const profileSchema = z
       .refine((value) => COUNTRY_CODES.includes(value), "Choose a valid country."),
     language: z.enum(["en", "fa"]),
     timezone: timeZoneSchema,
-    onboarding_step: z.number().int().min(0).max(3).optional(),
+    onboarding_step: z.number().int().min(0).max(5).optional(),
   })
   .strict();

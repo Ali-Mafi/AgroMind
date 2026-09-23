@@ -101,9 +101,6 @@ export async function signUpAction(
         emailRedirectTo: `${siteOrigin()}/auth/callback`,
         data: {
           username: parsed.data.username,
-          first_name: parsed.data.firstName,
-          last_name: parsed.data.lastName,
-          full_name: `${parsed.data.firstName} ${parsed.data.lastName}`.trim(),
           language: parsed.data.language,
           verification_watch_hash: watch.hash,
         },

@@ -501,7 +501,7 @@ test("onboarding requires profile details and a first farm; deletion cascades sc
       /INVALID_TIMEZONE/,
     );
     await c.query(
-      "update profiles set full_name='New Name',country_code='IR',language='fa',timezone='Asia/Tehran',onboarding_step=4",
+      "update profiles set first_name='New',last_name='Name',full_name='New Name',country_code='IR',language='fa',timezone='Asia/Tehran',onboarding_step=4",
     );
     assert.equal(
       (await c.query("select onboarding_step from profiles")).rows[0]
@@ -509,11 +509,11 @@ test("onboarding requires profile details and a first farm; deletion cascades sc
       4,
     );
     await c.query("select complete_onboarding()");
-    assert.equal(
-      (await c.query("select onboarding_completed from profiles")).rows[0]
-        .onboarding_completed,
-      true,
-    );
+    const completedProfile = (
+      await c.query("select onboarding_completed,onboarding_step from profiles")
+    ).rows[0];
+    assert.equal(completedProfile.onboarding_completed, true);
+    assert.equal(completedProfile.onboarding_step, 5);
     await c.query("select save_irrigation_schedule('first',$1)", [schedule]);
     await c.query("delete from farms where id='first'");
     assert.equal(

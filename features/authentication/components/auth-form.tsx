@@ -31,8 +31,6 @@ type Mode =
   | "resend";
 
 const EMPTY_VALUES = {
-  firstName: "",
-  lastName: "",
   username: "",
   email: "",
   identifier: "",
@@ -106,9 +104,7 @@ export function AuthForm({
         ? 254
         : name === "username"
           ? 30
-          : name === "firstName" || name === "lastName"
-            ? 60
-            : 128;
+          : 128;
     return (
       <div className="space-y-2">
         <label
@@ -129,10 +125,8 @@ export function AuthForm({
           autoComplete={autoComplete}
           minLength={minLength}
           maxLength={maxLength}
-          dir={
-            name === "firstName" || name === "lastName" ? "auto" : "ltr"
-          }
-          spellCheck={name === "firstName" || name === "lastName"}
+          dir="ltr"
+          spellCheck={false}
           autoCapitalize={
             name === "username" || name === "identifier" ? "none" : undefined
           }
@@ -191,11 +185,7 @@ export function AuthForm({
       <fieldset disabled={pending} className="space-y-5 disabled:opacity-65">
         {mode === "sign-up" && (
           <>
-            <div className="grid gap-5 sm:grid-cols-2">
-              {field("firstName", "First name", "text", "given-name", 1)}
-              {field("lastName", "Last name", "text", "family-name", 1)}
-            </div>
-            {field("username", "Username", "text", "username", 3)}
+{field("username", "Username", "text", "username", 3)}
             <p className="text-xs text-muted-foreground">
               {t("Use 3–30 lowercase letters, numbers, or underscores.")}
             </p>

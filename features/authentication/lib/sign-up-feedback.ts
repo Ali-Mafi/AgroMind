@@ -1,8 +1,6 @@
 import { signUpSchema, validationState, type AuthFormState } from "./validation";
 
 export type SignUpValues = {
-  firstName: string;
-  lastName: string;
   username: string;
   email: string;
   password: string;
@@ -10,8 +8,6 @@ export type SignUpValues = {
 };
 
 const fields = [
-  "firstName",
-  "lastName",
   "username",
   "email",
   "password",
@@ -22,7 +18,6 @@ function comparableValue(name: keyof SignUpValues, value: string) {
   if (name === "username" || name === "email") {
     return value.trim().toLowerCase();
   }
-  if (name === "firstName" || name === "lastName") return value.trim();
   return value;
 }
 
