@@ -46,16 +46,18 @@ export function Onboarding() {
   const settings = useSettings();
   const t = useTranslation();
   const router = useRouter();
+  const profileFirstName = cloud.profile.first_name ?? "";
+  const profileLastName = cloud.profile.last_name ?? "";
   const hasNames = Boolean(
-    cloud.profile.first_name.trim() && cloud.profile.last_name.trim(),
+    profileFirstName.trim() && profileLastName.trim(),
   );
   const [step, setStep] = useState(
     hasNames
       ? Math.min(cloud.profile.onboarding_step, 4)
       : Math.min(cloud.profile.onboarding_step, 1),
   );
-  const [firstName, setFirstName] = useState(cloud.profile.first_name);
-  const [lastName, setLastName] = useState(cloud.profile.last_name);
+  const [firstName, setFirstName] = useState(profileFirstName);
+  const [lastName, setLastName] = useState(profileLastName);
   const [nameError, setNameError] = useState("");
   const [country, setCountry] = useState(
     settings.preferences.regionConfirmed
