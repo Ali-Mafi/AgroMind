@@ -5,6 +5,7 @@ import {
   Check,
   Copy,
   KeyRound,
+  LoaderCircle,
   ShieldCheck,
   ShieldOff,
 } from "lucide-react";
@@ -452,7 +453,13 @@ export function SecurityCenter({
               >
                 {t("Cancel")}
               </Button>
-              <Button type="submit" disabled={busy}>
+              <Button type="submit" disabled={busy} aria-busy={busy}>
+                {busy && (
+                  <LoaderCircle
+                    className="animate-spin motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                )}
                 {t(busy ? "Please wait…" : "Confirm")}
               </Button>
             </div>
@@ -542,7 +549,13 @@ export function SecurityCenter({
                 >
                   {t("Cancel")}
                 </Button>
-                <Button type="submit" disabled={busy}>
+                <Button type="submit" disabled={busy} aria-busy={busy}>
+                  {busy && (
+                    <LoaderCircle
+                      className="animate-spin motion-reduce:animate-none"
+                      aria-hidden="true"
+                    />
+                  )}
                   {t(busy ? "Please wait…" : "Verify and enable")}
                 </Button>
               </div>
@@ -620,7 +633,13 @@ export function SecurityCenter({
                 >
                   {t("Cancel")}
                 </Button>
-                <Button type="submit" disabled={busy}>
+                <Button type="submit" disabled={busy} aria-busy={busy}>
+                  {busy && (
+                    <LoaderCircle
+                      className="animate-spin motion-reduce:animate-none"
+                      aria-hidden="true"
+                    />
+                  )}
                   {t(busy ? "Please wait…" : "Confirm")}
                 </Button>
               </div>
