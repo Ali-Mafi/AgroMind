@@ -274,23 +274,29 @@
   }
 
   .security-action-dialog--compact {
-    inset: 0;
+    inset: auto;
+    top: 50%;
+    left: 50%;
     width: min(calc(100vw - 2rem), 30rem);
-    height: fit-content;
+    height: auto;
+    min-height: 0;
     max-width: 30rem;
     max-height: calc(
       100dvh - max(2rem, env(safe-area-inset-top) + env(safe-area-inset-bottom))
     );
-    margin: auto;
+    margin: 0;
+    translate: -50% -50%;
     border-radius: 1.5rem;
     animation-name: security-dialog-in;
   }
 
   .security-action-dialog--compact[open] {
-    grid-template-rows: auto auto;
+    display: block;
   }
 
   .security-action-dialog--compact .security-action-dialog__body {
+    min-height: 0;
+    max-height: calc(100dvh - 13rem);
     overflow-y: auto;
     scroll-padding-bottom: 1rem;
   }
