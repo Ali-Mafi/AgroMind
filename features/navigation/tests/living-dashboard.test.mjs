@@ -17,7 +17,8 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
     assert.match(html, /data-farm-type="farm"/);
     assert.match(html, /data-crop-key="corn"/);
-    assert.match(html, /images\.unsplash\.com\/photo-1615129825073-c47c67bdec5b/);\n    assert.doesNotMatch(html, /crop-sprite\.webp/);
+    assert.match(html, /images\.unsplash\.com\/photo-1615129825073-c47c67bdec5b/);
+    assert.doesNotMatch(html, /crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
   test(`${language}: missing coordinates and schedule keep honest empty actions`, () => {
