@@ -362,7 +362,7 @@
   content: "";
 }
 
-.overview :global(.farm-crop-card) > :not(.farm-crop-backdrop) {
+.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
   position: relative;
   z-index: 1;
 }
