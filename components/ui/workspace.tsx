@@ -33,6 +33,7 @@ export function SummaryCard({
   href,
   footer,
   className,
+  backdrop,
 }: {
   title: ReactNode;
   icon?: ReactNode;
@@ -40,9 +41,11 @@ export function SummaryCard({
   href?: string;
   footer?: ReactNode;
   className?: string;
+  backdrop?: ReactNode;
 }) {
   const content = (
     <>
+      {backdrop}
       <div className="flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground">
           {icon && <span className="app-icon-container" aria-hidden="true">{icon}</span>}
