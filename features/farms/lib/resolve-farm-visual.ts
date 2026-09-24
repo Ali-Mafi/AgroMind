@@ -11,17 +11,17 @@ export type CropVisual = {
 };
 
 const PHOTO = {
-  wheat: "/dashboard/backgrounds/crop-wheat.webp",
-  corn: "/dashboard/backgrounds/crop-corn.webp",
-  rice: "/dashboard/backgrounds/crop-rice.webp",
-  tomato: "/dashboard/backgrounds/crop-tomato.webp",
-  field: "/dashboard/backgrounds/crop-field.webp",
+  wheat: "/images/dashboard/crop-wheat.webp",
+  corn: "/images/dashboard/crop-corn.webp",
+  rice: "/images/dashboard/crop-rice.webp",
+  tomato: "/images/dashboard/crop-tomato.webp",
+  field: "/images/dashboard/crop-field.webp",
 } as const;
 
 const ASSET = {
-  headerFarm: "/dashboard/backgrounds/header-field-v2.webp",
-  headerGarden: "/dashboard/backgrounds/header-orchard-v2.webp",
-  gardenTree: "/dashboard/backgrounds/garden-tree-v2.webp",
+  headerFarm: "/images/dashboard/header-field-v2.webp",
+  headerGarden: "/images/dashboard/header-orchard-v2.webp",
+  gardenTree: "/images/dashboard/garden-tree-v2.webp",
 } as const;
 
 function normalizeCropName(value: string) {

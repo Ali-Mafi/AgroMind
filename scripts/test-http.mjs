@@ -54,6 +54,20 @@ try {
     });
   });
 
+  for (const image of [
+    "header-field-v2", "header-orchard-v2", "garden-tree-v2",
+    "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
+  ]) {
+    const path = `/images/dashboard/${image}.webp`;
+    const response = await fetch(base + path, { redirect: "manual" });
+    assert.equal(response.status, 200, path);
+    assert.match(response.headers.get("content-type"), /image\/webp/, path);
+    const imageBytes = Buffer.from(await response.arrayBuffer());
+    assert.equal(imageBytes.subarray(0, 4).toString(), "RIFF", path);
+    assert.ok(imageBytes.length > 40_000, path);
+    console.log("PASS public dashboard image", path);
+  }
+
   for (const path of [
     "/dashboard",
     "/assistant",

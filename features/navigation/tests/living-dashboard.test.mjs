@@ -18,7 +18,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
     assert.match(html, /data-farm-type="farm"/);
     assert.match(html, /data-crop-key="corn"/);
-    assert.match(html, /\/dashboard\/backgrounds\/crop-corn\.webp/);
+    assert.match(html, /\/images\/dashboard\/crop-corn\.webp/);
     assert.doesNotMatch(html, /crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
@@ -37,7 +37,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, language === "fa" ? /۱ گیاه و درخت/ : /1 plants and trees/);
     assert.match(html, /data-farm-type="garden"/);
     assert.match(html, /data-crop-key="garden-tree"/);
-    assert.match(html, /\/dashboard\/backgrounds\/garden-tree-v2\.webp/);
+    assert.match(html, /\/images\/dashboard\/garden-tree-v2\.webp/);
     assert.doesNotMatch(html, /soil.*\d+%|valve running/i);
   });
 }
@@ -79,14 +79,14 @@ test("dashboard photos are local, species-specific and do not substitute wheat f
   const { resolveCropVisual, resolveFarmHeaderBackground } = loadTs("features/farms/lib/resolve-farm-visual");
   for (const [name, asset] of [["ذرت علوفه‌ای", "corn"], ["گندم", "wheat"], ["برنج", "rice"], ["گوجه فرنگی", "tomato"], ["Unknown crop", "field"], ["Sorghum", "field"]]) {
     const visual = resolveCropVisual({ type: "farm", crop: { name } });
-    assert.equal(visual.image, `/dashboard/backgrounds/crop-${asset}.webp`);
+    assert.equal(visual.image, `/images/dashboard/crop-${asset}.webp`);
     assert.equal(visual.backgroundSize, "cover");
     assert.ok(statSync(`public${visual.image}`).size > 40_000);
   }
   const garden = resolveCropVisual({ type: "garden" });
   assert.equal(garden.backgroundSize, "contain", "keep the entire tree visible");
   for (const path of [garden.image, resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden")]) {
-    assert.ok(path.startsWith("/dashboard/backgrounds/"));
+    assert.ok(path.startsWith("/images/dashboard/"));
     assert.ok(statSync(`public${path}`).size > 40_000);
   }
   assert.notEqual(resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden"));
