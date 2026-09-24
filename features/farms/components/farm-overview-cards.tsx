@@ -1,5 +1,4 @@
 "use client";
-import type { CSSProperties } from "react";
 import { CalendarCheck2, Clock3, Droplets, Sprout, Trees, RadioTower, MapPin } from "lucide-react";
 import { SummaryCard } from "@/components/ui/workspace";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -10,11 +9,6 @@ import { resolveCropVisual } from "@/features/farms/lib/resolve-farm-visual";
 import type { Farm } from "../types/farms";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
 
-type CropVisualStyle = CSSProperties & {
-  "--farm-crop-image": string;
-  "--farm-crop-size": string;
-  "--farm-crop-position": string;
-};
 
 export function FarmOverviewCards({
   farm,
@@ -104,6 +98,18 @@ export function FarmOverviewCards({
         icon={farm.type === "garden" ? <Trees size={18} /> : <Sprout size={18} />}
         href={`/farms/${farm.id}/insights`}
         footer={t("View crop details")}
+        backdrop={
+          <span
+            aria-hidden="true"
+            className="farm-crop-backdrop"
+            data-crop-key={cropVisual.key}
+            style={{
+              backgroundImage: `url("${cropVisual.image}")`,
+              backgroundSize: cropVisual.backgroundSize,
+              backgroundPosition: cropVisual.backgroundPosition,
+            }}
+          />
+        }
       >
         <p className="text-xl font-semibold">
           {farm.type === "garden"
