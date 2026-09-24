@@ -17,7 +17,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
     assert.match(html, /data-farm-type="farm"/);
     assert.match(html, /data-crop-key="corn"/);
-    assert.match(html, /\/dashboard\/backgrounds\/crop-sprite\.webp/);
+    assert.match(html, /images\.unsplash\.com\/photo-1615129825073-c47c67bdec5b/);\n    assert.doesNotMatch(html, /crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
   test(`${language}: missing coordinates and schedule keep honest empty actions`, () => {
@@ -35,7 +35,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, language === "fa" ? /۱ گیاه و درخت/ : /1 plants and trees/);
     assert.match(html, /data-farm-type="garden"/);
     assert.match(html, /data-crop-key="garden-tree"/);
-    assert.match(html, /\/dashboard\/backgrounds\/garden-tree\.webp/);
+    assert.match(html, /images\.unsplash\.com\/photo-1606911287703-31c506e2d96f/);
     assert.doesNotMatch(html, /soil.*\d+%|valve running/i);
   });
 }
