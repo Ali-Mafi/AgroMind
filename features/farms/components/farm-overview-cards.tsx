@@ -1,12 +1,20 @@
 "use client";
+import type { CSSProperties } from "react";
 import { CalendarCheck2, Clock3, Droplets, Sprout, Trees, RadioTower, MapPin } from "lucide-react";
 import { SummaryCard } from "@/components/ui/workspace";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { parseLocalDate } from "@/features/settings/lib/calendar";
 import WeatherDashboard from "@/features/weather/components/weather-dashboard";
+import { resolveCropVisual } from "@/features/farms/lib/resolve-farm-visual";
 import type { Farm } from "../types/farms";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
+
+type CropVisualStyle = CSSProperties & {
+  "--farm-crop-image": string;
+  "--farm-crop-size": string;
+  "--farm-crop-position": string;
+};
 
 export function FarmOverviewCards({
   farm,
@@ -21,6 +29,12 @@ export function FarmOverviewCards({
 }) {
   const t = useTranslation();
   const { format } = useSettings();
+  const cropVisual = resolveCropVisual(farm);
+  const cropVisualStyle: CropVisualStyle = {
+    "--farm-crop-image": `url("${cropVisual.image}")`,
+    "--farm-crop-size": cropVisual.backgroundSize,
+    "--farm-crop-position": cropVisual.backgroundPosition,
+  };
   return (
     <div className="grid auto-rows-fr gap-5 md:grid-cols-2" data-farm-overview={appearance} data-sensors={showSensors}>
       {farm.coordinates ? (
