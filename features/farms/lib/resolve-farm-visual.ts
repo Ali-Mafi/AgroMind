@@ -10,22 +10,97 @@ export type CropVisual = {
   backgroundPosition: string;
 };
 
-const IMAGE = {
-  headerFarm:
-    "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?auto=format&fit=crop&w=1800&q=82",
-  headerGarden:
-    "https://images.unsplash.com/photo-1779188683829-9a700d14accd?auto=format&fit=crop&w=1800&q=82",
-  gardenTree:
-    "https://images.unsplash.com/photo-1759799944634-52786cc84c70?auto=format&fit=crop&w=1600&q=82",
-  wheat:
-    "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?auto=format&fit=crop&w=1600&q=80",
-  corn:
-    "https://images.unsplash.com/photo-1695453200514-d9ee3c003772?auto=format&fit=crop&w=1600&q=80",
-  cabbage:
-    "https://images.unsplash.com/photo-1769441071410-40528743a0ac?auto=format&fit=crop&w=1600&q=80",
-  rowCrop:
-    "https://images.unsplash.com/photo-1647510173529-d91eb50bab8e?auto=format&fit=crop&w=1600&q=80",
+const ASSET = {
+  headerFarm: "/dashboard/backgrounds/header-farm.webp",
+  headerGarden: "/dashboard/backgrounds/header-garden.webp",
+  gardenTree: "/dashboard/backgrounds/garden-tree.webp",
+  cropSprite: "/dashboard/backgrounds/crop-sprite.webp",
 } as const;
+
+const SPRITE_COLUMNS = 7;
+const SPRITE_ROWS = 11;
+
+const CROP_CELLS: Readonly<Record<string, readonly [number, number]>> = {
+  wheat: [0, 0],
+  corn: [1, 0],
+  cabbage: [2, 0],
+  generic: [3, 0],
+  barley: [4, 0],
+  rice: [5, 0],
+  sorghum: [6, 0],
+
+  millet: [0, 1],
+  chickpea: [1, 1],
+  lentil: [2, 1],
+  bean: [3, 1],
+  "pinto-bean": [4, 1],
+  "red-bean": [5, 1],
+  "white-bean": [6, 1],
+
+  "mung-bean": [0, 2],
+  "fava-bean": [1, 2],
+  "green-pea": [2, 2],
+  soybean: [3, 2],
+  canola: [4, 2],
+  sunflower: [5, 2],
+  sesame: [6, 2],
+
+  safflower: [0, 3],
+  cotton: [1, 3],
+  "sugar-beet": [2, 3],
+  sugarcane: [3, 3],
+  potato: [4, 3],
+  onion: [5, 3],
+  garlic: [6, 3],
+
+  tomato: [0, 4],
+  cucumber: [1, 4],
+  "field-vegetable": [2, 4],
+  eggplant: [3, 4],
+  pepper: [4, 4],
+  "bell-pepper": [5, 4],
+
+  cauliflower: [0, 5],
+  broccoli: [1, 5],
+  lettuce: [2, 5],
+  spinach: [3, 5],
+  carrot: [4, 5],
+  turnip: [5, 5],
+  radish: [6, 5],
+
+  beet: [0, 6],
+  celery: [1, 6],
+  okra: [2, 6],
+  pumpkin: [3, 6],
+  zucchini: [4, 6],
+  watermelon: [5, 6],
+  cantaloupe: [6, 6],
+
+  melon: [0, 7],
+  alfalfa: [1, 7],
+  clover: [2, 7],
+  sainfoin: [3, 7],
+  vetch: [4, 7],
+  saffron: [5, 7],
+  cumin: [6, 7],
+
+  coriander: [0, 8],
+  fennel: [1, 8],
+  dill: [2, 8],
+  fenugreek: [3, 8],
+  "black-seed": [4, 8],
+  parsley: [6, 8],
+
+  basil: [0, 9],
+  mint: [1, 9],
+  thyme: [2, 9],
+  savory: [3, 9],
+  chamomile: [4, 9],
+  "damask-rose": [5, 9],
+  tobacco: [6, 9],
+
+  tea: [0, 10],
+};
 
 function normalizeCropName(value: string) {
   return value
@@ -35,31 +110,29 @@ function normalizeCropName(value: string) {
     .replace(/ك/g, "ک")
     .replace(/[ۀة]/g, "ه")
     .replace(/[أإٱآ]/g, "ا")
-    .replace(/[ؤ]/g, "و")
-    .replace(/[ئ]/g, "ی")
+    .replace(/ؤ/g, "و")
+    .replace(/ئ/g, "ی")
     .replace(/[ً-ٰٟ]/g, "")
     .replace(/[‌‏‎]/g, " ")
     .replace(/[۰-۹0-9]/g, " ")
     .replace(/[^a-z؀-ۿ]+/g, " ")
-    .replace(/s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 const CROP_ALIASES: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["bell-pepper", ["فلفل دلمه ای", "فلفل دلمه", "bell pepper", "sweet pepper", "capsicum"]],
-  ["green-pea", ["نخود فرنگی", "نخود سبز", "green pea", "garden pea", "pea"]],
+  ["green-pea", ["نخود فرنگی", "نخود سبز", "green pea", "garden pea"]],
   ["pinto-bean", ["لوبیا چیتی", "pinto bean"]],
   ["red-bean", ["لوبیا قرمز", "kidney bean", "red bean"]],
   ["white-bean", ["لوبیا سفید", "white bean", "navy bean"]],
   ["mung-bean", ["ماش سبز", "ماش", "mung bean"]],
   ["fava-bean", ["باقلا", "باقالی", "fava bean", "broad bean"]],
   ["sugar-beet", ["چغندر قند", "چغندرقند", "sugar beet"]],
-  ["sugarcane", ["نیشکر", "sugar cane", "sugarcane"]],
-  ["damask-rose", ["گل محمدی", "گل سرخ", "damask rose", "rose"]],
+  ["damask-rose", ["گل محمدی", "گل سرخ", "damask rose"]],
   ["black-seed", ["سیاه دانه", "سیاهدانه", "black seed", "nigella"]],
   ["watermelon", ["هندوانه", "watermelon"]],
   ["cantaloupe", ["طالبی", "cantaloupe"]],
-  ["melon", ["خربزه", "ملون", "melon", "muskmelon"]],
   ["cauliflower", ["گل کلم", "گلکلم", "cauliflower"]],
   ["broccoli", ["بروکلی", "broccoli"]],
   ["cabbage", ["کلم پیچ", "کلم سفید", "کلم قرمز", "کلم", "cabbage"]],
@@ -72,13 +145,12 @@ const CROP_ALIASES: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["chickpea", ["نخود", "chickpea", "garbanzo"]],
   ["lentil", ["عدس", "lentil"]],
   ["bean", ["لوبیا", "bean"]],
-  ["soybean", ["بادام زمینی", "peanut", "groundnut"]],
   ["wheat", ["گندم دوروم", "گندم نان", "گندم", "wheat", "durum"]],
-  ["barley", ["جو دوسر", "یولاف", "جو", "barley", "oat", "oats", "rye", "چاودار"]],
+  ["barley", ["جو دوسر", "یولاف", "جو", "barley", "oat", "oats", "چاودار", "rye"]],
   ["rice", ["برنج", "شلتوک", "rice", "paddy"]],
   ["corn", ["ذرت علوفه ای", "ذرت شیرین", "بلال", "ذرت", "corn", "maize"]],
   ["sorghum", ["سورگوم", "sorghum"]],
-  ["millet", ["ارزن", "کینوا", "millet", "quinoa"]],
+  ["millet", ["ارزن", "millet"]],
   ["potato", ["سیب زمینی", "potato"]],
   ["onion", ["پیاز", "onion"]],
   ["garlic", ["سیر", "garlic"]],
@@ -96,10 +168,11 @@ const CROP_ALIASES: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["okra", ["بامیه", "okra"]],
   ["pumpkin", ["کدو حلوایی", "کدو تنبل", "pumpkin"]],
   ["zucchini", ["کدو سبز", "کدو", "zucchini", "courgette", "squash"]],
+  ["melon", ["خربزه", "ملون", "melon", "muskmelon"]],
   ["alfalfa", ["یونجه", "alfalfa", "lucerne"]],
-  ["clover", ["شبدر", "اسپرس", "sainfoin", "clover"]],
+  ["clover", ["شبدر", "clover"]],
+  ["sainfoin", ["اسپرس", "sainfoin"]],
   ["vetch", ["ماشک", "vetch"]],
-  ["asparagus", ["مارچوبه", "asparagus"]],
   ["saffron", ["زعفران", "saffron"]],
   ["cumin", ["زیره سبز", "زیره سیاه", "زیره", "cumin", "caraway"]],
   ["coriander", ["گشنیز", "coriander", "cilantro"]],
@@ -114,55 +187,50 @@ const CROP_ALIASES: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["chamomile", ["بابونه", "chamomile"]],
   ["tobacco", ["تنباکو", "توتون", "tobacco"]],
   ["tea", ["چای", "tea"]],
-  ["field-vegetable", ["سبزی", "سبزیجات", "تره", "تره فرنگی", "leek", "vegetable"]],
+  ["field-vegetable", ["سبزی خوردن", "سبزیجات", "سبزی", "تره", "leek", "vegetable"]],
+  ["sugarcane", ["نیشکر", "sugar cane", "sugarcane"]],
 ];
-
-function stableCropLock(key: string) {
-  let hash = 17;
-  for (const character of key) hash = (hash * 31 + character.charCodeAt(0)) % 9973;
-  return hash + 1;
-}
 
 export function resolveCropVisualKey(rawName?: string | null) {
   const name = normalizeCropName(rawName ?? "");
   if (!name) return "generic";
 
   for (const [key, aliases] of CROP_ALIASES) {
-    if (aliases.some((alias) => name.includes(normalizeCropName(alias)))) return key;
+    if (aliases.some((alias) => name.includes(normalizeCropName(alias)))) {
+      return key;
+    }
   }
 
   return "generic";
 }
 
-function cropImageForKey(key: string) {
-  if (key === "wheat") return IMAGE.wheat;
-  if (key === "corn") return IMAGE.corn;
-  if (key === "cabbage") return IMAGE.cabbage;
-  if (key === "generic") return IMAGE.rowCrop;
-
-  const query = key.replaceAll("-", ",");
-  return `https://loremflickr.com/1200/800/${query},field,agriculture?lock=${stableCropLock(key)}`;
+function spritePosition([column, row]: readonly [number, number]) {
+  const x = (column / (SPRITE_COLUMNS - 1)) * 100;
+  const y = (row / (SPRITE_ROWS - 1)) * 100;
+  return `${x}% ${y}%`;
 }
 
 export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
   if (farm.type === "garden") {
     return {
       key: "garden-tree",
-      image: IMAGE.gardenTree,
+      image: ASSET.gardenTree,
       backgroundSize: "cover",
       backgroundPosition: "center",
     };
   }
 
   const key = resolveCropVisualKey(farm.crop?.name);
+  const cell = CROP_CELLS[key] ?? CROP_CELLS.generic;
+
   return {
     key,
-    image: cropImageForKey(key),
-    backgroundSize: "cover",
-    backgroundPosition: key === "corn" ? "center 56%" : "center",
+    image: ASSET.cropSprite,
+    backgroundSize: `${SPRITE_COLUMNS * 100}% ${SPRITE_ROWS * 100}%`,
+    backgroundPosition: spritePosition(cell),
   };
 }
 
 export function resolveFarmHeaderBackground(type: FarmVisualInput["type"]) {
-  return type === "garden" ? IMAGE.headerGarden : IMAGE.headerFarm;
+  return type === "garden" ? ASSET.headerGarden : ASSET.headerFarm;
 }
