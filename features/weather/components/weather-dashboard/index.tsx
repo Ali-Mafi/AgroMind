@@ -81,7 +81,14 @@ export default function WeatherDashboard({ coordinates, farmId, returnTo = "/das
     </div>
   );
   return (
-    <section className={cardClass} data-condition={weather.current.condition.condition} data-day={weather.current.isDay} data-precipitation={weather.current.condition.isPrecipitation}>
+    <section
+      className={cardClass}
+      style={appearance === "dashboard" ? weatherVisualStyle : undefined}
+      data-visual-state={appearance === "dashboard" ? visualState : undefined}
+      data-condition={weather.current.condition.condition}
+      data-day={weather.current.isDay}
+      data-precipitation={weather.current.condition.isPrecipitation}
+    >
       {farmId ? (
         <Link href={`/weather?farm=${encodeURIComponent(farmId)}&from=${returnTo.slice(1)}`} aria-label={t("Open local forecast")} className={`${styles.forecastLink} app-card-link block p-5 transition-colors hover:bg-muted/30 sm:p-6`}>
           {content}
