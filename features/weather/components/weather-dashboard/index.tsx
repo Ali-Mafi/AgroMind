@@ -55,7 +55,10 @@ export default function WeatherDashboard({ coordinates, farmId, returnTo = "/das
   const content = (
     <div className={styles.conditions}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <h3 className="text-sm font-medium text-muted-foreground">{t("Weather")}</h3>
+        <h3 className={`${styles.weatherTitle} text-sm font-medium text-muted-foreground`}>
+          {t("Weather")}
+          {appearance === "dashboard" && farmId && <NavigationArrow size={14} />}
+        </h3>
         {appearance === "dashboard" && (
           <span className={styles.reportTime}>
             {t(weather.current.source === "open-meteo" ? "Valid time" : "Report time")}
@@ -95,9 +98,9 @@ export default function WeatherDashboard({ coordinates, farmId, returnTo = "/das
           <span className={`${styles.forecastFooter} mt-5 flex items-center justify-between border-t pt-4 text-sm font-medium text-primary`}>{t("View forecast")}<NavigationArrow size={16} /></span>
         </Link>
       ) : <div className="p-6">{content}</div>}
-      {weather.currentStatus === "fallback" && <p role="status" className="px-5 pb-3 text-xs leading-5 text-muted-foreground sm:px-6">{t("WeatherAPI unavailable. Current conditions and forecasts now use Open-Meteo.")}</p>}
-      {refreshError && <p role="status" className="px-5 pb-3 text-xs leading-5 text-muted-foreground sm:px-6">{t(refreshError)}</p>}
-      <Disclosure className="border-t px-5 text-xs text-muted-foreground sm:px-6" title={t("Forecast details & refresh")}>
+      {weather.currentStatus === "fallback" && <p role="status" className={`${styles.sourceNotice} px-5 pb-3 text-xs leading-5 text-muted-foreground sm:px-6`}>{t("WeatherAPI unavailable. Current conditions and forecasts now use Open-Meteo.")}</p>}
+      {refreshError && <p role="status" className={`${styles.sourceNotice} px-5 pb-3 text-xs leading-5 text-muted-foreground sm:px-6`}>{t(refreshError)}</p>}
+      <Disclosure className={`${styles.details} border-t px-5 text-xs text-muted-foreground sm:px-6`} title={t("Forecast details & refresh")}>
         <WeatherSourceStatus weather={weather} checkedAt={checkedAt} isRefreshing={isRefreshing} refreshError={refreshError} onRefresh={refresh} />
       </Disclosure>
     </section>
