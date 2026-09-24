@@ -463,3 +463,11 @@ Install the cumulative replacement ZIP in the user's existing VS Code checkout a
 ### Next task
 
 Review and merge PR #10, then perform the separate Signup UX pass before the later Dashboard redesign.
+
+## Step 015 — Living Dashboard polish — 2026-09-24
+
+- Completed: scoped agricultural hero depth, real-condition weather atmosphere and report time, calendar-style irrigation presentation, crop/garden hierarchy, welcoming empty state and native farm-switch transition. Reused the active Dashboard components and existing tokens.
+- Preserved: business logic, Auth/MFA, Supabase/RLS/entitlements, data behavior, scheduling, weather refresh/providers, localization and navigation. No new dependency, imagery or invented readings.
+- Status: implementation and automated verification complete; browser visual acceptance pending because local/file preview access is blocked. Native PostgreSQL cannot start locally (`EINVAL`); CI retains that gate.
+- Next step: review the draft PR and verify authenticated responsive, theme, RTL, reduced-motion and iPhone performance before merging.
+- Evidence: [2026-09-24 progress](progress/2026-09-24.md).

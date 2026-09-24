@@ -7,6 +7,8 @@ export function workspaceFixture({
   empty = false,
   garden = false,
   canCreateFarm = true,
+  coordinates = true,
+  scheduled = true,
 } = {}) {
   const ui = localizedRenderer({ language });
   const farms = empty
@@ -19,7 +21,7 @@ export function workspaceFixture({
           area: 40000,
           type: garden ? "garden" : "farm",
           crop: { id: "corn", name: language === "fa" ? "ذرت" : "Corn" },
-          coordinates: { latitude: 36.27, longitude: 50 },
+          coordinates: coordinates ? { latitude: 36.27, longitude: 50 } : undefined,
           irrigationType: "flood",
           plants: [
             {
@@ -59,9 +61,9 @@ export function workspaceFixture({
   const state = {
     farms,
     selectedFarmId: farms[0]?.id,
-    irrigationSchedules: {
+    irrigationSchedules: scheduled ? {
       "fixture-farm": { date: "2026-09-23", time: "06:30", duration: 45 },
-    },
+    } : {},
     cloud,
     farmLimit: 3,
     canCreateFarm,
