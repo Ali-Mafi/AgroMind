@@ -106,3 +106,67 @@
   .weather .conditions { animation: none; }
   .weather .forecastLink:hover .icon svg { transform: none; }
 }
+
+
+/* Condition-aware photographic dashboard weather */
+.weather {
+  --weather-light: var(--muted-foreground);
+  --weather-tint: oklch(0.65 0.035 240);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image:
+    linear-gradient(128deg, color-mix(in oklch, var(--card) 96%, transparent) 0%, color-mix(in oklch, var(--card) 82%, transparent) 48%, color-mix(in oklch, var(--card) 43%, transparent) 100%),
+    linear-gradient(to top, color-mix(in oklch, var(--card) 76%, transparent), transparent 64%),
+    var(--weather-background);
+  background-position: center;
+  background-size: cover;
+}
+.weather::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 92% 8%, color-mix(in oklch, var(--weather-tint) 17%, transparent), transparent 34%);
+  content: "";
+}
+.weather[data-condition="clear"][data-day="true"],
+.weather[data-condition="mainly-clear"][data-day="true"] {
+  --weather-light: var(--app-gold);
+  --weather-tint: var(--accent);
+}
+.weather[data-precipitation="true"] {
+  --weather-light: oklch(0.5 0.065 235);
+  --weather-tint: oklch(0.6 0.075 240);
+}
+.weather[data-day="false"] {
+  --weather-light: oklch(0.46 0.065 265);
+  --weather-tint: oklch(0.48 0.08 265);
+}
+:global(.dark) .weather {
+  background-image:
+    linear-gradient(128deg, color-mix(in oklch, var(--card) 94%, transparent) 0%, color-mix(in oklch, var(--card) 78%, transparent) 49%, color-mix(in oklch, var(--card) 40%, transparent) 100%),
+    linear-gradient(to top, color-mix(in oklch, var(--card) 78%, transparent), transparent 66%),
+    var(--weather-background);
+}
+:global(.dark) .weather[data-precipitation="true"] {
+  --weather-light: oklch(0.78 0.06 235);
+}
+:global(.dark) .weather[data-day="false"] {
+  --weather-light: oklch(0.8 0.045 265);
+  --weather-tint: oklch(0.57 0.09 265);
+}
+.weather .forecastLink {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+}
+.weather .forecastLink:focus-visible {
+  outline-offset: -4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .weather .forecastLink:hover {
+    transform: none;
+    background: color-mix(in oklch, var(--card) 8%, transparent);
+  }
+}
