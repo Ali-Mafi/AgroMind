@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceFixture } from "./helpers/workspace-fixture.mjs";
 import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
-import { localRequire } from "../../weather/tests/helpers/load-ts.mjs";
+import { localRequire, loadTs } from "../../weather/tests/helpers/load-ts.mjs";
 const React = localRequire("react");
 
 for (const language of ["en", "fa"]) {
@@ -15,6 +15,9 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/weather\?farm=fixture-farm&amp;from=dashboard"/);
     assert.match(html, /href="\/irrigation\?farm=fixture-farm"/);
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
+    assert.match(html, /data-farm-type="farm"/);
+    assert.match(html, /data-crop-key="corn"/);
+    assert.match(html, /\/dashboard\/backgrounds\/crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
   test(`${language}: missing coordinates and schedule keep honest empty actions`, () => {
@@ -30,6 +33,9 @@ for (const language of ["en", "fa"]) {
     const html = workspaceFixture({ language, garden: true });
     assert.match(html, /lucide-trees/);
     assert.match(html, language === "fa" ? /۱ گیاه و درخت/ : /1 plants and trees/);
+    assert.match(html, /data-farm-type="garden"/);
+    assert.match(html, /data-crop-key="garden-tree"/);
+    assert.match(html, /\/dashboard\/backgrounds\/garden-tree\.webp/);
     assert.doesNotMatch(html, /soil.*\d+%|valve running/i);
   });
 }
@@ -57,11 +63,23 @@ function renderWeather({ source = "weatherapi", returnTo = "/dashboard", state =
   }));
 }
 
+test("crop visual resolver normalizes Persian and English crop variants without AI", () => {
+  const { resolveCropVisualKey, resolveCropVisual } = loadTs("features/farms/lib/resolve-farm-visual");
+  assert.equal(resolveCropVisualKey("ذرت علوفه‌ای 704"), "corn");
+  assert.equal(resolveCropVisualKey("گندم دوروم"), "wheat");
+  assert.equal(resolveCropVisualKey("کلم سفید"), "cabbage");
+  assert.equal(resolveCropVisualKey("Pinto Bean"), "pinto-bean");
+  assert.equal(resolveCropVisualKey("محصول محلی ناشناخته"), "generic");
+  assert.equal(resolveCropVisual({ type: "garden", crop: { name: "Apple" } }).key, "garden-tree");
+});
+
 test("weather atmosphere and report time use the provider's actual condition, night and farm timezone", () => {
   const html = renderWeather();
   assert.match(html, /data-day="false"/);
   assert.match(html, /data-condition="rain"/);
   assert.match(html, /data-precipitation="true"/);
+  assert.match(html, /data-visual-state="rain-night"/);
+  assert.match(html, /\/weather\/backgrounds\/rainy-night\.webp/);
   assert.match(html, /Report time/);
   assert.match(html, /dateTime="2026-09-21T20:00:00Z"/);
   assert.match(html, /23:30/);
