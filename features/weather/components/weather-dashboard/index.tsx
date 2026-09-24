@@ -1,4 +1,5 @@
 "use client";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Wind, Droplets } from "lucide-react";
 import { Disclosure } from "@/components/ui/disclosure";
@@ -9,8 +10,14 @@ import { useWeatherFormat } from "../hooks/use-weather-format";
 import { WeatherSourceStatus } from "../weather-source-status";
 import { WeatherIcon } from "../weather-icon";
 import { localWeatherTime } from "@/features/weather/lib/weather-presentation";
+import { resolveWeatherVisualState } from "@/features/weather/lib/resolve-weather-visual-state";
+import { resolveWeatherBackground } from "@/features/weather/lib/resolve-weather-background";
 import { Button } from "@/components/ui/button";
 import styles from "./weather-dashboard.module.css";
+
+type WeatherVisualStyle = CSSProperties & {
+  "--weather-background": string;
+};
 
 export default function WeatherDashboard({ coordinates, farmId, returnTo = "/dashboard", appearance = "default" }: {
   coordinates: FarmLocation;
@@ -37,6 +44,14 @@ export default function WeatherDashboard({ coordinates, farmId, returnTo = "/das
   );
   const todayKey = localWeatherTime(weather.timezone, checkedAt ?? Date.parse(weather.current.time)).slice(0, 10);
   const today = weather.daily.find(day => day.date === todayKey);
+  const visualState = resolveWeatherVisualState({
+    condition: weather.current.condition.condition,
+    intensity: weather.current.condition.intensity,
+    isDay: weather.current.isDay,
+  });
+  const weatherVisualStyle: WeatherVisualStyle = {
+    "--weather-background": `url("${resolveWeatherBackground(visualState)}")`,
+  };
   const content = (
     <div className={styles.conditions}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
