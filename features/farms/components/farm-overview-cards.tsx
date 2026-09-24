@@ -45,7 +45,7 @@ export function FarmOverviewCards({
         </SummaryCard>
       )}
       <SummaryCard
-        className="farm-irrigation-card"
+        className={`farm-irrigation-card ${schedule ? "farm-irrigation-card--scheduled" : "farm-irrigation-card--empty"}`}
         title={t("Next irrigation")}
         icon={<Droplets size={18} />}
         href={`/irrigation?farm=${encodeURIComponent(farm.id)}`}
