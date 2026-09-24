@@ -24,11 +24,6 @@ export function FarmOverviewCards({
   const t = useTranslation();
   const { format } = useSettings();
   const cropVisual = resolveCropVisual(farm);
-  const cropVisualStyle: CropVisualStyle = {
-    "--farm-crop-image": `url("${cropVisual.image}")`,
-    "--farm-crop-size": cropVisual.backgroundSize,
-    "--farm-crop-position": cropVisual.backgroundPosition,
-  };
   return (
     <div className="grid auto-rows-fr gap-5 md:grid-cols-2" data-farm-overview={appearance} data-sensors={showSensors}>
       {farm.coordinates ? (
