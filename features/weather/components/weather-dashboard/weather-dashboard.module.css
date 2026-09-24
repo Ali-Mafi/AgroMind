@@ -209,3 +209,189 @@
     transform: none;
   }
 }
+
+
+/* Premium dashboard weather card — compact photographic composition. */
+.weather {
+  min-height: 19.5rem;
+  border-radius: 1.85rem;
+  background-image:
+    linear-gradient(145deg, rgb(255 255 255 / 0.68) 0%, rgb(248 249 242 / 0.34) 48%, rgb(240 246 238 / 0.16) 100%),
+    linear-gradient(to top, rgb(242 247 239 / 0.42), transparent 55%),
+    var(--weather-background);
+  box-shadow:
+    0 14px 38px rgb(35 77 45 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.58);
+}
+
+.weather::after {
+  z-index: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgb(255 236 168 / 0.22), transparent 26%),
+    linear-gradient(to top, rgb(245 248 240 / 0.18), transparent 48%);
+}
+
+.weather .forecastLink {
+  padding: 1rem !important;
+}
+
+.weather .conditions {
+  display: flex;
+  min-height: 17.1rem;
+  flex: 1;
+  flex-direction: column;
+}
+
+.weather .weatherTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: color-mix(in oklch, var(--foreground) 86%, var(--primary));
+  font-size: 0.78rem;
+  font-weight: 620;
+}
+
+.weather .weatherTitle svg {
+  color: var(--foreground);
+}
+
+.weather .reportTime {
+  display: none;
+}
+
+.weather .temperature {
+  font-size: clamp(2.7rem, 11vw, 3.45rem);
+  line-height: 1;
+  font-weight: 560;
+  color: var(--foreground);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+.weather .icon {
+  width: 4.7rem;
+  height: 4.7rem;
+  border: 1px solid rgb(255 255 255 / 0.58);
+  border-radius: 1.35rem;
+  background: rgb(255 255 255 / 0.28);
+  box-shadow:
+    0 10px 28px rgb(28 76 41 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.48);
+  backdrop-filter: blur(8px);
+}
+
+.weather .icon::before {
+  display: none;
+}
+
+.weather .metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: auto !important;
+  padding: 0.82rem 0.55rem;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: 1.3rem;
+  color: var(--foreground);
+  background: rgb(255 255 250 / 0.66);
+  box-shadow:
+    0 8px 24px rgb(32 75 43 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.64);
+  backdrop-filter: blur(10px);
+}
+
+.weather .metrics > span {
+  min-width: 0;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: clamp(0.68rem, 2.8vw, 0.82rem);
+}
+
+.weather .metrics > span + span {
+  border-inline-start: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+.weather .forecastFooter,
+.weather .details,
+.weather .sourceNotice {
+  display: none;
+}
+
+:global(.dark) .weather {
+  background-image:
+    linear-gradient(145deg, rgb(4 22 14 / 0.44) 0%, rgb(5 28 18 / 0.32) 48%, rgb(4 20 13 / 0.18) 100%),
+    linear-gradient(to top, rgb(4 21 14 / 0.42), transparent 55%),
+    var(--weather-background);
+  box-shadow:
+    0 18px 44px rgb(0 0 0 / 0.17),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+:global(.dark) .weather::after {
+  background:
+    radial-gradient(circle at 16% 18%, rgb(212 223 151 / 0.08), transparent 28%),
+    linear-gradient(to top, rgb(2 17 11 / 0.2), transparent 52%);
+}
+
+:global(.dark) .weather .weatherTitle,
+:global(.dark) .weather .temperature {
+  color: rgb(247 249 245 / 0.97);
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.22);
+}
+
+:global(.dark) .weather .weatherTitle svg {
+  color: rgb(241 246 240 / 0.86);
+}
+
+:global(.dark) .weather .icon {
+  border-color: rgb(255 255 255 / 0.11);
+  background: rgb(11 40 28 / 0.5);
+  box-shadow:
+    0 12px 30px rgb(0 0 0 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+:global(.dark) .weather .metrics {
+  color: rgb(244 247 242 / 0.94);
+  border-color: rgb(255 255 255 / 0.09);
+  background: rgb(7 28 19 / 0.7);
+  box-shadow:
+    0 10px 26px rgb(0 0 0 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+@media (max-width: 380px) {
+  .weather,
+  .weather .conditions {
+    min-height: 18.2rem;
+  }
+
+  .weather .forecastLink {
+    padding: 0.85rem !important;
+  }
+
+  .weather .temperature {
+    font-size: 2.45rem;
+  }
+
+  .weather .icon {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .weather .forecastLink {
+    padding: 1.25rem !important;
+  }
+
+  .weather .conditions {
+    min-height: 18.5rem;
+  }
+
+  .weather .reportTime {
+    display: inline-flex;
+  }
+
+  .weather .forecastFooter {
+    display: flex;
+  }
+}
