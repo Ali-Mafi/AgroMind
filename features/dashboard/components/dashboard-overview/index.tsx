@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import Link from "next/link";
 import {
@@ -17,10 +17,15 @@ import {
 import { FarmSwitcher } from "@/features/farms/components/farm-switcher";
 import { FarmOverviewCards } from "@/features/farms/components/farm-overview-cards";
 import { useWorkspaceFarm } from "@/features/farms/hooks/use-workspace-farm";
+import { resolveFarmHeaderBackground } from "@/features/farms/lib/resolve-farm-visual";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { parseLocalDate } from "@/features/settings/lib/calendar";
 import styles from "./dashboard-overview.module.css";
+
+type DashboardVisualStyle = CSSProperties & {
+  "--dashboard-property-bg": string;
+};
 
 export function DashboardOverview() {
   const { farms, farm, selectFarm, irrigationSchedules } = useWorkspaceFarm();
@@ -45,7 +50,7 @@ export function DashboardOverview() {
 
   if (!farm)
     return (
-      <main className={`app-page ${styles.dashboard}`}>
+      <main className={`app-page ${styles.dashboard}`} data-property-type={farm.type} style={dashboardVisualStyle}>
         <PageHeader
           title={t("Home")}
           description={t("A clear view of your growing day.")}
@@ -67,6 +72,9 @@ export function DashboardOverview() {
     );
   const schedule = irrigationSchedules[farm.id];
   const needsLocation = !farm.coordinates;
+  const dashboardVisualStyle: DashboardVisualStyle = {
+    "--dashboard-property-bg": `url("${resolveFarmHeaderBackground(farm.type)}")`,
+  };
   return (
     <main className={`app-page ${styles.dashboard}`}>
       <div className={styles.header}>
