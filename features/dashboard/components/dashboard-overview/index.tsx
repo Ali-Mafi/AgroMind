@@ -73,8 +73,15 @@ export function DashboardOverview() {
     );
   const schedule = irrigationSchedules[farm.id];
   const needsLocation = !farm.coordinates;
+  const dashboardVisualStyle: DashboardVisualStyle = {
+    "--dashboard-property-bg": `url("${resolveFarmHeaderBackground(farm.type)}")`,
+  };
+
   return (
-    <main className={`app-page ${styles.dashboard}`}>
+    <main
+      className={`app-page ${styles.dashboard}`}
+      style={dashboardVisualStyle}
+    >
       <div className={styles.header} data-farm-type={farm.type}>
         <PageHeader
           eyebrow={t("Home")}
@@ -90,6 +97,7 @@ export function DashboardOverview() {
               farms={farms}
               selectedFarmId={farm.id}
               onFarmChange={selectFarm}
+              compact
             />
           }
         />
