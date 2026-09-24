@@ -395,3 +395,65 @@
     display: flex;
   }
 }
+
+
+/* Compact dashboard weather card; keep the full Weather page unchanged. */
+@media (max-width: 639px) {
+  .weather {
+    min-height: 14.5rem;
+    border-radius: 1.55rem;
+  }
+
+  .weather .forecastLink {
+    padding: 0.75rem !important;
+  }
+
+  .weather .conditions {
+    min-height: 12.8rem;
+  }
+
+  .weather .weatherTitle {
+    gap: 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  .weather .conditions > div:nth-child(2) {
+    margin-top: 0.75rem !important;
+    gap: 0.45rem;
+  }
+
+  .weather .temperature {
+    font-size: clamp(2rem, 8.8vw, 2.45rem);
+  }
+
+  .weather .conditions > div:nth-child(2) p:last-child {
+    margin-top: 0.3rem !important;
+    font-size: 0.72rem;
+  }
+
+  .weather .icon {
+    width: 3.7rem;
+    height: 3.7rem;
+    border-radius: 1rem;
+  }
+
+  .weather .icon svg {
+    width: 2.55rem;
+    height: 2.55rem;
+  }
+
+  .weather .metrics {
+    padding: 0.56rem 0.35rem;
+    border-radius: 1rem;
+  }
+
+  .weather .metrics > span {
+    gap: 0.25rem;
+    font-size: 0.64rem;
+  }
+
+  .weather .metrics svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}

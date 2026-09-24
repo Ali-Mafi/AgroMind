@@ -10,97 +10,46 @@ export type CropVisual = {
   backgroundPosition: string;
 };
 
-const ASSET = {
-  headerFarm: "/dashboard/backgrounds/header-farm.webp",
-  headerGarden: "/dashboard/backgrounds/header-garden.webp",
-  gardenTree: "/dashboard/backgrounds/garden-tree.webp",
-  cropSprite: "/dashboard/backgrounds/crop-sprite.webp",
+const PHOTO = {
+  wheat:
+    "https://images.unsplash.com/photo-1564584812691-eab58e10a7f0?auto=format&fit=crop&w=2200&q=84",
+  corn:
+    "https://images.unsplash.com/photo-1615129825073-c47c67bdec5b?auto=format&fit=crop&w=2200&q=84",
+  leafy:
+    "https://images.unsplash.com/photo-1768113802440-cb8b176a591c?auto=format&fit=crop&w=2200&q=84",
+  field:
+    "https://images.unsplash.com/photo-1725972281307-bc3da61c7575?auto=format&fit=crop&w=2200&q=84",
+  orchard:
+    "https://images.unsplash.com/photo-1635778528589-b5df9e10d7cd?auto=format&fit=crop&w=2200&q=84",
+  tree:
+    "https://images.unsplash.com/photo-1606911287703-31c506e2d96f?auto=format&fit=crop&w=1800&q=84",
 } as const;
 
-const SPRITE_COLUMNS = 7;
-const SPRITE_ROWS = 11;
+const ASSET = {
+  headerFarm: PHOTO.wheat,
+  headerGarden: PHOTO.orchard,
+  gardenTree: PHOTO.tree,
+} as const;
 
-const CROP_CELLS: Readonly<Record<string, readonly [number, number]>> = {
-  wheat: [0, 0],
-  corn: [1, 0],
-  cabbage: [2, 0],
-  generic: [3, 0],
-  barley: [4, 0],
-  rice: [5, 0],
-  sorghum: [6, 0],
+// Keep the crop resolver exhaustive, but group visually similar crops onto
+// high-resolution photographic surfaces instead of magnifying a tiny sprite.
+const CEREAL_KEYS = new Set([
+  "wheat",
+  "barley",
+  "rice",
+  "sorghum",
+  "millet",
+]);
 
-  millet: [0, 1],
-  chickpea: [1, 1],
-  lentil: [2, 1],
-  bean: [3, 1],
-  "pinto-bean": [4, 1],
-  "red-bean": [5, 1],
-  "white-bean": [6, 1],
-
-  "mung-bean": [0, 2],
-  "fava-bean": [1, 2],
-  "green-pea": [2, 2],
-  soybean: [3, 2],
-  canola: [4, 2],
-  sunflower: [5, 2],
-  sesame: [6, 2],
-
-  safflower: [0, 3],
-  cotton: [1, 3],
-  "sugar-beet": [2, 3],
-  sugarcane: [3, 3],
-  potato: [4, 3],
-  onion: [5, 3],
-  garlic: [6, 3],
-
-  tomato: [0, 4],
-  cucumber: [1, 4],
-  "field-vegetable": [2, 4],
-  eggplant: [3, 4],
-  pepper: [4, 4],
-  "bell-pepper": [5, 4],
-
-  cauliflower: [0, 5],
-  broccoli: [1, 5],
-  lettuce: [2, 5],
-  spinach: [3, 5],
-  carrot: [4, 5],
-  turnip: [5, 5],
-  radish: [6, 5],
-
-  beet: [0, 6],
-  celery: [1, 6],
-  okra: [2, 6],
-  pumpkin: [3, 6],
-  zucchini: [4, 6],
-  watermelon: [5, 6],
-  cantaloupe: [6, 6],
-
-  melon: [0, 7],
-  alfalfa: [1, 7],
-  clover: [2, 7],
-  sainfoin: [3, 7],
-  vetch: [4, 7],
-  saffron: [5, 7],
-  cumin: [6, 7],
-
-  coriander: [0, 8],
-  fennel: [1, 8],
-  dill: [2, 8],
-  fenugreek: [3, 8],
-  "black-seed": [4, 8],
-  parsley: [6, 8],
-
-  basil: [0, 9],
-  mint: [1, 9],
-  thyme: [2, 9],
-  savory: [3, 9],
-  chamomile: [4, 9],
-  "damask-rose": [5, 9],
-  tobacco: [6, 9],
-
-  tea: [0, 10],
-};
+const LEAFY_KEYS = new Set([
+  "cabbage",
+  "cauliflower",
+  "broccoli",
+  "lettuce",
+  "spinach",
+  "celery",
+  "field-vegetable",
+]);
 
 function normalizeCropName(value: string) {
   return value
@@ -204,10 +153,11 @@ export function resolveCropVisualKey(rawName?: string | null) {
   return "generic";
 }
 
-function spritePosition([column, row]: readonly [number, number]) {
-  const x = (column / (SPRITE_COLUMNS - 1)) * 100;
-  const y = (row / (SPRITE_ROWS - 1)) * 100;
-  return `${x}% ${y}%`;
+function resolveCropPhoto(key: string) {
+  if (key === "corn") return PHOTO.corn;
+  if (CEREAL_KEYS.has(key)) return PHOTO.wheat;
+  if (LEAFY_KEYS.has(key)) return PHOTO.leafy;
+  return PHOTO.field;
 }
 
 export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
@@ -216,18 +166,17 @@ export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
       key: "garden-tree",
       image: ASSET.gardenTree,
       backgroundSize: "cover",
-      backgroundPosition: "center",
+      backgroundPosition: "center 48%",
     };
   }
 
   const key = resolveCropVisualKey(farm.crop?.name);
-  const cell = CROP_CELLS[key] ?? CROP_CELLS.generic;
 
   return {
     key,
-    image: ASSET.cropSprite,
-    backgroundSize: `${SPRITE_COLUMNS * 100}% ${SPRITE_ROWS * 100}%`,
-    backgroundPosition: spritePosition(cell),
+    image: resolveCropPhoto(key),
+    backgroundSize: "cover",
+    backgroundPosition: key === "corn" ? "center 54%" : "center",
   };
 }
 

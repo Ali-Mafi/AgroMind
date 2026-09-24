@@ -1156,3 +1156,220 @@
     filter: brightness(1.035);
   }
 }
+
+
+/* Compactness + image-quality correction pass (mobile first). */
+@media (max-width: 639px) {
+  .dashboard {
+    --dashboard-card-radius: 1.55rem;
+  }
+
+  .header[data-farm-type] {
+    min-height: 16.4rem;
+    padding: 0.85rem 1rem 3rem;
+    border-radius: 0 0 2.15rem 2.15rem;
+    background-position: center 54%;
+  }
+
+  .header > header {
+    min-height: 14.4rem;
+  }
+
+  .header > header > div > div:first-child {
+    padding-top: 3.65rem;
+  }
+
+  .header > header > div > div:last-child {
+    max-width: 54%;
+  }
+
+  .header :global(h1) {
+    font-size: clamp(1.9rem, 8vw, 2.35rem);
+  }
+
+  .header :global([data-farm-switcher="compact"] .app-select-trigger) {
+    min-width: 9.6rem;
+    max-width: min(12rem, 54vw);
+    min-height: 3rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .header :global([data-farm-switcher="compact"] .app-icon-container) {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .content {
+    margin-top: -2.45rem !important;
+  }
+
+  .hero {
+    min-height: 14rem;
+    padding: 1rem !important;
+    border-radius: 1.6rem !important;
+  }
+
+  .hero [data-slot="status-content"] {
+    min-height: 12rem;
+  }
+
+  .heroLabel {
+    min-height: 2.1rem;
+    font-size: 0.8rem;
+  }
+
+  .hero [data-slot="status-label"] {
+    padding-inline-end: 3.1rem;
+  }
+
+  .hero [data-slot="status-icon"] {
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: 0.9rem;
+  }
+
+  .hero [data-slot="status-icon"] svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .hero h2 {
+    margin-top: 0.7rem !important;
+    font-size: clamp(1.35rem, 5.9vw, 1.7rem) !important;
+    line-height: 1.38;
+  }
+
+  .hero [data-slot="status-description"] {
+    margin-top: 0.45rem;
+    font-size: 0.8rem;
+    line-height: 1.75;
+  }
+
+  .heroAction {
+    min-height: 3rem !important;
+    padding-inline: 1rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .overview {
+    margin-top: 0.65rem !important;
+  }
+
+  .overview [data-farm-overview="dashboard"] {
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+    gap: 0.65rem;
+  }
+
+  .overview :global(.farm-weather-card),
+  .overview :global(.farm-irrigation-card) {
+    min-height: 14.5rem;
+    border-radius: 1.55rem;
+  }
+
+  .overview :global(.farm-irrigation-card) {
+    padding: 0.78rem !important;
+  }
+
+  .overview :global(.farm-irrigation-card) > div:first-of-type h3 {
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+
+  .overview :global(.farm-irrigation-card) :global(.app-icon-container) {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.82rem;
+  }
+
+  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] {
+    margin-top: 0.45rem;
+  }
+
+  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p:first-child {
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p + p {
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    line-height: 1.55;
+  }
+
+  .overview [data-irrigation-event] {
+    padding-inline-start: 0.8rem;
+  }
+
+  .overview [data-irrigation-event] :global([data-schedule-label]) {
+    font-size: 0.65rem;
+  }
+
+  .overview [data-irrigation-event] > p {
+    margin-top: 0.45rem;
+    font-size: 0.92rem !important;
+    line-height: 1.45;
+  }
+
+  .overview [data-irrigation-event] dl {
+    margin-top: 0.65rem !important;
+    gap: 0.55rem 0.8rem;
+  }
+
+  .overview [data-irrigation-event] dt {
+    font-size: 0.62rem;
+  }
+
+  .overview [data-irrigation-event] dd {
+    margin-top: 0.12rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
+    min-height: 2.65rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.72rem;
+  }
+
+  .overview :global(.farm-crop-card) {
+    min-height: 11.8rem;
+    padding: 0.9rem !important;
+    border-radius: 1.55rem;
+  }
+
+  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
+    width: 43%;
+    filter: saturate(1.03) contrast(1.015);
+  }
+
+  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
+    width: 56%;
+  }
+
+  .overview :global(.farm-crop-card) :global(.app-icon-container) {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.85rem;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-content"] {
+    margin-top: 0.7rem;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-content"] > p:first-child {
+    font-size: 1.05rem;
+    line-height: 1.4;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-content"] > p + p {
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    line-height: 1.55;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
+    min-height: 2.65rem;
+    margin-top: 0.75rem;
+    padding: 0.52rem 0.72rem;
+    font-size: 0.72rem;
+  }
+}
