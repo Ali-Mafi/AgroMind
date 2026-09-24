@@ -11,45 +11,18 @@ export type CropVisual = {
 };
 
 const PHOTO = {
-  wheat:
-    "https://images.unsplash.com/photo-1564584812691-eab58e10a7f0?auto=format&fit=crop&w=2200&q=84",
-  corn:
-    "https://images.unsplash.com/photo-1615129825073-c47c67bdec5b?auto=format&fit=crop&w=2200&q=84",
-  leafy:
-    "https://images.unsplash.com/photo-1768113802440-cb8b176a591c?auto=format&fit=crop&w=2200&q=84",
-  field:
-    "https://images.unsplash.com/photo-1725972281307-bc3da61c7575?auto=format&fit=crop&w=2200&q=84",
-  orchard:
-    "https://images.unsplash.com/photo-1635778528589-b5df9e10d7cd?auto=format&fit=crop&w=2200&q=84",
-  tree:
-    "https://images.unsplash.com/photo-1606911287703-31c506e2d96f?auto=format&fit=crop&w=1800&q=84",
+  wheat: "/dashboard/backgrounds/crop-wheat.webp",
+  corn: "/dashboard/backgrounds/crop-corn.webp",
+  rice: "/dashboard/backgrounds/crop-rice.webp",
+  tomato: "/dashboard/backgrounds/crop-tomato.webp",
+  field: "/dashboard/backgrounds/crop-field.webp",
 } as const;
 
 const ASSET = {
-  headerFarm: PHOTO.wheat,
-  headerGarden: PHOTO.orchard,
-  gardenTree: PHOTO.tree,
+  headerFarm: "/dashboard/backgrounds/header-field-v2.webp",
+  headerGarden: "/dashboard/backgrounds/header-orchard-v2.webp",
+  gardenTree: "/dashboard/backgrounds/garden-tree-v2.webp",
 } as const;
-
-// Keep the crop resolver exhaustive, but group visually similar crops onto
-// high-resolution photographic surfaces instead of magnifying a tiny sprite.
-const CEREAL_KEYS = new Set([
-  "wheat",
-  "barley",
-  "rice",
-  "sorghum",
-  "millet",
-]);
-
-const LEAFY_KEYS = new Set([
-  "cabbage",
-  "cauliflower",
-  "broccoli",
-  "lettuce",
-  "spinach",
-  "celery",
-  "field-vegetable",
-]);
 
 function normalizeCropName(value: string) {
   return value
@@ -154,10 +127,9 @@ export function resolveCropVisualKey(rawName?: string | null) {
 }
 
 function resolveCropPhoto(key: string) {
-  if (key === "corn") return PHOTO.corn;
-  if (CEREAL_KEYS.has(key)) return PHOTO.wheat;
-  if (LEAFY_KEYS.has(key)) return PHOTO.leafy;
-  return PHOTO.field;
+  // A neutral cultivated landscape is more honest than assigning another species.
+  // These are decorative illustrations, not photographs of the user's property.
+  return Object.hasOwn(PHOTO, key) ? PHOTO[key as keyof typeof PHOTO] : PHOTO.field;
 }
 
 export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
@@ -165,8 +137,8 @@ export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
     return {
       key: "garden-tree",
       image: ASSET.gardenTree,
-      backgroundSize: "cover",
-      backgroundPosition: "center 48%",
+      backgroundSize: "contain",
+      backgroundPosition: "center",
     };
   }
 
@@ -176,7 +148,7 @@ export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
     key,
     image: resolveCropPhoto(key),
     backgroundSize: "cover",
-    backgroundPosition: key === "corn" ? "center 54%" : "center",
+    backgroundPosition: "center",
   };
 }
 

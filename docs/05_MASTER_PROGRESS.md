@@ -172,3 +172,13 @@ Never continue to the next implementation step without user confirmation.
 - Browser policy blocks local rendering. Responsive/theme/RTL/reduced-motion CSS has been reviewed, but screenshots, authenticated visual acceptance and FPS checks remain pending.
 - Details and exact limitations: [2026-09-24 progress](progress/2026-09-24.md).
 - Next step: review the draft and complete authenticated visual acceptance before merge.
+
+## Premium Dashboard image and proportion pass — 2026-09-24
+
+- Continued directly from current main `335a495`; preserved the existing Dashboard component tree, farm selection, destinations, translations, weather logic and scheduling.
+- Replaced remote photographic mappings with eight high-resolution local WebP assets. Added correct corn/wheat/rice/tomato variants, a whole-tree garden view and a neutral cultivated-field fallback. Asset provenance and prompts: `public/dashboard/backgrounds/ASSETS.md`.
+- Consolidated conflicting Dashboard CSS into one scoped responsive composition: edge-to-edge header, compact hero, balanced operational columns, bounded crop image region, RTL logical spacing and narrow-screen reflow. Removed costly blur/filters and restored visible forecast freshness, fallback notices, refresh disclosure and Farm overview action.
+- Added Dashboard-only `viewport-fit=cover` and translucent iOS status-bar metadata, with safe-area padding on header controls rather than above its background. No global route/auth settings or manifest changes.
+- Verification: 203 application tests and 21 production-build HTTP checks passed; 16 PGlite checks passed (native concurrency check remains a separate CI gate); lint, typecheck, localization and production build passed. Asset dimensions verified without upscaling.
+- Browser limitation: production `/dashboard` redirects this unauthenticated browser to Sign In. Authenticated mobile/tablet/desktop screenshots, light/dark RTL visual acceptance and physical-iPhone safe-area verification remain pending; automated checks do not establish those outcomes. Previously blocked local-browser access was not bypassed.
+- Next step: review the deployed Dashboard with an authenticated account, especially an installed iPhone PWA (cached installation metadata may require reinstalling).

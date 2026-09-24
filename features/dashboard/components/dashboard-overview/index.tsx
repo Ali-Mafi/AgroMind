@@ -51,7 +51,7 @@ export function DashboardOverview() {
 
   if (!farm)
     return (
-      <main className={`app-page ${styles.dashboard}`}>
+      <main className={`app-page ${styles.dashboard} ${styles.emptyDashboard}`}>
         <PageHeader
           title={t("Home")}
           description={t("A clear view of your growing day.")}

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync, statSync } from "node:fs";
 import { workspaceFixture } from "./helpers/workspace-fixture.mjs";
 import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
 import { localRequire, loadTs } from "../../weather/tests/helpers/load-ts.mjs";
@@ -17,7 +18,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
     assert.match(html, /data-farm-type="farm"/);
     assert.match(html, /data-crop-key="corn"/);
-    assert.match(html, /images\.unsplash\.com\/photo-1615129825073-c47c67bdec5b/);
+    assert.match(html, /\/dashboard\/backgrounds\/crop-corn\.webp/);
     assert.doesNotMatch(html, /crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
@@ -36,7 +37,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, language === "fa" ? /۱ گیاه و درخت/ : /1 plants and trees/);
     assert.match(html, /data-farm-type="garden"/);
     assert.match(html, /data-crop-key="garden-tree"/);
-    assert.match(html, /images\.unsplash\.com\/photo-1606911287703-31c506e2d96f/);
+    assert.match(html, /\/dashboard\/backgrounds\/garden-tree-v2\.webp/);
     assert.doesNotMatch(html, /soil.*\d+%|valve running/i);
   });
 }
@@ -72,6 +73,45 @@ test("crop visual resolver normalizes Persian and English crop variants without 
   assert.equal(resolveCropVisualKey("Pinto Bean"), "pinto-bean");
   assert.equal(resolveCropVisualKey("محصول محلی ناشناخته"), "generic");
   assert.equal(resolveCropVisual({ type: "garden", crop: { name: "Apple" } }).key, "garden-tree");
+});
+
+test("dashboard photos are local, species-specific and do not substitute wheat for rice", () => {
+  const { resolveCropVisual, resolveFarmHeaderBackground } = loadTs("features/farms/lib/resolve-farm-visual");
+  for (const [name, asset] of [["ذرت علوفه‌ای", "corn"], ["گندم", "wheat"], ["برنج", "rice"], ["گوجه فرنگی", "tomato"], ["Unknown crop", "field"], ["Sorghum", "field"]]) {
+    const visual = resolveCropVisual({ type: "farm", crop: { name } });
+    assert.equal(visual.image, `/dashboard/backgrounds/crop-${asset}.webp`);
+    assert.equal(visual.backgroundSize, "cover");
+    assert.ok(statSync(`public${visual.image}`).size > 40_000);
+  }
+  const garden = resolveCropVisual({ type: "garden" });
+  assert.equal(garden.backgroundSize, "contain", "keep the entire tree visible");
+  for (const path of [garden.image, resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden")]) {
+    assert.ok(path.startsWith("/dashboard/backgrounds/"));
+    assert.ok(statSync(`public${path}`).size > 40_000);
+  }
+  assert.notEqual(resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden"));
+});
+
+test("immersive viewport stays Dashboard-scoped and does not disable zoom", () => {
+  const layout = readFileSync("app/dashboard/layout.tsx", "utf8");
+  assert.match(layout, /viewportFit: "cover"/);
+  assert.match(layout, /statusBarStyle: "black-translucent"/);
+  assert.doesNotMatch(layout, /userScalable: false|maximumScale/);
+  const root = readFileSync("app/layout.tsx", "utf8");
+  assert.doesNotMatch(root, /viewportFit: "cover"/);
+});
+
+test("dashboard styling keeps safe areas, narrow-screen reflow, RTL and reduced-motion safeguards", () => {
+  const css = readFileSync("features/dashboard/components/dashboard-overview/dashboard-overview.module.css", "utf8");
+  for (const edge of ["top", "left", "right"]) assert.ok(css.includes(`safe-area-inset-${edge}`));
+  assert.match(css, /max-width: 379px/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /:dir\(rtl\)/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(css, /backdrop-filter|filter: blur|auto-rows-fr/);
+  const weatherCss = readFileSync("features/weather/components/weather-dashboard/weather-dashboard.module.css", "utf8");
+  assert.doesNotMatch(weatherCss, /display:\s*none|backdrop-filter|filter: blur/);
+  assert.match(weatherCss, /\.weather \.currentConditions \{ display: block/);
 });
 
 test("weather atmosphere and report time use the provider's actual condition, night and farm timezone", () => {

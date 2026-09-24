@@ -1,224 +1,81 @@
-.dashboard {
+/* Dashboard-only composition: one responsive rule set. */
+.dashboard:global(.app-page) {
+  --dashboard-radius: 1.5rem;
+  --dashboard-gutter: 1rem;
   position: relative;
   isolation: isolate;
+  max-width: none;
+  padding: 0 0 1.5rem;
+  background: radial-gradient(ellipse at 50% 15%, color-mix(in oklch, var(--primary) 5%, transparent), transparent 65%);
 }
 
-.dashboard::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  max-height: 44rem;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse at 75% 12%,
-      color-mix(in oklch, var(--primary) 5%, transparent),
-      transparent 65%
-    );
-  content: "";
-}
-
-.content {
-  min-width: 0;
-}
-
-.overview {
-  margin-top: 1.75rem;
-}
-
-/* Active farm identity: photographic, but still readable and calm. */
+/* The photograph paints behind the status bar; only controls receive safe insets. */
 .header {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 17rem;
-  padding: clamp(1.25rem, 3vw, 2.25rem);
-  border: 1px solid color-mix(in oklch, white 14%, transparent);
-  border-radius: calc(var(--app-radius) + 0.25rem);
-  background-position: center 58%;
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem) max(var(--dashboard-gutter), env(safe-area-inset-right, 0px)) 3rem max(var(--dashboard-gutter), env(safe-area-inset-left, 0px));
+  color: var(--app-hero-foreground);
+  background-color: var(--app-hero);
+  background-image: linear-gradient(180deg, color-mix(in oklch, var(--app-hero) 55%, transparent), transparent 35%, color-mix(in oklch, var(--app-hero) 90%, transparent)), var(--dashboard-property-bg);
+  background-position: center, center 55%;
   background-repeat: no-repeat;
   background-size: cover;
-  box-shadow: 0 20px 52px rgb(16 35 24 / 0.13);
 }
-
-.header[data-farm-type="farm"] {
-  background-image:
-    linear-gradient(
-      118deg,
-      rgb(6 24 15 / 0.86) 0%,
-      rgb(8 29 18 / 0.66) 50%,
-      rgb(4 18 12 / 0.35) 100%
-    ),
-    url("/dashboard/backgrounds/header-farm.webp");
+.header > header { position: relative; display: flex; min-height: 13rem; max-width: 64rem; margin-inline: auto; flex-direction: column; justify-content: flex-end; }
+.header :global(header > div) { display: block; }
+.header :global(header > div > div:first-child) { padding-top: 4.5rem; }
+.header :global(header > div > div:last-child:not(:first-child)) { position: absolute; inset-block-start: 0; inset-inline-end: 0; width: min(15rem, 72%); }
+.header :global(h1) { max-width: 26ch; font-size: clamp(1.85rem, 6vw, 2.65rem); line-height: 1.3; color: var(--app-hero-foreground); text-wrap: balance; }
+.header :global(header > div > div:first-child > p) { color: var(--app-hero-foreground); opacity: 0.85; }
+.header :global(header > div > div:first-child > div) { margin-top: 0.5rem; color: var(--app-hero-foreground); }
+.header :global(header > div > div:first-child > div > span) { align-items: flex-start; }
+.header :global(header > div > div:first-child > div svg) { margin-top: 0.25rem; flex-shrink: 0; }
+.header :global(.app-select-trigger) {
+  min-height: 2.875rem;
+  border-radius: 1rem;
+  border-color: color-mix(in oklch, var(--app-hero-foreground) 25%, transparent);
+  color: var(--app-hero-foreground);
+  background: color-mix(in oklch, var(--app-hero) 90%, transparent);
 }
-
-.header[data-farm-type="garden"] {
-  background-image:
-    linear-gradient(
-      118deg,
-      rgb(6 24 15 / 0.84) 0%,
-      rgb(8 29 18 / 0.62) 50%,
-      rgb(4 18 12 / 0.32) 100%
-    ),
-    url("/dashboard/backgrounds/header-garden.webp");
-}
-
-.header::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 8% 18%, rgb(255 224 139 / 0.14), transparent 24%),
-    linear-gradient(to top, rgb(3 16 10 / 0.26), transparent 48%);
-  content: "";
-}
-
-.header > header {
+.header :global(.app-select-trigger:hover) { border-color: var(--app-hero-foreground); }
+.dashboard > .content {
   position: relative;
   z-index: 1;
-  display: flex;
-  min-height: calc(17rem - clamp(2.5rem, 6vw, 4.5rem));
-  flex-direction: column;
-  justify-content: flex-end;
+  max-width: 64rem;
+  min-width: 0;
+  margin: -1.5rem max(var(--dashboard-gutter), env(safe-area-inset-right, 0px)) 0 max(var(--dashboard-gutter), env(safe-area-inset-left, 0px));
 }
-
-.header :global(h1),
-.header :global(label) {
-  color: rgb(249 252 249 / 0.99);
-}
-
-.header :global(header > div > div:first-child > div) {
-  color: rgb(240 246 241 / 0.82);
-}
-
-.header :global(header > div > div:first-child > p) {
-  color: rgb(143 225 164 / 0.97);
-}
-
-.header :global(.app-select-trigger) {
-  overflow-wrap: anywhere;
-  color: rgb(249 252 249 / 0.97);
-  border-color: rgb(255 255 255 / 0.19);
-  background: rgb(7 22 15 / 0.73);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
-}
-
-.header :global(.app-select-trigger:hover) {
-  border-color: rgb(143 225 164 / 0.45);
-}
-
-/* The farm pulse hero remains the primary operational surface. */
 .hero {
-  --pulse-light: color-mix(in oklch, var(--accent) 65%, var(--app-hero-foreground));
+  --pulse-light: var(--app-gold);
   isolation: isolate;
-  border: 1px solid color-mix(in oklch, var(--app-hero-foreground) 8%, var(--app-hero));
-  background:
-    radial-gradient(
-      ellipse at 100% 10%,
-      color-mix(in oklch, var(--chart-3) 22%, transparent),
-      transparent 65%
-    ),
-    linear-gradient(
-      115deg,
-      var(--app-hero),
-      color-mix(in oklch, var(--app-hero) 90%, var(--background))
-    );
+  padding: 1.125rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 20%, var(--border));
+  border-radius: var(--dashboard-radius);
+  color: var(--foreground);
+  background: var(--card);
+  box-shadow: var(--app-shadow);
 }
-
 .hero::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  background:
-    repeating-radial-gradient(
-      ellipse at 105% 160%,
-      transparent 0 38px,
-      color-mix(in oklch, var(--app-hero-foreground) 6%, transparent) 39px 40px,
-      transparent 41px 72px
-    );
-  mask-image: linear-gradient(to right, transparent 25%, black);
+  background-image: linear-gradient(110deg, color-mix(in oklch, var(--card) 96%, transparent), color-mix(in oklch, var(--card) 87%, transparent)), var(--dashboard-property-bg);
+  background-size: cover;
+  background-position: center 70%;
   content: "";
 }
-
-.hero::after {
-  position: absolute;
-  z-index: -1;
-  inset-block-start: -4rem;
-  inset-inline-end: -2rem;
-  width: 22rem;
-  height: 18rem;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse,
-      color-mix(in oklch, var(--pulse-light) 9%, transparent),
-      transparent 68%
-    );
-  opacity: 0.65;
-  animation: farm-light 14s ease-in-out infinite alternate;
-  content: "";
-}
-
-.hero [data-slot="status-content"] {
-  position: relative;
-}
-
-.hero [data-slot="status-content"] > div:first-child {
-  min-width: 0;
-  max-width: 40rem;
-}
-
-.hero [data-slot="status-label"] {
-  padding-inline-end: 3.5rem;
-  opacity: 1;
-}
-
-.heroLabel {
-  display: inline-flex;
-  min-height: 2.25rem;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.8125rem;
-}
-
-.statusDot {
-  position: relative;
-  width: 0.4375rem;
-  height: 0.4375rem;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--pulse-light);
-}
-
-.scheduled .statusDot::after {
-  position: absolute;
-  inset: -4px;
-  border: 1px solid currentColor;
-  border-radius: inherit;
-  color: var(--pulse-light);
-  animation: farm-signal 4s ease-in-out infinite;
-  content: "";
-}
-
-.needsLocation {
-  --pulse-light: color-mix(in oklch, var(--accent) 78%, var(--app-hero-foreground));
-}
-
-.unscheduled {
-  --pulse-light: color-mix(in oklch, var(--chart-3) 35%, var(--app-hero-foreground));
-}
-
-.hero h2 {
-  max-width: 27ch;
-  text-wrap: balance;
-}
-
-.hero [data-slot="status-description"] {
-  min-height: 3rem;
-}
-
+:global(.dark) .hero { --card: var(--app-hero); background: var(--app-hero); }
+.hero [data-slot="status-content"] { position: relative; }
+.hero [data-slot="status-content"] > div:first-child { width: 100%; max-width: none; }
+.hero [data-slot="status-label"] { padding-inline-end: 3.5rem; opacity: 1; }
+.heroLabel { display: inline-flex; min-height: 2.5rem; align-items: center; gap: 0.625rem; font-size: 0.8125rem; }
+.statusDot { width: 0.4375rem; height: 0.4375rem; flex-shrink: 0; border-radius: 50%; background: var(--pulse-light); }
+.scheduled { --pulse-light: var(--primary); }
+.unscheduled, .needsLocation { --pulse-light: var(--app-gold); }
+.scheduled .statusDot { position: relative; }
+.scheduled .statusDot::after { position: absolute; inset: -4px; border: 1px solid var(--pulse-light); border-radius: inherit; animation: farm-signal 4s ease-in-out infinite; content: ""; }
+.hero h2 { max-width: 31ch; margin-top: 0.75rem; font-size: clamp(1.375rem, 5vw, 2rem); line-height: 1.5; text-wrap: balance; }
+.hero [data-slot="status-description"] { max-width: 48ch; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.8; opacity: 0.85; }
+.hero [data-slot="status-content"] > div:first-child > div:last-child { margin-top: 1rem; }
 .hero [data-slot="status-icon"] {
   position: absolute;
   inset-inline-end: 0;
@@ -228,1148 +85,134 @@
   height: 2.75rem;
   place-items: center;
   padding: 0;
-  border-radius: 1rem;
-  color: var(--pulse-light);
-  background: color-mix(in oklch, var(--app-hero-foreground) 5%, transparent);
-}
-
-.hero [data-slot="status-icon"] :global(.app-icon-container) {
-  width: auto;
-  height: auto;
-  color: inherit;
-  background: none;
-}
-
-.hero [data-slot="status-icon"] svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  stroke-width: 1.5;
-}
-
-.heroAction {
-  justify-content: space-between;
-  transition:
-    background-color var(--motion-micro) ease,
-    transform var(--motion-micro) var(--motion-ease);
-}
-
-.heroAction:active {
-  transform: scale(0.98);
-}
-
-.heroAction:focus-visible {
-  outline-color: var(--app-hero-foreground);
-}
-
-.dashboard :where([data-slot="summary-footer"], .heroAction) svg,
-.overview a > span:last-child > svg {
-  flex-shrink: 0;
-  transition: translate var(--motion-micro) var(--motion-ease);
-}
-
-.overview [data-farm-overview="dashboard"] {
-  grid-auto-rows: auto;
-  align-items: stretch;
-}
-
-.overview :global(.farm-weather-card) {
-  min-height: 21rem;
-}
-
-.overview :global(.farm-irrigation-card) {
-  display: flex;
-  min-height: 18rem;
-  flex-direction: column;
-}
-
-.overview :global(.farm-irrigation-card) [data-slot="summary-content"] {
-  flex: 1;
-}
-
-.overview :global(.farm-irrigation-card) :global(.app-icon-container) {
-  color: var(--primary);
-  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
-  background: color-mix(in oklch, var(--primary) 6%, var(--card));
-}
-
-.overview [data-irrigation-event] {
-  position: relative;
-  padding-inline-start: 1.25rem;
-}
-
-.overview [data-irrigation-event]::before {
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block: 0.55rem 0;
-  width: 1px;
-  background:
-    linear-gradient(
-      var(--primary),
-      color-mix(in oklch, var(--primary) 5%, transparent)
-    );
-  content: "";
-}
-
-.overview [data-irrigation-event]::after {
-  position: absolute;
-  inset-inline-start: -0.1875rem;
-  inset-block-start: 0.5rem;
-  width: 0.4375rem;
-  height: 0.4375rem;
-  border-radius: 50%;
-  background: var(--primary);
-  content: "";
-}
-
-/* Crop and garden cards use one deterministic local image surface. */
-.overview :global(.farm-crop-card) {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background: var(--card);
-}
-
-.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  display: block;
-  pointer-events: none;
-  background-repeat: no-repeat;
-  opacity: 0.7;
-  filter: saturate(1.06) contrast(1.02);
-  transform: scale(1.02);
-  transition:
-    transform 700ms var(--motion-ease),
-    opacity var(--motion-panel) ease;
-}
-
-.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      105deg,
-      color-mix(in oklch, var(--card) 99%, transparent) 0%,
-      color-mix(in oklch, var(--card) 91%, transparent) 42%,
-      color-mix(in oklch, var(--card) 42%, transparent) 100%
-    ),
-    linear-gradient(
-      to top,
-      color-mix(in oklch, var(--card) 82%, transparent),
-      transparent 58%
-    );
-  content: "";
-}
-
-.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
-  position: relative;
-  z-index: 1;
-}
-
-.overview :global(.farm-crop-card) [data-slot="summary-content"] {
-  overflow-wrap: anywhere;
-}
-
-.overview :global(.farm-crop-card) :global(.app-icon-container) {
-  border-radius: 50% 50% 35% 50%;
-  background: color-mix(in oklch, var(--card) 78%, var(--primary) 8%);
-  backdrop-filter: blur(4px);
-}
-
-:global(.dark) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-  opacity: 0.55;
-}
-
-:global(.dark) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
-  background:
-    linear-gradient(
-      105deg,
-      color-mix(in oklch, var(--card) 99%, transparent) 0%,
-      color-mix(in oklch, var(--card) 85%, transparent) 43%,
-      color-mix(in oklch, var(--card) 48%, transparent) 100%
-    ),
-    linear-gradient(
-      to top,
-      color-mix(in oklch, var(--card) 82%, transparent),
-      transparent 62%
-    );
-}
-
-.empty {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding-block: clamp(3.5rem, 8vw, 6rem);
-  background:
-    radial-gradient(
-      ellipse at 50% 0,
-      color-mix(in oklch, var(--primary) 7%, transparent),
-      transparent 65%
-    ),
-    var(--card);
-}
-
-.empty [data-slot="empty-icon"] {
-  width: 5rem;
-  height: 5rem;
-  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
-  border-radius: 50% 50% 38% 50%;
-  box-shadow:
-    0 0 0 0.75rem color-mix(in oklch, var(--primary) 3%, transparent),
-    0 0 0 1.5rem color-mix(in oklch, var(--primary) 2%, transparent);
-}
-
-@media (max-width: 639px) {
-  .header {
-    min-height: 18.5rem;
-    padding: 1.15rem;
-    background-position: center 56%;
-  }
-
-  .header > header {
-    min-height: 16.2rem;
-  }
-
-  .header > header > div > div:last-child {
-    width: 100%;
-  }
-
-  .hero {
-    padding: 1.25rem;
-  }
-
-  .hero h2 {
-    min-height: 2.75em;
-    font-size: 1.5rem;
-  }
-
-  .heroAction {
-    width: 100%;
-  }
-
-  .overview {
-    margin-top: 1.5rem;
-  }
-
-  .overview [data-farm-overview="dashboard"] {
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 640px) {
-  .hero {
-    padding: 2rem;
-  }
-
-  .hero h2 {
-    min-height: 2.75em;
-  }
-
-  .hero [data-slot="status-content"] > div:first-child {
-    padding-inline-end: 5rem;
-  }
-
-  .hero [data-slot="status-icon"] {
-    width: 4.25rem;
-    height: 4.25rem;
-    border-radius: 50%;
-  }
-
-  .hero [data-slot="status-icon"] svg {
-    width: 2rem;
-    height: 2rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .overview [data-sensors="false"] > :global(.farm-crop-card) {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 1.5fr) auto;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .overview [data-sensors="false"] > :global(.farm-crop-card) [data-slot="summary-content"] {
-    margin-top: 0;
-  }
-
-  .overview [data-sensors="false"] > :global(.farm-crop-card) [data-slot="summary-footer"] {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .dashboard :where(a:hover, a:focus-visible) [data-slot="summary-footer"] svg,
-  .heroAction:hover svg,
-  .overview a:hover > span:last-child > svg {
-    translate: 3px 0;
-  }
-
-  .dashboard:dir(rtl) :where(a:hover, a:focus-visible) [data-slot="summary-footer"] svg,
-  .dashboard:dir(rtl) .heroAction:hover svg,
-  .dashboard:dir(rtl) .overview a:hover > span:last-child > svg {
-    translate: -3px 0;
-  }
-
-  .overview :global(.farm-crop-card:hover) > :global(.farm-crop-backdrop) {
-    transform: scale(1.045);
-  }
-}
-
-@keyframes farm-light {
-  from { opacity: 0.4; }
-  to { opacity: 0.85; }
-}
-
-@keyframes farm-signal {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.9);
-  }
-
-  50% {
-    opacity: 0.65;
-    transform: scale(1.1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero::after,
-  .scheduled .statusDot::after {
-    animation: none;
-  }
-
-  .dashboard a:active,
-  .dashboard a:hover {
-    transform: none;
-  }
-
-  .dashboard a svg {
-    translate: none !important;
-  }
-
-  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop),
-  .overview :global(.farm-crop-card:hover) > :global(.farm-crop-backdrop) {
-    transition: none;
-    transform: none;
-  }
-}
-
-
-/* -------------------------------------------------------------------------- */
-/* Premium mobile composition — tuned to the approved light/dark references.   */
-/* -------------------------------------------------------------------------- */
-
-.dashboard {
-  --dashboard-card-radius: 1.85rem;
-  padding-top: 0;
-}
-
-.dashboard::before {
-  max-height: none;
-  background:
-    radial-gradient(circle at 18% 18%, color-mix(in oklch, var(--primary) 7%, transparent), transparent 34rem),
-    linear-gradient(to bottom, color-mix(in oklch, var(--primary) 2%, var(--background)), var(--background) 42rem);
-}
-
-.header[data-farm-type] {
-  min-height: 20.5rem;
-  margin-inline: -1rem;
-  padding: 1.15rem 1.2rem 4.25rem;
-  border: 0;
-  border-radius: 0 0 2.75rem 2.75rem;
-  background-image:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 0.04) 0%,
-      rgb(250 249 238 / 0.12) 44%,
-      rgb(249 248 237 / 0.78) 100%
-    ),
-    var(--dashboard-property-bg) !important;
-  background-position: center 58%;
-  box-shadow: none;
-}
-
-.header::after {
-  background:
-    radial-gradient(circle at 16% 10%, rgb(255 235 174 / 0.24), transparent 30%),
-    linear-gradient(to top, rgb(248 247 236 / 0.2), transparent 48%);
-}
-
-.header > header {
-  min-height: 18rem;
-}
-
-.header > header > div {
-  position: relative;
-  min-height: 100%;
-  align-items: flex-end;
-}
-
-.header > header > div > div:first-child {
-  padding-top: 5.2rem;
-}
-
-.header > header > div > div:last-child {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  width: auto;
-  max-width: 58%;
-}
-
-.header :global(h1) {
-  color: rgb(12 33 18 / 0.98);
-  font-size: clamp(2.15rem, 9vw, 3rem);
-  line-height: 1.05;
-  text-shadow: 0 1px 0 rgb(255 255 255 / 0.24);
-}
-
-.header :global(header > div > div:first-child > div) {
-  color: rgb(35 48 41 / 0.76);
-}
-
-.header :global(header > div > div:first-child > p) {
-  color: oklch(0.39 0.105 151);
-  font-weight: 650;
-}
-
-.header :global([data-farm-switcher="compact"] .app-select-trigger) {
-  width: auto;
-  min-width: 10.75rem;
-  max-width: min(14rem, 52vw);
-  min-height: 3.55rem;
-  padding: 0.7rem 1rem;
-  border-color: rgb(255 255 255 / 0.62);
-  border-radius: 999px;
-  color: rgb(15 43 23 / 0.97);
-  background: rgb(255 255 250 / 0.7);
-  box-shadow:
-    0 10px 32px rgb(39 70 45 / 0.11),
-    inset 0 1px 0 rgb(255 255 255 / 0.76);
-  backdrop-filter: blur(14px) saturate(1.08);
-}
-
-.header :global([data-farm-switcher="compact"] .app-icon-container) {
-  width: 2.1rem;
-  height: 2.1rem;
-  color: oklch(0.38 0.11 151);
-  background: transparent;
-}
-
-.content {
-  position: relative;
-  z-index: 3;
-  margin-top: -3.35rem !important;
-}
-
-.hero {
-  min-height: 18rem;
-  padding: 1.35rem !important;
-  border: 1px solid rgb(255 255 255 / 0.7);
-  border-radius: 2rem !important;
-  color: var(--foreground) !important;
-  background: color-mix(in oklch, var(--card) 84%, transparent);
-  box-shadow:
-    0 22px 60px rgb(28 69 39 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.68);
-  backdrop-filter: blur(14px) saturate(1.08);
-}
-
-.hero::before {
-  z-index: -2;
-  background-image:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 0.28),
-      rgb(246 248 238 / 0.36) 48%,
-      rgb(237 245 232 / 0.52)
-    ),
-    var(--dashboard-property-bg);
-  background-position: center 72%;
-  background-size: cover;
-  opacity: 0.82;
-  mask-image: none;
-  transform: scale(1.02);
-}
-
-.hero::after {
-  z-index: -1;
-  inset: 0;
-  width: auto;
-  height: auto;
-  background:
-    radial-gradient(circle at 8% 12%, rgb(255 244 195 / 0.25), transparent 28%),
-    linear-gradient(110deg, rgb(255 255 255 / 0.34), transparent 55%);
-  opacity: 1;
-  animation: none;
-}
-
-.hero [data-slot="status-content"] {
-  min-height: 15rem;
-}
-
-.hero [data-slot="status-content"] > div:first-child {
-  width: 100%;
-  max-width: none;
-}
-
-.hero [data-slot="status-label"] {
-  padding-inline-end: 3.75rem;
-  color: color-mix(in oklch, var(--foreground) 86%, var(--primary));
-  font-weight: 520;
-}
-
-.heroLabel {
-  min-height: 2.65rem;
-  font-size: 0.92rem;
-}
-
-.statusDot {
-  background: oklch(0.66 0.17 148);
-  box-shadow: 0 0 0 0.35rem oklch(0.66 0.17 148 / 0.08);
-}
-
-.hero h2 {
-  max-width: 26ch;
-  min-height: 0;
-  margin-top: 1.15rem !important;
-  font-size: clamp(1.7rem, 6.5vw, 2.35rem) !important;
-  line-height: 1.34;
-  color: var(--foreground);
-}
-
-.hero [data-slot="status-description"] {
-  min-height: 0;
-  max-width: 34rem;
-  margin-top: 0.7rem;
-  color: color-mix(in oklch, var(--foreground) 70%, transparent);
-  font-size: 0.95rem;
-  line-height: 1.9;
-  opacity: 1;
-}
-
-.hero [data-slot="status-icon"] {
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  display: grid !important;
-  width: 3.25rem;
-  height: 3.25rem;
-  border: 1px solid color-mix(in oklch, var(--primary) 16%, white);
-  border-radius: 1.05rem;
-  color: var(--primary);
-  background: color-mix(in oklch, var(--card) 72%, transparent);
-  box-shadow: 0 8px 24px rgb(32 76 42 / 0.08);
-  backdrop-filter: blur(8px);
-}
-
-.hero [data-slot="status-icon"] svg {
-  width: 1.55rem;
-  height: 1.55rem;
-}
-
-.heroAction {
-  width: 100%;
-  min-height: 3.7rem !important;
-  margin-top: 0.25rem;
-  padding-inline: 1.35rem !important;
-  border: 1px solid rgb(255 255 255 / 0.52);
-  border-radius: 999px !important;
-  color: white !important;
-  background:
-    linear-gradient(90deg, oklch(0.7 0.14 95 / 0.92), oklch(0.43 0.12 151 / 0.96)) !important;
-  box-shadow:
-    0 13px 30px rgb(31 101 54 / 0.14),
-    inset 0 1px 0 rgb(255 255 255 / 0.26);
-}
-
-.overview {
-  margin-top: 0.85rem !important;
-}
-
-.overview > div:first-child {
-  display: none;
-}
-
-.overview [data-farm-overview="dashboard"] {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-  grid-auto-rows: auto;
-  gap: 0.78rem;
-  align-items: stretch;
-}
-
-.overview :global(.farm-weather-card),
-.overview :global(.farm-irrigation-card),
-.overview :global(.farm-crop-card) {
-  border-color: color-mix(in oklch, var(--primary) 9%, var(--border));
-  border-radius: var(--dashboard-card-radius);
-  box-shadow:
-    0 14px 38px color-mix(in oklch, var(--primary) 9%, transparent),
-    inset 0 1px 0 color-mix(in oklch, white 55%, transparent);
-}
-
-.overview :global(.farm-weather-card) {
-  min-height: 19.5rem;
-}
-
-.overview :global(.farm-irrigation-card) {
-  position: relative;
-  isolation: isolate;
-  min-height: 19.5rem;
-  padding: 1rem !important;
-  overflow: hidden;
-  background:
-    linear-gradient(145deg, color-mix(in oklch, var(--card) 96%, var(--primary) 4%), var(--card));
-}
-
-.overview :global(.farm-irrigation-card)::before {
-  position: absolute;
-  z-index: -1;
-  inset: auto -18% -12% auto;
-  width: 11rem;
-  height: 15rem;
-  border-radius: 80% 0 80% 0;
-  background:
-    radial-gradient(ellipse at 48% 42%, color-mix(in oklch, var(--primary) 13%, transparent) 0 38%, transparent 40%),
-    linear-gradient(135deg, transparent 44%, color-mix(in oklch, var(--primary) 8%, transparent) 45% 47%, transparent 48%);
-  rotate: -18deg;
-  content: "";
-}
-
-.overview :global(.farm-irrigation-card) > * {
-  position: relative;
-  z-index: 1;
-}
-
-.overview :global(.farm-irrigation-card) > div:first-of-type h3 {
-  font-size: 0.78rem;
-}
-
-.overview :global(.farm-irrigation-card) :global(.app-icon-container) {
-  width: 2.7rem;
-  height: 2.7rem;
-  border-color: color-mix(in oklch, var(--primary) 14%, transparent);
-  border-radius: 1rem;
+  border-color: color-mix(in oklch, var(--primary) 18%, transparent);
+  border-radius: 0.875rem;
+  color: var(--app-gold);
   background: color-mix(in oklch, var(--primary) 7%, var(--card));
 }
-
-.overview :global(.farm-irrigation-card) [data-slot="summary-content"] {
+.hero [data-slot="status-icon"] :global(.app-icon-container) { width: auto; height: auto; color: inherit; background: none; }
+.hero [data-slot="status-icon"] svg { width: 1.625rem; height: 1.625rem; stroke-width: 1.5; }
+.heroAction {
+  width: 100%;
+  min-height: 2.875rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 25%, transparent);
+  border-radius: 1.5rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  transition: opacity var(--motion-micro) ease, transform var(--motion-micro) var(--motion-ease);
+}
+.heroAction:hover { background: var(--primary); opacity: 0.93; }
+.heroAction:active { transform: scale(0.985); }
+.heroAction svg { flex-shrink: 0; }
+.overview { margin-top: 0.75rem; }
+/* Keep the existing Farm overview destination visible and keyboard-accessible. */
+.overview > div:first-child { margin-bottom: 0.5rem; gap: 0.5rem; }
+.overview > div:first-child h2 { font-size: 0.8125rem; color: var(--muted-foreground); }
+.overview > div:first-child a { font-size: 0.75rem; }
+.overview [data-farm-overview="dashboard"] { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: 0.75rem; align-items: stretch; }
+.overview [data-farm-overview="dashboard"] > * { min-width: 0; border-radius: var(--dashboard-radius); box-shadow: var(--app-shadow); }
+.overview :global(.farm-irrigation-card), .overview :global(.farm-weather-card) {
+  position: relative;
   display: flex;
-  flex: 1;
+  min-height: 17rem;
   flex-direction: column;
-  justify-content: center;
-  margin-top: 0.8rem;
+  padding: 0.875rem;
+  background: linear-gradient(145deg, color-mix(in oklch, var(--primary) 6%, var(--card)), var(--card));
 }
-
-.overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p:first-child {
-  font-size: clamp(1rem, 4.2vw, 1.22rem);
-  line-height: 1.55;
-}
-
-.overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p + p {
-  margin-top: 0.45rem;
-  font-size: 0.78rem;
-  line-height: 1.7;
-}
-
-.overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
-  min-height: 3.15rem;
+.overview :global(.farm-irrigation-card) h3, .overview :global(.farm-weather-card) h3 { align-items: flex-start; gap: 0.5rem; font-size: 0.75rem; line-height: 1.6; }
+.overview :global(.app-icon-container) { flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 0.75rem; }
+.overview [data-slot="summary-content"] { margin-top: 0.875rem; }
+.overview :global(.farm-irrigation-card) [data-slot="summary-content"], .overview :global(.farm-weather-card) [data-slot="summary-content"] { flex: 1; padding-bottom: 1rem; }
+.overview [data-slot="summary-content"] > p:first-child { font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
+.overview [data-slot="summary-content"] > p + p { font-size: 0.8125rem; line-height: 1.75; }
+.overview [data-slot="summary-footer"] {
+  min-height: 2.75rem;
   margin-top: auto;
-  padding: 0.72rem 0.9rem;
-  border: 0;
-  border-radius: 999px;
-  color: var(--primary);
-  background: color-mix(in oklch, var(--primary) 9%, var(--card));
-  box-shadow: inset 0 1px 0 color-mix(in oklch, white 55%, transparent);
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
+  border-radius: 1.25rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  background: color-mix(in oklch, var(--primary) 7%, var(--card));
 }
+.overview [data-slot="summary-footer"] svg { flex-shrink: 0; }
+.overview [data-irrigation-event] { position: relative; padding-inline-start: 0.625rem; border-inline-start: 1px solid color-mix(in oklch, var(--primary) 25%, transparent); }
+.overview [data-schedule-label] { font-size: 0.75rem; flex-wrap: wrap; }
+.overview [data-irrigation-event] > p { margin-top: 0.625rem; font-size: 1.05rem; line-height: 1.65; }
+.overview [data-irrigation-event] dl { display: grid; margin-top: 0.75rem; gap: 0.5rem; }
+.overview [data-irrigation-event] dl > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.125rem 0.375rem; }
+.overview [data-irrigation-event] dt { font-size: 0.75rem; }
+.overview [data-irrigation-event] dd { margin-top: 0; font-size: 0.9375rem; }
+.overview [data-irrigation-event] dd svg { display: none; }
 
+/* Fixed image region, fluid text: no grid-row stretching or zoomed sprite. */
 .overview :global(.farm-crop-card) {
+  position: relative;
+  isolation: isolate;
+  display: flex;
   grid-column: 1 / -1;
-  min-height: 14.5rem;
-  padding: 1.15rem !important;
-  background: color-mix(in oklch, var(--card) 98%, var(--primary) 2%);
+  min-height: 11rem;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem;
+  padding-inline-end: 43%;
+  background: color-mix(in oklch, var(--primary) 3%, var(--card));
 }
-
+.overview :global(.farm-crop-card) h3 { font-size: 0.8125rem; }
+.overview :global(.farm-crop-card) [data-slot="summary-content"] { flex: 1; margin-top: 0.625rem; padding-bottom: 0.75rem; }
 .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-  inset-inline-start: auto;
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
   inset-inline-end: 0;
-  width: 47%;
-  height: 100%;
-  opacity: 0.97;
-  filter: saturate(1.08) contrast(1.02);
-  transform: none;
+  display: block;
+  width: 40%;
+  pointer-events: none;
+  background-color: var(--app-hero);
+  background-repeat: no-repeat;
 }
+.overview :global(.farm-crop-backdrop)::after { position: absolute; inset: 0; background: linear-gradient(to right, color-mix(in oklch, var(--primary) 3%, var(--card)), transparent 22%); content: ""; }
+.dashboard:dir(rtl) .overview :global(.farm-crop-backdrop)::after { background: linear-gradient(to left, color-mix(in oklch, var(--primary) 3%, var(--card)), transparent 22%); }
+.dashboard.emptyDashboard { max-width: 68rem; padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) max(1rem, env(safe-area-inset-right, 0px)) 2rem max(1rem, env(safe-area-inset-left, 0px)); }
+.empty { padding-block: clamp(3rem, 8vw, 5rem); background: radial-gradient(ellipse at 50% 0, color-mix(in oklch, var(--primary) 8%, transparent), transparent 65%), var(--card); }
+.empty [data-slot="empty-icon"] { border: 1px solid color-mix(in oklch, var(--primary) 15%, transparent); border-radius: 50% 50% 35% 50%; }
 
-.dashboard:dir(rtl) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
-  background: linear-gradient(90deg, transparent 30%, color-mix(in oklch, var(--card) 94%, transparent) 100%);
+@media (max-width: 379px) {
+  .overview [data-farm-overview="dashboard"] { grid-template-columns: minmax(0, 1fr); }
+  .overview :global(.farm-irrigation-card), .overview :global(.farm-weather-card) { min-height: 0; }
+  .overview :global(.farm-crop-card) { padding-inline-end: 36%; }
+  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) { width: 33%; }
 }
-
-.dashboard:dir(ltr) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
-  background: linear-gradient(270deg, transparent 30%, color-mix(in oklch, var(--card) 94%, transparent) 100%);
-}
-
-.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
-  width: 52%;
-}
-
-.overview :global(.farm-crop-card) [data-slot="summary-content"] {
-  margin-top: 1.2rem;
-}
-
-.overview :global(.farm-crop-card) [data-slot="summary-content"] > p:first-child {
-  font-size: clamp(1.15rem, 5vw, 1.55rem);
-  line-height: 1.45;
-}
-
-.overview :global(.farm-crop-card) [data-slot="summary-content"] > p + p {
-  margin-top: 0.45rem;
-  font-size: 0.8rem;
-  line-height: 1.7;
-}
-
-.overview :global(.farm-crop-card) [data-slot="summary-footer"] {
-  min-height: 3.15rem;
-  margin-top: 1.2rem;
-  padding: 0.7rem 0.95rem;
-  border: 0;
-  border-radius: 999px;
-  color: var(--foreground);
-  background: color-mix(in oklch, var(--card) 72%, transparent);
-  box-shadow:
-    0 7px 24px rgb(25 64 36 / 0.07),
-    inset 0 1px 0 color-mix(in oklch, white 60%, transparent);
-  backdrop-filter: blur(8px);
-}
-
-.overview :global(.farm-crop-card) :global(.app-icon-container) {
-  width: 2.8rem;
-  height: 2.8rem;
-  border: 1px solid color-mix(in oklch, white 58%, transparent);
-  border-radius: 1rem;
-  color: white;
-  background: color-mix(in oklch, var(--primary) 64%, transparent);
-  box-shadow: 0 9px 24px rgb(20 70 37 / 0.1);
-  backdrop-filter: blur(7px);
-}
-
-:global(.dark) .header[data-farm-type] {
-  background-image:
-    linear-gradient(
-      180deg,
-      rgb(2 17 10 / 0.2) 0%,
-      rgb(3 22 13 / 0.42) 46%,
-      rgb(3 16 10 / 0.88) 100%
-    ),
-    var(--dashboard-property-bg) !important;
-}
-
-:global(.dark) .header::after {
-  background:
-    radial-gradient(circle at 14% 10%, rgb(205 224 141 / 0.1), transparent 30%),
-    linear-gradient(to top, rgb(2 14 8 / 0.42), transparent 50%);
-}
-
-:global(.dark) .header :global(h1) {
-  color: rgb(248 250 246 / 0.98);
-  text-shadow: 0 2px 16px rgb(0 0 0 / 0.22);
-}
-
-:global(.dark) .header :global(header > div > div:first-child > div) {
-  color: rgb(235 241 235 / 0.72);
-}
-
-:global(.dark) .header :global(header > div > div:first-child > p) {
-  color: oklch(0.78 0.12 151);
-}
-
-:global(.dark) .header :global([data-farm-switcher="compact"] .app-select-trigger) {
-  color: rgb(245 250 245 / 0.96);
-  border-color: rgb(255 255 255 / 0.18);
-  background: rgb(8 29 18 / 0.58);
-  box-shadow:
-    0 12px 36px rgb(0 0 0 / 0.18),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-}
-
-:global(.dark) .header :global([data-farm-switcher="compact"] .app-icon-container) {
-  color: oklch(0.8 0.11 92);
-}
-
-:global(.dark) .hero {
-  color: rgb(246 249 244 / 0.97) !important;
-  border-color: rgb(255 255 255 / 0.15);
-  background: rgb(7 42 25 / 0.72);
-  box-shadow:
-    0 24px 70px rgb(0 0 0 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.07);
-}
-
-:global(.dark) .hero::before {
-  background-image:
-    linear-gradient(135deg, rgb(2 28 16 / 0.62), rgb(4 42 24 / 0.7)),
-    var(--dashboard-property-bg);
-  opacity: 0.82;
-}
-
-:global(.dark) .hero::after {
-  background:
-    radial-gradient(circle at 8% 12%, rgb(198 219 126 / 0.1), transparent 28%),
-    linear-gradient(110deg, rgb(1 22 13 / 0.18), rgb(2 31 18 / 0.55));
-}
-
-:global(.dark) .hero h2 {
-  color: rgb(249 251 247 / 0.98);
-}
-
-:global(.dark) .hero [data-slot="status-label"],
-:global(.dark) .hero [data-slot="status-description"] {
-  color: rgb(238 244 237 / 0.82);
-}
-
-:global(.dark) .hero [data-slot="status-icon"] {
-  color: oklch(0.83 0.11 91);
-  border-color: rgb(255 255 255 / 0.13);
-  background: rgb(12 55 33 / 0.62);
-}
-
-:global(.dark) .heroAction {
-  border-color: rgb(255 255 255 / 0.1);
-  background:
-    linear-gradient(90deg, oklch(0.55 0.12 92 / 0.72), rgb(8 55 32 / 0.92)) !important;
-  box-shadow:
-    0 12px 32px rgb(0 0 0 / 0.16),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-}
-
-:global(.dark) .overview :global(.farm-weather-card),
-:global(.dark) .overview :global(.farm-irrigation-card),
-:global(.dark) .overview :global(.farm-crop-card) {
-  border-color: rgb(255 255 255 / 0.1);
-  box-shadow:
-    0 18px 44px rgb(0 0 0 / 0.15),
-    inset 0 1px 0 rgb(255 255 255 / 0.035);
-}
-
-:global(.dark) .overview :global(.farm-irrigation-card) {
-  background:
-    linear-gradient(145deg, rgb(12 38 24 / 0.98), rgb(10 31 20 / 0.98));
-}
-
-:global(.dark) .overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
-  color: oklch(0.82 0.11 151);
-  background: rgb(13 53 32 / 0.78);
-}
-
-:global(.dark) .overview :global(.farm-crop-card) {
-  background: rgb(9 31 19 / 0.98);
-}
-
-:global(.dark) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-  opacity: 0.78;
-}
-
-:global(.dark) .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
-  color: rgb(245 248 244 / 0.95);
-  background: rgb(13 53 32 / 0.7);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
-}
-
-@media (max-width: 359px) {
-  .overview [data-farm-overview="dashboard"] {
-    grid-template-columns: 1fr;
-  }
-
-  .overview :global(.farm-crop-card) {
-    grid-column: auto;
-  }
-
-  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-    width: 44%;
-  }
-}
-
 @media (min-width: 640px) {
-  .header[data-farm-type] {
-    min-height: 22rem;
-    margin-inline: 0;
-    padding: 1.75rem 2rem 4.5rem;
-    border: 1px solid color-mix(in oklch, var(--primary) 9%, var(--border));
-    border-radius: 2.6rem;
-  }
-
-  .header > header {
-    min-height: 18.8rem;
-  }
-
-  .header > header > div > div:first-child {
-    padding-top: 5.6rem;
-  }
-
-  .content {
-    margin-top: -3.75rem !important;
-    padding-inline: 1.2rem;
-  }
-
-  .hero {
-    padding: 1.75rem !important;
-  }
-
-  .overview [data-farm-overview="dashboard"] {
-    gap: 1rem;
-  }
+  .dashboard:global(.app-page) { --dashboard-gutter: 1.5rem; }
+  .header > header { min-height: 16rem; }
+  .hero { padding: 1.5rem; }
+  .heroAction { max-width: 26rem; }
+  .overview [data-farm-overview="dashboard"] { gap: 1rem; }
+  .overview :global(.farm-irrigation-card), .overview :global(.farm-weather-card) { padding: 1.25rem; }
+  .overview :global(.farm-irrigation-card) h3, .overview :global(.farm-weather-card) h3 { align-items: center; font-size: 0.875rem; }
+  .overview :global(.app-icon-container) { width: 2.5rem; height: 2.5rem; }
+  .overview [data-irrigation-event] > p { font-size: 1.25rem; }
+  .overview [data-irrigation-event] dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overview [data-irrigation-event] dl > div { display: block; }
+  .overview [data-irrigation-event] dd { margin-top: 0.25rem; font-size: 1.125rem; }
+  .overview :global(.farm-crop-card) { padding: 1.25rem; padding-inline-end: 34%; }
+  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) { width: 30%; }
+  .overview :global(.farm-crop-card) [data-slot="summary-footer"] { max-width: 22rem; }
 }
-
-@media (min-width: 768px) {
-  .overview :global(.farm-weather-card),
-  .overview :global(.farm-irrigation-card) {
-    min-height: 21rem;
-  }
-
-  .overview :global(.farm-crop-card) {
-    display: block;
-    grid-template-columns: none;
-    min-height: 15.5rem;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-content"],
-  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
-    margin-top: 1.25rem;
-    padding-top: 0.75rem;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
-    border-top: 0;
-  }
-}
-
+@media (min-width: 1072px) { .dashboard > .content { margin-inline: auto; } }
+@media (min-width: 1024px) and (max-width: 1311px) { .dashboard > .content { margin-inline: var(--dashboard-gutter); } }
 @media (hover: hover) and (pointer: fine) {
-  .overview :global(.farm-crop-card:hover) > :global(.farm-crop-backdrop) {
-    transform: scale(1.025);
-  }
-
-  .heroAction:hover {
-    filter: brightness(1.035);
-  }
+  .heroAction svg, .overview [data-slot="summary-footer"] svg { transition: translate var(--motion-micro) var(--motion-ease); }
+  .heroAction:hover svg, .overview a:hover [data-slot="summary-footer"] svg { translate: 2px; }
+  .dashboard:dir(rtl) .heroAction:hover svg, .dashboard:dir(rtl) .overview a:hover [data-slot="summary-footer"] svg { translate: -2px; }
 }
-
-
-/* Compactness + image-quality correction pass (mobile first). */
-@media (max-width: 639px) {
-  .dashboard {
-    --dashboard-card-radius: 1.55rem;
-  }
-
-  .header[data-farm-type] {
-    min-height: 16.4rem;
-    padding: 0.85rem 1rem 3rem;
-    border-radius: 0 0 2.15rem 2.15rem;
-    background-position: center 54%;
-  }
-
-  .header > header {
-    min-height: 14.4rem;
-  }
-
-  .header > header > div > div:first-child {
-    padding-top: 3.65rem;
-  }
-
-  .header > header > div > div:last-child {
-    max-width: 54%;
-  }
-
-  .header :global(h1) {
-    font-size: clamp(1.9rem, 8vw, 2.35rem);
-  }
-
-  .header :global([data-farm-switcher="compact"] .app-select-trigger) {
-    min-width: 9.6rem;
-    max-width: min(12rem, 54vw);
-    min-height: 3rem;
-    padding: 0.55rem 0.85rem;
-  }
-
-  .header :global([data-farm-switcher="compact"] .app-icon-container) {
-    width: 1.8rem;
-    height: 1.8rem;
-  }
-
-  .content {
-    margin-top: -2.45rem !important;
-  }
-
-  .hero {
-    min-height: 14rem;
-    padding: 1rem !important;
-    border-radius: 1.6rem !important;
-  }
-
-  .hero [data-slot="status-content"] {
-    min-height: 12rem;
-  }
-
-  .heroLabel {
-    min-height: 2.1rem;
-    font-size: 0.8rem;
-  }
-
-  .hero [data-slot="status-label"] {
-    padding-inline-end: 3.1rem;
-  }
-
-  .hero [data-slot="status-icon"] {
-    width: 2.65rem;
-    height: 2.65rem;
-    border-radius: 0.9rem;
-  }
-
-  .hero [data-slot="status-icon"] svg {
-    width: 1.3rem;
-    height: 1.3rem;
-  }
-
-  .hero h2 {
-    margin-top: 0.7rem !important;
-    font-size: clamp(1.35rem, 5.9vw, 1.7rem) !important;
-    line-height: 1.38;
-  }
-
-  .hero [data-slot="status-description"] {
-    margin-top: 0.45rem;
-    font-size: 0.8rem;
-    line-height: 1.75;
-  }
-
-  .heroAction {
-    min-height: 3rem !important;
-    padding-inline: 1rem !important;
-    font-size: 0.82rem !important;
-  }
-
-  .overview {
-    margin-top: 0.65rem !important;
-  }
-
-  .overview [data-farm-overview="dashboard"] {
-    grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
-    gap: 0.65rem;
-  }
-
-  .overview :global(.farm-weather-card),
-  .overview :global(.farm-irrigation-card) {
-    min-height: 14.5rem;
-    border-radius: 1.55rem;
-  }
-
-  .overview :global(.farm-irrigation-card) {
-    padding: 0.78rem !important;
-  }
-
-  .overview :global(.farm-irrigation-card) > div:first-of-type h3 {
-    font-size: 0.7rem;
-    line-height: 1.45;
-  }
-
-  .overview :global(.farm-irrigation-card) :global(.app-icon-container) {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.82rem;
-  }
-
-  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] {
-    margin-top: 0.45rem;
-  }
-
-  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p:first-child {
-    font-size: 0.92rem;
-    line-height: 1.45;
-  }
-
-  .overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p + p {
-    margin-top: 0.3rem;
-    font-size: 0.68rem;
-    line-height: 1.55;
-  }
-
-  .overview [data-irrigation-event] {
-    padding-inline-start: 0.8rem;
-  }
-
-  .overview [data-irrigation-event] :global([data-schedule-label]) {
-    font-size: 0.65rem;
-  }
-
-  .overview [data-irrigation-event] > p {
-    margin-top: 0.45rem;
-    font-size: 0.92rem !important;
-    line-height: 1.45;
-  }
-
-  .overview [data-irrigation-event] dl {
-    margin-top: 0.65rem !important;
-    gap: 0.55rem 0.8rem;
-  }
-
-  .overview [data-irrigation-event] dt {
-    font-size: 0.62rem;
-  }
-
-  .overview [data-irrigation-event] dd {
-    margin-top: 0.12rem !important;
-    font-size: 0.88rem !important;
-  }
-
-  .overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
-    min-height: 2.65rem;
-    padding: 0.55rem 0.7rem;
-    font-size: 0.72rem;
-  }
-
-  .overview :global(.farm-crop-card) {
-    min-height: 11.8rem;
-    padding: 0.9rem !important;
-    border-radius: 1.55rem;
-  }
-
-  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
-    width: 43%;
-    filter: saturate(1.03) contrast(1.015);
-  }
-
-  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
-    width: 56%;
-  }
-
-  .overview :global(.farm-crop-card) :global(.app-icon-container) {
-    width: 2.35rem;
-    height: 2.35rem;
-    border-radius: 0.85rem;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-content"] {
-    margin-top: 0.7rem;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-content"] > p:first-child {
-    font-size: 1.05rem;
-    line-height: 1.4;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-content"] > p + p {
-    margin-top: 0.3rem;
-    font-size: 0.68rem;
-    line-height: 1.55;
-  }
-
-  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
-    min-height: 2.65rem;
-    margin-top: 0.75rem;
-    padding: 0.52rem 0.72rem;
-    font-size: 0.72rem;
-  }
+@keyframes farm-signal { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.65; } }
+@media (prefers-reduced-motion: reduce) {
+  .scheduled .statusDot::after { animation: none; opacity: 0.3; }
+  .heroAction, .heroAction svg, .overview [data-slot="summary-footer"] svg { transition: none; }
+  .heroAction:active, .heroAction:hover svg, .overview a:hover [data-slot="summary-footer"] svg { transform: none; translate: none !important; }
 }

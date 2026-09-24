@@ -68,7 +68,7 @@ export default function WeatherDashboard({ coordinates, farmId, returnTo = "/das
           </span>
         )}
       </div>
-      <div className="mt-5 flex items-center justify-between gap-3">
+      <div className={`${styles.currentConditions} mt-5 flex items-center justify-between gap-3`}>
         <div className="min-w-0">
           <p className={`${styles.temperature} text-4xl font-semibold tracking-tight sm:text-5xl`}><bdi>{measure(weather.current.temperature, "temperature", 0)}</bdi></p>
           <p className="mt-2 text-sm">{t(weather.current.condition.label)}</p>
