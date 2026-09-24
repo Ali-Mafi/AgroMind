@@ -1,0 +1,203 @@
+.dashboard {
+  position: relative;
+  isolation: isolate;
+}
+.dashboard::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  max-height: 44rem;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 75% 12%, color-mix(in oklch, var(--primary) 5%, transparent), transparent 65%);
+  content: "";
+}
+.content { min-width: 0; }
+.header :global(.app-select-trigger) { overflow-wrap: anywhere; }
+.overview { margin-top: 1.75rem; }
+.hero {
+  --pulse-light: color-mix(in oklch, var(--accent) 65%, var(--app-hero-foreground));
+  isolation: isolate;
+  border: 1px solid color-mix(in oklch, var(--app-hero-foreground) 8%, var(--app-hero));
+  background:
+    radial-gradient(ellipse at 100% 10%, color-mix(in oklch, var(--chart-3) 22%, transparent), transparent 65%),
+    linear-gradient(115deg, var(--app-hero), color-mix(in oklch, var(--app-hero) 90%, var(--background)));
+}
+/* Static field contours supply depth without images, blur or a rendering loop. */
+.hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-radial-gradient(ellipse at 105% 160%, transparent 0 38px, color-mix(in oklch, var(--app-hero-foreground) 6%, transparent) 39px 40px, transparent 41px 72px);
+  mask-image: linear-gradient(to right, transparent 25%, black);
+  content: "";
+}
+.hero::after {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -4rem;
+  inset-inline-end: -2rem;
+  width: 22rem;
+  height: 18rem;
+  pointer-events: none;
+  background: radial-gradient(ellipse, color-mix(in oklch, var(--pulse-light) 9%, transparent), transparent 68%);
+  opacity: 0.65;
+  animation: farm-light 14s ease-in-out infinite alternate;
+  content: "";
+}
+.hero [data-slot="status-content"] { position: relative; }
+.hero [data-slot="status-content"] > div:first-child { max-width: 40rem; min-width: 0; }
+.hero [data-slot="status-label"] { opacity: 1; padding-inline-end: 3.5rem; }
+.heroLabel { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.25rem; font-size: 0.8125rem; }
+.statusDot {
+  position: relative;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--pulse-light);
+}
+.scheduled .statusDot::after {
+  position: absolute;
+  inset: -4px;
+  border: 1px solid currentColor;
+  color: var(--pulse-light);
+  border-radius: inherit;
+  animation: farm-signal 4s ease-in-out infinite;
+  content: "";
+}
+.needsLocation { --pulse-light: color-mix(in oklch, var(--accent) 78%, var(--app-hero-foreground)); }
+.unscheduled { --pulse-light: color-mix(in oklch, var(--chart-3) 35%, var(--app-hero-foreground)); }
+.hero h2 { max-width: 27ch; text-wrap: balance; }
+.hero [data-slot="status-description"] { min-height: 3rem; }
+.hero [data-slot="status-icon"] {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 1rem;
+  color: var(--pulse-light);
+  background: color-mix(in oklch, var(--app-hero-foreground) 5%, transparent);
+}
+.hero [data-slot="status-icon"] :global(.app-icon-container) { width: auto; height: auto; color: inherit; background: none; }
+.hero [data-slot="status-icon"] svg { width: 1.5rem; height: 1.5rem; stroke-width: 1.5; }
+.heroAction {
+  justify-content: space-between;
+  transition: background-color var(--motion-micro) ease, transform var(--motion-micro) var(--motion-ease);
+}
+.heroAction:active { transform: scale(0.98); }
+.heroAction:focus-visible { outline-color: var(--app-hero-foreground); }
+.dashboard :where([data-slot="summary-footer"], .heroAction) svg,
+.overview a > span:last-child > svg {
+  flex-shrink: 0;
+  transition: translate var(--motion-micro) var(--motion-ease);
+}
+.overview [data-farm-overview="dashboard"] { grid-auto-rows: auto; align-items: stretch; }
+.overview :global(.farm-weather-card) { min-height: 21rem; }
+.overview :global(.farm-irrigation-card) { display: flex; flex-direction: column; min-height: 18rem; }
+.overview :global(.farm-irrigation-card) [data-slot="summary-content"] { flex: 1; }
+.overview :global(.farm-irrigation-card) :global(.app-icon-container) {
+  color: var(--primary);
+  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
+  background: color-mix(in oklch, var(--primary) 6%, var(--card));
+}
+.overview [data-irrigation-event] { position: relative; padding-inline-start: 1.25rem; }
+.overview [data-irrigation-event]::before {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0.55rem 0;
+  width: 1px;
+  background: linear-gradient(var(--primary), color-mix(in oklch, var(--primary) 5%, transparent));
+  content: "";
+}
+.overview [data-irrigation-event]::after {
+  position: absolute;
+  inset-inline-start: -0.1875rem;
+  inset-block-start: 0.5rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: var(--primary);
+  content: "";
+}
+.overview :global(.farm-crop-card) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--primary) 3%, var(--card));
+}
+.overview :global(.farm-crop-card)::after {
+  position: absolute;
+  z-index: -1;
+  inset-inline-end: -1rem;
+  inset-block-end: -5rem;
+  width: 9rem;
+  height: 15rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 9%, transparent);
+  border-radius: 100% 0 100% 0;
+  rotate: 25deg;
+  box-shadow: 0 0 0 1.5rem color-mix(in oklch, var(--primary) 2%, transparent), 0 0 0 3rem color-mix(in oklch, var(--primary) 2%, transparent);
+  pointer-events: none;
+  content: "";
+}
+.overview :global(.farm-crop-card) [data-slot="summary-content"] { overflow-wrap: anywhere; }
+.overview :global(.farm-crop-card) :global(.app-icon-container) { border-radius: 50% 50% 35% 50%; }
+.empty {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+  background: radial-gradient(ellipse at 50% 0, color-mix(in oklch, var(--primary) 7%, transparent), transparent 65%), var(--card);
+}
+.empty [data-slot="empty-icon"] {
+  width: 5rem;
+  height: 5rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
+  border-radius: 50% 50% 38% 50%;
+  box-shadow: 0 0 0 0.75rem color-mix(in oklch, var(--primary) 3%, transparent), 0 0 0 1.5rem color-mix(in oklch, var(--primary) 2%, transparent);
+}
+@media (max-width: 639px) {
+  .header > header > div > div:last-child { width: 100%; }
+  .hero { padding: 1.25rem; }
+  .hero h2 { min-height: 2.75em; font-size: 1.5rem; }
+  .heroAction { width: 100%; }
+  .overview { margin-top: 1.5rem; }
+  .overview [data-farm-overview="dashboard"] { gap: 1rem; }
+}
+@media (min-width: 640px) {
+  .hero { padding: 2rem; }
+  .hero h2 { min-height: 2.75em; }
+  .hero [data-slot="status-content"] > div:first-child { padding-inline-end: 5rem; }
+  .hero [data-slot="status-icon"] { width: 4.25rem; height: 4.25rem; border-radius: 50%; }
+  .hero [data-slot="status-icon"] svg { width: 2rem; height: 2rem; }
+}
+@media (min-width: 768px) {
+  .overview [data-sensors="false"] > :global(.farm-crop-card) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 1.5fr) auto;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .overview [data-sensors="false"] > :global(.farm-crop-card) [data-slot="summary-content"] { margin-top: 0; }
+  .overview [data-sensors="false"] > :global(.farm-crop-card) [data-slot="summary-footer"] { margin-top: 0; border-top: 0; padding-top: 0; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .dashboard :where(a:hover, a:focus-visible) [data-slot="summary-footer"] svg,
+  .heroAction:hover svg,
+  .overview a:hover > span:last-child > svg { translate: 3px 0; }
+  .dashboard:dir(rtl) :where(a:hover, a:focus-visible) [data-slot="summary-footer"] svg,
+  .dashboard:dir(rtl) .heroAction:hover svg,
+  .dashboard:dir(rtl) .overview a:hover > span:last-child > svg { translate: -3px 0; }
+}
+@keyframes farm-light { from { opacity: 0.4; } to { opacity: 0.85; } }
+@keyframes farm-signal { 0%, 100% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 0.65; transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) {
+  .hero::after, .scheduled .statusDot::after { animation: none; }
+  .dashboard a:active, .dashboard a:hover { transform: none; }
+  .dashboard a svg { translate: none !important; }
+}

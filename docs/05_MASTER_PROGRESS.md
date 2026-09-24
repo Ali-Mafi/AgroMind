@@ -163,3 +163,12 @@ Never continue to the next implementation step without user confirmation.
 - Verification: application/auth/account tests, SQL/RLS/import tests, lint, typecheck, production build and HTTP route checks. Native concurrent-transaction testing is a separate GitHub workflow gate; local PGlite cannot exercise multiple connections. Browser access to localhost was blocked.
 - Hosted activation is pending: no Supabase project exists in the connected AgroMind organization; creation requires organization/cost confirmation. The Vercel connection does not expose the production team. No real test inbox was provided. Do not claim hosted auth/email or migrations are live.
 - Setup, migrations, environment names, policies and remaining acceptance checks: [AUTH_CLOUD_FOUNDATION.md](AUTH_CLOUD_FOUNDATION.md).
+
+## Living Dashboard polish — 2026-09-24
+
+- Starting from verified main `b7fb525`, refined the existing Farm Today hero, condition-aware dashboard weather, schedule presentation, crop/garden hierarchy, first-farm empty state and farm-switch motion.
+- Kept business logic, authentication, data services, scheduling, localization and destinations unchanged; added no dependency or fabricated farm data.
+- Automated verification passed: application/PGlite checks, 10 new Dashboard regressions, lint, typecheck, localization, standard production build and 21 HTTP checks. Native PostgreSQL is blocked locally by `EINVAL`.
+- Browser policy blocks local rendering. Responsive/theme/RTL/reduced-motion CSS has been reviewed, but screenshots, authenticated visual acceptance and FPS checks remain pending.
+- Details and exact limitations: [2026-09-24 progress](progress/2026-09-24.md).
+- Next step: review the draft and complete authenticated visual acceptance before merge.

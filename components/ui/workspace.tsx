@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Sprout } from "lucide-react";
 import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { T } from "@/features/settings/components/translated-text";
+import { cn } from "@/lib/utils";
 
 export function SectionHeader({
   title,
@@ -31,12 +32,14 @@ export function SummaryCard({
   children,
   href,
   footer,
+  className,
 }: {
   title: ReactNode;
   icon?: ReactNode;
   children: ReactNode;
   href?: string;
   footer?: ReactNode;
+  className?: string;
 }) {
   const content = (
     <>
@@ -47,9 +50,9 @@ export function SummaryCard({
         </h3>
 
       </div>
-      <div className="mt-5">{children}</div>
+      <div data-slot="summary-content" className="mt-5">{children}</div>
       {footer && (
-        <div className="mt-5 flex items-center justify-between gap-3 border-t pt-4 text-sm font-medium text-primary">
+        <div data-slot="summary-footer" className="mt-5 flex items-center justify-between gap-3 border-t pt-4 text-sm font-medium text-primary">
           {footer}{href && <NavigationArrow size={16} />}
         </div>
       )}
@@ -58,12 +61,12 @@ export function SummaryCard({
   return href ? (
     <Link
       href={href}
-      className="app-card app-card-link block h-full p-5 sm:p-6"
+      className={cn("app-card app-card-link block h-full p-5 sm:p-6", className)}
     >
       {content}
     </Link>
   ) : (
-    <section className="app-card h-full p-5 sm:p-6">{content}</section>
+    <section className={cn("app-card h-full p-5 sm:p-6", className)}>{content}</section>
   );
 }
 export function StatusCard({
@@ -72,30 +75,32 @@ export function StatusCard({
   children,
   action,
   icon,
+  className,
 }: {
   label: ReactNode;
   title: ReactNode;
   children?: ReactNode;
   action?: ReactNode;
   icon?: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[var(--app-radius)] bg-[var(--app-hero)] p-6 text-[var(--app-hero-foreground)] sm:p-9">
-      <div className="flex items-start justify-between gap-5">
+    <section className={cn("relative overflow-hidden rounded-[var(--app-radius)] bg-[var(--app-hero)] p-6 text-[var(--app-hero-foreground)] sm:p-9", className)}>
+      <div data-slot="status-content" className="flex items-start justify-between gap-5">
         <div className="max-w-2xl">
-          <p className="text-sm opacity-80">{label}</p>
+          <p data-slot="status-label" className="text-sm opacity-80">{label}</p>
           <h2 className="mt-4 font-heading text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
             {title}
           </h2>
           {children && (
-            <div className="mt-3 text-sm leading-6 opacity-85 sm:text-base">
+            <div data-slot="status-description" className="mt-3 text-sm leading-6 opacity-85 sm:text-base">
               {children}
             </div>
           )}
           {action && <div className="mt-6">{action}</div>}
         </div>
         {icon && (
-          <div className="hidden rounded-2xl border border-current/15 p-4 text-[var(--app-gold)] sm:block">
+          <div data-slot="status-icon" className="hidden rounded-2xl border border-current/15 p-4 text-[var(--app-gold)] sm:block">
             {icon && <span className="app-icon-container" aria-hidden="true">{icon}</span>}
           </div>
         )}
@@ -108,15 +113,17 @@ export function EmptyState({
   description,
   action,
   icon = <Sprout size={28} />,
+  className,
 }: {
   title: ReactNode;
   description: ReactNode;
   action?: ReactNode;
   icon?: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="app-card app-state-enter px-6 py-12 text-center sm:py-16">
-      <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-primary/8 text-primary">
+    <section className={cn("app-card app-state-enter px-6 py-12 text-center sm:py-16", className)}>
+      <div data-slot="empty-icon" className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-primary/8 text-primary">
         {icon}
       </div>
       <h2 className="mt-6 text-xl font-semibold sm:text-2xl">{title}</h2>
