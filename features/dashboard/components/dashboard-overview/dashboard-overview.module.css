@@ -558,3 +558,601 @@
     transform: none;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Premium mobile composition — tuned to the approved light/dark references.   */
+/* -------------------------------------------------------------------------- */
+
+.dashboard {
+  --dashboard-card-radius: 1.85rem;
+  padding-top: 0;
+}
+
+.dashboard::before {
+  max-height: none;
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in oklch, var(--primary) 7%, transparent), transparent 34rem),
+    linear-gradient(to bottom, color-mix(in oklch, var(--primary) 2%, var(--background)), var(--background) 42rem);
+}
+
+.header[data-farm-type] {
+  min-height: 20.5rem;
+  margin-inline: -1rem;
+  padding: 1.15rem 1.2rem 4.25rem;
+  border: 0;
+  border-radius: 0 0 2.75rem 2.75rem;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.04) 0%,
+      rgb(250 249 238 / 0.12) 44%,
+      rgb(249 248 237 / 0.78) 100%
+    ),
+    var(--dashboard-property-bg) !important;
+  background-position: center 58%;
+  box-shadow: none;
+}
+
+.header::after {
+  background:
+    radial-gradient(circle at 16% 10%, rgb(255 235 174 / 0.24), transparent 30%),
+    linear-gradient(to top, rgb(248 247 236 / 0.2), transparent 48%);
+}
+
+.header > header {
+  min-height: 18rem;
+}
+
+.header > header > div {
+  position: relative;
+  min-height: 100%;
+  align-items: flex-end;
+}
+
+.header > header > div > div:first-child {
+  padding-top: 5.2rem;
+}
+
+.header > header > div > div:last-child {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: auto;
+  max-width: 58%;
+}
+
+.header :global(h1) {
+  color: rgb(12 33 18 / 0.98);
+  font-size: clamp(2.15rem, 9vw, 3rem);
+  line-height: 1.05;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.24);
+}
+
+.header :global(header > div > div:first-child > div) {
+  color: rgb(35 48 41 / 0.76);
+}
+
+.header :global(header > div > div:first-child > p) {
+  color: oklch(0.39 0.105 151);
+  font-weight: 650;
+}
+
+.header :global([data-farm-switcher="compact"] .app-select-trigger) {
+  width: auto;
+  min-width: 10.75rem;
+  max-width: min(14rem, 52vw);
+  min-height: 3.55rem;
+  padding: 0.7rem 1rem;
+  border-color: rgb(255 255 255 / 0.62);
+  border-radius: 999px;
+  color: rgb(15 43 23 / 0.97);
+  background: rgb(255 255 250 / 0.7);
+  box-shadow:
+    0 10px 32px rgb(39 70 45 / 0.11),
+    inset 0 1px 0 rgb(255 255 255 / 0.76);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.header :global([data-farm-switcher="compact"] .app-icon-container) {
+  width: 2.1rem;
+  height: 2.1rem;
+  color: oklch(0.38 0.11 151);
+  background: transparent;
+}
+
+.content {
+  position: relative;
+  z-index: 3;
+  margin-top: -3.35rem !important;
+}
+
+.hero {
+  min-height: 18rem;
+  padding: 1.35rem !important;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 2rem !important;
+  color: var(--foreground) !important;
+  background: color-mix(in oklch, var(--card) 84%, transparent);
+  box-shadow:
+    0 22px 60px rgb(28 69 39 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.68);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.hero::before {
+  z-index: -2;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.28),
+      rgb(246 248 238 / 0.36) 48%,
+      rgb(237 245 232 / 0.52)
+    ),
+    var(--dashboard-property-bg);
+  background-position: center 72%;
+  background-size: cover;
+  opacity: 0.82;
+  mask-image: none;
+  transform: scale(1.02);
+}
+
+.hero::after {
+  z-index: -1;
+  inset: 0;
+  width: auto;
+  height: auto;
+  background:
+    radial-gradient(circle at 8% 12%, rgb(255 244 195 / 0.25), transparent 28%),
+    linear-gradient(110deg, rgb(255 255 255 / 0.34), transparent 55%);
+  opacity: 1;
+  animation: none;
+}
+
+.hero [data-slot="status-content"] {
+  min-height: 15rem;
+}
+
+.hero [data-slot="status-content"] > div:first-child {
+  width: 100%;
+  max-width: none;
+}
+
+.hero [data-slot="status-label"] {
+  padding-inline-end: 3.75rem;
+  color: color-mix(in oklch, var(--foreground) 86%, var(--primary));
+  font-weight: 520;
+}
+
+.heroLabel {
+  min-height: 2.65rem;
+  font-size: 0.92rem;
+}
+
+.statusDot {
+  background: oklch(0.66 0.17 148);
+  box-shadow: 0 0 0 0.35rem oklch(0.66 0.17 148 / 0.08);
+}
+
+.hero h2 {
+  max-width: 26ch;
+  min-height: 0;
+  margin-top: 1.15rem !important;
+  font-size: clamp(1.7rem, 6.5vw, 2.35rem) !important;
+  line-height: 1.34;
+  color: var(--foreground);
+}
+
+.hero [data-slot="status-description"] {
+  min-height: 0;
+  max-width: 34rem;
+  margin-top: 0.7rem;
+  color: color-mix(in oklch, var(--foreground) 70%, transparent);
+  font-size: 0.95rem;
+  line-height: 1.9;
+  opacity: 1;
+}
+
+.hero [data-slot="status-icon"] {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: grid !important;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 16%, white);
+  border-radius: 1.05rem;
+  color: var(--primary);
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  box-shadow: 0 8px 24px rgb(32 76 42 / 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.hero [data-slot="status-icon"] svg {
+  width: 1.55rem;
+  height: 1.55rem;
+}
+
+.heroAction {
+  width: 100%;
+  min-height: 3.7rem !important;
+  margin-top: 0.25rem;
+  padding-inline: 1.35rem !important;
+  border: 1px solid rgb(255 255 255 / 0.52);
+  border-radius: 999px !important;
+  color: white !important;
+  background:
+    linear-gradient(90deg, oklch(0.7 0.14 95 / 0.92), oklch(0.43 0.12 151 / 0.96)) !important;
+  box-shadow:
+    0 13px 30px rgb(31 101 54 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.26);
+}
+
+.overview {
+  margin-top: 0.85rem !important;
+}
+
+.overview > div:first-child {
+  display: none;
+}
+
+.overview [data-farm-overview="dashboard"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  grid-auto-rows: auto;
+  gap: 0.78rem;
+  align-items: stretch;
+}
+
+.overview :global(.farm-weather-card),
+.overview :global(.farm-irrigation-card),
+.overview :global(.farm-crop-card) {
+  border-color: color-mix(in oklch, var(--primary) 9%, var(--border));
+  border-radius: var(--dashboard-card-radius);
+  box-shadow:
+    0 14px 38px color-mix(in oklch, var(--primary) 9%, transparent),
+    inset 0 1px 0 color-mix(in oklch, white 55%, transparent);
+}
+
+.overview :global(.farm-weather-card) {
+  min-height: 19.5rem;
+}
+
+.overview :global(.farm-irrigation-card) {
+  position: relative;
+  isolation: isolate;
+  min-height: 19.5rem;
+  padding: 1rem !important;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, color-mix(in oklch, var(--card) 96%, var(--primary) 4%), var(--card));
+}
+
+.overview :global(.farm-irrigation-card)::before {
+  position: absolute;
+  z-index: -1;
+  inset: auto -18% -12% auto;
+  width: 11rem;
+  height: 15rem;
+  border-radius: 80% 0 80% 0;
+  background:
+    radial-gradient(ellipse at 48% 42%, color-mix(in oklch, var(--primary) 13%, transparent) 0 38%, transparent 40%),
+    linear-gradient(135deg, transparent 44%, color-mix(in oklch, var(--primary) 8%, transparent) 45% 47%, transparent 48%);
+  rotate: -18deg;
+  content: "";
+}
+
+.overview :global(.farm-irrigation-card) > * {
+  position: relative;
+  z-index: 1;
+}
+
+.overview :global(.farm-irrigation-card) > div:first-of-type h3 {
+  font-size: 0.78rem;
+}
+
+.overview :global(.farm-irrigation-card) :global(.app-icon-container) {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-color: color-mix(in oklch, var(--primary) 14%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in oklch, var(--primary) 7%, var(--card));
+}
+
+.overview :global(.farm-irrigation-card) [data-slot="summary-content"] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 0.8rem;
+}
+
+.overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p:first-child {
+  font-size: clamp(1rem, 4.2vw, 1.22rem);
+  line-height: 1.55;
+}
+
+.overview :global(.farm-irrigation-card) [data-slot="summary-content"] > p + p {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
+  min-height: 3.15rem;
+  margin-top: auto;
+  padding: 0.72rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 9%, var(--card));
+  box-shadow: inset 0 1px 0 color-mix(in oklch, white 55%, transparent);
+}
+
+.overview :global(.farm-crop-card) {
+  grid-column: 1 / -1;
+  min-height: 14.5rem;
+  padding: 1.15rem !important;
+  background: color-mix(in oklch, var(--card) 98%, var(--primary) 2%);
+}
+
+.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  width: 47%;
+  height: 100%;
+  opacity: 0.97;
+  filter: saturate(1.08) contrast(1.02);
+  transform: none;
+}
+
+.dashboard:dir(rtl) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
+  background: linear-gradient(90deg, transparent 30%, color-mix(in oklch, var(--card) 94%, transparent) 100%);
+}
+
+.dashboard:dir(ltr) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop)::after {
+  background: linear-gradient(270deg, transparent 30%, color-mix(in oklch, var(--card) 94%, transparent) 100%);
+}
+
+.overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) ~ * {
+  width: 52%;
+}
+
+.overview :global(.farm-crop-card) [data-slot="summary-content"] {
+  margin-top: 1.2rem;
+}
+
+.overview :global(.farm-crop-card) [data-slot="summary-content"] > p:first-child {
+  font-size: clamp(1.15rem, 5vw, 1.55rem);
+  line-height: 1.45;
+}
+
+.overview :global(.farm-crop-card) [data-slot="summary-content"] > p + p {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.overview :global(.farm-crop-card) [data-slot="summary-footer"] {
+  min-height: 3.15rem;
+  margin-top: 1.2rem;
+  padding: 0.7rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  box-shadow:
+    0 7px 24px rgb(25 64 36 / 0.07),
+    inset 0 1px 0 color-mix(in oklch, white 60%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.overview :global(.farm-crop-card) :global(.app-icon-container) {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: 1px solid color-mix(in oklch, white 58%, transparent);
+  border-radius: 1rem;
+  color: white;
+  background: color-mix(in oklch, var(--primary) 64%, transparent);
+  box-shadow: 0 9px 24px rgb(20 70 37 / 0.1);
+  backdrop-filter: blur(7px);
+}
+
+:global(.dark) .header[data-farm-type] {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(2 17 10 / 0.2) 0%,
+      rgb(3 22 13 / 0.42) 46%,
+      rgb(3 16 10 / 0.88) 100%
+    ),
+    var(--dashboard-property-bg) !important;
+}
+
+:global(.dark) .header::after {
+  background:
+    radial-gradient(circle at 14% 10%, rgb(205 224 141 / 0.1), transparent 30%),
+    linear-gradient(to top, rgb(2 14 8 / 0.42), transparent 50%);
+}
+
+:global(.dark) .header :global(h1) {
+  color: rgb(248 250 246 / 0.98);
+  text-shadow: 0 2px 16px rgb(0 0 0 / 0.22);
+}
+
+:global(.dark) .header :global(header > div > div:first-child > div) {
+  color: rgb(235 241 235 / 0.72);
+}
+
+:global(.dark) .header :global(header > div > div:first-child > p) {
+  color: oklch(0.78 0.12 151);
+}
+
+:global(.dark) .header :global([data-farm-switcher="compact"] .app-select-trigger) {
+  color: rgb(245 250 245 / 0.96);
+  border-color: rgb(255 255 255 / 0.18);
+  background: rgb(8 29 18 / 0.58);
+  box-shadow:
+    0 12px 36px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+:global(.dark) .header :global([data-farm-switcher="compact"] .app-icon-container) {
+  color: oklch(0.8 0.11 92);
+}
+
+:global(.dark) .hero {
+  color: rgb(246 249 244 / 0.97) !important;
+  border-color: rgb(255 255 255 / 0.15);
+  background: rgb(7 42 25 / 0.72);
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+:global(.dark) .hero::before {
+  background-image:
+    linear-gradient(135deg, rgb(2 28 16 / 0.62), rgb(4 42 24 / 0.7)),
+    var(--dashboard-property-bg);
+  opacity: 0.82;
+}
+
+:global(.dark) .hero::after {
+  background:
+    radial-gradient(circle at 8% 12%, rgb(198 219 126 / 0.1), transparent 28%),
+    linear-gradient(110deg, rgb(1 22 13 / 0.18), rgb(2 31 18 / 0.55));
+}
+
+:global(.dark) .hero h2 {
+  color: rgb(249 251 247 / 0.98);
+}
+
+:global(.dark) .hero [data-slot="status-label"],
+:global(.dark) .hero [data-slot="status-description"] {
+  color: rgb(238 244 237 / 0.82);
+}
+
+:global(.dark) .hero [data-slot="status-icon"] {
+  color: oklch(0.83 0.11 91);
+  border-color: rgb(255 255 255 / 0.13);
+  background: rgb(12 55 33 / 0.62);
+}
+
+:global(.dark) .heroAction {
+  border-color: rgb(255 255 255 / 0.1);
+  background:
+    linear-gradient(90deg, oklch(0.55 0.12 92 / 0.72), rgb(8 55 32 / 0.92)) !important;
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+:global(.dark) .overview :global(.farm-weather-card),
+:global(.dark) .overview :global(.farm-irrigation-card),
+:global(.dark) .overview :global(.farm-crop-card) {
+  border-color: rgb(255 255 255 / 0.1);
+  box-shadow:
+    0 18px 44px rgb(0 0 0 / 0.15),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+:global(.dark) .overview :global(.farm-irrigation-card) {
+  background:
+    linear-gradient(145deg, rgb(12 38 24 / 0.98), rgb(10 31 20 / 0.98));
+}
+
+:global(.dark) .overview :global(.farm-irrigation-card) [data-slot="summary-footer"] {
+  color: oklch(0.82 0.11 151);
+  background: rgb(13 53 32 / 0.78);
+}
+
+:global(.dark) .overview :global(.farm-crop-card) {
+  background: rgb(9 31 19 / 0.98);
+}
+
+:global(.dark) .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
+  opacity: 0.78;
+}
+
+:global(.dark) .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
+  color: rgb(245 248 244 / 0.95);
+  background: rgb(13 53 32 / 0.7);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+@media (max-width: 359px) {
+  .overview [data-farm-overview="dashboard"] {
+    grid-template-columns: 1fr;
+  }
+
+  .overview :global(.farm-crop-card) {
+    grid-column: auto;
+  }
+
+  .overview :global(.farm-crop-card) > :global(.farm-crop-backdrop) {
+    width: 44%;
+  }
+}
+
+@media (min-width: 640px) {
+  .header[data-farm-type] {
+    min-height: 22rem;
+    margin-inline: 0;
+    padding: 1.75rem 2rem 4.5rem;
+    border: 1px solid color-mix(in oklch, var(--primary) 9%, var(--border));
+    border-radius: 2.6rem;
+  }
+
+  .header > header {
+    min-height: 18.8rem;
+  }
+
+  .header > header > div > div:first-child {
+    padding-top: 5.6rem;
+  }
+
+  .content {
+    margin-top: -3.75rem !important;
+    padding-inline: 1.2rem;
+  }
+
+  .hero {
+    padding: 1.75rem !important;
+  }
+
+  .overview [data-farm-overview="dashboard"] {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .overview :global(.farm-weather-card),
+  .overview :global(.farm-irrigation-card) {
+    min-height: 21rem;
+  }
+
+  .overview :global(.farm-crop-card) {
+    display: block;
+    grid-template-columns: none;
+    min-height: 15.5rem;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-content"],
+  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+  }
+
+  .overview :global(.farm-crop-card) [data-slot="summary-footer"] {
+    border-top: 0;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .overview :global(.farm-crop-card:hover) > :global(.farm-crop-backdrop) {
+    transform: scale(1.025);
+  }
+
+  .heroAction:hover {
+    filter: brightness(1.035);
+  }
+}
