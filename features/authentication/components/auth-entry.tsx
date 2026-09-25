@@ -43,7 +43,7 @@ export async function AuthEntry({
           role="alert"
           className="mb-5 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
         >
-          <T text="Google sign-in could not be completed. Please try again or continue with email." />
+          <T text="Social sign-in could not be completed. Please try again or continue with email." />
         </p>
       )}
       {isSupabaseConfigured() ? (
