@@ -32,6 +32,17 @@ export function workspaceFixture({
               age: 3,
             },
           ],
+          access: {
+            accountId: "00000000-0000-4000-8000-000000000001",
+            farmId: "fixture-farm",
+            workspaceKey:
+              "00000000-0000-4000-8000-000000000001:fixture-farm",
+            role: "owner",
+            owned: true,
+            canEditFarm: true,
+            canDeleteFarm: true,
+            canManageIrrigation: true,
+          },
         },
       ];
   const cloud = {
@@ -48,7 +59,10 @@ export function workspaceFixture({
       language,
       timezone: "Asia/Tehran",
     },
-    account: { farm_count: farms.length },
+    account: {
+      id: "00000000-0000-4000-8000-000000000001",
+      farm_count: farms.length,
+    },
     plan: { name: "Free" },
     subscription: {
       status: "active",
@@ -68,8 +82,20 @@ export function workspaceFixture({
     farmLimit: 3,
     canCreateFarm,
     busy: false,
+    farmRole: (id) => farms.find((farm) => farm.id === id)?.access?.role,
+    canEditFarm: (id) =>
+      farms.find((farm) => farm.id === id)?.access?.canEditFarm ?? false,
+    canDeleteFarm: (id) =>
+      farms.find((farm) => farm.id === id)?.access?.canDeleteFarm ?? false,
+    canManageIrrigation: (id) =>
+      farms.find((farm) => farm.id === id)?.access?.canManageIrrigation ??
+      false,
     setSelectedFarmId() {},
     run: async () => true,
+    updateFarm: async () => true,
+    deleteFarm: async () => true,
+    setIrrigationSchedule: async () => true,
+    deleteIrrigationSchedule: async () => true,
   };
   const weather = {
     timezone: "Asia/Tehran",
