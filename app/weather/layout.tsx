@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import ProtectedLayout from "@/features/authentication/components/protected-layout";
+import { WorkspaceLoadingBoundary } from "@/components/layout/workspace-loading-boundary";
 export default function Layout({ children }: { children: ReactNode }) {
-  return <ProtectedLayout requireOnboarding>{children}</ProtectedLayout>;
+  return <WorkspaceLoadingBoundary><ProtectedLayout requireOnboarding>{children}</ProtectedLayout></WorkspaceLoadingBoundary>;
 }
 
 export const dynamic = "force-dynamic";

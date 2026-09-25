@@ -471,3 +471,20 @@ Review and merge PR #10, then perform the separate Signup UX pass before the lat
 - Status: implementation and automated verification complete; browser visual acceptance pending because local/file preview access is blocked. Native PostgreSQL cannot start locally (`EINVAL`); CI retains that gate.
 - Next step: review the draft PR and verify authenticated responsive, theme, RTL, reduced-motion and iPhone performance before merging.
 - Evidence: [2026-09-24 progress](progress/2026-09-24.md).
+
+## Step 016 — SSR/performance regression repair — 2026-09-25
+
+- Completed locally: visible SSR Landing, lossless retina logo (−98.70% bytes),
+  scoped/deferred client dependencies, workspace-only loading boundaries above
+  private layout waits, and deduplicated/private-data-safe PWA asset loading.
+- Landing HTML-referenced JavaScript inventory decreased 20.02% raw / 21.59% gzip.
+  Dashboard imagery/design and Weather/auth/security/data behavior are unchanged.
+- Status: local lint, typecheck, 221 application tests, 16 PGlite tests, localization,
+  production build and 42 HTTP checks pass. Native PostgreSQL is blocked by this
+  container's single-UID mapping (`EINVAL`); browser/iPhone/authenticated navigation
+  timing is not verified. The user approved review-only branch/PR publication as
+  an exception to the local native-test blocker; no merge/deployment is authorized.
+- Next step: publish the authorized review-only CI branch/PR and verify the native
+  gate; retain real-device performance acceptance as outstanding.
+- Details: [Performance report](performance-regression-2026-09-25.md) and
+  [daily progress](progress/2026-09-25.md).

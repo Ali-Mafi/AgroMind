@@ -55,6 +55,23 @@ try {
     });
   });
 
+  {
+    const response = await fetch(base + "/");
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /<h1[^>]*>/);
+    assert.doesNotMatch(html, /style="opacity:0;transform:translateY\(16px\)"/);
+    assert.doesNotMatch(html, /agromind-logo\.png/);
+    assert.match(html, /\/logo\/agromind-mark-132-v1\.webp/);
+    console.log("PASS landing content is visible in initial server HTML");
+    const logo = await fetch(base + "/logo/agromind-mark-132-v1.webp");
+    assert.equal(logo.status, 200);
+    assert.match(logo.headers.get("content-type"), /image\/webp/);
+    const size = (await logo.arrayBuffer()).byteLength;
+    assert.ok(size < 20_000);
+    console.log(`PASS public retina logo: ${size} bytes`);
+  }
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
@@ -93,6 +110,9 @@ try {
   for (const path of [
     "/dashboard",
     "/assistant",
+    "/account",
+    "/farms/example",
+    "/weather",
     "/account/help",
     "/account/about",
     "/farms/example/sensors",

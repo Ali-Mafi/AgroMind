@@ -13,7 +13,7 @@ import { NavigationFeedback } from "@/features/navigation/components/navigation-
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
 import { RegionProvider } from "@/features/region/context/region-context";
-import { RegionOnboarding } from "@/features/settings/components/region-onboarding";
+import { RegionOnboardingEntry } from "@/features/settings/components/region-onboarding-entry";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -95,7 +95,7 @@ export default function RootLayout({
           <SettingsProvider>
             <NavigationFeedback />
             <RegionProvider>
-              <RegionOnboarding />
+              <RegionOnboardingEntry />
               {children}
             </RegionProvider>
           </SettingsProvider>

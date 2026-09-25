@@ -19,11 +19,7 @@ export function PwaInstall() {
     // Installation is always user initiated; Android is not offered yet.
     const suppressPrompt = (event: Event) => event.preventDefault();
     window.addEventListener("beforeinstallprompt", suppressPrompt);
-    if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Offline-cache availability must not block the manual installation guide.
-      });
-    }
+    // Registration is owned once by PwaSessionSafety in the persistent root.
     return () => window.removeEventListener("beforeinstallprompt", suppressPrompt);
   }, []);
 

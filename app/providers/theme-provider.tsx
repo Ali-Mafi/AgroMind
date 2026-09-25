@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { MotionConfig } from "framer-motion";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 function ThemeMotionReady() {
@@ -26,7 +25,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
       <ThemeMotionReady />
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      {children}
     </NextThemesProvider>
   );
 }
