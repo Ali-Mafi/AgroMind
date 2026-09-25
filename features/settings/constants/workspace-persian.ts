@@ -149,4 +149,10 @@ export const WORKSPACE_PERSIAN: Record<string, string> = {
   "Connected soil readings are planned for a future update.": "نمایش اطلاعات خاک از حسگرها در به‌روزرسانی‌های آینده اضافه می‌شود.",
   "AI assistance": "دستیار هوشمند",
   "Personal farm advice is planned for a future update.": "راهنمایی متناسب با مزرعه شما در به‌روزرسانی‌های آینده اضافه می‌شود.",
+  "View only access": "دسترسی فقط برای مشاهده",
+  "Your role does not allow editing this farm or garden.": "نقش شما اجازه ویرایش این مزرعه یا باغ را نمی‌دهد.",
+  "Your role allows you to view irrigation details but not change the schedule.": "نقش شما اجازه مشاهده جزئیات آبیاری را می‌دهد، اما نمی‌توانید برنامه را تغییر دهید.",
+  "Your role does not allow this change.": "نقش شما اجازه انجام این تغییر را نمی‌دهد.",
+  "Only the farm owner can make this change.": "فقط مالک مزرعه می‌تواند این تغییر را انجام دهد.",
+  "Your team member limit has been reached.": "ظرفیت اعضای تیم طرح شما تکمیل شده است.",
 };
