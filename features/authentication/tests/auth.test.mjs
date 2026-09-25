@@ -45,6 +45,7 @@ function harness({
   requestProto = "https",
 } = {}) {
   const calls = [];
+  const authCookies = new Map();
   const record =
     (name, result) =>
     async (...args) => {
@@ -121,12 +122,21 @@ function harness({
           "x-forwarded-host": requestHost,
           "x-forwarded-proto": requestProto,
         }),
+      cookies: async () => ({
+        set: (name, value, options) => {
+          authCookies.set(name, { value, options });
+          calls.push({ name: "cookieSet", args: [name, value, options] });
+        },
+        get: (name) => authCookies.get(name),
+        delete: (name) => authCookies.delete(name),
+      }),
     },
     "next/cache": { revalidatePath: () => {} },
   };
 
   return {
     calls,
+    authCookies,
     client,
     actions: loadTs("features/authentication/services/actions.ts", mocks),
     mocks,
@@ -351,9 +361,19 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   const callback = new URL(oauth.options.redirectTo);
   assert.equal(callback.origin, "https://agromind.ir");
   assert.equal(callback.pathname, "/auth/callback");
-  assert.equal(callback.searchParams.get("flow"), "oauth");
-  assert.equal(callback.searchParams.get("source"), "login");
-  assert.equal(callback.searchParams.get("next"), "/farms");
+  assert.equal(callback.search, "");
+  const intent = JSON.parse(
+    decodeURIComponent(h.authCookies.get("agromind_oauth_intent").value),
+  );
+  assert.deepEqual(intent, { next: "/farms", source: "login" });
+  assert.equal(
+    h.authCookies.get("agromind_oauth_intent").options.httpOnly,
+    true,
+  );
+  assert.equal(
+    h.authCookies.get("agromind_oauth_intent").options.maxAge,
+    600,
+  );
 
   const unsafe = harness();
   await assert.rejects(
@@ -365,8 +385,16 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   const unsafeCallback = new URL(
     unsafe.calls.find((call) => call.name === "oauth").args[0].options.redirectTo,
   );
-  assert.equal(unsafeCallback.searchParams.get("next"), "/dashboard");
-  assert.equal(unsafeCallback.searchParams.get("source"), "signup");
+  assert.equal(unsafeCallback.search, "");
+  const unsafeIntent = JSON.parse(
+    decodeURIComponent(
+      unsafe.authCookies.get("agromind_oauth_intent").value,
+    ),
+  );
+  assert.deepEqual(unsafeIntent, {
+    next: "/dashboard",
+    source: "signup",
+  });
 });
 
 test("Google OAuth keeps a trusted Vercel preview origin instead of falling back to production", async () => {
@@ -389,6 +417,7 @@ test("Google OAuth keeps a trusted Vercel preview origin instead of falling back
     const callback = new URL(oauth.options.redirectTo);
     assert.equal(callback.origin, `https://${host}`);
     assert.equal(callback.pathname, "/auth/callback");
+    assert.equal(callback.search, "");
   } finally {
     if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
     else process.env.VERCEL_ENV = previousVercelEnv;
@@ -616,6 +645,18 @@ test("email callback does not consume scanner GETs or permit an external redirec
   assert.match(invalid.headers.get("location"), /status=invalid/);
 });
 
+function oauthIntentCookie(next = "/dashboard", source = "login") {
+  return (
+    "agromind_oauth_intent=" +
+    encodeURIComponent(
+      JSON.stringify({
+        next: safeNextPath(next),
+        source: source === "signup" ? "signup" : "login",
+      }),
+    )
+  );
+}
+
 test("OAuth callback keeps the session, resumes onboarding routing and clears pending signup state", async () => {
   const h = harness();
   const { NextRequest } = localRequire("next/server");
@@ -632,7 +673,8 @@ test("OAuth callback keeps the session, resumes onboarding routing and clears pe
 
   const response = await callback.handleAuthCallback(
     new NextRequest(
-      "https://agromind.ir/auth/callback?flow=oauth&source=login&next=/farms&code=oauth-code",
+      "https://agromind.ir/auth/callback?code=oauth-code",
+      { headers: { cookie: oauthIntentCookie("/farms", "login") } },
     ),
   );
 
@@ -665,7 +707,8 @@ test("OAuth callback preserves a trusted Vercel preview origin after session exc
 
     const response = await callback.handleAuthCallback(
       new NextRequest(
-        "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app/auth/callback?flow=oauth&source=signup&next=/dashboard&code=oauth-code",
+        "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app/auth/callback?code=oauth-code",
+        { headers: { cookie: oauthIntentCookie("/dashboard", "signup") } },
       ),
     );
 
@@ -684,16 +727,18 @@ test("OAuth callback preserves a trusted Vercel preview origin after session exc
 test("OAuth callback handles cancellation and exchange failures without an open redirect", async () => {
   const { NextRequest } = localRequire("next/server");
 
-  for (const [h, url, expectedPath] of [
+  for (const [h, url, expectedPath, cookie] of [
     [
       harness(),
-      "https://agromind.ir/auth/callback?flow=oauth&source=signup&next=https://evil.test&error=access_denied",
+      "https://agromind.ir/auth/callback?error=access_denied",
       "/sign-up",
+      oauthIntentCookie("https://evil.test", "signup"),
     ],
     [
       harness({ error: { status: 400, message: "private exchange detail" } }),
-      "https://agromind.ir/auth/callback?flow=oauth&source=login&next=/farms&code=bad-code",
+      "https://agromind.ir/auth/callback?code=bad-code",
       "/sign-in",
+      oauthIntentCookie("/farms", "login"),
     ],
   ]) {
     const callback = loadTs(
@@ -705,12 +750,14 @@ test("OAuth callback handles cancellation and exchange failures without an open 
         },
       },
     );
-    const response = await callback.handleAuthCallback(new NextRequest(url));
+    const response = await callback.handleAuthCallback(
+      new NextRequest(url, { headers: { cookie } }),
+    );
     const destination = new URL(response.headers.get("location"));
     assert.equal(destination.origin, "https://agromind.ir");
     assert.equal(destination.pathname, expectedPath);
     assert.equal(destination.searchParams.get("status"), "oauth-error");
-    if (url.includes("evil.test")) {
+    if (expectedPath === "/sign-up") {
       assert.equal(destination.searchParams.get("next"), null);
       assert.doesNotMatch(response.headers.get("location"), /evil\.test/);
     }
