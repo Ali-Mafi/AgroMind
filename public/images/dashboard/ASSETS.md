@@ -3,7 +3,7 @@
 The `*-v2.webp` and `crop-*.webp` assets were generated for AgroMind with the built-in image-generation tool on 2026-09-24. They are decorative representative imagery, not photographs or observations of a user's farm. No external image host is required. They live under `/images/dashboard`, outside protected application route prefixes, so public images do not invoke authentication or return sign-in HTML.
 
 - Headers: 1672 × 941, unscaled WebP quality 86. Field and orchard variants use centered compositions that survive portrait cropping.
-- Crop/tree images: 1254 × 1254, unscaled WebP quality 86. Garden uses `contain` to preserve the whole tree; crop images use `cover` in a bounded side panel.
+- Crop/tree images: 1254 × 1254, unscaled WebP quality 86. All now use `cover` across the full product card, with a directional readability overlay; no separate side panel or letterboxing.
 - Species-specific images: corn, wheat, rice and tomato. Other/unknown crops use a neutral cultivated-field view, never another species' close-up. Crop aliases and user data remain unchanged.
 - Existing Weather backgrounds/resolver are reused unchanged. The old dashboard sprite and low-resolution images are not used by the active resolver.
 

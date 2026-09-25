@@ -171,6 +171,17 @@
   }
 }
 
+/* Standalone iOS has an overlay status bar. Dashboard paints through it and
+   pads its own controls; other pages retain a safe content origin. */
+@media (display-mode: standalone) {
+  body:not(:has([data-dashboard-immersive])) {
+    padding-top: env(safe-area-inset-top, 0px);
+    background-image: linear-gradient(#183c2b, #183c2b);
+    background-size: 100% env(safe-area-inset-top, 0px);
+    background-repeat: no-repeat;
+  }
+}
+
 /* Locale affects reading direction; numeric inputs and plots keep their own direction. */
 html[lang="fa"] body,
 html[lang="fa"] .font-heading {

@@ -43,7 +43,8 @@ export const metadata: Metadata = {
   title: "AgroMind",
   description: "Smart farm management powered by AgroMind",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "default" },
+  // iOS reads this at installation/launch, before navigation to Dashboard.
+  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "black-translucent" },
   icons: {
     icon: [
       {

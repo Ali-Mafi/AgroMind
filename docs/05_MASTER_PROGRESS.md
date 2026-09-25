@@ -182,3 +182,12 @@ Never continue to the next implementation step without user confirmation.
 - Verification: 203 application tests and 29 production-build HTTP checks passed; 16 PGlite checks passed (native concurrency check remains a separate CI gate); lint, typecheck, localization and production build passed. Asset dimensions verified without upscaling.
 - Browser limitation: production `/dashboard` redirects this unauthenticated browser to Sign In. Authenticated mobile/tablet/desktop screenshots, light/dark RTL visual acceptance and physical-iPhone safe-area verification remain pending; automated checks do not establish those outcomes. Previously blocked local-browser access was not bypassed.
 - Next step: review the deployed Dashboard with an authenticated account, especially an installed iPhone PWA (cached installation metadata may require reinstalling).
+
+## Dashboard screenshot corrections — 2026-09-25
+
+- Continued from main `30ee5c5` using the user's two iPhone screenshots. Stacked Weather and Irrigation vertically, removed equal-height stretching, and recomposed weather icon/measurements for full-width cards.
+- Faded the header's lower edge into the actual light/dark page background. Expanded crop/tree photographs to the whole card with `cover`, a directional RTL-aware readability overlay, and no letterboxed side panel.
+- Corrected the root install/launch document's status bar from `default` to `black-translucent`; Dashboard's existing `viewport-fit=cover` and padded header controls remain. Other standalone pages retain a safe content origin and readable status-bar backing. No auth, routing, weather, irrigation, translation or data changes.
+- Checks: 203 application tests, 16 PGlite checks, 29 HTTP checks, lint, typecheck, localization and production build passed. HTTP regressions assert the translucent status-bar tag is in the initial head of launch/auth pages, not only the protected Dashboard.
+- Limitation: physical-iPhone installed-PWA verification is not available in this environment; an older installation may retain its old status-bar configuration and need removal/re-adding. Authenticated visual acceptance remains with the user.
+- Next step: inspect the deployed layout and iPhone status bar after reopening/re-adding the PWA.

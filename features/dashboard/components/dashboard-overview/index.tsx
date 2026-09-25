@@ -51,7 +51,7 @@ export function DashboardOverview() {
 
   if (!farm)
     return (
-      <main className={`app-page ${styles.dashboard} ${styles.emptyDashboard}`}>
+      <main className={`app-page ${styles.dashboard} ${styles.emptyDashboard}`} data-dashboard-immersive>
         <PageHeader
           title={t("Home")}
           description={t("A clear view of your growing day.")}
@@ -81,6 +81,7 @@ export function DashboardOverview() {
     <main
       className={`app-page ${styles.dashboard}`}
       style={dashboardVisualStyle}
+      data-dashboard-immersive
     >
       <div className={styles.header} data-farm-type={farm.type}>
         <PageHeader

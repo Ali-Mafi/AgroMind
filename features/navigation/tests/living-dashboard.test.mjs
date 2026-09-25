@@ -84,7 +84,7 @@ test("dashboard photos are local, species-specific and do not substitute wheat f
     assert.ok(statSync(`public${visual.image}`).size > 40_000);
   }
   const garden = resolveCropVisual({ type: "garden" });
-  assert.equal(garden.backgroundSize, "contain", "keep the entire tree visible");
+  assert.equal(garden.backgroundSize, "cover", "fill the product card without letterboxing");
   for (const path of [garden.image, resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden")]) {
     assert.ok(path.startsWith("/images/dashboard/"));
     assert.ok(statSync(`public${path}`).size > 40_000);
@@ -99,19 +99,27 @@ test("immersive viewport stays Dashboard-scoped and does not disable zoom", () =
   assert.doesNotMatch(layout, /userScalable: false|maximumScale/);
   const root = readFileSync("app/layout.tsx", "utf8");
   assert.doesNotMatch(root, /viewportFit: "cover"/);
+  assert.match(root, /statusBarStyle: "black-translucent"/, "the install/launch document must opt into the overlay too");
+  const css = readFileSync("app/globals.css", "utf8");
+  assert.match(css, /body:not\(:has\(\[data-dashboard-immersive\]\)\)/);
+  assert.match(css, /padding-top: env\(safe-area-inset-top/);
+  assert.match(workspaceFixture(), /data-dashboard-immersive/);
+  assert.match(workspaceFixture({ empty: true }), /data-dashboard-immersive/);
 });
 
 test("dashboard styling keeps safe areas, narrow-screen reflow, RTL and reduced-motion safeguards", () => {
   const css = readFileSync("features/dashboard/components/dashboard-overview/dashboard-overview.module.css", "utf8");
   for (const edge of ["top", "left", "right"]) assert.ok(css.includes(`safe-area-inset-${edge}`));
-  assert.match(css, /max-width: 379px/);
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\)/);
+  assert.doesNotMatch(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); grid-auto-rows/);
+  assert.match(css, /\.header::after[\s\S]*?linear-gradient\(to bottom, transparent, var\(--background\)\)/);
+  assert.match(css, /farm-crop-backdrop\) \{[\s\S]*?inset: 0;[\s\S]*?width: 100%;/);
   assert.match(css, /:dir\(rtl\)/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.doesNotMatch(css, /backdrop-filter|filter: blur|auto-rows-fr/);
   const weatherCss = readFileSync("features/weather/components/weather-dashboard/weather-dashboard.module.css", "utf8");
   assert.doesNotMatch(weatherCss, /display:\s*none|backdrop-filter|filter: blur/);
-  assert.match(weatherCss, /\.weather \.currentConditions \{ display: block/);
+  assert.match(weatherCss, /\.weather \.currentConditions \{ display: flex/);
 });
 
 test("weather atmosphere and report time use the provider's actual condition, night and farm timezone", () => {

@@ -137,7 +137,7 @@ export function resolveCropVisual(farm: FarmVisualInput): CropVisual {
     return {
       key: "garden-tree",
       image: ASSET.gardenTree,
-      backgroundSize: "contain",
+      backgroundSize: "cover",
       backgroundPosition: "center",
     };
   }
