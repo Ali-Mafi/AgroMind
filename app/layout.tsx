@@ -45,15 +45,19 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#183c2b",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8faf5" },
+    { media: "(prefers-color-scheme: dark)", color: "#18241f" },
+  ],
 };
 
 export const metadata: Metadata = {
   title: "AgroMind",
   description: "Smart farm management powered by AgroMind",
   manifest: "/manifest.webmanifest",
-  // iOS reads this at installation/launch, before navigation to Dashboard.
-  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "black-translucent" },
+  // Standard light workspace/auth pages use native iOS status-bar chrome.
+  // Immersive routes override this locally.
+  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "default" },
   icons: {
     icon: [
       {
