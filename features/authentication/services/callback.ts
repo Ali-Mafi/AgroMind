@@ -12,17 +12,38 @@ function securedRedirect(destination: URL) {
   return response;
 }
 
-function oauthFailureDestination(params: URLSearchParams) {
+function oauthCallbackOrigin(request: NextRequest) {
+  const origin = request.nextUrl.origin;
+  const host = request.nextUrl.hostname.toLowerCase();
+  const productionHost =
+    host === "agromind.ir" || host === "www.agromind.ir";
+  const previewHost =
+    process.env.VERCEL_ENV === "preview" &&
+    /^agro-mind(?:-git)?-[a-z0-9-]+-ali-mafi\.vercel\.app$/.test(host);
+
+  if (request.nextUrl.protocol !== "https:" || (!productionHost && !previewHost))
+    return siteOrigin();
+
+  return origin;
+}
+
+function oauthFailureDestination(
+  request: NextRequest,
+  params: URLSearchParams,
+) {
   const source = params.get("source") === "signup" ? "/sign-up" : "/sign-in";
-  const destination = new URL(source, siteOrigin());
+  const destination = new URL(source, oauthCallbackOrigin(request));
   destination.searchParams.set("status", "oauth-error");
   const next = safeNextPath(params.get("next"));
   if (next !== "/dashboard") destination.searchParams.set("next", next);
   return destination;
 }
 
-async function handleOAuthCallback(params: URLSearchParams) {
-  const failure = oauthFailureDestination(params);
+async function handleOAuthCallback(
+  request: NextRequest,
+  params: URLSearchParams,
+) {
+  const failure = oauthFailureDestination(request, params);
   const code = params.get("code");
   if (!code) return securedRedirect(failure);
 
@@ -38,7 +59,9 @@ async function handleOAuthCallback(params: URLSearchParams) {
       return securedRedirect(failure);
     }
 
-    return securedRedirect(new URL(destination, siteOrigin()));
+    return securedRedirect(
+      new URL(destination, oauthCallbackOrigin(request)),
+    );
   } catch {
     return securedRedirect(failure);
   }
@@ -48,7 +71,7 @@ export async function handleAuthCallback(request: NextRequest) {
   const params = request.nextUrl.searchParams;
 
   if (params.get("flow") === "oauth") {
-    return handleOAuthCallback(params);
+    return handleOAuthCallback(request, params);
   }
 
   const recovery =
