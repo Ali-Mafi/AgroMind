@@ -488,15 +488,50 @@ test("farm collaboration enforces seats and role-scoped access without weakening
     );
 
     const changedSchedule = { ...schedule, duration: 60 };
+    await worker.query(
+      "select save_shared_irrigation_schedule($1,'shared-a',$2)",
+      [ownerAccount, changedSchedule],
+    );
     assert.equal(
       (
         await worker.query(
-          "update irrigation_schedules set data=$1 where account_id=$2 and farm_id='shared-a'",
-          [changedSchedule, ownerAccount],
+          "select (data->>'duration')::int as duration from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
         )
-      ).rowCount,
-      1,
+      ).rows[0].duration,
+      60,
     );
+
+    const ownerSnapshot = (
+      await owner.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.equal(ownerSnapshot.farms.length, 2);
+    assert.deepEqual(ownerSnapshot.sharedFarms, []);
+    assert.equal(ownerSnapshot.irrigationSchedules["shared-a"].duration, 60);
+
+    const managerSnapshot = (
+      await manager.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.deepEqual(managerSnapshot.farms, []);
+    assert.equal(managerSnapshot.sharedFarms.length, 2);
+    assert.deepEqual(
+      managerSnapshot.sharedFarms.map((item) => [item.farm_id, item.role]),
+      [
+        ["shared-a", "manager"],
+        ["shared-b", "manager"],
+      ],
+    );
+    assert.equal(managerSnapshot.sharedIrrigationSchedules.length, 1);
+    assert.equal(
+      managerSnapshot.sharedIrrigationSchedules[0].data.duration,
+      60,
+    );
+
+    const workerSnapshot = (
+      await worker.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.equal(workerSnapshot.sharedFarms.length, 1);
+    assert.equal(workerSnapshot.sharedFarms[0].role, "worker");
     assert.equal(
       (
         await viewer.query(
