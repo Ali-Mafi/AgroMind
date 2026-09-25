@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { useTheme } from "next-themes";
-import { motion, useReducedMotion } from "framer-motion";
+import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -84,6 +84,7 @@ export function ThemeSwitcher() {
             className="relative flex min-h-11 min-w-0 items-center justify-center rounded-xl px-2 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 sm:px-3"
           >
             {selected && (
+              <MotionConfig reducedMotion="user">
               <motion.span
                 layoutId={`${id}-active-theme`}
                 className="app-theme-fill pointer-events-none absolute inset-0 rounded-xl bg-background shadow-sm ring-1 ring-border/60"
@@ -93,6 +94,7 @@ export function ThemeSwitcher() {
                     : { type: "spring", stiffness: 500, damping: 35, mass: 0.7 }
                 }
               />
+              </MotionConfig>
             )}
             <span
               className={`relative flex min-w-0 items-center justify-center gap-2 text-sm font-medium ${selected ? "text-foreground" : "text-muted-foreground"}`}

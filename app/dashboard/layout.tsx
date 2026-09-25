@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import ProtectedLayout from "@/features/authentication/components/protected-layout";
 import { AppShell } from "@/components/layout/app-shell";
+import { WorkspaceLoadingBoundary } from "@/components/layout/workspace-loading-boundary";
 export const dynamic = "force-dynamic";
 
 // Match the root install/launch viewport; never switch viewport-fit after launch.
@@ -17,5 +18,5 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return <ProtectedLayout requireOnboarding><AppShell>{children}</AppShell></ProtectedLayout>;
+  return <WorkspaceLoadingBoundary><ProtectedLayout requireOnboarding><AppShell>{children}</AppShell></ProtectedLayout></WorkspaceLoadingBoundary>;
 }

@@ -15,7 +15,7 @@ export function Navbar() {
           {/* Logo */}
 
           <Link href="/" className="flex items-center gap-2 transition hover:opacity-80">
-            <img src="/logo/agromind-logo.png" alt="AgroMind" className="size-8 sm:size-11"/>
+            <img src="/logo/agromind-mark-132-v1.webp" alt="AgroMind" width={132} height={132} decoding="async" className="size-8 sm:size-11"/>
               <span className="font-heading text-base font-bold text-primary sm:text-2xl">
                 {APP.name}
               </span>
