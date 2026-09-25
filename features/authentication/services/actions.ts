@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfig } from "@/lib/supabase/config";
 import {
@@ -270,9 +270,19 @@ export async function signInWithGoogleAction(form: FormData): Promise<void> {
   try {
     const origin = await oauthRequestOrigin();
     const callback = new URL("/auth/callback", origin);
-    callback.searchParams.set("flow", "oauth");
-    callback.searchParams.set("source", source);
-    callback.searchParams.set("next", next);
+
+    const cookieStore = await cookies();
+    cookieStore.set(
+      "agromind_oauth_intent",
+      encodeURIComponent(JSON.stringify({ next, source })),
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 600,
+      },
+    );
 
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithOAuth({
