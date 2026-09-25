@@ -262,7 +262,12 @@ async function oauthRequestOrigin() {
   return `https://${host}`;
 }
 
-export async function signInWithGoogleAction(form: FormData): Promise<void> {
+type OAuthProvider = "google" | "apple";
+
+async function signInWithOAuthProvider(
+  form: FormData,
+  provider: OAuthProvider,
+): Promise<void> {
   const next = safeNextPath(form.get("next"));
   const source = form.get("source") === "signup" ? "signup" : "login";
   let providerUrl: string | null = null;
@@ -286,10 +291,12 @@ export async function signInWithGoogleAction(form: FormData): Promise<void> {
 
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: {
         redirectTo: callback.toString(),
-        scopes: "openid email profile",
+        ...(provider === "google"
+          ? { scopes: "openid email profile" }
+          : {}),
       },
     });
 
@@ -309,6 +316,14 @@ export async function signInWithGoogleAction(form: FormData): Promise<void> {
   }
 
   redirect(providerUrl);
+}
+
+export async function signInWithGoogleAction(form: FormData): Promise<void> {
+  return signInWithOAuthProvider(form, "google");
+}
+
+export async function signInWithAppleAction(form: FormData): Promise<void> {
+  return signInWithOAuthProvider(form, "apple");
 }
 
 export async function requestPasswordResetAction(
