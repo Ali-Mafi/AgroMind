@@ -49,7 +49,7 @@ function wasmClient(user, level = "aal1", sessionId = user) {
   };
 }
 let postgres, admin, directory;
-const users = Array.from({ length: 12 }, () => randomUUID());
+const users = Array.from({ length: 17 }, () => randomUUID());
 const farm = (id, extra = {}) => ({
   id,
   name: "Test field",
@@ -329,6 +329,239 @@ test("RLS isolates all CRUD operations and rejects cross-owner schedules", async
     await b.end();
   }
 });
+test("farm collaboration enforces seats and role-scoped access without weakening ownership", async () => {
+  const ownerId = users[12];
+  const managerId = users[13];
+  const workerId = users[14];
+  const viewerId = users[15];
+  const extraId = users[16];
+  const owner = await asUser(ownerId);
+  const manager = await asUser(managerId);
+  const worker = await asUser(workerId);
+  const viewer = await asUser(viewerId);
+  const extra = await asUser(extraId);
+
+  try {
+    await create(owner, farm("shared-a"));
+    await create(owner, farm("shared-b"));
+    const ownerAccount = await account(ownerId);
+
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        viewerId,
+      ]),
+      /TEAM_MEMBER_LIMIT_REACHED/,
+    );
+
+    const teamPlan = (
+      await admin.query(
+        "insert into plans(code,name) values('team-test','Team Test') returning id",
+      )
+    ).rows[0].id;
+    await admin.query(
+      "insert into plan_entitlements(plan_id,key,value) values($1,'max_farms','3'::jsonb),($1,'max_team_members','3'::jsonb)",
+      [teamPlan],
+    );
+    await admin.query(
+      "update subscriptions set plan_id=$1 where account_id=$2",
+      [teamPlan, ownerAccount],
+    );
+
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'manager')",
+      [ownerAccount, managerId],
+    );
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'worker')",
+      [ownerAccount, workerId],
+    );
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'viewer')",
+      [ownerAccount, viewerId],
+    );
+
+    // The same person can collaborate on several farms without consuming a
+    // second account-wide seat.
+    await owner.query(
+      "select set_farm_member($1,'shared-b',$2,'manager')",
+      [ownerAccount, managerId],
+    );
+
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        extraId,
+      ]),
+      /TEAM_MEMBER_LIMIT_REACHED/,
+    );
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'manager')", [
+        ownerAccount,
+        ownerId,
+      ]),
+      /OWNER_MEMBERSHIP_FORBIDDEN/,
+    );
+
+    assert.equal(
+      (
+        await manager.query(
+          "select * from farms where account_id=$1 order by id",
+          [ownerAccount],
+        )
+      ).rowCount,
+      2,
+    );
+    assert.equal(
+      (
+        await worker.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await viewer.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await extra.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      0,
+    );
+
+    assert.equal(
+      (
+        await manager.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Managed field" }), ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await worker.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Worker edit" }), ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+    assert.equal(
+      (
+        await viewer.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Viewer edit" }), ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+
+    await owner.query("select save_irrigation_schedule('shared-a',$1)", [
+      schedule,
+    ]);
+    assert.equal(
+      (
+        await worker.query(
+          "select * from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await viewer.query(
+          "select * from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+
+    const changedSchedule = { ...schedule, duration: 60 };
+    assert.equal(
+      (
+        await worker.query(
+          "update irrigation_schedules set data=$1 where account_id=$2 and farm_id='shared-a'",
+          [changedSchedule, ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await viewer.query(
+          "update irrigation_schedules set data=$1 where account_id=$2 and farm_id='shared-a'",
+          [{ ...schedule, duration: 75 }, ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+
+    await assert.rejects(
+      manager.query(
+        "insert into farm_memberships(account_id,farm_id,user_id,role) values($1,'shared-a',$2,'viewer')",
+        [ownerAccount, extraId],
+      ),
+      /permission denied/i,
+    );
+    await assert.rejects(
+      manager.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        extraId,
+      ]),
+      /OWNER_REQUIRED/,
+    );
+
+    assert.equal(
+      (
+        await viewer.query(
+          "select * from farm_memberships where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await manager.query(
+          "select * from farm_memberships where account_id=$1",
+          [ownerAccount],
+        )
+      ).rowCount,
+      4,
+    );
+
+    await owner.query(
+      "select remove_farm_member($1,'shared-a',$2)",
+      [ownerAccount, viewerId],
+    );
+    assert.equal(
+      (
+        await viewer.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      0,
+    );
+  } finally {
+    await owner.end();
+    await manager.end();
+    await worker.end();
+    await viewer.end();
+    await extra.end();
+  }
+});
+
 test("clients cannot modify owners, counters, plans or completion flags", async () => {
   const c = await asUser(users[0]);
   try {
