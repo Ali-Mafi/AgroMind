@@ -315,6 +315,23 @@ export type Database = {
         Args: { p_data: Json; p_farm_id: string };
         Returns: undefined;
       };
+      save_shared_irrigation_schedule: {
+        Args: { p_account_id: string; p_data: Json; p_farm_id: string };
+        Returns: undefined;
+      };
+      set_farm_member: {
+        Args: {
+          p_account_id: string;
+          p_farm_id: string;
+          p_role: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
+      remove_farm_member: {
+        Args: { p_account_id: string; p_farm_id: string; p_user_id: string };
+        Returns: undefined;
+      };
       username_available: { Args: { p_username: string }; Returns: boolean };
     };
     Enums: {
