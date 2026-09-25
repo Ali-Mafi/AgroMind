@@ -646,6 +646,41 @@ test("OAuth callback keeps the session, resumes onboarding routing and clears pe
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
 });
 
+test("OAuth callback preserves a trusted Vercel preview origin after session exchange", async () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+
+  try {
+    const h = harness();
+    const { NextRequest } = localRequire("next/server");
+    const callback = loadTs(
+      "features/authentication/services/callback.ts",
+      {
+        ...h.mocks,
+        "./session": {
+          authenticatedDestination: async () => "/onboarding",
+        },
+      },
+    );
+
+    const response = await callback.handleAuthCallback(
+      new NextRequest(
+        "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app/auth/callback?flow=oauth&source=signup&next=/dashboard&code=oauth-code",
+      ),
+    );
+
+    const destination = new URL(response.headers.get("location"));
+    assert.equal(
+      destination.origin,
+      "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app",
+    );
+    assert.equal(destination.pathname, "/onboarding");
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+  }
+});
+
 test("OAuth callback handles cancellation and exchange failures without an open redirect", async () => {
   const { NextRequest } = localRequire("next/server");
 
