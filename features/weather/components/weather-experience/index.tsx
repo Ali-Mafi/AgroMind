@@ -44,7 +44,7 @@ export function WeatherExperience({ initialFarmId, returnTo = "/dashboard" }: { 
   }) : "unknown-day";
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-weather-immersive>
       <WeatherBackground visualState={visualState} className={styles.backdrop}
         animationsEnabled={motion.enabled && sheet === null}
         precipitating={weather?.current.condition.isPrecipitation ?? false} />
