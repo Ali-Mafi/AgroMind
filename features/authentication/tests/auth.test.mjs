@@ -41,6 +41,8 @@ function harness({
   },
   pendingVerified = false,
   assurance = { currentLevel: "aal1", nextLevel: "aal1" },
+  requestHost = "agromind.ir",
+  requestProto = "https",
 } = {}) {
   const calls = [];
   const record =
@@ -111,6 +113,14 @@ function harness({
       redirect: (path) => {
         throw new Error("REDIRECT:" + path);
       },
+    },
+    "next/headers": {
+      headers: async () =>
+        new Headers({
+          host: requestHost,
+          "x-forwarded-host": requestHost,
+          "x-forwarded-proto": requestProto,
+        }),
     },
     "next/cache": { revalidatePath: () => {} },
   };
@@ -357,6 +367,32 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   );
   assert.equal(unsafeCallback.searchParams.get("next"), "/dashboard");
   assert.equal(unsafeCallback.searchParams.get("source"), "signup");
+});
+
+test("Google OAuth keeps a trusted Vercel preview origin instead of falling back to production", async () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+
+  try {
+    const host =
+      "agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app";
+    const h = harness({ requestHost: host });
+
+    await assert.rejects(
+      h.actions.signInWithGoogleAction(
+        form({ next: "/dashboard", source: "login" }),
+      ),
+      /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+    );
+
+    const oauth = h.calls.find((call) => call.name === "oauth").args[0];
+    const callback = new URL(oauth.options.redirectTo);
+    assert.equal(callback.origin, `https://${host}`);
+    assert.equal(callback.pathname, "/auth/callback");
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+  }
 });
 
 test("Google OAuth initiation fails safely without exposing provider errors", async () => {
