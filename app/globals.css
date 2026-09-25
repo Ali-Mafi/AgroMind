@@ -171,8 +171,9 @@
   }
 }
 
-/* The initial document is edge-to-edge. Dashboard paints through the top
-   inset; other routes keep content clear of the notch, including Safari. */
+/* iOS standalone uses a translucent status bar. Dashboard and Weather paint
+   their own immersive surfaces behind it; standard routes reserve the top
+   inset so controls never collide with the notch. */
 body:not(:has([data-dashboard-immersive])) {
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -183,12 +184,32 @@ body {
 body:has([data-dashboard-immersive]) {
   padding: 0;
 }
+body:has([data-weather-immersive]) {
+  padding-top: 0;
+}
+
+/* Avoid the old detached green strip. Keep enough contrast for iOS' light
+   status icons, then feather the status surface into light workspace pages. */
 @media (display-mode: standalone) {
-  html { background-color: #183c2b; }
-  body:not(:has([data-dashboard-immersive])) {
-    background-image: linear-gradient(#183c2b, #183c2b);
-    background-size: 100% env(safe-area-inset-top, 0px);
-    background-repeat: no-repeat;
+  html {
+    background-color: rgb(18 25 22);
+  }
+  body:not(:has([data-dashboard-immersive]))::before {
+    position: fixed;
+    z-index: 80;
+    inset: 0 0 auto;
+    height: calc(env(safe-area-inset-top, 0px) + 0.875rem);
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgb(18 25 22 / 0.98) 0,
+      rgb(18 25 22 / 0.98) env(safe-area-inset-top, 0px),
+      rgb(18 25 22 / 0) 100%
+    );
+    content: "";
+  }
+  body:has([data-weather-immersive])::before {
+    display: none;
   }
 }
 
