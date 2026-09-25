@@ -153,6 +153,42 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
   assert.equal(safeMfaNextPath("https://evil.test"), "/dashboard");
 });
 
+test("site origin uses the stable Vercel branch alias only for preview OAuth", () => {
+  const previous = {
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  };
+  try {
+    process.env.VERCEL_ENV = "preview";
+    process.env.VERCEL_BRANCH_URL =
+      "agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://agromind.ir";
+    assert.equal(
+      loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app",
+    );
+
+    process.env.VERCEL_BRANCH_URL = "preview.evil.test";
+    assert.throws(
+      () => loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      /Invalid site URL configuration/,
+    );
+
+    delete process.env.VERCEL_ENV;
+    delete process.env.VERCEL_BRANCH_URL;
+    assert.equal(
+      loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      "https://agromind.ir",
+    );
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
 test("signup validates username, email and password without returning password values", async () => {
   const h = harness();
   for (const input of [
