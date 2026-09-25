@@ -155,4 +155,7 @@ export const WORKSPACE_PERSIAN: Record<string, string> = {
   "Your role does not allow this change.": "نقش شما اجازه انجام این تغییر را نمی‌دهد.",
   "Only the farm owner can make this change.": "فقط مالک مزرعه می‌تواند این تغییر را انجام دهد.",
   "Your team member limit has been reached.": "ظرفیت اعضای تیم طرح شما تکمیل شده است.",
+  "Manager": "مدیر",
+  "Worker": "همکار",
+  "Viewer": "مشاهده‌گر",
 };
