@@ -7,8 +7,7 @@ import { createRequire } from "node:module";
 import vm from "node:vm";
 
 const require = createRequire(import.meta.url);
-const html = readFileSync(".next/server/app/index.html", "utf8");
-const files = [...new Set([...html.matchAll(/<script[^>]+src="([^\"]+\.js)"/g)].map(match => match[1].replace("/_next/", "")))];
+
 const bytes = (files) => {
   const buffers = [...new Set(files)].map(file => readFileSync(`.next/${file}`));
   return {
@@ -24,15 +23,19 @@ for (const route of ["dashboard", "farms", "farms/[id]", "assistant", "account",
   const manifest = Object.values(context.globalThis.__RSC_MANIFEST)[0];
   routeEntries[route] = bytes(manifest.entryJSFiles[`[project]/app/${route}/page`]);
 }
-const logo = html.match(/<img[^>]+src="(\/logo\/[^\"]+)"/)?.[1];
-const report = {
-  label: process.argv[2] ?? "current",
-  landing: {
+function landingReport(html) {
+  const files = [...new Set([...html.matchAll(/<script[^>]+src="([^" ]+\.js)"/g)].map(match => match[1].replace("/_next/", "")))];
+  const logo = html.match(/<img[^>]+src="(\/logo\/[^" ]+)"/)?.[1];
+  return {
     htmlBytes: Buffer.byteLength(html),
     initiallyHiddenReveals: [...html.matchAll(/style="opacity:0;transform:translateY\(16px\)"/g)].length,
     scripts: bytes(files),
     logo: { url: logo, bytes: statSync(`public${logo}`).size },
-  },
+  };
+}
+const report = {
+  label: process.argv[2] ?? "current",
+  landing: null,
   // Entry chunks include shared app dependencies, exclude the common Next/React
   // runtime and optional dynamically loaded panels. Not browser transfer sizes.
   routeEntries,
@@ -57,8 +60,9 @@ try {
     const start = performance.now();
     const response = await fetch(`http://127.0.0.1:${port}`);
     const headersMs = performance.now() - start;
-    await response.text();
+    const html = await response.text();
     report.localHttp.push({ run, status: response.status, headersMs, completeMs: performance.now() - start });
+    if (run === 0) report.landing = landingReport(html);
   }
   console.log(JSON.stringify(report, null, 2));
 } finally {

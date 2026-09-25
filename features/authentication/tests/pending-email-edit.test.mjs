@@ -22,7 +22,7 @@ test("pending verification shows an inline email edit control", () => {
 test("pending email correction keeps the verification watch as authorization", () => {
   const actions = read("features/authentication/services/actions.ts");
   const migration = read(
-    "supabase/migrations/20260923214000_pending_signup_email_edit.sql",
+    "supabase/migrations/20260923185414_pending_signup_email_edit.sql",
   );
   const handler = read(
     "supabase/functions/change-pending-email/handler.ts",

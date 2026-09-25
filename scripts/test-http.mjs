@@ -72,6 +72,26 @@ try {
     console.log(`PASS public retina logo: ${size} bytes`);
   }
 
+  // Assert server-rendered locale before any JavaScript, then a separate user's
+  // English/default request. Personalized HTML must never enter a shared cache.
+  for (const path of ["/", "/sign-in", "/sign-up"]) {
+    for (const language of ["fa", "en", null]) {
+      const cookie = language ? "agromind_display_v1=" + encodeURIComponent(JSON.stringify({
+        version: 1, country: language === "fa" ? "IR" : "US", language, regionConfirmed: true,
+      })) : "";
+      const response = await fetch(base + path, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      const html = await response.text();
+      assert.match(html, language === "fa" ? /<html[^>]*lang="fa"[^>]*dir="rtl"/ : /<html[^>]*lang="en"[^>]*dir="ltr"/);
+      const heading = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? "";
+      assert.ok(heading.length > 0);
+      assert.equal(/[\u0600-\u06ff]/.test(heading), language === "fa", `${path}: ${language} heading`);
+      assert.match(response.headers.get("cache-control"), /private/);
+      assert.match(response.headers.get("cache-control"), /no-store/);
+      console.log("PASS initial locale and cache isolation", path, language ?? "default");
+    }
+  }
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
@@ -146,7 +166,7 @@ try {
     const html = await response.text();
     assert.match(html, /<form/);
     const head = html.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
-    assert.match(head, /name="apple-mobile-web-app-status-bar-style" content="black-translucent"/);
+    assert.match(head, /name="apple-mobile-web-app-status-bar-style" content="default"/);
     assert.match(head, /name="viewport" content="[^"]*viewport-fit=cover/);
     if (path === "/sign-in") {
       assert.doesNotMatch(html, /href="\/verify-email/);

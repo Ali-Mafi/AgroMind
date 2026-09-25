@@ -5,10 +5,10 @@ import { Reveal } from "./landing-motion";
 import styles from "../landing.module.css";
 
 const SYSTEM = [
-  { icon: Radio, title: "Sensors", detail: "Read the field" },
+  { icon: Radio, title: "Sensors", detail: "Device integration planned" },
   { icon: CloudSun, title: "Weather", detail: "Understand conditions" },
-  { icon: Droplets, title: "Irrigation", detail: "Control every drop" },
-  { icon: BrainCircuit, title: "AI", detail: "Turn data into action" },
+  { icon: Droplets, title: "Irrigation", detail: "Plan irrigation" },
+  { icon: BrainCircuit, title: "AI", detail: "Recommendations planned" },
   { icon: UserRound, title: "Farmer", detail: "Decide with confidence" },
 ] as const;
 
@@ -19,7 +19,7 @@ export function ValueProposition() {
       <Reveal className="mx-auto max-w-3xl text-center">
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary"><T text="Connected intelligence" /></span>
         <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-5xl"><T text="One farm. One intelligent system." /></h2>
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg"><T text="AgroMind connects field signals, local weather and irrigation into one clear operating picture—then helps you act on it." /></p>
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg"><T text="Start with farm records, local weather and irrigation schedules. Sensor connections and AI recommendations are planned additions." /></p>
       </Reveal>
       <Reveal delay={0.12} className={`${styles.flowTrack} relative mt-14 grid gap-4 md:grid-cols-5 md:gap-3`}>
         <span className={styles.flowPulse} aria-hidden="true" />

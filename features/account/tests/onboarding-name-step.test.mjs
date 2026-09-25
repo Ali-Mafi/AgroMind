@@ -43,7 +43,7 @@ test("account profile still edits first and last name separately", () => {
 
 test("five-step completion records the final onboarding state and requires names", () => {
   const migration = read(
-    "supabase/migrations/20260923183000_onboarding_name_step.sql",
+    "supabase/migrations/20260923171356_onboarding_name_step.sql",
   );
 
   assert.match(migration, /onboarding_step = 5/);
