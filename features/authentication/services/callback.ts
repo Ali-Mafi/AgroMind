@@ -5,10 +5,21 @@ import { tokenHashSchema } from "../lib/validation";
 import { clearPendingSignup } from "../lib/pending-signup";
 import { authenticatedDestination } from "./session";
 
-function securedRedirect(destination: URL) {
+const OAUTH_INTENT_COOKIE = "agromind_oauth_intent";
+
+function securedRedirect(destination: URL, clearOauthIntent = false) {
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("Referrer-Policy", "no-referrer");
+  if (clearOauthIntent) {
+    response.cookies.set(OAUTH_INTENT_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+  }
   return response;
 }
 
@@ -27,14 +38,34 @@ function oauthCallbackOrigin(request: NextRequest) {
   return origin;
 }
 
+function oauthIntent(request: NextRequest) {
+  const raw = request.cookies.get(OAUTH_INTENT_COOKIE)?.value;
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw)) as {
+      next?: unknown;
+      source?: unknown;
+    };
+    return {
+      next: safeNextPath(
+        typeof parsed.next === "string" ? parsed.next : null,
+      ),
+      source: parsed.source === "signup" ? "signup" : "login",
+    } as const;
+  } catch {
+    return null;
+  }
+}
+
 function oauthFailureDestination(
   request: NextRequest,
-  params: URLSearchParams,
+  intent: ReturnType<typeof oauthIntent>,
 ) {
-  const source = params.get("source") === "signup" ? "/sign-up" : "/sign-in";
+  const source = intent?.source === "signup" ? "/sign-up" : "/sign-in";
   const destination = new URL(source, oauthCallbackOrigin(request));
   destination.searchParams.set("status", "oauth-error");
-  const next = safeNextPath(params.get("next"));
+  const next = intent?.next ?? "/dashboard";
   if (next !== "/dashboard") destination.searchParams.set("next", next);
   return destination;
 }
@@ -43,34 +74,39 @@ async function handleOAuthCallback(
   request: NextRequest,
   params: URLSearchParams,
 ) {
-  const failure = oauthFailureDestination(request, params);
+  const intent = oauthIntent(request);
+  const failure = oauthFailureDestination(request, intent);
   const code = params.get("code");
-  if (!code) return securedRedirect(failure);
+  if (!code) return securedRedirect(failure, true);
 
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return securedRedirect(failure);
+    if (error) return securedRedirect(failure, true);
 
     await clearPendingSignup();
-    const destination = await authenticatedDestination(params.get("next"));
+    const destination = await authenticatedDestination(intent?.next);
     if (!destination) {
       await supabase.auth.signOut({ scope: "local" });
-      return securedRedirect(failure);
+      return securedRedirect(failure, true);
     }
 
     return securedRedirect(
       new URL(destination, oauthCallbackOrigin(request)),
+      true,
     );
   } catch {
-    return securedRedirect(failure);
+    return securedRedirect(failure, true);
   }
 }
 
 export async function handleAuthCallback(request: NextRequest) {
   const params = request.nextUrl.searchParams;
 
-  if (params.get("flow") === "oauth") {
+  if (
+    request.cookies.has(OAUTH_INTENT_COOKIE) ||
+    params.get("flow") === "oauth"
+  ) {
     return handleOAuthCallback(request, params);
   }
 
