@@ -139,7 +139,7 @@ const irrigationOverview:
 
   return (
     <main className="app-page space-y-6">
-      <PageHeader back title={t("Irrigation")} description={selectedFarm.name} action={<FarmSelector farms={farms} selectedFarmId={selectedFarm.id} onFarmChange={selectFarm} />} />
+      <PageHeader back title={t("Irrigation")} description={selectedFarm.name} action={<div className="w-72 max-w-[calc(100vw-2rem)]"><FarmSelector farms={farms} selectedFarmId={selectedFarm.id} onFarmChange={selectFarm} /></div>} />
 
       <TodayDateCard />
 
