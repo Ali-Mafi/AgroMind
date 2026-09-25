@@ -54,6 +54,14 @@ function harness({
     auth: {
       signUp: record("signUp", { data: { user, session: null }, error }),
       signInWithPassword: record("signIn", { data: { user }, error }),
+      signInWithOAuth: record("oauth", {
+        data: {
+          url: error
+            ? null
+            : "https://gedwexwxaojpqyeiebwm.supabase.co/auth/v1/authorize?provider=google",
+        },
+        error,
+      }),
       setSession: record("setSession", { data: { user }, error }),
       resetPasswordForEmail: record("forgot", { error }),
       resend: record("resend", { error }),
@@ -280,6 +288,63 @@ test("login by email resumes onboarding and sanitizes the requested destination"
   );
 });
 
+test("Google OAuth starts a server-side PKCE flow with a trusted callback and safe next path", async () => {
+  const h = harness();
+
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(
+      form({ next: "/farms", source: "login" }),
+    ),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+
+  const oauth = h.calls.find((call) => call.name === "oauth").args[0];
+  assert.equal(oauth.provider, "google");
+  assert.equal(oauth.options.scopes, "openid email profile");
+
+  const callback = new URL(oauth.options.redirectTo);
+  assert.equal(callback.origin, "https://agromind.ir");
+  assert.equal(callback.pathname, "/auth/callback");
+  assert.equal(callback.searchParams.get("flow"), "oauth");
+  assert.equal(callback.searchParams.get("source"), "login");
+  assert.equal(callback.searchParams.get("next"), "/farms");
+
+  const unsafe = harness();
+  await assert.rejects(
+    unsafe.actions.signInWithGoogleAction(
+      form({ next: "https://evil.test", source: "signup" }),
+    ),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+  const unsafeCallback = new URL(
+    unsafe.calls.find((call) => call.name === "oauth").args[0].options.redirectTo,
+  );
+  assert.equal(unsafeCallback.searchParams.get("next"), "/dashboard");
+  assert.equal(unsafeCallback.searchParams.get("source"), "signup");
+});
+
+test("Google OAuth initiation fails safely without exposing provider errors", async () => {
+  const h = harness({
+    error: { status: 400, message: "private provider detail" },
+  });
+
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(
+      form({ next: "/farms", source: "signup" }),
+    ),
+    (error) => {
+      const target = error.message.replace("REDIRECT:", "");
+      const destination = new URL(target);
+      assert.equal(destination.origin, "https://agromind.ir");
+      assert.equal(destination.pathname, "/sign-up");
+      assert.equal(destination.searchParams.get("status"), "oauth-error");
+      assert.equal(destination.searchParams.get("next"), "/farms");
+      assert.doesNotMatch(target, /private provider detail/);
+      return true;
+    },
+  );
+});
+
 test("forgot and verification resend stay enumeration-safe with and without pending cookies", async () => {
   const results = [];
   for (const error of [
@@ -477,6 +542,73 @@ test("email callback does not consume scanner GETs or permit an external redirec
     ),
   );
   assert.match(invalid.headers.get("location"), /status=invalid/);
+});
+
+test("OAuth callback keeps the session, resumes onboarding routing and clears pending signup state", async () => {
+  const h = harness();
+  const { NextRequest } = localRequire("next/server");
+  const callback = loadTs(
+    "features/authentication/services/callback.ts",
+    {
+      ...h.mocks,
+      "./session": {
+        authenticatedDestination: async (next) =>
+          next === "/farms" ? "/farms" : "/onboarding",
+      },
+    },
+  );
+
+  const response = await callback.handleAuthCallback(
+    new NextRequest(
+      "https://agromind.ir/auth/callback?flow=oauth&source=login&next=/farms&code=oauth-code",
+    ),
+  );
+
+  const destination = new URL(response.headers.get("location"));
+  assert.equal(destination.origin, "https://agromind.ir");
+  assert.equal(destination.pathname, "/farms");
+  assert.ok(h.calls.some((call) => call.name === "exchange"));
+  assert.ok(h.calls.some((call) => call.name === "clearPending"));
+  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
+  assert.match(response.headers.get("cache-control"), /no-store/);
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+});
+
+test("OAuth callback handles cancellation and exchange failures without an open redirect", async () => {
+  const { NextRequest } = localRequire("next/server");
+
+  for (const [h, url, expectedPath] of [
+    [
+      harness(),
+      "https://agromind.ir/auth/callback?flow=oauth&source=signup&next=https://evil.test&error=access_denied",
+      "/sign-up",
+    ],
+    [
+      harness({ error: { status: 400, message: "private exchange detail" } }),
+      "https://agromind.ir/auth/callback?flow=oauth&source=login&next=/farms&code=bad-code",
+      "/sign-in",
+    ],
+  ]) {
+    const callback = loadTs(
+      "features/authentication/services/callback.ts",
+      {
+        ...h.mocks,
+        "./session": {
+          authenticatedDestination: async () => "/dashboard",
+        },
+      },
+    );
+    const response = await callback.handleAuthCallback(new NextRequest(url));
+    const destination = new URL(response.headers.get("location"));
+    assert.equal(destination.origin, "https://agromind.ir");
+    assert.equal(destination.pathname, expectedPath);
+    assert.equal(destination.searchParams.get("status"), "oauth-error");
+    if (url.includes("evil.test")) {
+      assert.equal(destination.searchParams.get("next"), null);
+      assert.doesNotMatch(response.headers.get("location"), /evil\.test/);
+    }
+    assert.doesNotMatch(response.headers.get("location"), /private exchange detail/);
+  }
 });
 
 test("proxy denies a cookie without verified claims and preserves refreshed cookies on redirects", async () => {
