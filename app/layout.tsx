@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Geist_Mono,
   Inter,
@@ -38,6 +38,15 @@ const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
   display: "swap",
 });
+
+// iOS must opt into edge-to-edge layout on the install/start document too,
+// not only after client navigation to the protected Dashboard.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#183c2b",
+};
 
 export const metadata: Metadata = {
   title: "AgroMind",

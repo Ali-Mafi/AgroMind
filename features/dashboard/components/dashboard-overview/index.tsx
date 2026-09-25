@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import Link from "next/link";
 import {
@@ -15,6 +15,7 @@ import {
   StatusCard,
 } from "@/components/ui/workspace";
 import { FarmSwitcher } from "@/features/farms/components/farm-switcher";
+import { FarmPhoto, FARM_HEADER_SIZES } from "@/features/farms/components/farm-photo";
 import { FarmOverviewCards } from "@/features/farms/components/farm-overview-cards";
 import { useWorkspaceFarm } from "@/features/farms/hooks/use-workspace-farm";
 import { resolveFarmHeaderBackground } from "@/features/farms/lib/resolve-farm-visual";
@@ -22,11 +23,6 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { parseLocalDate } from "@/features/settings/lib/calendar";
 import styles from "./dashboard-overview.module.css";
-
-type DashboardVisualStyle = CSSProperties & {
-  "--dashboard-property-bg": string;
-};
-
 
 export function DashboardOverview() {
   const { farms, farm, selectFarm, irrigationSchedules } = useWorkspaceFarm();
@@ -73,17 +69,15 @@ export function DashboardOverview() {
     );
   const schedule = irrigationSchedules[farm.id];
   const needsLocation = !farm.coordinates;
-  const dashboardVisualStyle: DashboardVisualStyle = {
-    "--dashboard-property-bg": `url("${resolveFarmHeaderBackground(farm.type)}")`,
-  };
+  const headerPhoto = resolveFarmHeaderBackground(farm.type);
 
   return (
     <main
       className={`app-page ${styles.dashboard}`}
-      style={dashboardVisualStyle}
       data-dashboard-immersive
     >
       <div className={styles.header} data-farm-type={farm.type}>
+        <FarmPhoto src={headerPhoto} sizes={FARM_HEADER_SIZES} prominent className={styles.headerPhoto} />
         <PageHeader
           eyebrow={t("Home")}
           title={farm.name}
@@ -106,6 +100,7 @@ export function DashboardOverview() {
       <div ref={contentRef} className={styles.content}>
         <StatusCard
           className={`${styles.hero} ${needsLocation ? styles.needsLocation : schedule ? styles.scheduled : styles.unscheduled}`}
+          backdrop={<FarmPhoto src={headerPhoto} sizes={FARM_HEADER_SIZES} className={styles.heroPhoto} />}
           label={<span className={styles.heroLabel}><span aria-hidden="true" className={styles.statusDot} />{t("Your farm today")}</span>}
           title={t(
             needsLocation

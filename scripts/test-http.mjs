@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
+import { readdirSync, statSync } from "node:fs";
 
 const require = createRequire(import.meta.url);
 const port = 3187;
@@ -68,6 +69,27 @@ try {
     console.log("PASS public dashboard image", path);
   }
 
+  // Exercise the same hashed sources used by next/image, including mobile
+  // retina sizes. Neither optimization nor assets may require a user session.
+  const media = readdirSync(".next/static/media");
+  for (const image of ["header-field-v2", "header-orchard-v2", "garden-tree-v2", "crop-corn"]) {
+    const filename = media.find(name => name.startsWith(image + ".") && name.endsWith(".webp"));
+    assert.ok(filename, image);
+    const source = `/_next/static/media/${filename}`;
+    const originalSize = statSync(`.next/static/media/${filename}`).size;
+    for (const width of [640, 1200]) {
+      const response = await fetch(`${base}/_next/image?url=${encodeURIComponent(source)}&w=${width}&q=75`, {
+        headers: { Accept: "image/webp" }, redirect: "manual",
+      });
+      assert.equal(response.status, 200, source);
+      assert.match(response.headers.get("content-type"), /image\/webp/);
+      assert.match(response.headers.get("cache-control"), /immutable/);
+      const bytes = (await response.arrayBuffer()).byteLength;
+      assert.ok(bytes < originalSize, `${image}: optimized ${bytes} vs original ${originalSize}`);
+      console.log(`PASS optimized ${image} ${width}w: ${bytes}/${originalSize} bytes, immutable cache`);
+    }
+  }
+
   for (const path of [
     "/dashboard",
     "/assistant",
@@ -105,6 +127,7 @@ try {
     assert.match(html, /<form/);
     const head = html.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
     assert.match(head, /name="apple-mobile-web-app-status-bar-style" content="black-translucent"/);
+    assert.match(head, /name="viewport" content="[^"]*viewport-fit=cover/);
     if (path === "/sign-in") {
       assert.doesNotMatch(html, /href="\/verify-email/);
       assert.match(html, /href="\/forgot-password"/);

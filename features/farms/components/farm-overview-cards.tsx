@@ -6,6 +6,7 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { parseLocalDate } from "@/features/settings/lib/calendar";
 import WeatherDashboard from "@/features/weather/components/weather-dashboard";
 import { resolveCropVisual } from "@/features/farms/lib/resolve-farm-visual";
+import { FarmPhoto } from "./farm-photo";
 import type { Farm } from "../types/farms";
 import type { IrrigationSchedule } from "@/features/irrigation/types/irrigation";
 
@@ -98,12 +99,14 @@ export function FarmOverviewCards({
             aria-hidden="true"
             className="farm-crop-backdrop"
             data-crop-key={cropVisual.key}
-            style={{
+            style={appearance === "dashboard" ? undefined : {
               backgroundImage: `url("${cropVisual.image}")`,
               backgroundSize: cropVisual.backgroundSize,
               backgroundPosition: cropVisual.backgroundPosition,
             }}
-          />
+          >
+            {appearance === "dashboard" && <FarmPhoto src={cropVisual.image} />}
+          </span>
         }
       >
         <p className="text-xl font-semibold">

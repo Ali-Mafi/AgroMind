@@ -4,7 +4,7 @@ import ProtectedLayout from "@/features/authentication/components/protected-layo
 import { AppShell } from "@/components/layout/app-shell";
 export const dynamic = "force-dynamic";
 
-// Keep the immersive viewport local to Dashboard, without changing other routes.
+// Match the root install/launch viewport; never switch viewport-fit after launch.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,

@@ -13,6 +13,15 @@ export function loadTs(relative, mocks = {}, cache = new Map()) {
   if (existsSync(filename) && statSync(filename).isDirectory()) filename = path.join(filename, "index.tsx");
   if (!existsSync(filename)) filename = [filename + ".ts", filename + ".tsx"].find(existsSync) ?? filename + ".ts";
   if (cache.has(filename)) return cache.get(filename).exports;
+  // Model Next's static image imports without trying to transpile binary WebP.
+  // Actual hashed URLs and optimized bytes are checked by the HTTP build tests.
+  if (filename.endsWith(".webp")) {
+    const { width, height } = localRequire("next/dist/compiled/image-size").imageSize(readFileSync(filename));
+    return { default: {
+      src: "/" + path.relative(path.join(root, "public"), filename), width, height,
+      blurDataURL: "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
+    } };
+  }
   const loadedModule = { exports: {} };
   cache.set(filename, loadedModule);
   const result = ts.transpileModule(readFileSync(filename, "utf8"), {

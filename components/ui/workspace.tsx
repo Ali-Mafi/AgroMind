@@ -79,6 +79,7 @@ export function StatusCard({
   action,
   icon,
   className,
+  backdrop,
 }: {
   label: ReactNode;
   title: ReactNode;
@@ -86,9 +87,11 @@ export function StatusCard({
   action?: ReactNode;
   icon?: ReactNode;
   className?: string;
+  backdrop?: ReactNode;
 }) {
   return (
     <section className={cn("relative overflow-hidden rounded-[var(--app-radius)] bg-[var(--app-hero)] p-6 text-[var(--app-hero-foreground)] sm:p-9", className)}>
+      {backdrop}
       <div data-slot="status-content" className="flex items-start justify-between gap-5">
         <div className="max-w-2xl">
           <p data-slot="status-label" className="text-sm opacity-80">{label}</p>

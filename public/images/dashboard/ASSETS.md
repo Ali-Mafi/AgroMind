@@ -19,3 +19,10 @@ All assets: crisp photorealistic editorial agriculture, evergreen shadows, restr
 - `crop-rice.webp`: living rice with drooping panicles, slender leaves and unhulled grains in a paddy; explicitly rice, not wheat.
 - `crop-tomato.webp`: living vine with ripe red tomatoes, serrated green leaves and fine droplets.
 - `crop-field.webp`: elevated view of parallel cultivated soil rows and young seedlings; no identifiable fruits or grain heads.
+# Delivery and caching
+
+Dashboard renders these originals through `FarmPhoto` using static Next.js image
+imports. Content-hashed URLs, responsive `sizes`, inline previews and automatic
+WebP optimization keep mobile downloads small without replacing the source
+artwork. Only the active header uses eager/high-priority loading; the hero reuses
+the same source and size selection, and crop photographs are lazy loaded.

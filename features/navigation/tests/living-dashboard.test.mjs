@@ -18,7 +18,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /href="\/farms\/fixture-farm\/insights"/);
     assert.match(html, /data-farm-type="farm"/);
     assert.match(html, /data-crop-key="corn"/);
-    assert.match(html, /\/images\/dashboard\/crop-corn\.webp/);
+    assert.match(html, /%2Fimages%2Fdashboard%2Fcrop-corn\.webp/);
     assert.doesNotMatch(html, /crop-sprite\.webp/);
     assert.doesNotMatch(html, /valve running|countdown|progressbar/i);
   });
@@ -37,7 +37,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, language === "fa" ? /۱ گیاه و درخت/ : /1 plants and trees/);
     assert.match(html, /data-farm-type="garden"/);
     assert.match(html, /data-crop-key="garden-tree"/);
-    assert.match(html, /\/images\/dashboard\/garden-tree-v2\.webp/);
+    assert.match(html, /%2Fimages%2Fdashboard%2Fgarden-tree-v2\.webp/);
     assert.doesNotMatch(html, /soil.*\d+%|valve running/i);
   });
 }
@@ -92,19 +92,42 @@ test("dashboard photos are local, species-specific and do not substitute wheat f
   assert.notEqual(resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden"));
 });
 
-test("immersive viewport stays Dashboard-scoped and does not disable zoom", () => {
+test("immersive viewport is present from PWA launch and never disables zoom", () => {
   const layout = readFileSync("app/dashboard/layout.tsx", "utf8");
   assert.match(layout, /viewportFit: "cover"/);
   assert.match(layout, /statusBarStyle: "black-translucent"/);
   assert.doesNotMatch(layout, /userScalable: false|maximumScale/);
   const root = readFileSync("app/layout.tsx", "utf8");
-  assert.doesNotMatch(root, /viewportFit: "cover"/);
+  assert.match(root, /viewportFit: "cover"/, "cover must be present before navigating from signup to Dashboard");
+  assert.doesNotMatch(root, /userScalable: false|maximumScale/);
   assert.match(root, /statusBarStyle: "black-translucent"/, "the install/launch document must opt into the overlay too");
   const css = readFileSync("app/globals.css", "utf8");
   assert.match(css, /body:not\(:has\(\[data-dashboard-immersive\]\)\)/);
   assert.match(css, /padding-top: env\(safe-area-inset-top/);
   assert.match(workspaceFixture(), /data-dashboard-immersive/);
   assert.match(workspaceFixture({ empty: true }), /data-dashboard-immersive/);
+});
+
+test("dashboard photos use responsive optimized requests, prioritizing only the header", () => {
+  const html = workspaceFixture();
+  const photos = [...html.matchAll(/<img\b[^>]*>/g)].map(([image]) => image);
+  assert.equal(photos.length, 3);
+  assert.equal(photos.filter(image => image.includes('fetchPriority="high"')).length, 1);
+  assert.ok(photos[0].includes('loading="eager"'));
+  assert.ok(photos.slice(1).every(image => image.includes('loading="lazy"')));
+  for (const photo of photos) {
+    assert.match(photo, /srcSet=.*640w/);
+    assert.match(photo, /sizes=/);
+    assert.match(photo, /data:image\/svg/); // Inline preview while the photograph loads.
+    assert.match(photo, /alt=""/);
+  }
+  const srcset = image => image.match(/srcSet="([^"]+)"/)[1];
+  assert.equal(srcset(photos[0]), srcset(photos[1]), "hero reuses the header download");
+  const css = readFileSync("features/dashboard/components/dashboard-overview/dashboard-overview.module.css", "utf8");
+  assert.match(css, /\.app-select-trigger \.app-icon-container\)[\s\S]*?color: var\(--app-hero-foreground\)/);
+  assert.doesNotMatch(css, /--dashboard-property-bg/, "no competing full-resolution CSS download");
+  const photo = readFileSync("features/farms/components/farm-photo.tsx", "utf8");
+  assert.match(photo, /key=\{photo.src\}/, "reset only the image placeholder when switching artwork, not weather or cards");
 });
 
 test("dashboard styling keeps safe areas, narrow-screen reflow, RTL and reduced-motion safeguards", () => {

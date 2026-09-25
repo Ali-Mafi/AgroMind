@@ -171,11 +171,21 @@
   }
 }
 
-/* Standalone iOS has an overlay status bar. Dashboard paints through it and
-   pads its own controls; other pages retain a safe content origin. */
+/* The initial document is edge-to-edge. Dashboard paints through the top
+   inset; other routes keep content clear of the notch, including Safari. */
+body:not(:has([data-dashboard-immersive])) {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+body {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+body:has([data-dashboard-immersive]) {
+  padding: 0;
+}
 @media (display-mode: standalone) {
+  html { background-color: #183c2b; }
   body:not(:has([data-dashboard-immersive])) {
-    padding-top: env(safe-area-inset-top, 0px);
     background-image: linear-gradient(#183c2b, #183c2b);
     background-size: 100% env(safe-area-inset-top, 0px);
     background-repeat: no-repeat;
