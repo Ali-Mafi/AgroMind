@@ -7,6 +7,23 @@ import type {
   Subscription,
 } from "@/lib/supabase/database.types";
 import type { Entitlements } from "@/features/entitlements/lib/entitlements";
+
+export type FarmAccessRole = "owner" | "manager" | "worker" | "viewer";
+
+export type FarmAccess = {
+  accountId: string;
+  farmId: string;
+  workspaceKey: string;
+  role: FarmAccessRole;
+  owned: boolean;
+  canEditFarm: boolean;
+  canDeleteFarm: boolean;
+  canManageIrrigation: boolean;
+};
+
+export type WorkspaceFarm = Farm & {
+  access: FarmAccess;
+};
 export type CloudSnapshot = {
   user: { id: string; email: string; verified: boolean; createdAt: string };
   profile: Profile;
@@ -14,7 +31,7 @@ export type CloudSnapshot = {
   plan: Plan;
   subscription: Subscription;
   entitlements: Entitlements;
-  farms: Farm[];
+  farms: WorkspaceFarm[];
   irrigationSchedules: Record<string, IrrigationSchedule>;
   migration: {
     fingerprint: string;
