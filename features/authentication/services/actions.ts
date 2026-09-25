@@ -238,6 +238,44 @@ export async function signInAction(
   redirect(destination);
 }
 
+export async function signInWithGoogleAction(form: FormData): Promise<void> {
+  const next = safeNextPath(form.get("next"));
+  const source = form.get("source") === "signup" ? "signup" : "login";
+  let providerUrl: string | null = null;
+
+  try {
+    const callback = new URL("/auth/callback", siteOrigin());
+    callback.searchParams.set("flow", "oauth");
+    callback.searchParams.set("source", source);
+    callback.searchParams.set("next", next);
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: callback.toString(),
+        scopes: "openid email profile",
+      },
+    });
+
+    if (!error && data.url) providerUrl = data.url;
+  } catch {
+    providerUrl = null;
+  }
+
+  if (!providerUrl) {
+    const fallback = new URL(
+      source === "signup" ? "/sign-up" : "/sign-in",
+      siteOrigin(),
+    );
+    fallback.searchParams.set("status", "oauth-error");
+    if (next !== "/dashboard") fallback.searchParams.set("next", next);
+    redirect(fallback.toString());
+  }
+
+  redirect(providerUrl);
+}
+
 export async function requestPasswordResetAction(
   _state: AuthFormState,
   form: FormData,
