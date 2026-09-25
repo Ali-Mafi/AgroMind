@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfig } from "@/lib/supabase/config";
 import {
@@ -238,13 +239,37 @@ export async function signInAction(
   redirect(destination);
 }
 
+async function oauthRequestOrigin() {
+  const requestHeaders = await headers();
+  const forwardedHost =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const forwardedProto =
+    requestHeaders.get("x-forwarded-proto") ?? "https";
+
+  if (!forwardedHost || forwardedProto !== "https")
+    return siteOrigin();
+
+  const host = forwardedHost.split(",")[0]?.trim().toLowerCase();
+  if (!host) return siteOrigin();
+
+  const productionHost =
+    host === "agromind.ir" || host === "www.agromind.ir";
+  const previewHost =
+    process.env.VERCEL_ENV === "preview" &&
+    /^agro-mind(?:-git)?-[a-z0-9-]+-ali-mafi\.vercel\.app$/.test(host);
+
+  if (!productionHost && !previewHost) return siteOrigin();
+  return `https://${host}`;
+}
+
 export async function signInWithGoogleAction(form: FormData): Promise<void> {
   const next = safeNextPath(form.get("next"));
   const source = form.get("source") === "signup" ? "signup" : "login";
   let providerUrl: string | null = null;
 
   try {
-    const callback = new URL("/auth/callback", siteOrigin());
+    const origin = await oauthRequestOrigin();
+    const callback = new URL("/auth/callback", origin);
     callback.searchParams.set("flow", "oauth");
     callback.searchParams.set("source", source);
     callback.searchParams.set("next", next);
