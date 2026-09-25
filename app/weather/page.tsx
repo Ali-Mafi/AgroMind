@@ -3,6 +3,7 @@ import { WeatherExperience } from "@/features/weather/components/weather-experie
 
 export const metadata: Metadata = {
   title: "AgroMind",
+  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
