@@ -14,8 +14,14 @@ import { mutationContext, readCloudSnapshot } from "./data";
 import type { Json } from "@/lib/supabase/database.types";
 import type { CloudResult, CloudSnapshot } from "../types";
 
+const accountIdSchema = z.string().uuid();
+
 function json(value: unknown): Json {
   return JSON.parse(JSON.stringify(value)) as Json;
+}
+
+function forbiddenWrite() {
+  throw new Error("FARM_WRITE_FORBIDDEN");
 }
 async function mutate(
   run: (context: Awaited<ReturnType<typeof mutationContext>>) => Promise<void>,
@@ -55,19 +61,21 @@ export async function createFarmAction(input: unknown, expectedUserId: string) {
   }, expectedUserId);
 }
 export async function updateFarmAction(
+  accountId: unknown,
   id: unknown,
   input: unknown,
   expectedUserId: string,
 ) {
+  const parsedAccountId = accountIdSchema.safeParse(accountId);
   const parsedId = entityIdSchema.safeParse(id);
   const parsed = farmSchema.partial().omit({ id: true }).safeParse(input);
-  if (!parsedId.success || !parsed.success)
+  if (!parsedAccountId.success || !parsedId.success || !parsed.success)
     return { ok: false as const, error: "Please check the farm details." };
-  return mutate(async ({ supabase, accountId }) => {
+  return mutate(async ({ supabase }) => {
     const existing = await supabase
       .from("farms")
       .select("data")
-      .eq("account_id", accountId)
+      .eq("account_id", parsedAccountId.data)
       .eq("id", parsedId.data)
       .single();
     if (existing.error) throw existing.error;
@@ -76,41 +84,55 @@ export async function updateFarmAction(
       ...parsed.data,
       id: parsedId.data,
     });
-    const { error } = await supabase
+    const updated = await supabase
       .from("farms")
       .update({ data: json(merged) })
-      .eq("account_id", accountId)
-      .eq("id", parsedId.data);
-    if (error) throw error;
+      .eq("account_id", parsedAccountId.data)
+      .eq("id", parsedId.data)
+      .select("id")
+      .maybeSingle();
+    if (updated.error) throw updated.error;
+    if (!updated.data) forbiddenWrite();
   }, expectedUserId);
 }
-export async function deleteFarmAction(id: unknown, expectedUserId: string) {
+export async function deleteFarmAction(
+  accountId: unknown,
+  id: unknown,
+  expectedUserId: string,
+) {
+  const parsedAccountId = accountIdSchema.safeParse(accountId);
   const parsed = entityIdSchema.safeParse(id);
-  if (!parsed.success)
+  if (!parsedAccountId.success || !parsed.success)
     return { ok: false as const, error: "Please check the farm details." };
-  return mutate(async ({ supabase, accountId }) => {
-    const { error } = await supabase
+  return mutate(async ({ supabase }) => {
+    const deleted = await supabase
       .from("farms")
       .delete()
-      .eq("account_id", accountId)
-      .eq("id", parsed.data);
-    if (error) throw error;
+      .eq("account_id", parsedAccountId.data)
+      .eq("id", parsed.data)
+      .select("id")
+      .maybeSingle();
+    if (deleted.error) throw deleted.error;
+    if (!deleted.data) forbiddenWrite();
   }, expectedUserId);
 }
 export async function saveScheduleAction(
+  accountId: unknown,
   farmId: unknown,
   input: unknown,
   expectedUserId: string,
 ) {
+  const parsedAccountId = accountIdSchema.safeParse(accountId);
   const id = entityIdSchema.safeParse(farmId);
   const parsed = scheduleSchema.safeParse(input);
-  if (!id.success || !parsed.success)
+  if (!parsedAccountId.success || !id.success || !parsed.success)
     return {
       ok: false as const,
       error: "Please check the schedule date, time and duration.",
     };
   return mutate(async ({ supabase }) => {
-    const { error } = await supabase.rpc("save_irrigation_schedule", {
+    const { error } = await supabase.rpc("save_shared_irrigation_schedule", {
+      p_account_id: parsedAccountId.data,
       p_farm_id: id.data,
       p_data: json(parsed.data),
     });
@@ -118,19 +140,24 @@ export async function saveScheduleAction(
   }, expectedUserId);
 }
 export async function deleteScheduleAction(
+  accountId: unknown,
   farmId: unknown,
   expectedUserId: string,
 ) {
+  const parsedAccountId = accountIdSchema.safeParse(accountId);
   const id = entityIdSchema.safeParse(farmId);
-  if (!id.success)
+  if (!parsedAccountId.success || !id.success)
     return { ok: false as const, error: "Please check the farm details." };
-  return mutate(async ({ supabase, accountId }) => {
-    const { error } = await supabase
+  return mutate(async ({ supabase }) => {
+    const deleted = await supabase
       .from("irrigation_schedules")
       .delete()
-      .eq("account_id", accountId)
-      .eq("farm_id", id.data);
-    if (error) throw error;
+      .eq("account_id", parsedAccountId.data)
+      .eq("farm_id", id.data)
+      .select("farm_id")
+      .maybeSingle();
+    if (deleted.error) throw deleted.error;
+    if (!deleted.data) forbiddenWrite();
   }, expectedUserId);
 }
 export async function importLegacyAction(
