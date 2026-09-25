@@ -40,4 +40,7 @@ export const AUTH_STABILIZATION_PERSIAN: Record<string, string> = {
   "Signing in with Google…": "در حال ورود با گوگل…",
   "or continue with email": "یا با ایمیل ادامه دهید",
   "Google sign-in could not be completed. Please try again or continue with email.": "ورود با گوگل کامل نشد. دوباره تلاش کنید یا با ایمیل ادامه دهید.",
+  "Continue with Apple": "ادامه با اپل",
+  "Signing in with Apple…": "در حال ورود با اپل…",
+  "Social sign-in could not be completed. Please try again or continue with email.": "ورود با حساب اجتماعی کامل نشد. دوباره تلاش کنید یا با ایمیل ادامه دهید.",
 };
