@@ -92,7 +92,7 @@ test("dashboard photos are local, species-specific and do not substitute wheat f
   assert.notEqual(resolveFarmHeaderBackground("farm"), resolveFarmHeaderBackground("garden"));
 });
 
-test("immersive viewport is present from PWA launch and never disables zoom", () => {
+test("PWA keeps native standard chrome, immersive routes and accessible edge-to-edge viewports", () => {
   const layout = readFileSync("app/dashboard/layout.tsx", "utf8");
   assert.match(layout, /viewportFit: "cover"/);
   assert.match(layout, /statusBarStyle: "black-translucent"/);
@@ -100,7 +100,10 @@ test("immersive viewport is present from PWA launch and never disables zoom", ()
   const root = readFileSync("app/layout.tsx", "utf8");
   assert.match(root, /viewportFit: "cover"/, "cover must be present before navigating from signup to Dashboard");
   assert.doesNotMatch(root, /userScalable: false|maximumScale/);
-  assert.match(root, /statusBarStyle: "black-translucent"/, "the install/launch document must opt into the overlay too");
+  assert.match(root, /statusBarStyle: "default"/, "standard and auth pages use native status-bar chrome");
+  const weather = readFileSync("app/weather/page.tsx", "utf8");
+  assert.match(weather, /statusBarStyle: "black-translucent"/);
+  assert.doesNotMatch(weather, /userScalable: false|maximumScale/);
   const css = readFileSync("app/globals.css", "utf8");
   assert.match(css, /body:not\(:has\(\[data-dashboard-immersive\]\)\)/);
   assert.match(css, /padding-top: env\(safe-area-inset-top/);

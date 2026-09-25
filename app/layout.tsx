@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import {
   Geist_Mono,
   Inter,
@@ -14,6 +15,8 @@ import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
 import { RegionProvider } from "@/features/region/context/region-context";
 import { RegionOnboardingEntry } from "@/features/settings/components/region-onboarding-entry";
+import { DEFAULT_PREFERENCES, resolvePreferences } from "@/features/settings/lib/preferences";
+import { PREFERENCES_COOKIE, preferencesFromCookie } from "@/features/settings/lib/preferences-cookie";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,14 +84,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialPreferences = preferencesFromCookie((await cookies()).get(PREFERENCES_COOKIE)?.value) ?? DEFAULT_PREFERENCES;
+  const { language, direction } = resolvePreferences(initialPreferences);
   return (
     <html
-      lang="en"
+      lang={language}
+      dir={direction}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${inter.variable} ${manrope.variable} ${geistMono.variable} ${vazirmatn.variable} h-full antialiased`}
@@ -96,7 +102,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <PwaSessionSafety />
-          <SettingsProvider>
+          <SettingsProvider initialPreferences={initialPreferences}>
             <NavigationFeedback />
             <RegionProvider>
               <RegionOnboardingEntry />

@@ -29,6 +29,13 @@ interface NominatimResponse {
 
 const PROVIDER_TIMEOUT = 8000;
 
+function locationResponse(body: LocationResponse | { error: string }, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "private, no-store" },
+  });
+}
+
 function createTimeoutSignal() {
   return AbortSignal.timeout(PROVIDER_TIMEOUT);
 }
@@ -82,10 +89,10 @@ async function reverseGeocodeWithBigDataCloud(
       city: data.city ?? null,
       locality: data.locality ?? null,
     };
-  } catch (error) {
+  } catch {
+    // Upstream exceptions can contain the request URL, including coordinates.
     console.warn(
       "[AgroMind][Location] BigDataCloud request failed:",
-      error,
     );
 
     return null;
@@ -158,10 +165,9 @@ async function reverseGeocodeWithNominatim(
       city,
       locality,
     };
-  } catch (error) {
+  } catch {
     console.warn(
       "[AgroMind][Location] Nominatim request failed:",
-      error,
     );
 
     return null;
@@ -169,18 +175,11 @@ async function reverseGeocodeWithNominatim(
 }
 
 export async function GET(request: NextRequest) {
-  const latitude = request.nextUrl.searchParams.get("latitude");
-  const longitude = request.nextUrl.searchParams.get("longitude");
+  const latitude = request.nextUrl.searchParams.get("latitude")?.trim();
+  const longitude = request.nextUrl.searchParams.get("longitude")?.trim();
 
   if (!latitude || !longitude) {
-    return NextResponse.json(
-      {
-        error: "coordinates_required",
-      },
-      {
-        status: 400,
-      },
-    );
+    return locationResponse({ error: "coordinates_required" }, 400);
   }
 
   const latitudeNumber = Number(latitude);
@@ -194,23 +193,8 @@ export async function GET(request: NextRequest) {
     longitudeNumber < -180 ||
     longitudeNumber > 180
   ) {
-    return NextResponse.json(
-      {
-        error: "invalid_coordinates",
-      },
-      {
-        status: 400,
-      },
-    );
+    return locationResponse({ error: "invalid_coordinates" }, 400);
   }
-
-  console.log(
-    "[AgroMind][Location] Reverse geocoding:",
-    {
-      latitude: latitudeNumber,
-      longitude: longitudeNumber,
-    },
-  );
 
   // Provider 1: BigDataCloud
   const bigDataCloudResult =
@@ -220,17 +204,8 @@ export async function GET(request: NextRequest) {
     );
 
   if (bigDataCloudResult) {
-    console.log(
-      "[AgroMind][Location] Detected via BigDataCloud:",
-      bigDataCloudResult,
-    );
-
-    return NextResponse.json(bigDataCloudResult);
+    return locationResponse(bigDataCloudResult);
   }
-
-  console.log(
-    "[AgroMind][Location] Trying Nominatim fallback...",
-  );
 
   // Provider 2: OpenStreetMap Nominatim
   const nominatimResult =
@@ -240,24 +215,12 @@ export async function GET(request: NextRequest) {
     );
 
   if (nominatimResult) {
-    console.log(
-      "[AgroMind][Location] Detected via Nominatim:",
-      nominatimResult,
-    );
-
-    return NextResponse.json(nominatimResult);
+    return locationResponse(nominatimResult);
   }
 
   console.error(
     "[AgroMind][Location] All reverse geocoding providers failed.",
   );
 
-  return NextResponse.json(
-    {
-      error: "location_unavailable",
-    },
-    {
-      status: 502,
-    },
-  );
+  return locationResponse({ error: "location_unavailable" }, 502);
 }

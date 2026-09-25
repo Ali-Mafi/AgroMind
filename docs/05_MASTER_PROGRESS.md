@@ -1,5 +1,13 @@
 # AgroMind Master Progress
 
+## General review fixes — 2026-09-26
+
+- Fixed stale native-status-bar CI expectations, saved-locale initial rendering, the landing navigation translation, marketing availability labels, and precise-location application logging.
+- Aligned six local migration versions with the identical SQL already applied on the hosted project; no database mutation.
+- Local checks: lint, typecheck, 228 app tests, 16 PGlite checks, localization, production build and 51 HTTP checks passed. Native PostgreSQL remains a CI gate because local process startup is unavailable.
+- WeatherAPI activation still needs the server key configured in Vercel and a redeployment; physical-iPhone/authenticated-navigation checks remain unmeasured.
+- Decisions, measured rendering cost, migration and verification details: [daily progress](progress/2026-09-26.md).
+
 ## Project Status
 
 - Project: AgroMind

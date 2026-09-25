@@ -24,7 +24,7 @@ test("profile keeps first name, last name and username as separate account conce
 test("username mutation requires fresh MFA and preserves database uniqueness", () => {
   const action = read("features/account/services/username-actions.ts");
   const migration = read(
-    "supabase/migrations/20260923205500_stronger_signup_credentials.sql",
+    "supabase/migrations/20260923173735_stronger_signup_credentials.sql",
   );
   assert.match(action, /username_available/);
   assert.match(action, /verifyFreshIdentity/);

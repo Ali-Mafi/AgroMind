@@ -11,6 +11,7 @@ import {
 } from "react";
 import { resolvePreferences } from "../lib/preferences";
 import { createFormatters } from "../lib/units";
+import { syncDisplayPreferences } from "../lib/preferences-cookie";
 import {
   getPreferencesSnapshot,
   subscribeToPreferences,
@@ -84,6 +85,12 @@ export function SettingsProvider({
     document.documentElement.lang = value.language;
     document.documentElement.dir = value.direction;
   }, [value.language, value.direction]);
+
+  useEffect(() => {
+    // Migrate existing device preferences once; later full loads render in the
+    // saved locale before JavaScript runs. No account data enters this cookie.
+    if (isHydrated) syncDisplayPreferences(preferences);
+  }, [isHydrated, preferences]);
 
   return <SettingsContext.Provider value={value}><DirectionProvider direction={value.direction}>{children}</DirectionProvider></SettingsContext.Provider>;
 }

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "localization:check": "node scripts/check-localization.mjs",
-    "test": "node --test features/weather/tests/*.test.mjs features/settings/tests/*.test.mjs features/landing/tests/*.test.mjs features/authentication/tests/*.test.mjs features/cloud/tests/*.test.mjs features/account/tests/*.test.mjs features/navigation/tests/*.test.mjs && node scripts/test-database.mjs",
+    "test": "node --test features/weather/tests/*.test.mjs features/settings/tests/*.test.mjs features/region/tests/*.test.mjs features/landing/tests/*.test.mjs features/authentication/tests/*.test.mjs features/cloud/tests/*.test.mjs features/account/tests/*.test.mjs features/navigation/tests/*.test.mjs && node scripts/test-database.mjs",
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-database.mjs",
     "test:db:native": "node scripts/test-database.mjs --native",

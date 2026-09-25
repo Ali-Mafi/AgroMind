@@ -2,9 +2,9 @@ export const HERO = {
   title: "Your Farm Powered by Intelligence",
 
   subtitle:
-    "Monitor your farms, optimize irrigation, analyze weather, and make smarter farming decisions with AI.",
+    "Manage your farms, review local forecasts and plan irrigation in one place.",
 
   primaryButton: "Start Farming",
 
-  secondaryButton: "Live Demo",
+  secondaryButton: "Preview the app",
 };

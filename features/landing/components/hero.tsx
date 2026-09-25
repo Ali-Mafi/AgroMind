@@ -25,7 +25,7 @@ export function Hero() {
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/70 px-3.5 py-2 text-xs font-semibold text-primary shadow-sm backdrop-blur-md sm:text-sm">
               <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-40 motion-reduce:animate-none" /><span className="relative inline-flex size-2 rounded-full bg-primary" /></span>
-              {t("Live field intelligence")}
+              {t("Farm management & weather")}
             </div>
             <h1 className="mt-6 max-w-3xl font-heading text-4xl font-extrabold leading-[1.03] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-7xl">{t(HERO.title)}</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{t(HERO.subtitle)}</p>
@@ -34,9 +34,9 @@ export function Hero() {
               <a href="#live-farm" className={buttonVariants({ variant: "outline", size: "lg", className: "min-h-12 rounded-2xl border-primary/20 bg-background/55 px-7 backdrop-blur" })}>{t(HERO.secondaryButton)}</a>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-muted-foreground sm:text-sm">
-              <span className="flex items-center gap-2"><CloudSun className="size-4 text-primary" />{t("Hyper-local weather")}</span>
-              <span className="flex items-center gap-2"><Waves className="size-4 text-primary" />{t("Smarter water use")}</span>
-              <span className="flex items-center gap-2"><BrainCircuit className="size-4 text-primary" />{t("Actionable AI")}</span>
+              <span className="flex items-center gap-2"><CloudSun className="size-4 text-primary" />{t("Farm-local forecasts")}</span>
+              <span className="flex items-center gap-2"><Waves className="size-4 text-primary" />{t("Irrigation planning")}</span>
+              <span className="flex items-center gap-2"><BrainCircuit className="size-4 text-primary" />{t("AI · Coming soon")}</span>
             </div>
           </Reveal>
 
@@ -48,12 +48,12 @@ export function Hero() {
                 <div className="relative">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-200"><Radio className="size-3.5" />{t("Live overview")}</div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-200"><Radio className="size-3.5" />{t("Illustrative preview")}</div>
                       <h2 className="mt-2 font-heading text-xl font-bold sm:text-2xl">{t("Sample farm")}</h2>
                       <p className="mt-1 flex items-center gap-1.5 text-xs text-white/60 sm:text-sm"><MapPin className="size-3.5" />{t(sample.location)}</p>
                       <p className="mt-1 text-[11px] text-white/45">{t(sample.crop)} · {format.measure(sample.area, "area")}</p>
                     </div>
-                    <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100">{t("All systems online")}</span>
+                    <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100">{t("Sample data")}</span>
                   </div>
                   <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <PreviewMetric icon={CloudSun} label={t("Weather")} value={format.measure(sample.temperature, "temperature", 0)} detail={t("Clear skies")} />
@@ -73,7 +73,7 @@ export function Hero() {
                       <p className="mt-3 text-sm font-medium leading-6 text-white/90">{t("Delay irrigation until evening to reduce evaporation.")}</p>
                     </div>
                   </div>
-                  <p className="mt-3 flex items-center gap-2 text-[11px] text-white/45"><Sprout className="size-3.5" />{t("Sample farm · Not live data")}</p>
+                  <p className="mt-3 flex items-center gap-2 text-xs text-white/75"><Sprout className="size-3.5" />{t("Sample farm · Not live data")}</p>
                 </div>
               </div>
             </Float>
