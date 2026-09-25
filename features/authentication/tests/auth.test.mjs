@@ -397,6 +397,31 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   });
 });
 
+test("Apple OAuth reuses the hardened PKCE callback without Google-only scopes", async () => {
+  const h = harness();
+
+  await assert.rejects(
+    h.actions.signInWithAppleAction(
+      form({ next: "/account", source: "signup" }),
+    ),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+
+  const oauth = h.calls.find((call) => call.name === "oauth").args[0];
+  assert.equal(oauth.provider, "apple");
+  assert.equal(oauth.options.scopes, undefined);
+
+  const callback = new URL(oauth.options.redirectTo);
+  assert.equal(callback.origin, "https://agromind.ir");
+  assert.equal(callback.pathname, "/auth/callback");
+  assert.equal(callback.search, "");
+
+  const intent = JSON.parse(
+    decodeURIComponent(h.authCookies.get("agromind_oauth_intent").value),
+  );
+  assert.deepEqual(intent, { next: "/account", source: "signup" });
+});
+
 test("Google OAuth keeps a trusted Vercel preview origin instead of falling back to production", async () => {
   const previousVercelEnv = process.env.VERCEL_ENV;
   process.env.VERCEL_ENV = "preview";
