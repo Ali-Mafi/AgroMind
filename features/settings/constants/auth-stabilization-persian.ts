@@ -36,4 +36,8 @@ export const AUTH_STABILIZATION_PERSIAN: Record<string, string> = {
   "Use my location": "استفاده از موقعیت من",
   "Finding your region…": "در حال پیدا کردن منطقه شما…",
   "Location could not determine your region. Choose it manually.": "موقعیت مکانی نتوانست منطقه شما را تشخیص دهد. آن را دستی انتخاب کنید.",
+  "Continue with Google": "ادامه با گوگل",
+  "Signing in with Google…": "در حال ورود با گوگل…",
+  "or continue with email": "یا با ایمیل ادامه دهید",
+  "Google sign-in could not be completed. Please try again or continue with email.": "ورود با گوگل کامل نشد. دوباره تلاش کنید یا با ایمیل ادامه دهید.",
 };

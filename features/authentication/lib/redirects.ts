@@ -19,19 +19,33 @@ export function safeMfaNextPath(value: unknown) {
 }
 
 export function siteOrigin() {
-  const url = new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://agromind.ir",
-  );
+  const previewHost =
+    process.env.VERCEL_ENV === "preview"
+      ? process.env.VERCEL_BRANCH_URL
+      : undefined;
+  const configured = previewHost
+    ? `https://${previewHost}`
+    : process.env.NEXT_PUBLIC_SITE_URL || "https://agromind.ir";
+  const url = new URL(configured);
+
+  const localDevelopment =
+    process.env.NODE_ENV !== "production" &&
+    ["localhost", "127.0.0.1"].includes(url.hostname);
+  const trustedPreview =
+    process.env.VERCEL_ENV === "preview" &&
+    Boolean(previewHost) &&
+    url.protocol === "https:" &&
+    url.hostname === previewHost &&
+    url.hostname.endsWith(".vercel.app");
+
   if (
     url.username ||
     url.password ||
-    (url.protocol !== "https:" &&
-      !(
-        process.env.NODE_ENV !== "production" &&
-        ["localhost", "127.0.0.1"].includes(url.hostname)
-      ))
+    (url.protocol !== "https:" && !localDevelopment) ||
+    (process.env.VERCEL_ENV === "preview" && !trustedPreview)
   ) {
     throw new Error("Invalid site URL configuration.");
   }
+
   return url.origin;
 }

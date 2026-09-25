@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { authenticatedDestination } from "../services/session";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
+import { OAuthSignIn } from "./oauth-sign-in";
 
 export async function AuthEntry({
   mode,
@@ -37,8 +38,19 @@ export async function AuthEntry({
           <T text="Email verified. Sign in to continue in AgroMind." />
         </p>
       )}
+      {status === "oauth-error" && (
+        <p
+          role="alert"
+          className="mb-5 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
+        >
+          <T text="Google sign-in could not be completed. Please try again or continue with email." />
+        </p>
+      )}
       {isSupabaseConfigured() ? (
-        <AuthForm mode={signup ? "sign-up" : "sign-in"} next={next} />
+        <>
+          <OAuthSignIn next={next} source={signup ? "signup" : "login"} />
+          <AuthForm mode={signup ? "sign-up" : "sign-in"} next={next} />
+        </>
       ) : (
         <p role="status" className="rounded-xl bg-primary/5 p-4 text-sm leading-6">
           <T text="Account services are temporarily unavailable. Please try again." />

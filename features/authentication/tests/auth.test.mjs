@@ -41,8 +41,11 @@ function harness({
   },
   pendingVerified = false,
   assurance = { currentLevel: "aal1", nextLevel: "aal1" },
+  requestHost = "agromind.ir",
+  requestProto = "https",
 } = {}) {
   const calls = [];
+  const authCookies = new Map();
   const record =
     (name, result) =>
     async (...args) => {
@@ -54,6 +57,14 @@ function harness({
     auth: {
       signUp: record("signUp", { data: { user, session: null }, error }),
       signInWithPassword: record("signIn", { data: { user }, error }),
+      signInWithOAuth: record("oauth", {
+        data: {
+          url: error
+            ? null
+            : "https://gedwexwxaojpqyeiebwm.supabase.co/auth/v1/authorize?provider=google",
+        },
+        error,
+      }),
       setSession: record("setSession", { data: { user }, error }),
       resetPasswordForEmail: record("forgot", { error }),
       resend: record("resend", { error }),
@@ -104,11 +115,28 @@ function harness({
         throw new Error("REDIRECT:" + path);
       },
     },
+    "next/headers": {
+      headers: async () =>
+        new Headers({
+          host: requestHost,
+          "x-forwarded-host": requestHost,
+          "x-forwarded-proto": requestProto,
+        }),
+      cookies: async () => ({
+        set: (name, value, options) => {
+          authCookies.set(name, { value, options });
+          calls.push({ name: "cookieSet", args: [name, value, options] });
+        },
+        get: (name) => authCookies.get(name),
+        delete: (name) => authCookies.delete(name),
+      }),
+    },
     "next/cache": { revalidatePath: () => {} },
   };
 
   return {
     calls,
+    authCookies,
     client,
     actions: loadTs("features/authentication/services/actions.ts", mocks),
     mocks,
@@ -143,6 +171,42 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
   assert.equal(isPrivatePath("/dashboard-public"), false);
   assert.equal(safeMfaNextPath("/reset-password"), "/reset-password");
   assert.equal(safeMfaNextPath("https://evil.test"), "/dashboard");
+});
+
+test("site origin uses the stable Vercel branch alias only for preview OAuth", () => {
+  const previous = {
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  };
+  try {
+    process.env.VERCEL_ENV = "preview";
+    process.env.VERCEL_BRANCH_URL =
+      "agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://agromind.ir";
+    assert.equal(
+      loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app",
+    );
+
+    process.env.VERCEL_BRANCH_URL = "preview.evil.test";
+    assert.throws(
+      () => loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      /Invalid site URL configuration/,
+    );
+
+    delete process.env.VERCEL_ENV;
+    delete process.env.VERCEL_BRANCH_URL;
+    assert.equal(
+      loadTs("features/authentication/lib/redirects.ts").siteOrigin(),
+      "https://agromind.ir",
+    );
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });
 
 test("signup validates username, email and password without returning password values", async () => {
@@ -277,6 +341,108 @@ test("login by email resumes onboarding and sanitizes the requested destination"
       )
     ).error,
     /Email or password is incorrect/,
+  );
+});
+
+test("Google OAuth starts a server-side PKCE flow with a trusted callback and safe next path", async () => {
+  const h = harness();
+
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(
+      form({ next: "/farms", source: "login" }),
+    ),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+
+  const oauth = h.calls.find((call) => call.name === "oauth").args[0];
+  assert.equal(oauth.provider, "google");
+  assert.equal(oauth.options.scopes, "openid email profile");
+
+  const callback = new URL(oauth.options.redirectTo);
+  assert.equal(callback.origin, "https://agromind.ir");
+  assert.equal(callback.pathname, "/auth/callback");
+  assert.equal(callback.search, "");
+  const intent = JSON.parse(
+    decodeURIComponent(h.authCookies.get("agromind_oauth_intent").value),
+  );
+  assert.deepEqual(intent, { next: "/farms", source: "login" });
+  assert.equal(
+    h.authCookies.get("agromind_oauth_intent").options.httpOnly,
+    true,
+  );
+  assert.equal(
+    h.authCookies.get("agromind_oauth_intent").options.maxAge,
+    600,
+  );
+
+  const unsafe = harness();
+  await assert.rejects(
+    unsafe.actions.signInWithGoogleAction(
+      form({ next: "https://evil.test", source: "signup" }),
+    ),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+  const unsafeCallback = new URL(
+    unsafe.calls.find((call) => call.name === "oauth").args[0].options.redirectTo,
+  );
+  assert.equal(unsafeCallback.search, "");
+  const unsafeIntent = JSON.parse(
+    decodeURIComponent(
+      unsafe.authCookies.get("agromind_oauth_intent").value,
+    ),
+  );
+  assert.deepEqual(unsafeIntent, {
+    next: "/dashboard",
+    source: "signup",
+  });
+});
+
+test("Google OAuth keeps a trusted Vercel preview origin instead of falling back to production", async () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+
+  try {
+    const host =
+      "agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app";
+    const h = harness({ requestHost: host });
+
+    await assert.rejects(
+      h.actions.signInWithGoogleAction(
+        form({ next: "/dashboard", source: "login" }),
+      ),
+      /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+    );
+
+    const oauth = h.calls.find((call) => call.name === "oauth").args[0];
+    const callback = new URL(oauth.options.redirectTo);
+    assert.equal(callback.origin, `https://${host}`);
+    assert.equal(callback.pathname, "/auth/callback");
+    assert.equal(callback.search, "");
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+  }
+});
+
+test("Google OAuth initiation fails safely without exposing provider errors", async () => {
+  const h = harness({
+    error: { status: 400, message: "private provider detail" },
+  });
+
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(
+      form({ next: "/farms", source: "signup" }),
+    ),
+    (error) => {
+      const target = error.message.replace("REDIRECT:", "");
+      const destination = new URL(target);
+      assert.equal(destination.origin, "https://agromind.ir");
+      assert.equal(destination.pathname, "/sign-up");
+      assert.equal(destination.searchParams.get("status"), "oauth-error");
+      assert.equal(destination.searchParams.get("next"), "/farms");
+      assert.doesNotMatch(target, /private provider detail/);
+      return true;
+    },
   );
 });
 
@@ -477,6 +643,126 @@ test("email callback does not consume scanner GETs or permit an external redirec
     ),
   );
   assert.match(invalid.headers.get("location"), /status=invalid/);
+});
+
+function oauthIntentCookie(next = "/dashboard", source = "login") {
+  return (
+    "agromind_oauth_intent=" +
+    encodeURIComponent(
+      JSON.stringify({
+        next: safeNextPath(next),
+        source: source === "signup" ? "signup" : "login",
+      }),
+    )
+  );
+}
+
+test("OAuth callback keeps the session, resumes onboarding routing and clears pending signup state", async () => {
+  const h = harness();
+  const { NextRequest } = localRequire("next/server");
+  const callback = loadTs(
+    "features/authentication/services/callback.ts",
+    {
+      ...h.mocks,
+      "./session": {
+        authenticatedDestination: async (next) =>
+          next === "/farms" ? "/farms" : "/onboarding",
+      },
+    },
+  );
+
+  const response = await callback.handleAuthCallback(
+    new NextRequest(
+      "https://agromind.ir/auth/callback?code=oauth-code",
+      { headers: { cookie: oauthIntentCookie("/farms", "login") } },
+    ),
+  );
+
+  const destination = new URL(response.headers.get("location"));
+  assert.equal(destination.origin, "https://agromind.ir");
+  assert.equal(destination.pathname, "/farms");
+  assert.ok(h.calls.some((call) => call.name === "exchange"));
+  assert.ok(h.calls.some((call) => call.name === "clearPending"));
+  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
+  assert.match(response.headers.get("cache-control"), /no-store/);
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+});
+
+test("OAuth callback preserves a trusted Vercel preview origin after session exchange", async () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+
+  try {
+    const h = harness();
+    const { NextRequest } = localRequire("next/server");
+    const callback = loadTs(
+      "features/authentication/services/callback.ts",
+      {
+        ...h.mocks,
+        "./session": {
+          authenticatedDestination: async () => "/onboarding",
+        },
+      },
+    );
+
+    const response = await callback.handleAuthCallback(
+      new NextRequest(
+        "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app/auth/callback?code=oauth-code",
+        { headers: { cookie: oauthIntentCookie("/dashboard", "signup") } },
+      ),
+    );
+
+    const destination = new URL(response.headers.get("location"));
+    assert.equal(
+      destination.origin,
+      "https://agro-mind-git-phase-2-google-oauth-ali-mafi.vercel.app",
+    );
+    assert.equal(destination.pathname, "/onboarding");
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+  }
+});
+
+test("OAuth callback handles cancellation and exchange failures without an open redirect", async () => {
+  const { NextRequest } = localRequire("next/server");
+
+  for (const [h, url, expectedPath, cookie] of [
+    [
+      harness(),
+      "https://agromind.ir/auth/callback?error=access_denied",
+      "/sign-up",
+      oauthIntentCookie("https://evil.test", "signup"),
+    ],
+    [
+      harness({ error: { status: 400, message: "private exchange detail" } }),
+      "https://agromind.ir/auth/callback?code=bad-code",
+      "/sign-in",
+      oauthIntentCookie("/farms", "login"),
+    ],
+  ]) {
+    const callback = loadTs(
+      "features/authentication/services/callback.ts",
+      {
+        ...h.mocks,
+        "./session": {
+          authenticatedDestination: async () => "/dashboard",
+        },
+      },
+    );
+    const response = await callback.handleAuthCallback(
+      new NextRequest(url, { headers: { cookie } }),
+    );
+    const destination = new URL(response.headers.get("location"));
+    assert.equal(destination.origin, "https://agromind.ir");
+    assert.equal(destination.pathname, expectedPath);
+    assert.equal(destination.searchParams.get("status"), "oauth-error");
+    if (expectedPath === "/sign-up") {
+      assert.equal(destination.searchParams.get("next"), null);
+      assert.doesNotMatch(response.headers.get("location"), /evil\.test/);
+    }
+    assert.doesNotMatch(response.headers.get("location"), /private exchange detail/);
+  }
 });
 
 test("proxy denies a cookie without verified claims and preserves refreshed cookies on redirects", async () => {

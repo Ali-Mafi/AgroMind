@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfig } from "@/lib/supabase/config";
 import {
@@ -236,6 +237,78 @@ export async function signInAction(
   revalidatePath("/", "layout");
   if (mfaDestination) redirect(mfaDestination);
   redirect(destination);
+}
+
+async function oauthRequestOrigin() {
+  const requestHeaders = await headers();
+  const forwardedHost =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const forwardedProto =
+    requestHeaders.get("x-forwarded-proto") ?? "https";
+
+  if (!forwardedHost || forwardedProto !== "https")
+    return siteOrigin();
+
+  const host = forwardedHost.split(",")[0]?.trim().toLowerCase();
+  if (!host) return siteOrigin();
+
+  const productionHost =
+    host === "agromind.ir" || host === "www.agromind.ir";
+  const previewHost =
+    process.env.VERCEL_ENV === "preview" &&
+    /^agro-mind(?:-git)?-[a-z0-9-]+-ali-mafi\.vercel\.app$/.test(host);
+
+  if (!productionHost && !previewHost) return siteOrigin();
+  return `https://${host}`;
+}
+
+export async function signInWithGoogleAction(form: FormData): Promise<void> {
+  const next = safeNextPath(form.get("next"));
+  const source = form.get("source") === "signup" ? "signup" : "login";
+  let providerUrl: string | null = null;
+
+  try {
+    const origin = await oauthRequestOrigin();
+    const callback = new URL("/auth/callback", origin);
+
+    const cookieStore = await cookies();
+    cookieStore.set(
+      "agromind_oauth_intent",
+      encodeURIComponent(JSON.stringify({ next, source })),
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 600,
+      },
+    );
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: callback.toString(),
+        scopes: "openid email profile",
+      },
+    });
+
+    if (!error && data.url) providerUrl = data.url;
+  } catch {
+    providerUrl = null;
+  }
+
+  if (!providerUrl) {
+    const fallback = new URL(
+      source === "signup" ? "/sign-up" : "/sign-in",
+      siteOrigin(),
+    );
+    fallback.searchParams.set("status", "oauth-error");
+    if (next !== "/dashboard") fallback.searchParams.set("next", next);
+    redirect(fallback.toString());
+  }
+
+  redirect(providerUrl);
 }
 
 export async function requestPasswordResetAction(

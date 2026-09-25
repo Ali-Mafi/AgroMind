@@ -1,6 +1,11 @@
 import { AuthEntry } from "@/features/authentication/components/auth-entry";
-export default function Page() {
-  return <AuthEntry mode="signup" />;
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string; status?: string }>;
+}) {
+  return <AuthEntry mode="signup" {...(await searchParams)} />;
 }
 
 export const dynamic = "force-dynamic";
