@@ -1,6 +1,6 @@
-const CACHE = "agromind-public-v11";
+const CACHE = "agromind-public-v12";
 const LOGO = "/logo/agromind-mark-132-v1.webp";
-const SHELL = ["/offline.html"];
+const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v3.png"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
   self.skipWaiting();
