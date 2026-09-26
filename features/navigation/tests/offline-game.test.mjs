@@ -21,26 +21,30 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /coyoteUntil/);
   assert.match(offline, /touch-action:none/);
   assert.match(offline, /\{ passive: false \}/);
+  assert.match(offline, /DINO_FRAME_SIZE = 84/);
+  assert.match(offline, /DINO_FRAME_COUNT = 4/);
   assert.match(offline, /DINO_RUN_FRAME_STEP = 2\.2/);
+  assert.match(offline, /farmer-dino-sheet-v3\.png/);
+  assert.match(offline, /naturalWidth === DINO_FRAME_SIZE \* DINO_FRAME_COUNT/);
+  assert.match(offline, /naturalHeight === DINO_FRAME_SIZE/);
+  assert.match(offline, /dinoSprite\.addEventListener\("load"/);
+  assert.ok(
+    offline.indexOf('dinoSprite.addEventListener("load"') < offline.indexOf("dinoSprite.src = DINO_SPRITE_URL"),
+    "sprite callbacks must be registered before src",
+  );
   assert.match(offline, /state === "gameover"/);
-  assert.match(offline, /Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\)/);
+  assert.match(offline, /Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\) % DINO_FRAME_COUNT/);
   assert.match(offline, /document\.addEventListener\(\s*"pointerdown"/);
   assert.match(offline, /imageSmoothingEnabled = false/);
-  assert.match(offline, /function drawFarmerDino\(\)/);
-  assert.match(offline, /drawFarmerDino\(\)/);
-  assert.match(offline, /Blue farmer overalls/);
-  assert.match(offline, /Straw hat/);
-  assert.match(offline, /Red neckerchief/);
-  assert.match(offline, /Upright pitchfork/);
-  assert.doesNotMatch(offline, /DINO_SPRITE_URL/);
-  assert.doesNotMatch(offline, /dinoSprite/);
-  assert.doesNotMatch(offline, /ctx\.drawImage\(/);
+  assert.match(offline, /ctx\.drawImage\(/);
+  assert.doesNotMatch(offline, /drawFarmerDino/);
+  assert.doesNotMatch(offline, /drawPixelDinoFallback/);
   assert.match(offline, /pixelCloud/);
   assert.match(offline, /steppedMountain/);
   assert.match(offline, /Wooden fence|wooden fence/i);
 
   // The offline game must not depend on external scripts, stylesheets or fonts.
-  // The Farmer Dino is rendered internally; no image asset is required.
+  // The verified Farmer Dino is a local precached sprite; no external asset is required.
   assert.doesNotMatch(offline, /<script[^>]+src=/i);
   assert.doesNotMatch(offline, /<link[^>]+rel=["']stylesheet["']/i);
   assert.doesNotMatch(offline, /<img\b/i);
@@ -65,8 +69,8 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v11/);
-  assert.ok(sw.includes('const SHELL = ["/offline.html"];'));
+  assert.match(sw, /agromind-public-v12/);
+  assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v3.png"];'));
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);
 
