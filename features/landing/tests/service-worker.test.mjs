@@ -25,7 +25,7 @@ function worker({ response, brokenStorage = false } = {}) {
     }, URL, Response,
     caches: {
       open: async () => { if (brokenStorage) throw new Error("Storage unavailable"); return cache; },
-      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "another-app"],
+      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "another-app"],
       delete: async name => { deleted.push(name); },
     },
     fetch: async request => {
@@ -57,7 +57,7 @@ test("PWA install does not redownload the 1.1 MB logo and activation drops stale
   await sw.lifecycle("install");
   assert.deepEqual(sw.installed, ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"]);
   await sw.lifecycle("activate");
-  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7"]);
+  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8"]);
   assert.equal(sw.state.claimed, true);
 });
 
