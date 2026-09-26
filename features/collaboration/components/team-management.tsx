@@ -13,6 +13,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { getLimit } from "@/features/entitlements/lib/entitlements";
+import { PreferenceSelect } from "@/features/settings/components/preference-select";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import {
@@ -226,40 +227,31 @@ export function TeamManagement({
               />
             </label>
 
-            <label className="space-y-2">
-              <span className="text-sm font-semibold">{t("Farm")}</span>
-              <select
-                value={farmId}
-                onChange={(event) => setFarmId(event.target.value)}
-                disabled={Boolean(busyKey) || ownedFarms.length === 0}
-                className="min-h-12 w-full rounded-xl border bg-background px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-              >
-                {ownedFarms.map((farm) => (
-                  <option key={farm.access.workspaceKey} value={farm.id}>
-                    {farm.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <PreferenceSelect
+              id="team-invite-farm"
+              label={t("Farm")}
+              value={farmId}
+              options={ownedFarms.map((farm) => ({
+                value: farm.id,
+                label: farm.name,
+              }))}
+              onChange={setFarmId}
+              disabled={Boolean(busyKey) || ownedFarms.length === 0}
+              placeholder={t("Choose a farm")}
+            />
 
-            <label className="space-y-2">
-              <span className="text-sm font-semibold">{t("Role")}</span>
-              <select
-                value={role}
-                onChange={(event) => setRole(event.target.value as TeamRole)}
-                disabled={Boolean(busyKey)}
-                className="min-h-12 w-full rounded-xl border bg-background px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-              >
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs leading-5 text-muted-foreground">
-                {t(ROLE_OPTIONS.find((option) => option.value === role)!.detail)}
-              </p>
-            </label>
+            <PreferenceSelect<TeamRole>
+              id="team-invite-role"
+              label={t("Role")}
+              value={role}
+              options={ROLE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.label),
+                description: t(option.detail),
+              }))}
+              onChange={setRole}
+              disabled={Boolean(busyKey)}
+            />
 
             <div className="flex items-end">
               <Button
@@ -336,36 +328,32 @@ export function TeamManagement({
                             {t("Farm access")}
                           </p>
                         </div>
-                        <label>
-                          <span className="sr-only">{t("Role")}</span>
-                          <select
-                            aria-label={t("Role")}
-                            value={assignment.role}
-                            disabled={Boolean(busyKey)}
-                            onChange={(event) =>
-                              void run(
-                                `role:${key}`,
-                                () =>
-                                  changeFarmMemberRoleAction(
-                                    {
-                                      farmId: assignment.farmId,
-                                      userId: member.userId,
-                                      role: event.target.value,
-                                    },
-                                    cloud.user.id,
-                                  ),
-                                "Role updated.",
-                              )
-                            }
-                            className="min-h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-                          >
-                            {ROLE_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {t(option.label)}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <PreferenceSelect<TeamRole>
+                          id={`team-role-${member.userId}-${assignment.farmId}`}
+                          label={t("Role")}
+                          hideLabel
+                          value={assignment.role}
+                          disabled={Boolean(busyKey)}
+                          options={ROLE_OPTIONS.map((option) => ({
+                            value: option.value,
+                            label: t(option.label),
+                          }))}
+                          onChange={(nextRole) =>
+                            void run(
+                              `role:${key}`,
+                              () =>
+                                changeFarmMemberRoleAction(
+                                  {
+                                    farmId: assignment.farmId,
+                                    userId: member.userId,
+                                    role: nextRole,
+                                  },
+                                  cloud.user.id,
+                                ),
+                              "Role updated.",
+                            )
+                          }
+                        />
                         <Button
                           type="button"
                           variant="outline"
