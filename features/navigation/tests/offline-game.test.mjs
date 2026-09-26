@@ -28,6 +28,10 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /document\.addEventListener\(\s*"pointerdown"/);
   assert.match(offline, /\/offline\/agro-runner\/farmer-dino-sheet\.png/);
   assert.match(offline, /imageSmoothingEnabled = false/);
+  assert.match(offline, /drawPixelDinoFallback/);
+  assert.match(offline, /if \(!dinoSpriteReady\) \{/);
+  assert.match(offline, /naturalWidth >= DINO_FRAME_SIZE \* 4/);
+  assert.match(offline, /Generated\/changed assets must never make the game character disappear/);
   assert.match(offline, /pixelCloud/);
   assert.match(offline, /steppedMountain/);
   assert.match(offline, /Wooden fence|wooden fence/i);
