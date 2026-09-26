@@ -149,6 +149,7 @@ export async function signUpAction(
       email: parsed.data.email,
       username: parsed.data.username,
       watchToken: watch.token,
+      next: safeNextPath(form.get("next")),
     });
   } catch {
     return unavailable;
@@ -220,14 +221,18 @@ export async function signInAction(
     ) {
       mfaDestination = `/mfa?next=${encodeURIComponent(safeNextPath(form.get("next")))}`;
     } else {
-      const profile = await supabase
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("id", userId)
-        .single();
-      if (profile.error) return unavailable;
-      if (profile.data.onboarding_completed)
-        destination = safeNextPath(form.get("next"));
+      const safeNext = safeNextPath(form.get("next"));
+      if (safeNext.startsWith("/invite/")) {
+        destination = safeNext;
+      } else {
+        const profile = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", userId)
+          .single();
+        if (profile.error) return unavailable;
+        if (profile.data.onboarding_completed) destination = safeNext;
+      }
     }
     await clearPendingSignup();
   } catch {

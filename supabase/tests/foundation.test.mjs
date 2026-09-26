@@ -49,7 +49,7 @@ function wasmClient(user, level = "aal1", sessionId = user) {
   };
 }
 let postgres, admin, directory;
-const users = Array.from({ length: 12 }, () => randomUUID());
+const users = Array.from({ length: 21 }, () => randomUUID());
 const farm = (id, extra = {}) => ({
   id,
   name: "Test field",
@@ -124,7 +124,7 @@ before(
     }
     await admin.query(`
     create role anon nologin; create role authenticated nologin; create role service_role nologin; create schema auth;
-    create table auth.users (id uuid primary key, raw_user_meta_data jsonb not null default '{}', email_confirmed_at timestamptz);
+    create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb not null default '{}', email_confirmed_at timestamptz);
     create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz);
     create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
     create trigger test_session after insert on auth.users for each row execute function auth.test_session();
@@ -145,10 +145,14 @@ before(
         : embedded.exec(
             await readFile(path.join("supabase/migrations", file), "utf8"),
           ));
-    for (const id of users)
+    for (const [index, id] of users.entries())
       await admin.query(
-        "insert into auth.users(id,raw_user_meta_data,email_confirmed_at) values($1,$2,now())",
-        [id, { full_name: "Test user", language: "fa" }],
+        "insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values($1,$2,$3,now())",
+        [
+          id,
+          `user-${index}@example.test`,
+          { full_name: "Test user", language: "fa" },
+        ],
       );
   },
   { timeout: 60000 },
@@ -329,6 +333,499 @@ test("RLS isolates all CRUD operations and rejects cross-owner schedules", async
     await b.end();
   }
 });
+test("farm collaboration enforces seats and role-scoped access without weakening ownership", async () => {
+  const ownerId = users[12];
+  const managerId = users[13];
+  const workerId = users[14];
+  const viewerId = users[15];
+  const extraId = users[16];
+  const owner = await asUser(ownerId);
+  const manager = await asUser(managerId);
+  const worker = await asUser(workerId);
+  const viewer = await asUser(viewerId);
+  const extra = await asUser(extraId);
+
+  try {
+    await create(owner, farm("shared-a"));
+    await create(owner, farm("shared-b"));
+    const ownerAccount = await account(ownerId);
+
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        viewerId,
+      ]),
+      /TEAM_MEMBER_LIMIT_REACHED/,
+    );
+
+    const teamPlan = (
+      await admin.query(
+        "insert into plans(code,name) values('team-test','Team Test') returning id",
+      )
+    ).rows[0].id;
+    await admin.query(
+      "insert into plan_entitlements(plan_id,key,value) values($1,'max_farms','3'::jsonb),($1,'max_team_members','3'::jsonb)",
+      [teamPlan],
+    );
+    await admin.query(
+      "update subscriptions set plan_id=$1 where account_id=$2",
+      [teamPlan, ownerAccount],
+    );
+
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'manager')",
+      [ownerAccount, managerId],
+    );
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'worker')",
+      [ownerAccount, workerId],
+    );
+    await owner.query(
+      "select set_farm_member($1,'shared-a',$2,'viewer')",
+      [ownerAccount, viewerId],
+    );
+
+    // The same person can collaborate on several farms without consuming a
+    // second account-wide seat.
+    await owner.query(
+      "select set_farm_member($1,'shared-b',$2,'manager')",
+      [ownerAccount, managerId],
+    );
+
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        extraId,
+      ]),
+      /TEAM_MEMBER_LIMIT_REACHED/,
+    );
+    await assert.rejects(
+      owner.query("select set_farm_member($1,'shared-a',$2,'manager')", [
+        ownerAccount,
+        ownerId,
+      ]),
+      /OWNER_MEMBERSHIP_FORBIDDEN/,
+    );
+
+    assert.equal(
+      (
+        await manager.query(
+          "select * from farms where account_id=$1 order by id",
+          [ownerAccount],
+        )
+      ).rowCount,
+      2,
+    );
+    assert.equal(
+      (
+        await worker.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await viewer.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await extra.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      0,
+    );
+
+    assert.equal(
+      (
+        await manager.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Managed field" }), ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await worker.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Worker edit" }), ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+    assert.equal(
+      (
+        await viewer.query(
+          "update farms set data=$1 where account_id=$2 and id='shared-a'",
+          [farm("shared-a", { name: "Viewer edit" }), ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+
+    await owner.query("select save_irrigation_schedule('shared-a',$1)", [
+      schedule,
+    ]);
+    assert.equal(
+      (
+        await worker.query(
+          "select * from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await viewer.query(
+          "select * from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+
+    const changedSchedule = { ...schedule, duration: 60 };
+    await worker.query(
+      "select save_shared_irrigation_schedule($1,'shared-a',$2)",
+      [ownerAccount, changedSchedule],
+    );
+    assert.equal(
+      (
+        await worker.query(
+          "select (data->>'duration')::int as duration from irrigation_schedules where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rows[0].duration,
+      60,
+    );
+
+    const ownerSnapshot = (
+      await owner.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.equal(ownerSnapshot.farms.length, 2);
+    assert.deepEqual(ownerSnapshot.sharedFarms, []);
+    assert.equal(ownerSnapshot.irrigationSchedules["shared-a"].duration, 60);
+
+    const managerSnapshot = (
+      await manager.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.deepEqual(managerSnapshot.farms, []);
+    assert.equal(managerSnapshot.sharedFarms.length, 2);
+    assert.deepEqual(
+      managerSnapshot.sharedFarms.map((item) => [item.farm_id, item.role]),
+      [
+        ["shared-a", "manager"],
+        ["shared-b", "manager"],
+      ],
+    );
+    assert.equal(managerSnapshot.sharedIrrigationSchedules.length, 1);
+    assert.equal(
+      managerSnapshot.sharedIrrigationSchedules[0].data.duration,
+      60,
+    );
+
+    const workerSnapshot = (
+      await worker.query("select get_cloud_snapshot() as snapshot")
+    ).rows[0].snapshot;
+    assert.equal(workerSnapshot.sharedFarms.length, 1);
+    assert.equal(workerSnapshot.sharedFarms[0].role, "worker");
+    assert.equal(
+      (
+        await viewer.query(
+          "update irrigation_schedules set data=$1 where account_id=$2 and farm_id='shared-a'",
+          [{ ...schedule, duration: 75 }, ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+
+    await assert.rejects(
+      manager.query(
+        "insert into farm_memberships(account_id,farm_id,user_id,role) values($1,'shared-a',$2,'viewer')",
+        [ownerAccount, extraId],
+      ),
+      /permission denied/i,
+    );
+    await assert.rejects(
+      manager.query("select set_farm_member($1,'shared-a',$2,'viewer')", [
+        ownerAccount,
+        extraId,
+      ]),
+      /OWNER_REQUIRED/,
+    );
+
+    assert.equal(
+      (
+        await viewer.query(
+          "select * from farm_memberships where account_id=$1 and farm_id='shared-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (
+        await manager.query(
+          "select * from farm_memberships where account_id=$1",
+          [ownerAccount],
+        )
+      ).rowCount,
+      4,
+    );
+
+    await owner.query(
+      "select remove_farm_member($1,'shared-a',$2)",
+      [ownerAccount, viewerId],
+    );
+    assert.equal(
+      (
+        await viewer.query("select * from farms where account_id=$1", [
+          ownerAccount,
+        ])
+      ).rowCount,
+      0,
+    );
+  } finally {
+    await owner.end();
+    await manager.end();
+    await worker.end();
+    await viewer.end();
+    await extra.end();
+  }
+});
+
+test("farm invitations reserve seats, rotate tokens, verify email and activate shared access", async () => {
+  const ownerId = users[17];
+  const inviteeId = users[18];
+  const mismatchId = users[19];
+  const secondInviteeId = users[20];
+  const owner = await asUser(ownerId);
+  const invitee = await asUser(inviteeId);
+  const mismatch = await asUser(mismatchId);
+  const secondInvitee = await asUser(secondInviteeId);
+
+  const inviteeEmail = "user-18@example.test";
+  const mismatchEmail = "user-19@example.test";
+  const secondEmail = "user-20@example.test";
+  const hashA = "a".repeat(64);
+  const hashB = "b".repeat(64);
+  const hashC = "c".repeat(64);
+  const hashD = "d".repeat(64);
+  const hashE = "e".repeat(64);
+
+  try {
+    await create(owner, farm("invite-a", { name: "North field" }));
+    await create(owner, farm("invite-b", { name: "South field" }));
+    const ownerAccount = await account(ownerId);
+
+    const teamPlan = (
+      await admin.query(
+        "insert into plans(code,name) values('invite-team-test','Invite Team Test') returning id",
+      )
+    ).rows[0].id;
+    await admin.query(
+      "insert into plan_entitlements(plan_id,key,value) values($1,'max_farms','3'::jsonb),($1,'max_team_members','2'::jsonb)",
+      [teamPlan],
+    );
+    await admin.query(
+      "update subscriptions set plan_id=$1 where account_id=$2",
+      [teamPlan, ownerAccount],
+    );
+
+    const created = (
+      await owner.query(
+        "select create_farm_invitation('invite-a',$1,'worker',$2) as invitation",
+        [inviteeEmail.toUpperCase(), hashA],
+      )
+    ).rows[0].invitation;
+    assert.equal(created.farm_name, "North field");
+    assert.ok(created.id);
+
+    let overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.activeSeats, 0);
+    assert.equal(overview.pendingSeats, 1);
+    assert.equal(overview.invitations.length, 1);
+    assert.equal(overview.invitations[0].email, inviteeEmail);
+    assert.equal(overview.invitations[0].role, "worker");
+
+    // Resend rotates the token, extends expiry and is throttled so the Resend
+    // provider cannot be hammered by repeated clicks.
+    await assert.rejects(
+      owner.query(
+        "select resend_farm_invitation($1,$2)",
+        [created.id, hashB],
+      ),
+      /INVITATION_RESEND_TOO_SOON/,
+    );
+    await admin.query(
+      "update private.farm_invitations set created_at=now()-interval '2 minutes' where id=$1",
+      [created.id],
+    );
+    const resent = (
+      await owner.query(
+        "select resend_farm_invitation($1,$2) as invitation",
+        [created.id, hashB],
+      )
+    ).rows[0].invitation;
+    assert.equal(resent.id, created.id);
+    assert.equal(resent.email, inviteeEmail);
+    assert.equal(resent.role, "worker");
+    assert.equal(resent.farm_name, "North field");
+    await assert.rejects(
+      invitee.query("select accept_farm_invitation($1)", [hashA]),
+      /INVITATION_INVALID/,
+    );
+
+    // The same person can hold pending invitations for multiple farms while
+    // consuming only one account-wide team seat.
+    await owner.query(
+      "select create_farm_invitation('invite-b',$1,'manager',$2)",
+      [inviteeEmail, hashC],
+    );
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.pendingSeats, 1);
+    assert.equal(overview.invitations.length, 2);
+
+    await owner.query(
+      "select create_farm_invitation('invite-a',$1,'worker',$2)",
+      [secondEmail, hashD],
+    );
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.pendingSeats, 2);
+
+    await assert.rejects(
+      owner.query(
+        "select create_farm_invitation('invite-b','future@example.test','viewer',$1)",
+        [hashE],
+      ),
+      /TEAM_MEMBER_LIMIT_REACHED/,
+    );
+    await assert.rejects(
+      owner.query(
+        "select create_farm_invitation('invite-a','user-17@example.test','viewer',$1)",
+        ["f".repeat(64)],
+      ),
+      /CANNOT_INVITE_OWNER/,
+    );
+
+    await assert.rejects(
+      mismatch.query("select accept_farm_invitation($1)", [hashB]),
+      /INVITATION_EMAIL_MISMATCH/,
+    );
+
+    const accepted = (
+      await invitee.query(
+        "select accept_farm_invitation($1) as accepted",
+        [hashB],
+      )
+    ).rows[0].accepted;
+    assert.equal(accepted.farm_id, "invite-a");
+    assert.equal(accepted.role, "worker");
+    assert.equal(
+      (
+        await invitee.query(
+          "select * from farms where account_id=$1 and id='invite-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      1,
+    );
+    await assert.rejects(
+      invitee.query("select accept_farm_invitation($1)", [hashB]),
+      /INVITATION_INVALID/,
+    );
+
+    // Once active anywhere in the account, another farm assignment for the
+    // same user no longer consumes a pending seat.
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.activeSeats, 1);
+    assert.equal(overview.pendingSeats, 1);
+
+    await invitee.query("select accept_farm_invitation($1)", [hashC]);
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.activeSeats, 1);
+    assert.equal(overview.pendingSeats, 1);
+    assert.equal(
+      overview.members.filter((member) => member.user_id === inviteeId).length,
+      2,
+    );
+
+    await owner.query(
+      "select set_farm_member($1,'invite-a',$2,'manager')",
+      [ownerAccount, inviteeId],
+    );
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(
+      overview.members.find(
+        (member) =>
+          member.user_id === inviteeId && member.farm_id === "invite-a",
+      ).role,
+      "manager",
+    );
+
+    const pending = overview.invitations.find(
+      (invitation) => invitation.email === secondEmail,
+    );
+    await owner.query("select revoke_farm_invitation($1)", [pending.id]);
+    overview = (
+      await owner.query("select get_team_overview() as overview")
+    ).rows[0].overview;
+    assert.equal(overview.pendingSeats, 0);
+    assert.equal(overview.invitations.length, 0);
+
+    // Decline is recipient-only and leaves no active membership.
+    await owner.query(
+      "select create_farm_invitation('invite-a',$1,'viewer',$2)",
+      [mismatchEmail, hashE],
+    );
+    await secondInvitee.query(
+      "select create_farm_invitation('missing',$1,'viewer',$2)",
+      ["nobody@example.test", "1".repeat(64)],
+    ).then(
+      () => assert.fail("non-owner account should not contain the owner's farm"),
+      (error) => assert.match(String(error), /FARM_NOT_FOUND/),
+    );
+    await mismatch.query("select decline_farm_invitation($1)", [hashE]);
+    await assert.rejects(
+      mismatch.query("select accept_farm_invitation($1)", [hashE]),
+      /INVITATION_INVALID/,
+    );
+    assert.equal(
+      (
+        await mismatch.query(
+          "select * from farms where account_id=$1 and id='invite-a'",
+          [ownerAccount],
+        )
+      ).rowCount,
+      0,
+    );
+  } finally {
+    await owner.end();
+    await invitee.end();
+    await mismatch.end();
+    await secondInvitee.end();
+  }
+});
+
 test("clients cannot modify owners, counters, plans or completion flags", async () => {
   const c = await asUser(users[0]);
   try {

@@ -16,7 +16,14 @@ import { FarmOverviewCards } from "./farm-overview-cards";
 import { getIrrigationTypeLabel } from "../constants/irrigation-types";
 
 export function FarmDetail({ id }: { id: string }) {
-  const { farms, irrigationSchedules, deleteFarm, busy } = useFarm();
+  const {
+    farms,
+    irrigationSchedules,
+    deleteFarm,
+    canEditFarm,
+    canDeleteFarm,
+    busy,
+  } = useFarm();
   const { format } = useSettings();
   const t = useTranslation();
   const router = useRouter();
@@ -33,6 +40,8 @@ export function FarmDetail({ id }: { id: string }) {
       </main>
     );
   const garden = farm.type === "garden";
+  const editable = canEditFarm(id);
+  const deletable = canDeleteFarm(id);
   return (
     <main className="app-page">
       <PageHeader
@@ -53,10 +62,12 @@ export function FarmDetail({ id }: { id: string }) {
           </>
         }
         action={
-          <Link className="app-secondary-link" href={`/farms/${id}/edit`}>
-            <Pencil size={16} />
-            {t("Edit")}
-          </Link>
+          editable ? (
+            <Link className="app-secondary-link" href={`/farms/${id}/edit`}>
+              <Pencil size={16} />
+              {t("Edit")}
+            </Link>
+          ) : undefined
         }
       />
       <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -128,6 +139,7 @@ export function FarmDetail({ id }: { id: string }) {
           </ul>
         )}
       </Disclosure>
+      {deletable && (
       <Dialog.Root open={deleting} onOpenChange={setDeleting}>
         <Dialog.Trigger
           render={
@@ -169,6 +181,7 @@ export function FarmDetail({ id }: { id: string }) {
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
+      )}
     </main>
   );
 }

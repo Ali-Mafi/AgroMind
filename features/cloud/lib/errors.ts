@@ -17,5 +17,11 @@ export function cloudError(error: unknown) {
     return "Complete your profile to continue.";
   if (message.includes("FARM_ID_CONFLICT"))
     return "This farm ID already exists with different data. Reload before trying again.";
+  if (message.includes("FARM_WRITE_FORBIDDEN"))
+    return "Your role does not allow this change.";
+  if (message.includes("OWNER_REQUIRED"))
+    return "Only the farm owner can make this change.";
+  if (message.includes("TEAM_MEMBER_LIMIT_REACHED"))
+    return "Your team member limit has been reached.";
   return "The change could not be saved. Check your connection and try again.";
 }

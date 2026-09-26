@@ -38,6 +38,7 @@ function harness({
     email: signup.email,
     username: signup.username,
     watchToken: "watch-token",
+    next: "/dashboard",
   },
   pendingVerified = false,
   assurance = { currentLevel: "aal1", nextLevel: "aal1" },
@@ -157,7 +158,12 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
     null,
   ])
     assert.equal(safeNextPath(next), "/dashboard");
-  for (const next of ["/farms/old_1/edit", "/account/profile", "/irrigation"])
+  for (const next of [
+    "/farms/old_1/edit",
+    "/account/profile",
+    "/irrigation",
+    "/invite/AbCd_123-xyz",
+  ])
     assert.equal(safeNextPath(next), next);
   for (const next of [
     "/dashboard",
@@ -166,6 +172,7 @@ test("redirect allowlist rejects external, encoded, scheme-relative and path tra
     "/account",
     "/settings",
     "/onboarding",
+    "/invite/token",
   ])
     assert.equal(isPrivatePath(next), true);
   assert.equal(isPrivatePath("/dashboard-public"), false);
@@ -242,6 +249,34 @@ test("signup validates username, email and password without returning password v
   });
 });
 
+test("signup preserves a safe invitation return path through verification", async () => {
+  const h = harness();
+  await assert.rejects(
+    h.actions.signUpAction(
+      {},
+      form({ ...signup, next: "/invite/AbCd_123-xyz" }),
+    ),
+    /REDIRECT:\/verify-email\?status=pending/,
+  );
+  assert.equal(
+    h.calls.find((call) => call.name === "rememberPending").args[0].next,
+    "/invite/AbCd_123-xyz",
+  );
+
+  const unsafe = harness();
+  await assert.rejects(
+    unsafe.actions.signUpAction(
+      {},
+      form({ ...signup, next: "https://evil.test" }),
+    ),
+    /REDIRECT:\/verify-email\?status=pending/,
+  );
+  assert.equal(
+    unsafe.calls.find((call) => call.name === "rememberPending").args[0].next,
+    "/dashboard",
+  );
+});
+
 test("signup stores pending identity and rejects duplicate accounts explicitly", async () => {
   const h = harness();
   await assert.rejects(
@@ -261,6 +296,7 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
       email: signup.email,
       username: signup.username,
       watchToken: "watch-token",
+      next: "/dashboard",
     },
   );
 
@@ -313,6 +349,7 @@ test("signup fails closed if email confirmation was accidentally disabled", asyn
 test("login by email resumes onboarding and sanitizes the requested destination", async () => {
   for (const [completed, next, expected] of [
     [false, "/farms", "/onboarding"],
+    [false, "/invite/AbCd_123-xyz", "/invite/AbCd_123-xyz"],
     [true, "/farms", "/farms"],
     [true, "//evil.test", "/dashboard"],
   ]) {
@@ -520,7 +557,15 @@ test("unconfirmed login provides a path to request verification without signup c
 });
 
 test("verification without cookies renders resend, while signup pending keeps the named inbox", async () => {
-  for (const pending of [null, { email: signup.email, username: signup.username, watchToken: "watch" }]) {
+  for (const pending of [
+    null,
+    {
+      email: signup.email,
+      username: signup.username,
+      watchToken: "watch",
+      next: "/invite/AbCd_123-xyz",
+    },
+  ]) {
     const ui = localizedRenderer({ language: "en" });
     const { EmailEntry } = ui.load("features/authentication/components/email-entry.tsx", {
       "../services/session": { currentUser: async () => null },

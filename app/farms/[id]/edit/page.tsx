@@ -119,6 +119,7 @@ export default function EditFarmPage() {
   const {
     farms,
     updateFarm,
+    canEditFarm,
   } = useFarm();
 
   const farm = farms.find(
@@ -194,6 +195,22 @@ export default function EditFarmPage() {
           <h1 className="text-2xl font-bold"><T text="Farm not found" /></h1>
 
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground"><T text="The selected farm or garden does not exist." /></p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!canEditFarm(farm.id)) {
+    return (
+      <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <BackButton />
+        <section className="mt-8 rounded-2xl border bg-card p-6 text-center shadow-sm sm:p-10">
+          <h1 className="text-2xl font-bold">
+            <T text="View only access" />
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+            <T text="Your role does not allow editing this farm or garden." />
+          </p>
         </section>
       </main>
     );

@@ -19,7 +19,13 @@ import {
 } from "../services/actions";
 import type { AuthFormState } from "../lib/validation";
 
-export function VerificationPending({ email }: { email: string }) {
+export function VerificationPending({
+  email,
+  next = "/dashboard",
+}: {
+  email: string;
+  next?: string;
+}) {
   const t = useTranslation();
   const router = useRouter();
   const [state, action, pending] = useActionState<AuthFormState, FormData>(
@@ -39,7 +45,9 @@ export function VerificationPending({ email }: { email: string }) {
     try {
       const result = await pendingVerificationStatusAction();
       if (result.verified) {
-        router.replace("/sign-in?status=email-verified");
+        const params = new URLSearchParams({ status: "email-verified" });
+        if (next !== "/dashboard") params.set("next", next);
+        router.replace(`/sign-in?${params.toString()}`);
         router.refresh();
       }
     } finally {

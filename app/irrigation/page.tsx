@@ -76,6 +76,7 @@ useEffect(() => {
     irrigationSchedules,
     setIrrigationSchedule,
     deleteIrrigationSchedule,
+    canManageIrrigation,
     busy,
   } = useFarm();
 
@@ -110,6 +111,8 @@ useEffect(() => {
   if (!selectedFarm) {
     return null;
   }
+
+  const canManageSchedule = canManageIrrigation(selectedFarm.id);
 
   const schedule =
     irrigationSchedules[selectedFarm.id];
@@ -148,16 +151,20 @@ const irrigationOverview:
       {irrigationOverview ? (
         <IrrigationOverview
           irrigation={irrigationOverview}
-          onReschedule={() => {
-            document
-              .getElementById(
-                `irrigation-schedule-${selectedFarm.id}`,
-              )
-              ?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-          }}
+          onReschedule={
+            canManageSchedule
+              ? () => {
+                  document
+                    .getElementById(
+                      `irrigation-schedule-${selectedFarm.id}`,
+                    )
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                }
+              : undefined
+          }
         />
       ) : (
         <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
@@ -172,20 +179,44 @@ const irrigationOverview:
         </section>
       )}
 
-      <IrrigationSchedule
-        key={selectedFarm.id}
-        farmId={selectedFarm.id}
-        farmName={selectedFarm.name}
-        schedule={schedule}
-        onSave={(newSchedule) => {
-          return setIrrigationSchedule(
-            selectedFarm.id,
-            newSchedule,
-          );
-        }}
-      />
+      {canManageSchedule ? (
+        <>
+          <IrrigationSchedule
+            key={selectedFarm.id}
+            farmId={selectedFarm.id}
+            farmName={selectedFarm.name}
+            schedule={schedule}
+            onSave={(newSchedule) => {
+              return setIrrigationSchedule(
+                selectedFarm.id,
+                newSchedule,
+              );
+            }}
+          />
 
-      {schedule && <button type="button" disabled={busy} onClick={() => void deleteIrrigationSchedule(selectedFarm.id)} className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive">{t("Remove schedule")}</button>}
+          {schedule && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void deleteIrrigationSchedule(selectedFarm.id)
+              }
+              className="min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold text-destructive"
+            >
+              {t("Remove schedule")}
+            </button>
+          )}
+        </>
+      ) : (
+        <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            <T text="View only access" />
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <T text="Your role allows you to view irrigation details but not change the schedule." />
+          </p>
+        </section>
+      )}
       <Disclosure className="app-card p-5" title={t("Controls & sensors")}>
         <div className="mt-5 space-y-5">
           <section aria-label={t("Irrigation control")}>

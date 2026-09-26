@@ -1,5 +1,5 @@
 const PRIVATE_PATH =
-  /^\/(dashboard|assistant|farms|irrigation|account|settings|weather|onboarding)(\/|$)/;
+  /^\/(dashboard|assistant|farms|irrigation|account|settings|weather|onboarding|invite)(\/|$)/;
 export function isPrivatePath(path: string) {
   return PRIVATE_PATH.test(path);
 }
