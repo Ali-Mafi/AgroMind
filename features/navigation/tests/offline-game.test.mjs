@@ -26,14 +26,20 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /state === "gameover"/);
   assert.match(offline, /Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\)/);
   assert.match(offline, /document\.addEventListener\(\s*"pointerdown"/);
-  assert.match(offline, /\/offline\/agro-runner\/farmer-dino-sheet\.png/);
+  assert.match(offline, /\/offline\/agro-runner\/farmer-dino-sheet-v2\.png/);
   assert.match(offline, /imageSmoothingEnabled = false/);
   assert.match(offline, /drawPixelDinoFallback/);
   assert.match(offline, /naturalWidth >= DINO_FRAME_SIZE \* 4/);
-  assert.match(offline, /Always paint the built-in Farmer Dino first/);
-  const fallbackCall = offline.indexOf("drawPixelDinoFallback();", offline.indexOf("function drawDino()"));
-  const spriteGuard = offline.indexOf("if (!dinoSpriteReady) return;", offline.indexOf("function drawDino()"));
-  assert.ok(fallbackCall >= 0 && spriteGuard > fallbackCall, "fallback must render before optional sprite guard");
+  assert.match(offline, /DINO_SPRITE_URL = "\/offline\/agro-runner\/farmer-dino-sheet-v2\.png"/);
+  assert.match(offline, /if \(dinoSprite\.complete\) refreshDinoSpriteState\(\)/);
+  const loadListener = offline.indexOf('dinoSprite.addEventListener("load"');
+  const srcAssignment = offline.indexOf("dinoSprite.src = DINO_SPRITE_URL");
+  assert.ok(loadListener >= 0 && srcAssignment > loadListener, "load handler must be attached before src");
+  const drawDinoStart = offline.indexOf("function drawDino()");
+  const fallbackGuard = offline.indexOf("if (!dinoSpriteReady) {", drawDinoStart);
+  const fallbackCall = offline.indexOf("drawPixelDinoFallback();", drawDinoStart);
+  const spriteDraw = offline.indexOf("ctx.drawImage(", drawDinoStart);
+  assert.ok(fallbackGuard >= 0 && fallbackCall > fallbackGuard && spriteDraw > fallbackCall, "sprite is primary after readiness; Canvas Dino is failure fallback only");
   assert.match(offline, /pixelCloud/);
   assert.match(offline, /steppedMountain/);
   assert.match(offline, /Wooden fence|wooden fence/i);
@@ -64,8 +70,8 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v9/);
-  assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"];'));
+  assert.match(sw, /agromind-public-v10/);
+  assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v2.png"];'));
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);
 
