@@ -58,9 +58,9 @@ export const metadata: Metadata = {
   title: "AgroMind",
   description: "Smart farm management powered by AgroMind",
   manifest: "/manifest.webmanifest",
-  // Standard light workspace/auth pages use native iOS status-bar chrome.
-  // Immersive routes override this locally.
-  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "default" },
+  // Keep the standalone PWA edge-to-edge on iOS. Route-level surfaces own the
+  // pixels behind the translucent status bar; they must not fall back to white.
+  appleWebApp: { capable: true, title: "AgroMind", statusBarStyle: "black-translucent" },
   icons: {
     icon: [
       {
