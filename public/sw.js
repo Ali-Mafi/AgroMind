@@ -1,4 +1,4 @@
-const CACHE = "agromind-public-v13";
+const CACHE = "agromind-public-v14";
 const LOGO = "/logo/agromind-mark-132-v1.webp";
 const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v3.png"];
 self.addEventListener("install", (event) => {
@@ -25,18 +25,15 @@ self.addEventListener("fetch", (event) => {
   }
   const immutable = url.pathname.startsWith("/_next/static/") || url.pathname === LOGO;
   const offlineAsset = url.pathname.startsWith("/offline/agro-runner/");
-  const publicAsset = immutable || offlineAsset || /^\/(icons|weather\/backgrounds)\//.test(url.pathname);
+  const publicAsset = immutable || offlineAsset || /^\\/(icons|weather\\/backgrounds)\\//.test(url.pathname);
   if (!publicAsset) return;
   event.respondWith((async () => {
     let cache;
     try {
       cache = await caches.open(CACHE);
     } catch {
-      // Safari storage restrictions/quota must never prevent online assets.
       return fetch(event.request);
     }
-    // Only content-addressed Next assets and the versioned public logo may be
-    // cache-first. HTML, RSC, APIs and private data never enter this cache.
     if (immutable || offlineAsset) {
       const hit = await cache.match(event.request).catch(() => undefined);
       if (hit) return hit;
@@ -45,7 +42,7 @@ self.addEventListener("fetch", (event) => {
       const response = await fetch(event.request);
       if (response.ok && !response.redirected &&
           !/no-store|private/i.test(response.headers.get("Cache-Control") || "") &&
-          !/text\/html|text\/x-component/i.test(response.headers.get("Content-Type") || "")) {
+          !/text\\/html|text\\/x-component/i.test(response.headers.get("Content-Type") || "")) {
         const copy = response.clone();
         event.waitUntil(cache.put(event.request, copy).catch(() => {}));
       }
