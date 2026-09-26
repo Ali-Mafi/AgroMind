@@ -55,7 +55,7 @@ function worker({ response, brokenStorage = false } = {}) {
 test("PWA install does not redownload the 1.1 MB logo and activation drops stale public caches", async () => {
   const sw = worker();
   await sw.lifecycle("install");
-  assert.deepEqual(sw.installed, ["/offline.html"]);
+  assert.deepEqual(sw.installed, ["/offline.html", "/offline/agro-runner/farmer-dino.png"]);
   await sw.lifecycle("activate");
   assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5"]);
   assert.equal(sw.state.claimed, true);
