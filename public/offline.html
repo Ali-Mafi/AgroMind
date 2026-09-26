@@ -288,7 +288,13 @@
       dinoSprite.decoding = "sync";
       dinoSprite.src = "/offline/agro-runner/farmer-dino-sheet.png";
       dinoSprite.addEventListener("load", () => {
-        dinoSpriteReady = true;
+        dinoSpriteReady =
+          dinoSprite.naturalWidth >= DINO_FRAME_SIZE * 4 &&
+          dinoSprite.naturalHeight >= DINO_FRAME_SIZE;
+        draw();
+      });
+      dinoSprite.addEventListener("error", () => {
+        dinoSpriteReady = false;
         draw();
       });
 
@@ -474,12 +480,82 @@
         return 0;
       }
 
-      function drawDino() {
-        if (!dinoSpriteReady) return;
+      function drawPixelDinoFallback() {
+        const x = Math.round(player.x - 10);
+        const y = Math.round(player.y + 4);
+        const running = state === "running" && player.grounded;
+        const step = running ? Math.floor(runPhase / DINO_RUN_FRAME_STEP) % 2 : 0;
+        const dead = state === "gameover";
 
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+
+        // Tail and body: a chunky green farm dino that remains readable at phone size.
+        ctx.fillStyle = "#2f7d43";
+        ctx.fillRect(x - 14, y + 27, 18, 12);
+        ctx.fillRect(x - 20, y + 31, 10, 7);
+        ctx.fillStyle = "#49a85b";
+        ctx.fillRect(x, y + 17, 34, 30);
+        ctx.fillRect(x + 24, y + 4, 27, 29);
+        ctx.fillRect(x + 43, y + 10, 12, 17);
+        ctx.fillStyle = "#77c768";
+        ctx.fillRect(x + 6, y + 22, 20, 8);
+        ctx.fillRect(x + 29, y + 9, 16, 7);
+
+        // Farmer straw hat.
+        ctx.fillStyle = "#e2ad42";
+        ctx.fillRect(x + 21, y - 2, 31, 7);
+        ctx.fillStyle = "#f0c35b";
+        ctx.fillRect(x + 27, y - 10, 20, 9);
+        ctx.fillStyle = "#9b6a31";
+        ctx.fillRect(x + 27, y - 2, 20, 3);
+
+        // Face / eye. Game-over uses a tiny X eye.
+        ctx.fillStyle = "#15351f";
+        if (dead) {
+          ctx.fillRect(x + 39, y + 14, 3, 3);
+          ctx.fillRect(x + 43, y + 18, 3, 3);
+          ctx.fillRect(x + 43, y + 14, 3, 3);
+          ctx.fillRect(x + 39, y + 18, 3, 3);
+        } else {
+          ctx.fillRect(x + 43, y + 14, 5, 5);
+        }
+        ctx.fillStyle = "#dff2d7";
+        ctx.fillRect(x + 34, y + 27, 17, 4);
+
+        // Short farmer neckerchief.
+        ctx.fillStyle = "#d85a42";
+        ctx.fillRect(x + 22, y + 17, 8, 6);
+        ctx.fillRect(x + 18, y + 21, 7, 4);
+
+        // Pixel legs animate in opposite phases while running.
+        ctx.fillStyle = "#286c3b";
+        if (!player.grounded) {
+          ctx.fillRect(x + 7, y + 43, 10, 11);
+          ctx.fillRect(x + 27, y + 43, 10, 11);
+        } else if (step === 0) {
+          ctx.fillRect(x + 7, y + 43, 10, 17);
+          ctx.fillRect(x + 27, y + 43, 10, 10);
+          ctx.fillRect(x + 31, y + 51, 13, 8);
+        } else {
+          ctx.fillRect(x + 7, y + 43, 10, 10);
+          ctx.fillRect(x + 2, y + 51, 13, 8);
+          ctx.fillRect(x + 27, y + 43, 10, 17);
+        }
+        ctx.restore();
+      }
+
+      function drawDino() {
         const frameIndex = dinoFrameIndex();
         const bob =
           player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
+
+        // Generated/changed assets must never make the game character disappear.
+        // Only use the sheet when its expected four 84px frames are actually present.
+        if (!dinoSpriteReady) {
+          drawPixelDinoFallback();
+          return;
+        }
 
         ctx.save();
         ctx.imageSmoothingEnabled = false;
