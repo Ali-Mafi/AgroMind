@@ -23,6 +23,8 @@ export function teamError(error: unknown) {
     return "Sign in with the email address that received this invitation.";
   if (message.includes("INVITATION_EXPIRED"))
     return "This invitation has expired. Ask the farm owner for a new invite.";
+  if (message.includes("INVITATION_RESEND_TOO_SOON"))
+    return "Wait a moment before resending this invitation.";
   if (
     message.includes("INVITATION_INVALID") ||
     message.includes("INVITATION_NOT_FOUND")
