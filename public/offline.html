@@ -283,20 +283,30 @@
 
       const DINO_FRAME_SIZE = 84;
       const DINO_RUN_FRAME_STEP = 2.2;
+      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v2.png";
       const dinoSprite = new Image();
       let dinoSpriteReady = false;
-      dinoSprite.decoding = "sync";
-      dinoSprite.src = "/offline/agro-runner/farmer-dino-sheet.png";
-      dinoSprite.addEventListener("load", () => {
+
+      function refreshDinoSpriteState() {
         dinoSpriteReady =
           dinoSprite.naturalWidth >= DINO_FRAME_SIZE * 4 &&
           dinoSprite.naturalHeight >= DINO_FRAME_SIZE;
-        draw();
-      });
+        requestAnimationFrame(() => draw());
+      }
+
+      // Attach handlers before assigning src so a very fast iOS/CacheStorage hit
+      // cannot complete before the loader is listening.
+      dinoSprite.addEventListener("load", refreshDinoSpriteState, { once: true });
       dinoSprite.addEventListener("error", () => {
         dinoSpriteReady = false;
-        draw();
-      });
+        requestAnimationFrame(() => draw());
+      }, { once: true });
+      dinoSprite.decoding = "sync";
+      dinoSprite.src = DINO_SPRITE_URL;
+
+      // Safari can expose an already-complete cached image without another useful
+      // state transition. Validate dimensions immediately in that case too.
+      if (dinoSprite.complete) refreshDinoSpriteState();
 
       const BEST_KEY = "agromind_agro_runner_best_v1";
       let best = 0;
@@ -546,13 +556,12 @@
       }
 
       function drawDino() {
-        // Always paint the built-in Farmer Dino first. The game must never depend
-        // on an external image to have a visible player on iOS/offline.
-        drawPixelDinoFallback();
-
-        // The sprite sheet is optional visual enhancement only. A transparent or
-        // malformed sheet can no longer erase the guaranteed Canvas character.
-        if (!dinoSpriteReady) return;
+        // The versioned sprite is the primary character. Keep the Canvas Dino only
+        // as a true failure fallback so it never shows through transparent pixels.
+        if (!dinoSpriteReady) {
+          drawPixelDinoFallback();
+          return;
+        }
 
         const frameIndex = dinoFrameIndex();
         const bob =
