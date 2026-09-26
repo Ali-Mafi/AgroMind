@@ -15,6 +15,15 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /pointerdown/);
   assert.match(offline, /ArrowUp/);
   assert.match(offline, /Space/);
+  assert.match(offline, /Tap to jump\./);
+  assert.doesNotMatch(offline, /id="jumpButton"/);
+  assert.match(offline, /jumpBufferUntil/);
+  assert.match(offline, /coyoteUntil/);
+  assert.match(offline, /touch-action:none/);
+  assert.match(offline, /\{ passive: false \}/);
+  assert.match(offline, /#2658a6/);
+  assert.match(offline, /#e51f2a/);
+  assert.match(offline, /#e2ad53/);
 
   // The offline game must not depend on scripts, stylesheets, fonts or images
   // that would need another network request after the fallback document loads.
@@ -42,7 +51,7 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v5/);
+  assert.match(sw, /agromind-public-v6/);
   assert.match(sw, /const SHELL = \["\/offline\.html"\]/);
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);
