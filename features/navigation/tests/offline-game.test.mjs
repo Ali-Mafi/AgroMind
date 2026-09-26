@@ -26,7 +26,7 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /state === "gameover"/);
   assert.match(offline, /Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\)/);
   assert.match(offline, /document\.addEventListener\(\s*"pointerdown"/);
-  assert.match(offline, /\/offline\/agro-runner\/farmer-dino\.png/);
+  assert.match(offline, /\/offline\/agro-runner\/farmer-dino-sheet\.png/);
   assert.match(offline, /imageSmoothingEnabled = false/);
 
   // The offline game must not depend on external scripts, stylesheets or fonts.
