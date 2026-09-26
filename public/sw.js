@@ -25,7 +25,7 @@ self.addEventListener("fetch", (event) => {
   }
   const immutable = url.pathname.startsWith("/_next/static/") || url.pathname === LOGO;
   const offlineAsset = url.pathname.startsWith("/offline/agro-runner/");
-  const publicAsset = immutable || offlineAsset || /^\\/(icons|weather\\/backgrounds)\\//.test(url.pathname);
+  const publicAsset = immutable || offlineAsset || /^\/(icons|weather\/backgrounds)\//.test(url.pathname);
   if (!publicAsset) return;
   event.respondWith((async () => {
     let cache;
@@ -42,7 +42,7 @@ self.addEventListener("fetch", (event) => {
       const response = await fetch(event.request);
       if (response.ok && !response.redirected &&
           !/no-store|private/i.test(response.headers.get("Cache-Control") || "") &&
-          !/text\\/html|text\\/x-component/i.test(response.headers.get("Content-Type") || "")) {
+          !/text\/html|text\/x-component/i.test(response.headers.get("Content-Type") || "")) {
         const copy = response.clone();
         event.waitUntil(cache.put(event.request, copy).catch(() => {}));
       }
