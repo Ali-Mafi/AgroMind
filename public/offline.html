@@ -546,16 +546,17 @@
       }
 
       function drawDino() {
+        // Always paint the built-in Farmer Dino first. The game must never depend
+        // on an external image to have a visible player on iOS/offline.
+        drawPixelDinoFallback();
+
+        // The sprite sheet is optional visual enhancement only. A transparent or
+        // malformed sheet can no longer erase the guaranteed Canvas character.
+        if (!dinoSpriteReady) return;
+
         const frameIndex = dinoFrameIndex();
         const bob =
           player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
-
-        // Generated/changed assets must never make the game character disappear.
-        // Only use the sheet when its expected four 84px frames are actually present.
-        if (!dinoSpriteReady) {
-          drawPixelDinoFallback();
-          return;
-        }
 
         ctx.save();
         ctx.imageSmoothingEnabled = false;
