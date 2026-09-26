@@ -1,4 +1,4 @@
-const CACHE = "agromind-public-v4";
+const CACHE = "agromind-public-v5";
 const LOGO = "/logo/agromind-mark-132-v1.webp";
 const SHELL = ["/offline.html"];
 self.addEventListener("install", (event) => {
