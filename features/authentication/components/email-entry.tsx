@@ -76,8 +76,8 @@ export async function EmailEntry({
               <T text={status === "expired" ? "This link has expired or was already used. Request a new email." : "This link is invalid. Request a new email."} />
             </p>
           )}
-          <VerificationPending email={pending.email} />
-          <SignInLink />
+          <VerificationPending email={pending.email} next={pending.next} />
+          <SignInLink next={pending.next} />
         </AuthShell>
       );
 
@@ -97,9 +97,13 @@ export async function EmailEntry({
   );
 }
 
-function SignInLink() {
+function SignInLink({ next }: { next?: string } = {}) {
+  const href =
+    next && next !== "/dashboard"
+      ? `/sign-in?next=${encodeURIComponent(next)}`
+      : "/sign-in";
   return (
-    <Link className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary" href="/sign-in">
+    <Link className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary" href={href}>
       <T text="Sign in" />
     </Link>
   );
