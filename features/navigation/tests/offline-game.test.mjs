@@ -31,7 +31,10 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /drawPixelDinoFallback/);
   assert.match(offline, /if \(!dinoSpriteReady\) \{/);
   assert.match(offline, /naturalWidth >= DINO_FRAME_SIZE \* 4/);
-  assert.match(offline, /Generated\/changed assets must never make the game character disappear/);
+  assert.match(offline, /Always paint the built-in Farmer Dino first/);
+  const fallbackCall = offline.indexOf("drawPixelDinoFallback();", offline.indexOf("function drawDino()"));
+  const spriteGuard = offline.indexOf("if (!dinoSpriteReady) return;", offline.indexOf("function drawDino()"));
+  assert.ok(fallbackCall >= 0 && spriteGuard > fallbackCall, "fallback must render before optional sprite guard");
   assert.match(offline, /pixelCloud/);
   assert.match(offline, /steppedMountain/);
   assert.match(offline, /Wooden fence|wooden fence/i);
