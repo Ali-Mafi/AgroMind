@@ -25,7 +25,7 @@ function worker({ response, brokenStorage = false } = {}) {
     }, URL, Response,
     caches: {
       open: async () => { if (brokenStorage) throw new Error("Storage unavailable"); return cache; },
-      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "another-app"],
+      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "agromind-public-v9", "agromind-public-v10", "agromind-public-v11", "another-app"],
       delete: async name => { deleted.push(name); },
     },
     fetch: async request => {
@@ -55,9 +55,9 @@ function worker({ response, brokenStorage = false } = {}) {
 test("PWA install does not redownload the 1.1 MB logo and activation drops stale public caches", async () => {
   const sw = worker();
   await sw.lifecycle("install");
-  assert.deepEqual(sw.installed, ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"]);
+  assert.deepEqual(sw.installed, ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v3.png"]);
   await sw.lifecycle("activate");
-  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8"]);
+  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "agromind-public-v9", "agromind-public-v10", "agromind-public-v11"]);
   assert.equal(sw.state.claimed, true);
 });
 
@@ -102,14 +102,14 @@ test("authenticated navigations always use the network; offline only returns pub
   assert.equal(sw.entries.size, 1);
 });
 
-test("precache serves Agro Runner sprite while fully offline", async () => {
+test("verified Farmer Dino sprite is served from precache while fully offline", async () => {
   const sw = worker({ response: () => { throw new Error("Offline"); } });
   sw.entries.set(
-    "https://agromind.test/offline/agro-runner/farmer-dino-sheet.png",
-    new Response("cached-sprite", { headers: { "Content-Type": "image/png" } }),
+    "https://agromind.test/offline/agro-runner/farmer-dino-sheet-v3.png",
+    new Response("verified-dino", { headers: { "Content-Type": "image/png" } }),
   );
-  const response = await sw.request("/offline/agro-runner/farmer-dino-sheet.png");
-  assert.equal(await response.text(), "cached-sprite");
+  const response = await sw.request("/offline/agro-runner/farmer-dino-sheet-v3.png");
+  assert.equal(await response.text(), "verified-dino");
   assert.equal(sw.fetched.length, 0);
 });
 
