@@ -222,4 +222,7 @@ export const WORKSPACE_PERSIAN: Record<string, string> = {
   "Accept invitation": "پذیرفتن دعوت",
   "Invitation unavailable": "دعوت‌نامه در دسترس نیست",
   "Go to AgroMind": "رفتن به اگرو مایند",
+  "Resend invitation": "ارسال دوباره دعوت‌نامه",
+  "Invitation resent.": "دعوت‌نامه دوباره ارسال شد.",
+  "Wait a moment before resending this invitation.": "کمی صبر کنید و سپس دعوت‌نامه را دوباره ارسال کنید.",
 };
