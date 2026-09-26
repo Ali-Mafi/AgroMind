@@ -281,32 +281,7 @@
       const bestNode = document.getElementById("best");
       const announcement = document.getElementById("gameAnnouncement");
 
-      const DINO_FRAME_SIZE = 84;
       const DINO_RUN_FRAME_STEP = 2.2;
-      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v2.png";
-      const dinoSprite = new Image();
-      let dinoSpriteReady = false;
-
-      function refreshDinoSpriteState() {
-        dinoSpriteReady =
-          dinoSprite.naturalWidth >= DINO_FRAME_SIZE * 4 &&
-          dinoSprite.naturalHeight >= DINO_FRAME_SIZE;
-        requestAnimationFrame(() => draw());
-      }
-
-      // Attach handlers before assigning src so a very fast iOS/CacheStorage hit
-      // cannot complete before the loader is listening.
-      dinoSprite.addEventListener("load", refreshDinoSpriteState, { once: true });
-      dinoSprite.addEventListener("error", () => {
-        dinoSpriteReady = false;
-        requestAnimationFrame(() => draw());
-      }, { once: true });
-      dinoSprite.decoding = "sync";
-      dinoSprite.src = DINO_SPRITE_URL;
-
-      // Safari can expose an already-complete cached image without another useful
-      // state transition. Validate dimensions immediately in that case too.
-      if (dinoSprite.complete) refreshDinoSpriteState();
 
       const BEST_KEY = "agromind_agro_runner_best_v1";
       let best = 0;
