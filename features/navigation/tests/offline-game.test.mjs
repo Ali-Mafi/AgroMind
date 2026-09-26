@@ -64,7 +64,7 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v8/);
+  assert.match(sw, /agromind-public-v9/);
   assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"];'));
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);
