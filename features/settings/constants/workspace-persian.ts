@@ -202,6 +202,7 @@ export const WORKSPACE_PERSIAN: Record<string, string> = {
   "Complete two-step verification before managing team access.": "پیش از مدیریت دسترسی تیم، تأیید دومرحله‌ای را کامل کنید.",
   "The invitation email could not be sent. Please try again.": "ایمیل دعوت‌نامه ارسال نشد. دوباره تلاش کنید.",
   "Team access could not be updated. Please try again.": "دسترسی تیم به‌روزرسانی نشد. دوباره تلاش کنید.",
+  "The team member could not be removed.": "حذف عضو تیم انجام نشد.",
   "You're invited to collaborate in AgroMind": "برای همکاری در اگرو مایند دعوت شده‌اید",
   "A farm has been shared with you": "یک مزرعه با شما به اشتراک گذاشته شده",
   "You've been invited to help manage {farm} with the {role} role.": "برای همکاری در مدیریت {farm} با نقش {role} دعوت شده‌اید.",
