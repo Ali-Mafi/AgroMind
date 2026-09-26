@@ -149,6 +149,7 @@ export async function signUpAction(
       email: parsed.data.email,
       username: parsed.data.username,
       watchToken: watch.token,
+      next: safeNextPath(form.get("next")),
     });
   } catch {
     return unavailable;
