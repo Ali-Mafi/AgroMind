@@ -281,7 +281,12 @@
       const bestNode = document.getElementById("best");
       const announcement = document.getElementById("gameAnnouncement");
 
+      const DINO_FRAME_SIZE = 84;
+      const DINO_FRAME_COUNT = 4;
       const DINO_RUN_FRAME_STEP = 2.2;
+      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v3.png";
+      const dinoSprite = new Image();
+      dinoSprite.decoding = "sync";
 
       const BEST_KEY = "agromind_agro_runner_best_v1";
       let best = 0;
@@ -314,6 +319,19 @@
         vy: 0,
         grounded: true
       };
+
+      function dinoSpriteUsable() {
+        return dinoSprite.complete &&
+          dinoSprite.naturalWidth === DINO_FRAME_SIZE * DINO_FRAME_COUNT &&
+          dinoSprite.naturalHeight === DINO_FRAME_SIZE;
+      }
+
+      // Register callbacks before src. This is safe for Safari, CacheStorage and
+      // normal network loads; readiness is also checked from native dimensions
+      // every time the character is drawn, so a missed event cannot break it.
+      dinoSprite.addEventListener("load", () => requestAnimationFrame(draw), { once: true });
+      dinoSprite.addEventListener("error", () => requestAnimationFrame(draw), { once: true });
+      dinoSprite.src = DINO_SPRITE_URL;
 
       function resize() {
         const rect = canvas.getBoundingClientRect();
@@ -461,124 +479,33 @@
       function dinoFrameIndex() {
         if (state === "gameover") return 3;
         if (state === "running" && player.grounded)
-          return 1 + (Math.floor(runPhase / DINO_RUN_FRAME_STEP) % 2);
+          return Math.floor(runPhase / DINO_RUN_FRAME_STEP) % DINO_FRAME_COUNT;
         return 0;
       }
 
-      function drawFarmerDino() {
-        const x = Math.round(player.x - 18);
-        const y = Math.round(player.y - 8);
-        const running = state === "running" && player.grounded;
-        const step = running ? Math.floor(runPhase / DINO_RUN_FRAME_STEP) % 2 : 0;
-        const dead = state === "gameover";
-        const bob = running ? Math.sin(runPhase) * 1.5 : 0;
+      function drawDino() {
+        // Only the verified Farmer Dino sheet is rendered. There is deliberately
+        // no second/fallback character underneath it, preventing hybrid frames.
+        if (!dinoSpriteUsable()) return;
+
+        const frameIndex = dinoFrameIndex();
+        const bob =
+          player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
 
         ctx.save();
-        ctx.translate(x, Math.round(y + bob));
         ctx.imageSmoothingEnabled = false;
-
-        // Tail: white dinosaur silhouette with a dark pixel outline.
-        ctx.fillStyle = "#17251c";
-        ctx.fillRect(2, 31, 22, 15);
-        ctx.fillRect(-5, 35, 12, 8);
-        ctx.fillRect(-10, 38, 8, 5);
-        ctx.fillStyle = "#f7f7ee";
-        ctx.fillRect(4, 34, 20, 9);
-        ctx.fillRect(-3, 37, 10, 4);
-
-        // White body and head.
-        ctx.fillStyle = "#17251c";
-        ctx.fillRect(18, 22, 35, 31);
-        ctx.fillRect(38, 11, 31, 27);
-        ctx.fillRect(62, 17, 10, 15);
-        ctx.fillStyle = "#fbfbf4";
-        ctx.fillRect(22, 25, 27, 24);
-        ctx.fillRect(41, 14, 25, 20);
-        ctx.fillRect(63, 20, 7, 9);
-
-        // Snout and smile.
-        ctx.fillStyle = "#17251c";
-        ctx.fillRect(66, 27, 9, 4);
-        ctx.fillRect(57, 32, 13, 3);
-
-        // Eye: surprised X on game over.
-        if (dead) {
-          ctx.fillRect(53, 19, 3, 3);
-          ctx.fillRect(57, 23, 3, 3);
-          ctx.fillRect(57, 19, 3, 3);
-          ctx.fillRect(53, 23, 3, 3);
-        } else {
-          ctx.fillRect(55, 20, 5, 6);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(56, 20, 2, 2);
-        }
-
-        // Straw hat with brown band.
-        ctx.fillStyle = "#17251c";
-        ctx.fillRect(31, 7, 38, 5);
-        ctx.fillRect(38, -2, 24, 10);
-        ctx.fillStyle = "#d89b48";
-        ctx.fillRect(33, 8, 34, 3);
-        ctx.fillRect(40, 0, 20, 7);
-        ctx.fillStyle = "#f0c56a";
-        ctx.fillRect(42, 0, 16, 3);
-        ctx.fillStyle = "#70452b";
-        ctx.fillRect(40, 5, 22, 3);
-
-        // Red neckerchief.
-        ctx.fillStyle = "#c94538";
-        ctx.fillRect(36, 30, 9, 7);
-        ctx.fillRect(32, 34, 7, 5);
-
-        // Blue farmer overalls.
-        ctx.fillStyle = "#245d91";
-        ctx.fillRect(25, 37, 25, 18);
-        ctx.fillRect(29, 32, 5, 8);
-        ctx.fillRect(43, 32, 5, 8);
-        ctx.fillStyle = "#3d7db5";
-        ctx.fillRect(30, 40, 15, 10);
-        ctx.fillStyle = "#f0c56a";
-        ctx.fillRect(31, 38, 3, 3);
-        ctx.fillRect(43, 38, 3, 3);
-
-        // Pixel legs + brown boots. Opposite poses make the run readable.
-        ctx.fillStyle = "#245d91";
-        if (!player.grounded) {
-          ctx.fillRect(26, 52, 9, 11);
-          ctx.fillRect(42, 52, 9, 11);
-          ctx.fillStyle = "#70452b";
-          ctx.fillRect(23, 61, 13, 6);
-          ctx.fillRect(41, 61, 13, 6);
-        } else if (step === 0) {
-          ctx.fillRect(26, 52, 9, 15);
-          ctx.fillRect(42, 52, 9, 9);
-          ctx.fillStyle = "#70452b";
-          ctx.fillRect(22, 65, 14, 7);
-          ctx.fillRect(43, 59, 14, 7);
-        } else {
-          ctx.fillRect(26, 52, 9, 9);
-          ctx.fillRect(42, 52, 9, 15);
-          ctx.fillStyle = "#70452b";
-          ctx.fillRect(20, 59, 14, 7);
-          ctx.fillRect(41, 65, 14, 7);
-        }
-
-        // Upright pitchfork: held beside the dinosaur, matching the concept art.
-        ctx.fillStyle = "#70452b";
-        ctx.fillRect(72, 22, 4, 39);
-        ctx.fillStyle = "#25343a";
-        ctx.fillRect(68, 13, 3, 13);
-        ctx.fillRect(74, 11, 3, 15);
-        ctx.fillRect(80, 13, 3, 13);
-        ctx.fillRect(68, 23, 15, 4);
-
+        ctx.drawImage(
+          dinoSprite,
+          frameIndex * DINO_FRAME_SIZE,
+          0,
+          DINO_FRAME_SIZE,
+          DINO_FRAME_SIZE,
+          Math.round(player.x - 19),
+          Math.round(player.y - 10 + bob),
+          DINO_FRAME_SIZE,
+          DINO_FRAME_SIZE,
+        );
         ctx.restore();
-      }
-
-      function drawDino() {
-        // One deterministic renderer on every device. No PNG sheet, decode timing,
-        // stale cache, transparency, or fallback layering can split the character.
-        drawFarmerDino();
       }
 
       function drawObstacle(obstacle, p) {
