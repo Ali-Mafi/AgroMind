@@ -10,6 +10,7 @@ import {
   Info,
   ChevronRight,
   BadgeCheck,
+  UsersRound,
 } from "lucide-react";
 import { useFarm } from "@/features/farms/context/farm-context";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -42,6 +43,12 @@ const groups = [
       "Usage",
       "Your farms and available limits",
       ChartNoAxesColumn,
+    ],
+    [
+      "/account/team",
+      "Team",
+      "Invite people and manage farm access",
+      UsersRound,
     ],
   ],
   [
