@@ -105,7 +105,7 @@ test("authenticated navigations always use the network; offline only returns pub
 test("precache serves Agro Runner sprite while fully offline", async () => {
   const sw = worker({ response: () => { throw new Error("Offline"); } });
   sw.entries.set(
-    "/offline/agro-runner/farmer-dino-sheet.png",
+    "https://agromind.test/offline/agro-runner/farmer-dino-sheet.png",
     new Response("cached-sprite", { headers: { "Content-Type": "image/png" } }),
   );
   const response = await sw.request("/offline/agro-runner/farmer-dino-sheet.png");
