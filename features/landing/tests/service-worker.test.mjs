@@ -25,7 +25,7 @@ function worker({ response, brokenStorage = false } = {}) {
     }, URL, Response,
     caches: {
       open: async () => { if (brokenStorage) throw new Error("Storage unavailable"); return cache; },
-      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "another-app"],
+      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "another-app"],
       delete: async name => { deleted.push(name); },
     },
     fetch: async request => {
@@ -57,7 +57,7 @@ test("PWA install does not redownload the 1.1 MB logo and activation drops stale
   await sw.lifecycle("install");
   assert.deepEqual(sw.installed, ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"]);
   await sw.lifecycle("activate");
-  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6"]);
+  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7"]);
   assert.equal(sw.state.claimed, true);
 });
 
@@ -100,6 +100,17 @@ test("authenticated navigations always use the network; offline only returns pub
   offline = true;
   assert.equal(await (await sw.request("/account", { mode: "navigate" })).text(), "public-offline-shell");
   assert.equal(sw.entries.size, 1);
+});
+
+test("precache serves Agro Runner sprite while fully offline", async () => {
+  const sw = worker({ response: () => { throw new Error("Offline"); } });
+  sw.entries.set(
+    "/offline/agro-runner/farmer-dino-sheet.png",
+    new Response("cached-sprite", { headers: { "Content-Type": "image/png" } }),
+  );
+  const response = await sw.request("/offline/agro-runner/farmer-dino-sheet.png");
+  assert.equal(await response.text(), "cached-sprite");
+  assert.equal(sw.fetched.length, 0);
 });
 
 test("unversioned public icons still revalidate rather than staying stale", async () => {
