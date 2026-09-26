@@ -35,4 +35,5 @@ export type AcceptedInvitation = {
   farmId: string;
   farmName: string;
   role: TeamRole;
+  destination: string;
 };
