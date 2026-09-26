@@ -18,5 +18,13 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return <WorkspaceLoadingBoundary><ProtectedLayout requireOnboarding><AppShell>{children}</AppShell></ProtectedLayout></WorkspaceLoadingBoundary>;
+  return (
+    <div data-dashboard-immersive>
+      <WorkspaceLoadingBoundary>
+        <ProtectedLayout requireOnboarding>
+          <AppShell>{children}</AppShell>
+        </ProtectedLayout>
+      </WorkspaceLoadingBoundary>
+    </div>
+  );
 }
