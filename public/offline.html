@@ -479,7 +479,7 @@
       function dinoFrameIndex() {
         if (state === "gameover") return 3;
         if (state === "running" && player.grounded)
-          return Math.floor(runPhase / DINO_RUN_FRAME_STEP) % DINO_FRAME_COUNT;
+          return 1 + (Math.floor(runPhase / DINO_RUN_FRAME_STEP) % 2);
         return 0;
       }
 
