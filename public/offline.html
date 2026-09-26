@@ -66,11 +66,11 @@
       .game{background:linear-gradient(#243c31 0 64%,#496e4d 64% 69%,#4b382a 69% 100%)}
     }
     canvas{display:block;width:100%;height:auto;aspect-ratio:5/2;max-height:360px;touch-action:none}
-    .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(to bottom,transparent 0 38%,color-mix(in srgb,var(--card) 84%,transparent) 78% 100%);transition:opacity .18s ease}
+    .overlay{position:absolute;inset:0;display:grid;place-items:start center;padding:14px;background:linear-gradient(to bottom,color-mix(in srgb,var(--card) 40%,transparent),transparent 55%);transition:opacity .18s ease}
     .overlay.hidden{opacity:0;pointer-events:none}
-    .panel{text-align:center;max-width:390px}
-    .panel h3{margin:0;font-size:24px;letter-spacing:-.025em}
-    .panel p{margin:8px 0 15px;color:var(--muted);font-size:14px;line-height:1.6}
+    .panel{text-align:center;max-width:390px;padding:12px 16px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:18px;background:color-mix(in srgb,var(--card) 86%,transparent);box-shadow:0 10px 30px rgba(0,0,0,.08);backdrop-filter:blur(8px)}
+    .panel h3{margin:0;font-size:22px;letter-spacing:-.025em}
+    .panel p{margin:6px 0 10px;color:var(--muted);font-size:13px;line-height:1.5}
     .game-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
     .hint{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -356,62 +356,115 @@
       function palette() {
         const dark = matchMedia("(prefers-color-scheme: dark)").matches;
         return dark ? {
-          sky:"#243c31", cloud:"#3d584b", hill:"#3d5d45", crop:"#5c7f4f",
-          soil:"#4b382a", line:"#6d523a", dino:"#75ba74", dino2:"#4f8e58",
-          hat:"#d2ae62", rake:"#c28f5b", metal:"#b7c2bc", eye:"#122018",
-          crate:"#986744", pipe:"#6f8a79", hay:"#c8a650", scare:"#9f7953"
+          sky:"#16354d", cloud:"#d7ebf4", mountainFar:"#315b67", mountainNear:"#355c47",
+          tree:"#2f6b3f", treeDark:"#214d31", field:"#557c3f", grass:"#6c9b47",
+          grassLight:"#89b958", soil:"#573823", soilDark:"#35251a", soilLight:"#785033",
+          fence:"#745039", fenceLight:"#987052", flower:"#edf7e9",
+          line:"#2c2119", crate:"#9a623c", pipe:"#6f8591", pipeLight:"#aab8c0",
+          hay:"#c99d43", hayLight:"#e1bb5c", scare:"#9a6545", hat:"#d0a151"
         } : {
-          sky:"#dcefdc", cloud:"#f7fbf6", hill:"#8fbd78", crop:"#78ad5d",
-          soil:"#8e623c", line:"#6f492f", dino:"#5eaa5e", dino2:"#3d8148",
-          hat:"#d6b25e", rake:"#a36f42", metal:"#65756b", eye:"#14321f",
-          crate:"#a86f47", pipe:"#768f82", hay:"#d2ad4f", scare:"#a87c52"
+          sky:"#43b3f3", cloud:"#f5fbff", mountainFar:"#78bfd4", mountainNear:"#4f9f88",
+          tree:"#4f9d50", treeDark:"#397d3e", field:"#8fd05d", grass:"#66b83e",
+          grassLight:"#a7e25b", soil:"#8b4e2b", soilDark:"#5f351f", soilLight:"#ad6b3c",
+          fence:"#8b5a35", fenceLight:"#b17a4d", flower:"#ffffff",
+          line:"#5f3a25", crate:"#a86738", pipe:"#6c8490", pipeLight:"#a9bdc7",
+          hay:"#d89d31", hayLight:"#f2bf47", scare:"#a65e3a", hat:"#d9a248"
         };
       }
 
+      function pixelCloud(x, y, scale, p) {
+        ctx.fillStyle = p.cloud;
+        const u = Math.max(3, Math.round(scale));
+        const blocks = [
+          [2,1,7,2],[1,2,10,2],[0,3,12,2],[3,0,4,2],[7,1,3,2]
+        ];
+        for (const [bx,by,bw,bh] of blocks)
+          ctx.fillRect(Math.round(x + bx*u), Math.round(y + by*u), bw*u, bh*u);
+      }
+
+      function steppedMountain(baseY, amplitude, color, speedFactor, spacing) {
+        const offset = (sceneryOffset * speedFactor) % spacing;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(-spacing, baseY);
+        for (let x = -spacing - offset; x <= width + spacing; x += spacing) {
+          ctx.lineTo(x, baseY);
+          ctx.lineTo(x + spacing*.28, baseY - amplitude*.55);
+          ctx.lineTo(x + spacing*.5, baseY - amplitude);
+          ctx.lineTo(x + spacing*.72, baseY - amplitude*.52);
+          ctx.lineTo(x + spacing, baseY);
+        }
+        ctx.lineTo(width + spacing, ground);
+        ctx.lineTo(-spacing, ground);
+        ctx.closePath();
+        ctx.fill();
+      }
+
       function drawBackground(p) {
+        ctx.imageSmoothingEnabled = false;
         ctx.fillStyle = p.sky;
         ctx.fillRect(0, 0, width, height);
 
-        const cloudShift = (sceneryOffset * .08) % (width + 180);
-        ctx.fillStyle = p.cloud;
-        for (const base of [80, 410, 760]) {
-          const x = ((base - cloudShift + width + 180) % (width + 180)) - 90;
-          ctx.globalAlpha = .72;
-          ctx.beginPath();
-          ctx.arc(x, height * .20, 24, 0, Math.PI * 2);
-          ctx.arc(x + 25, height * .17, 31, 0, Math.PI * 2);
-          ctx.arc(x + 55, height * .21, 22, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
+        const cloudShift = (sceneryOffset * .045) % (width + 220);
+        pixelCloud(((70 - cloudShift + width + 220) % (width + 220)) - 90, height*.08, 4, p);
+        pixelCloud(((390 - cloudShift + width + 220) % (width + 220)) - 90, height*.15, 3, p);
+        pixelCloud(((720 - cloudShift + width + 220) % (width + 220)) - 90, height*.06, 4, p);
 
-        ctx.fillStyle = p.hill;
-        ctx.beginPath();
-        ctx.moveTo(0, ground);
-        for (let x = 0; x <= width + 80; x += 80) {
-          const y = ground - 31 - Math.sin((x + sceneryOffset * .05) * .012) * 13;
-          ctx.lineTo(x, y);
-        }
-        ctx.lineTo(width, ground);
-        ctx.closePath();
-        ctx.fill();
+        steppedMountain(ground - 74, 68, p.mountainFar, .025, 190);
+        steppedMountain(ground - 45, 46, p.mountainNear, .045, 150);
 
-        ctx.fillStyle = p.crop;
-        ctx.fillRect(0, ground - 7, width, 13);
+        // Distant tree line.
+        const treeOffset = (sceneryOffset * .09) % 34;
+        for (let x = -treeOffset - 34; x < width + 40; x += 34) {
+          ctx.fillStyle = p.treeDark;
+          ctx.fillRect(Math.round(x + 12), Math.round(ground - 55), 8, 24);
+          ctx.fillStyle = p.tree;
+          ctx.fillRect(Math.round(x + 3), Math.round(ground - 67), 27, 18);
+          ctx.fillRect(Math.round(x + 8), Math.round(ground - 75), 17, 12);
+        }
+
+        // Bright crop field.
+        ctx.fillStyle = p.field;
+        ctx.fillRect(0, ground - 32, width, 32);
+        ctx.fillStyle = p.grassLight;
+        ctx.fillRect(0, ground - 12, width, 7);
+        ctx.fillStyle = p.grass;
+        ctx.fillRect(0, ground - 5, width, 11);
+
+        // Wooden fence with parallax.
+        const fenceOffset = (sceneryOffset * .22) % 76;
+        ctx.fillStyle = p.fence;
+        ctx.fillRect(0, ground - 30, width, 4);
+        ctx.fillRect(0, ground - 18, width, 4);
+        for (let x = -fenceOffset - 76; x < width + 76; x += 76) {
+          ctx.fillStyle = p.fenceLight;
+          ctx.fillRect(Math.round(x + 14), Math.round(ground - 42), 7, 30);
+          ctx.fillStyle = p.fence;
+          ctx.fillRect(Math.round(x + 16), Math.round(ground - 42), 5, 31);
+        }
+
+        // Tiny white flowers in the foreground grass.
+        const flowerOffset = (sceneryOffset * .35) % 96;
+        for (let x = -flowerOffset; x < width + 96; x += 96) {
+          ctx.fillStyle = p.flower;
+          ctx.fillRect(Math.round(x + 20), Math.round(ground - 10), 4, 4);
+          ctx.fillRect(Math.round(x + 16), Math.round(ground - 7), 12, 3);
+          ctx.fillStyle = p.hay;
+          ctx.fillRect(Math.round(x + 21), Math.round(ground - 7), 2, 2);
+        }
+
+        // Pixel soil layers.
         ctx.fillStyle = p.soil;
         ctx.fillRect(0, ground + 6, width, height - ground);
-
-        ctx.strokeStyle = p.line;
-        ctx.globalAlpha = .28;
-        ctx.lineWidth = 2;
-        const stripe = (sceneryOffset * .55) % 54;
-        for (let x = -stripe; x < width + 60; x += 54) {
-          ctx.beginPath();
-          ctx.moveTo(x, ground + 17);
-          ctx.lineTo(x - 28, height);
-          ctx.stroke();
+        ctx.fillStyle = p.soilLight;
+        ctx.fillRect(0, ground + 6, width, 5);
+        ctx.fillStyle = p.soilDark;
+        const soilOffset = (sceneryOffset * .5) % 58;
+        for (let x = -soilOffset; x < width + 60; x += 58) {
+          ctx.fillRect(Math.round(x + 8), Math.round(ground + 24), 10, 5);
+          ctx.fillRect(Math.round(x + 29), Math.round(ground + 47), 7, 4);
+          ctx.fillRect(Math.round(x + 42), Math.round(ground + 68), 13, 5);
         }
-        ctx.globalAlpha = 1;
       }
 
       function dinoFrameIndex() {
