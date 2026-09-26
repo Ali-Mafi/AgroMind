@@ -177,3 +177,137 @@ test("farm invitation email escapes farm names and never embeds raw HTML", () =>
   assert.match(rendered.html, /https:\/\/agromind\.ir\/invite\/AbCd_123-xyz/);
   assert.match(rendered.text, /<script>alert\("x"\)<\/script>/);
 });
+
+
+function collaborationActionHarness({ emailFails = false } = {}) {
+  const calls = [];
+  const invitationId = "00000000-0000-4000-8000-000000000003";
+  const client = {
+    rpc: async (name, args) => {
+      calls.push({ name: "rpc", rpc: name, args });
+      if (name === "resend_farm_invitation") {
+        return {
+          data: {
+            id: invitationId,
+            email: "viewer@example.test",
+            farm_name: "North Farm",
+            role: "viewer",
+            expires_at: "2026-10-03T00:00:00Z",
+          },
+          error: null,
+        };
+      }
+      if (name === "revoke_farm_invitation")
+        return { data: null, error: null };
+      return { data: null, error: null };
+    },
+    from: (table) => {
+      assert.equal(table, "profiles");
+      return {
+        select: () => ({
+          eq: () => ({
+            single: async () => ({
+              data: { language: "en" },
+              error: null,
+            }),
+          }),
+        }),
+      };
+    },
+  };
+
+  const actions = loadTs(
+    "features/collaboration/services/actions.ts",
+    {
+      "next/cache": {
+        revalidatePath: (...args) =>
+          calls.push({ name: "revalidatePath", args }),
+      },
+      "@/lib/supabase/server": {
+        createClient: async () => client,
+      },
+      "@/features/authentication/services/session": {
+        requireUser: async () => ({
+          id: "user-a",
+          email: "owner@example.test",
+        }),
+        authenticatedDestination: async () => "/dashboard",
+      },
+      "@/features/authentication/services/resend-auth": {
+        sendAuthEmail: async (message) => {
+          calls.push({ name: "email", message });
+          if (emailFails) throw new Error("provider failed");
+        },
+      },
+      "@/features/cloud/services/data": {
+        mutationContext: async () => {
+          throw new Error("unused");
+        },
+      },
+      "../emails/templates": {
+        renderFarmInvitationEmail: ({ href, farmName, role }) => ({
+          subject: "Farm invitation",
+          html: `<a href="${href}">${farmName}:${role}</a>`,
+          text: `${farmName}:${role}:${href}`,
+        }),
+      },
+      "./data": {
+        readTeamOverview: async () => overview,
+      },
+      "./origin": {
+        collaborationRequestOrigin: async () => "https://agromind.ir",
+      },
+    },
+  );
+
+  return { actions, calls, invitationId };
+}
+
+test("resend action rotates the pending invite and delivers a fresh Resend email", async () => {
+  const h = collaborationActionHarness();
+  const result = await h.actions.resendFarmInvitationAction(
+    { invitationId: h.invitationId },
+    "user-a",
+  );
+
+  assert.equal(result.ok, true);
+  const resend = h.calls.find(
+    (call) => call.name === "rpc" && call.rpc === "resend_farm_invitation",
+  );
+  assert.equal(resend.args.p_invitation_id, h.invitationId);
+  assert.match(resend.args.p_token_hash, /^[0-9a-f]{64}$/);
+
+  const email = h.calls.find((call) => call.name === "email").message;
+  assert.equal(email.to, "viewer@example.test");
+  assert.match(email.text, /North Farm:viewer:https:\/\/agromind\.ir\/invite\//);
+  assert.match(
+    email.idempotencyKey,
+    new RegExp(`^agromind-team-resend/${h.invitationId}/[0-9a-f]{20}$`),
+  );
+  assert.equal(
+    h.calls.some(
+      (call) => call.name === "rpc" && call.rpc === "revoke_farm_invitation",
+    ),
+    false,
+  );
+});
+
+test("resend delivery failure revokes the rotated invite instead of leaving a dead link", async () => {
+  const h = collaborationActionHarness({ emailFails: true });
+  const result = await h.actions.resendFarmInvitationAction(
+    { invitationId: h.invitationId },
+    "user-a",
+  );
+
+  assert.equal(result.ok, false);
+  assert.match(result.error, /could not be sent/i);
+  assert.equal(
+    h.calls.some(
+      (call) =>
+        call.name === "rpc" &&
+        call.rpc === "revoke_farm_invitation" &&
+        call.args.p_invitation_id === h.invitationId,
+    ),
+    true,
+  );
+});
