@@ -34,6 +34,8 @@ export const revokeInvitationSchema = z.object({
   invitationId: z.string().uuid(),
 });
 
+export const resendInvitationSchema = revokeInvitationSchema;
+
 export const teamOverviewSchema = z.object({
   activeSeats: z.number().int().nonnegative(),
   pendingSeats: z.number().int().nonnegative(),
@@ -71,4 +73,9 @@ export const createdInvitationSchema = z.object({
   id: z.string().uuid(),
   farm_name: z.string().min(1),
   expires_at: z.string(),
+});
+
+export const resentInvitationSchema = createdInvitationSchema.extend({
+  email: invitationEmailSchema,
+  role: teamRoleSchema,
 });
