@@ -1,4 +1,4 @@
-const CACHE = "agromind-public-v7";
+const CACHE = "agromind-public-v8";
 const LOGO = "/logo/agromind-mark-132-v1.webp";
 const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet.png"];
 self.addEventListener("install", (event) => {
@@ -24,7 +24,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   const immutable = url.pathname.startsWith("/_next/static/") || url.pathname === LOGO;
-  const publicAsset = immutable || /^\/(icons|weather\/backgrounds)\//.test(url.pathname);
+  const offlineAsset = url.pathname.startsWith("/offline/agro-runner/");
+  const publicAsset = immutable || offlineAsset || /^\/(icons|weather\/backgrounds)\//.test(url.pathname);
   if (!publicAsset) return;
   event.respondWith((async () => {
     let cache;
@@ -36,7 +37,7 @@ self.addEventListener("fetch", (event) => {
     }
     // Only content-addressed Next assets and the versioned public logo may be
     // cache-first. HTML, RSC, APIs and private data never enter this cache.
-    if (immutable) {
+    if (immutable || offlineAsset) {
       const hit = await cache.match(event.request).catch(() => undefined);
       if (hit) return hit;
     }
