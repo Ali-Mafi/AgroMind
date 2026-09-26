@@ -66,3 +66,9 @@ export const acceptedInvitationSchema = z.object({
   farm_name: z.string().min(1),
   role: teamRoleSchema,
 });
+
+export const createdInvitationSchema = z.object({
+  id: z.string().uuid(),
+  farm_name: z.string().min(1),
+  expires_at: z.string(),
+});
