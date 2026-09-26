@@ -255,7 +255,8 @@ begin
   from public.accounts a
   join auth.users u on u.id = a.owner_user_id
   where a.owner_user_id = auth.uid()
-  limit 1;
+  limit 1
+  for update of a;
 
   if target_account is null then raise exception 'OWNER_REQUIRED'; end if;
   if normalized_email = owner_email then raise exception 'CANNOT_INVITE_OWNER'; end if;
@@ -279,7 +280,6 @@ begin
   from auth.users u
   where lower(u.email) = normalized_email
     and u.email_confirmed_at is not null
-  order by u.created_at
   limit 1;
 
   if existing_user is not null and exists (
