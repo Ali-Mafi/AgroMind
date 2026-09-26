@@ -63,8 +63,7 @@ export function TeamManagement({
   const ownedFarms = cloud.farms.filter((farm) => farm.access.owned);
   const seatLimit = getLimit(cloud.entitlements, "team_members");
   const usedSeats = overview.activeSeats + overview.pendingSeats;
-  const canInvite =
-    ownedFarms.length > 0 && seatLimit > 0 && usedSeats < seatLimit;
+  const canInvite = ownedFarms.length > 0 && seatLimit > 0;
 
   const members = useMemo(() => {
     const grouped = new Map<
