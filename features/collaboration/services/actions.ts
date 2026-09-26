@@ -3,7 +3,10 @@
 import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireUser } from "@/features/authentication/services/session";
+import {
+  authenticatedDestination,
+  requireUser,
+} from "@/features/authentication/services/session";
 import { sendAuthEmail } from "@/features/authentication/services/resend-auth";
 import { mutationContext } from "@/features/cloud/services/data";
 import type { Json } from "@/lib/supabase/database.types";
@@ -214,12 +217,16 @@ export async function acceptFarmInvitationAction(
 
     const accepted = acceptedInvitationSchema.parse(result.data);
     revalidatePath("/", "layout");
+    const destination =
+      (await authenticatedDestination(`/farms/${accepted.farm_id}`)) ??
+      "/dashboard";
     return {
       ok: true,
       data: {
         farmId: accepted.farm_id,
         farmName: accepted.farm_name,
         role: accepted.role,
+        destination,
       },
     };
   } catch (error) {
