@@ -95,6 +95,7 @@ for (const language of ["en", "fa"]) {
       inviteFarmMemberAction: async () => ({ ok: true, data: overview }),
       changeFarmMemberRoleAction: async () => ({ ok: true, data: overview }),
       removeFarmMemberAction: async () => ({ ok: true, data: overview }),
+      resendFarmInvitationAction: async () => ({ ok: true, data: overview }),
       revokeFarmInvitationAction: async () => ({ ok: true, data: overview }),
     };
     const { TeamManagement } = ui.load(
@@ -122,6 +123,10 @@ for (const language of ["en", "fa"]) {
       html,
       language === "fa" ? /دعوت‌نامه‌های در انتظار/ : /Pending invitations/,
     );
+    assert.match(
+      html,
+      language === "fa" ? /ارسال دوباره دعوت‌نامه/ : /Resend invitation/,
+    );
   });
 
   test(`${language}: zero team seats replaces the invite form with subscription guidance`, () => {
@@ -136,6 +141,7 @@ for (const language of ["en", "fa"]) {
           inviteFarmMemberAction: async () => ({ ok: true, data: overview }),
           changeFarmMemberRoleAction: async () => ({ ok: true, data: overview }),
           removeFarmMemberAction: async () => ({ ok: true, data: overview }),
+          resendFarmInvitationAction: async () => ({ ok: true, data: overview }),
           revokeFarmInvitationAction: async () => ({ ok: true, data: overview }),
         },
       },
