@@ -33,7 +33,7 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
     "sprite callbacks must be registered before src",
   );
   assert.match(offline, /state === "gameover"/);
-  assert.match(offline, /Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\) % DINO_FRAME_COUNT/);
+  assert.match(offline, /return 1 \+ \(Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\) % 2\);/);
   assert.match(offline, /document\.addEventListener\(\s*"pointerdown"/);
   assert.match(offline, /imageSmoothingEnabled = false/);
   assert.match(offline, /ctx\.drawImage\(/);
