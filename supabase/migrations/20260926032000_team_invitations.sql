@@ -66,7 +66,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   limit_value integer;
   current_seats integer;
@@ -127,7 +127,7 @@ begin
 
   return new;
 end
-$;
+$$;
 
 create function public.get_team_overview()
 returns jsonb
@@ -400,7 +400,12 @@ security definer
 set search_path = ''
 as $$
 declare
-  invitation private.farm_invitations%rowtype;
+  invitation_id uuid;
+  invitation_account uuid;
+  invitation_farm text;
+  invitation_email text;
+  invitation_role text;
+  invitation_expires timestamptz;
   current_email text;
   farm_name text;
 begin
@@ -410,42 +415,44 @@ begin
     raise exception 'INVITATION_INVALID';
   end if;
 
-  select * into invitation
+  select i.id, i.account_id, i.farm_id, i.invitee_email, i.role, i.expires_at
+    into invitation_id, invitation_account, invitation_farm,
+         invitation_email, invitation_role, invitation_expires
   from private.farm_invitations i
   where i.token_hash = p_token_hash
     and i.status = 'pending'
   for update;
 
-  if invitation.id is null then raise exception 'INVITATION_INVALID'; end if;
-  if invitation.expires_at <= now() then raise exception 'INVITATION_EXPIRED'; end if;
+  if invitation_id is null then raise exception 'INVITATION_INVALID'; end if;
+  if invitation_expires <= now() then raise exception 'INVITATION_EXPIRED'; end if;
 
   select lower(u.email) into current_email
   from auth.users u
   where u.id = auth.uid()
     and u.email_confirmed_at is not null;
 
-  if current_email is null or current_email <> invitation.invitee_email then
+  if current_email is null or current_email <> invitation_email then
     raise exception 'INVITATION_EMAIL_MISMATCH';
   end if;
 
   insert into public.farm_memberships(account_id, farm_id, user_id, role)
-  values(invitation.account_id, invitation.farm_id, auth.uid(), invitation.role)
+  values(invitation_account, invitation_farm, auth.uid(), invitation_role)
   on conflict (account_id, farm_id, user_id)
   do update set role = excluded.role;
 
   update private.farm_invitations
   set status = 'accepted', accepted_at = now()
-  where id = invitation.id;
+  where id = invitation_id;
 
   select coalesce(nullif(f.data->>'name',''), f.id) into farm_name
   from public.farms f
-  where f.account_id = invitation.account_id
-    and f.id = invitation.farm_id;
+  where f.account_id = invitation_account
+    and f.id = invitation_farm;
 
   return jsonb_build_object(
-    'farm_id', invitation.farm_id,
+    'farm_id', invitation_farm,
     'farm_name', farm_name,
-    'role', invitation.role
+    'role', invitation_role
   );
 end
 $$;
@@ -457,7 +464,9 @@ security definer
 set search_path = ''
 as $$
 declare
-  invitation private.farm_invitations%rowtype;
+  invitation_id uuid;
+  invitation_email text;
+  invitation_expires timestamptz;
   current_email text;
 begin
   if not private.is_verified() then raise exception 'AUTH_REQUIRED'; end if;
@@ -466,27 +475,28 @@ begin
     raise exception 'INVITATION_INVALID';
   end if;
 
-  select * into invitation
+  select i.id, i.invitee_email, i.expires_at
+    into invitation_id, invitation_email, invitation_expires
   from private.farm_invitations i
   where i.token_hash = p_token_hash
     and i.status = 'pending'
   for update;
 
-  if invitation.id is null then raise exception 'INVITATION_INVALID'; end if;
-  if invitation.expires_at <= now() then raise exception 'INVITATION_EXPIRED'; end if;
+  if invitation_id is null then raise exception 'INVITATION_INVALID'; end if;
+  if invitation_expires <= now() then raise exception 'INVITATION_EXPIRED'; end if;
 
   select lower(u.email) into current_email
   from auth.users u
   where u.id = auth.uid()
     and u.email_confirmed_at is not null;
 
-  if current_email is null or current_email <> invitation.invitee_email then
+  if current_email is null or current_email <> invitation_email then
     raise exception 'INVITATION_EMAIL_MISMATCH';
   end if;
 
   update private.farm_invitations
   set status = 'declined', revoked_at = now()
-  where id = invitation.id;
+  where id = invitation_id;
 end
 $$;
 
