@@ -657,15 +657,29 @@ test("farm invitations reserve seats, rotate tokens, verify email and activate s
     assert.equal(overview.invitations[0].email, inviteeEmail);
     assert.equal(overview.invitations[0].role, "worker");
 
-    // Reissuing the same farm/email rotates the token and role without another
-    // seat. The old token immediately becomes invalid.
-    const rotated = (
+    // Resend rotates the token, extends expiry and is throttled so the Resend
+    // provider cannot be hammered by repeated clicks.
+    await assert.rejects(
+      owner.query(
+        "select resend_farm_invitation($1,$2)",
+        [created.id, hashB],
+      ),
+      /INVITATION_RESEND_TOO_SOON/,
+    );
+    await admin.query(
+      "update private.farm_invitations set created_at=now()-interval '2 minutes' where id=$1",
+      [created.id],
+    );
+    const resent = (
       await owner.query(
-        "select create_farm_invitation('invite-a',$1,'viewer',$2) as invitation",
-        [inviteeEmail, hashB],
+        "select resend_farm_invitation($1,$2) as invitation",
+        [created.id, hashB],
       )
     ).rows[0].invitation;
-    assert.equal(rotated.id, created.id);
+    assert.equal(resent.id, created.id);
+    assert.equal(resent.email, inviteeEmail);
+    assert.equal(resent.role, "worker");
+    assert.equal(resent.farm_name, "North field");
     await assert.rejects(
       invitee.query("select accept_farm_invitation($1)", [hashA]),
       /INVITATION_INVALID/,
@@ -719,7 +733,7 @@ test("farm invitations reserve seats, rotate tokens, verify email and activate s
       )
     ).rows[0].accepted;
     assert.equal(accepted.farm_id, "invite-a");
-    assert.equal(accepted.role, "viewer");
+    assert.equal(accepted.role, "worker");
     assert.equal(
       (
         await invitee.query(
