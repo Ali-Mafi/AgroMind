@@ -281,6 +281,15 @@
       const bestNode = document.getElementById("best");
       const announcement = document.getElementById("gameAnnouncement");
 
+      const dinoSprite = new Image();
+      let dinoSpriteReady = false;
+      dinoSprite.decoding = "sync";
+      dinoSprite.src = "/offline/agro-runner/farmer-dino.png";
+      dinoSprite.addEventListener("load", () => {
+        dinoSpriteReady = true;
+        draw();
+      });
+
       const BEST_KEY = "agromind_agro_runner_best_v1";
       let best = 0;
       try {
@@ -406,6 +415,22 @@
       function drawDino() {
         const bob =
           player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
+
+        if (dinoSpriteReady) {
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          const size = 82;
+          ctx.drawImage(
+            dinoSprite,
+            Math.round(player.x - 19),
+            Math.round(player.y - 8 + bob),
+            size,
+            size,
+          );
+          ctx.restore();
+          return;
+        }
+
         const stride =
           player.grounded && state === "running" ? Math.sin(runPhase) * 1.2 : 0;
         const u = 3;
