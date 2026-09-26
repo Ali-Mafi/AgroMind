@@ -349,6 +349,7 @@ test("signup fails closed if email confirmation was accidentally disabled", asyn
 test("login by email resumes onboarding and sanitizes the requested destination", async () => {
   for (const [completed, next, expected] of [
     [false, "/farms", "/onboarding"],
+    [false, "/invite/AbCd_123-xyz", "/invite/AbCd_123-xyz"],
     [true, "/farms", "/farms"],
     [true, "//evil.test", "/dashboard"],
   ]) {
