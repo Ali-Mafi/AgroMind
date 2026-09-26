@@ -61,18 +61,17 @@
     .game-title{margin:0;font-size:22px;letter-spacing:-.025em}
     .scoreboard{display:flex;gap:14px;font-size:13px;color:var(--muted);white-space:nowrap}
     .scoreboard strong{display:block;color:var(--text);font-size:17px}
-    .game{position:relative;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(#dcefdc 0 64%,#a7cf82 64% 69%,#8e623c 69% 100%);isolation:isolate}
+    .game{position:relative;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(#dcefdc 0 64%,#a7cf82 64% 69%,#8e623c 69% 100%);isolation:isolate;touch-action:none}
     @media (prefers-color-scheme:dark) {
       .game{background:linear-gradient(#243c31 0 64%,#496e4d 64% 69%,#4b382a 69% 100%)}
     }
-    canvas{display:block;width:100%;height:auto;aspect-ratio:5/2;max-height:360px;touch-action:manipulation}
+    canvas{display:block;width:100%;height:auto;aspect-ratio:5/2;max-height:360px;touch-action:none}
     .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(to bottom,transparent 0 38%,color-mix(in srgb,var(--card) 84%,transparent) 78% 100%);transition:opacity .18s ease}
     .overlay.hidden{opacity:0;pointer-events:none}
     .panel{text-align:center;max-width:390px}
     .panel h3{margin:0;font-size:24px;letter-spacing:-.025em}
     .panel p{margin:8px 0 15px;color:var(--muted);font-size:14px;line-height:1.6}
     .game-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
-    .jump{display:none;width:100%;margin-top:10px}
     .hint{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
     [dir="rtl"] .game-kicker{letter-spacing:0}
@@ -82,7 +81,6 @@
       .card{border-radius:24px}
       .game-head{align-items:flex-start}
       .scoreboard{gap:10px}
-      .jump{display:block}
       canvas{aspect-ratio:4/2.15}
     }
     @media (prefers-reduced-motion:reduce){
@@ -144,8 +142,7 @@
           </div>
         </div>
 
-        <button id="jumpButton" class="btn jump" type="button" data-i18n="jump">Jump</button>
-        <p class="hint" data-i18n="hint">Tap the game or press Space / ↑ to jump. Best score stays on this device.</p>
+        <p class="hint" data-i18n="hint">Tap to jump.</p>
         <p id="gameAnnouncement" class="sr-only" aria-live="polite"></p>
       </div>
     </section>
@@ -175,8 +172,7 @@
           restart: "Play again",
           gameOver: "Harvest interrupted!",
           newRecord: "New harvest record! 🌾",
-          jump: "Jump",
-          hint: "Tap the game or press Space / ↑ to jump. Best score stays on this device.",
+          hint: "Tap to jump.",
           paused: "Paused",
           pausedText: "The farm is waiting. Return to continue.",
           resume: "Resume",
@@ -201,8 +197,7 @@
           restart: "دوباره بازی کن",
           gameOver: "برداشت متوقف شد!",
           newRecord: "رکورد جدید برداشت! 🌾",
-          jump: "پرش",
-          hint: "روی بازی بزن یا Space / ↑ را فشار بده. رکورد روی همین دستگاه ذخیره می‌شود.",
+          hint: "برای پرش تپ کن.",
           paused: "توقف موقت",
           pausedText: "مزرعه منتظرته؛ برگرد تا ادامه بدی.",
           resume: "ادامه",
@@ -282,7 +277,6 @@
       const overlayTitle = document.getElementById("overlayTitle");
       const overlayText = document.getElementById("overlayText");
       const startButton = document.getElementById("startButton");
-      const jumpButton = document.getElementById("jumpButton");
       const scoreNode = document.getElementById("score");
       const bestNode = document.getElementById("best");
       const announcement = document.getElementById("gameAnnouncement");
@@ -307,12 +301,14 @@
       let obstacles = [];
       let animation = 0;
       let runPhase = 0;
+      let jumpBufferUntil = 0;
+      let coyoteUntil = 0;
 
       const player = {
         x: 105,
         y: 0,
-        w: 55,
-        h: 66,
+        w: 56,
+        h: 72,
         vy: 0,
         grounded: true
       };
@@ -407,73 +403,97 @@
         ctx.globalAlpha = 1;
       }
 
-      function drawDino(p) {
-        const x = player.x;
-        const y = player.y;
-        const bob = player.grounded && state === "running" ? Math.sin(runPhase) * 1.8 : 0;
+      function drawDino() {
+        const bob =
+          player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
+        const stride =
+          player.grounded && state === "running" ? Math.sin(runPhase) * 1.2 : 0;
+        const u = 3;
+        const ox = player.x - 12;
+        const oy = player.y + bob;
+        const px = (x, y, w, h, color) => {
+          ctx.fillStyle = color;
+          ctx.fillRect(
+            Math.round(ox + x * u),
+            Math.round(oy + y * u),
+            Math.round(w * u),
+            Math.round(h * u),
+          );
+        };
+
         ctx.save();
-        ctx.translate(x, y + bob);
+        ctx.imageSmoothingEnabled = false;
 
-        ctx.fillStyle = p.dino2;
-        ctx.beginPath();
-        ctx.moveTo(9, 42);
-        ctx.lineTo(-22, 34);
-        ctx.lineTo(4, 26);
-        ctx.closePath();
-        ctx.fill();
+        // Tail: chunky white dinosaur tail with heavy black pixel outline.
+        px(-5, 15, 8, 3, "#080a09");
+        px(-7, 14, 3, 2, "#080a09");
+        px(-8, 13, 2, 2, "#080a09");
+        px(-6, 15, 7, 1, "#f7f8f6");
+        px(-5, 16, 6, 1, "#eef1f2");
+        px(-3, 17, 4, 1, "#d7dce0");
 
-        ctx.fillStyle = p.dino;
-        roundRect(3, 20, 38, 42, 15);
-        ctx.fill();
-        roundRect(27, 5, 31, 29, 10);
-        ctx.fill();
+        // Straw hat.
+        px(3, 0, 11, 2, "#080a09");
+        px(1, 2, 16, 2, "#080a09");
+        px(0, 4, 20, 2, "#080a09");
+        px(4, 0, 9, 1, "#e2ad53");
+        px(3, 1, 11, 1, "#c98439");
+        px(2, 2, 13, 1, "#e9b95e");
+        px(1, 3, 16, 1, "#a75f2b");
+        px(1, 4, 19, 1, "#d58a3f");
 
-        ctx.fillStyle = p.dino2;
-        ctx.beginPath();
-        ctx.moveTo(38, 20);
-        ctx.lineTo(54, 28);
-        ctx.lineTo(37, 32);
-        ctx.closePath();
-        ctx.fill();
+        // White head + snout.
+        px(3, 5, 14, 7, "#080a09");
+        px(14, 6, 7, 5, "#080a09");
+        px(4, 6, 12, 5, "#f8f9f7");
+        px(15, 7, 5, 3, "#f8f9f7");
+        px(4, 9, 3, 2, "#dce1e5");
+        px(8, 7, 1, 1, "#080a09");
+        px(13, 10, 6, 1, "#080a09");
 
-        ctx.strokeStyle = p.dino2;
-        ctx.lineWidth = 7;
-        ctx.lineCap = "round";
-        const leg = state === "running" && player.grounded ? Math.sin(runPhase) * 5 : 0;
-        ctx.beginPath();
-        ctx.moveTo(17, 57);
-        ctx.lineTo(14 - leg, 67);
-        ctx.moveTo(31, 57);
-        ctx.lineTo(34 + leg, 67);
-        ctx.stroke();
+        // Red bandana.
+        px(4, 12, 13, 3, "#080a09");
+        px(2, 12, 3, 2, "#080a09");
+        px(4, 12, 11, 2, "#e51f2a");
+        px(6, 13, 10, 2, "#f04a45");
+        px(2, 12, 2, 1, "#f02a32");
+        px(3, 14, 3, 2, "#d81221");
 
-        ctx.fillStyle = p.eye;
-        ctx.beginPath();
-        ctx.arc(48, 14, 2.4, 0, Math.PI * 2);
-        ctx.fill();
+        // Arms / hands.
+        px(2, 15, 5, 4, "#080a09");
+        px(3, 15, 3, 3, "#f8f9f7");
+        px(15, 15, 5, 4, "#080a09");
+        px(16, 15, 3, 3, "#f8f9f7");
 
-        ctx.fillStyle = p.hat;
-        roundRect(24, 1, 38, 6, 3);
-        ctx.fill();
-        roundRect(32, -9, 23, 12, 5);
-        ctx.fill();
+        // Blue overalls with black pixel outline.
+        px(5, 14, 11, 8, "#080a09");
+        px(6, 15, 9, 6, "#2658a6");
+        px(7, 17, 7, 4, "#316cc5");
+        px(7, 14, 2, 4, "#316cc5");
+        px(12, 14, 2, 4, "#316cc5");
+        px(8, 16, 1, 1, "#f1bd18");
+        px(12, 16, 1, 1, "#f1bd18");
+        px(9, 18, 4, 2, "#1f4f99");
 
-        ctx.strokeStyle = p.rake;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(41, 34);
-        ctx.lineTo(63, 64);
-        ctx.stroke();
-        ctx.strokeStyle = p.metal;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(57, 60);
-        ctx.lineTo(71, 55);
-        ctx.moveTo(62, 58);
-        ctx.lineTo(67, 67);
-        ctx.moveTo(67, 56);
-        ctx.lineTo(72, 64);
-        ctx.stroke();
+        // Legs + boots. Tiny horizontal stride keeps the sprite alive while running.
+        px(6 + stride, 20, 4, 2, "#080a09");
+        px(12 - stride, 20, 4, 2, "#080a09");
+        px(5 + stride, 22, 5, 2, "#080a09");
+        px(12 - stride, 22, 5, 2, "#080a09");
+        px(6 + stride, 22, 4, 1, "#8b542f");
+        px(13 - stride, 22, 4, 1, "#8b542f");
+
+        // Upright pitchfork: wooden shaft + three metal tines.
+        px(20, 5, 3, 19, "#080a09");
+        px(21, 6, 1, 17, "#a96531");
+        px(19, 2, 1, 6, "#080a09");
+        px(21, 2, 1, 6, "#080a09");
+        px(23, 2, 1, 6, "#080a09");
+        px(19, 7, 5, 2, "#080a09");
+        px(20, 2, 1, 5, "#d6dadd");
+        px(22, 2, 1, 5, "#d6dadd");
+        px(24, 2, 1, 5, "#d6dadd");
+        px(20, 7, 4, 1, "#b8c0c5");
 
         ctx.restore();
       }
@@ -539,7 +559,7 @@
         const p = palette();
         drawBackground(p);
         obstacles.forEach((obstacle) => drawObstacle(obstacle, p));
-        drawDino(p);
+        drawDino();
       }
 
       function randomObstacle() {
@@ -563,6 +583,8 @@
         player.grounded = true;
         player.y = ground - player.h;
         runPhase = 0;
+        jumpBufferUntil = 0;
+        coyoteUntil = 0;
         scoreNode.textContent = "0 m";
       }
 
@@ -575,20 +597,28 @@
         animation = requestAnimationFrame(loop);
       }
 
+      function doJump() {
+        player.vy = -680;
+        player.grounded = false;
+        jumpBufferUntil = 0;
+      }
+
       function jump() {
+        const now = performance.now();
+
         if (state === "ready" || state === "gameover") {
           startGame();
-          player.vy = -640;
-          player.grounded = false;
+          doJump();
           return;
         }
         if (state === "paused") {
           resumeGame();
           return;
         }
-        if (state !== "running" || !player.grounded) return;
-        player.vy = -640;
-        player.grounded = false;
+        if (state !== "running") return;
+
+        jumpBufferUntil = now + 140;
+        if (player.grounded || now <= coyoteUntil) doJump();
       }
 
       function collide(obstacle) {
@@ -649,6 +679,8 @@
         sceneryOffset += speed * dt;
         runPhase += dt * 13;
 
+        if (player.grounded) coyoteUntil = now + 90;
+
         player.vy += 1650 * dt;
         player.y += player.vy * dt;
         const floorY = ground - player.h;
@@ -656,6 +688,16 @@
           player.y = floorY;
           player.vy = 0;
           player.grounded = true;
+        }
+
+        if (
+          jumpBufferUntil &&
+          now <= jumpBufferUntil &&
+          (player.grounded || now <= coyoteUntil)
+        ) {
+          doJump();
+        } else if (jumpBufferUntil && now > jumpBufferUntil) {
+          jumpBufferUntil = 0;
         }
 
         spawnIn -= dt * 1000;
@@ -685,11 +727,15 @@
         if (state === "paused") resumeGame();
         else startGame();
       });
-      jumpButton.addEventListener("click", jump);
-      frame.addEventListener("pointerdown", (event) => {
-        if (event.target.closest("button")) return;
-        jump();
-      });
+      frame.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (event.target.closest("button")) return;
+          event.preventDefault();
+          jump();
+        },
+        { passive: false },
+      );
       window.addEventListener("keydown", (event) => {
         if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
           event.preventDefault();
