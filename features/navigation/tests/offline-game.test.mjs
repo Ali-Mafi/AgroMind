@@ -15,7 +15,7 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /pointerdown/);
   assert.match(offline, /ArrowUp/);
   assert.match(offline, /Space/);
-  assert.match(offline, /Tap to jump\./);
+  assert.match(offline, /Tap anywhere to jump\./);
   assert.doesNotMatch(offline, /id="jumpButton"/);
   assert.match(offline, /jumpBufferUntil/);
   assert.match(offline, /coyoteUntil/);
