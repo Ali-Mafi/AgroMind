@@ -134,7 +134,7 @@
           <div id="gameOverlay" class="overlay">
             <div class="panel">
               <h3 id="overlayTitle" data-i18n="gameIntro">Farmer Dino is ready</h3>
-              <p id="overlayText" data-i18n="gameHelp">Jump over farm obstacles. Tap the field or press Space.</p>
+              <p id="overlayText" data-i18n="gameHelp">Jump over farm obstacles. Tap anywhere or press Space.</p>
               <div class="game-actions">
                 <button id="startButton" class="btn primary" type="button" data-i18n="startGame">Start game</button>
               </div>
@@ -142,7 +142,7 @@
           </div>
         </div>
 
-        <p class="hint" data-i18n="hint">Tap to jump.</p>
+        <p class="hint" data-i18n="hint">Tap anywhere to jump.</p>
         <p id="gameAnnouncement" class="sr-only" aria-live="polite"></p>
       </div>
     </section>
@@ -167,12 +167,12 @@
           score: "Score",
           best: "Best",
           gameIntro: "Farmer Dino is ready",
-          gameHelp: "Jump over farm obstacles. Tap the field or press Space.",
+          gameHelp: "Jump over farm obstacles. Tap anywhere or press Space.",
           startGame: "Start game",
           restart: "Play again",
           gameOver: "Harvest interrupted!",
           newRecord: "New harvest record! 🌾",
-          hint: "Tap to jump.",
+          hint: "Tap anywhere to jump.",
           paused: "Paused",
           pausedText: "The farm is waiting. Return to continue.",
           resume: "Resume",
@@ -192,12 +192,12 @@
           score: "امتیاز",
           best: "رکورد",
           gameIntro: "دایناسور کشاورز آماده‌ست",
-          gameHelp: "از موانع مزرعه بپر. روی زمین بازی بزن یا Space را فشار بده.",
+          gameHelp: "از موانع مزرعه بپر. هرجای صفحه بزن یا Space را فشار بده.",
           startGame: "شروع بازی",
           restart: "دوباره بازی کن",
           gameOver: "برداشت متوقف شد!",
           newRecord: "رکورد جدید برداشت! 🌾",
-          hint: "برای پرش تپ کن.",
+          hint: "برای پرش هرجای صفحه تپ کن.",
           paused: "توقف موقت",
           pausedText: "مزرعه منتظرته؛ برگرد تا ادامه بدی.",
           resume: "ادامه",
@@ -281,10 +281,12 @@
       const bestNode = document.getElementById("best");
       const announcement = document.getElementById("gameAnnouncement");
 
+      const DINO_FRAME_SIZE = 84;
+      const DINO_RUN_FRAME_STEP = 2.2;
       const dinoSprite = new Image();
       let dinoSpriteReady = false;
       dinoSprite.decoding = "sync";
-      dinoSprite.src = "/offline/agro-runner/farmer-dino.png";
+      dinoSprite.src = "/offline/agro-runner/farmer-dino-sheet.png";
       dinoSprite.addEventListener("load", () => {
         dinoSpriteReady = true;
         draw();
@@ -412,114 +414,33 @@
         ctx.globalAlpha = 1;
       }
 
+      function dinoFrameIndex() {
+        if (state === "gameover") return 3;
+        if (state === "running" && player.grounded)
+          return 1 + (Math.floor(runPhase / DINO_RUN_FRAME_STEP) % 2);
+        return 0;
+      }
+
       function drawDino() {
+        if (!dinoSpriteReady) return;
+
+        const frameIndex = dinoFrameIndex();
         const bob =
           player.grounded && state === "running" ? Math.sin(runPhase) * 1.5 : 0;
 
-        if (dinoSpriteReady) {
-          ctx.save();
-          ctx.imageSmoothingEnabled = false;
-          const size = 82;
-          ctx.drawImage(
-            dinoSprite,
-            Math.round(player.x - 19),
-            Math.round(player.y - 8 + bob),
-            size,
-            size,
-          );
-          ctx.restore();
-          return;
-        }
-
-        const stride =
-          player.grounded && state === "running" ? Math.sin(runPhase) * 1.2 : 0;
-        const u = 3;
-        const ox = player.x - 12;
-        const oy = player.y + bob;
-        const px = (x, y, w, h, color) => {
-          ctx.fillStyle = color;
-          ctx.fillRect(
-            Math.round(ox + x * u),
-            Math.round(oy + y * u),
-            Math.round(w * u),
-            Math.round(h * u),
-          );
-        };
-
         ctx.save();
         ctx.imageSmoothingEnabled = false;
-
-        // Tail: chunky white dinosaur tail with heavy black pixel outline.
-        px(-5, 15, 8, 3, "#080a09");
-        px(-7, 14, 3, 2, "#080a09");
-        px(-8, 13, 2, 2, "#080a09");
-        px(-6, 15, 7, 1, "#f7f8f6");
-        px(-5, 16, 6, 1, "#eef1f2");
-        px(-3, 17, 4, 1, "#d7dce0");
-
-        // Straw hat.
-        px(3, 0, 11, 2, "#080a09");
-        px(1, 2, 16, 2, "#080a09");
-        px(0, 4, 20, 2, "#080a09");
-        px(4, 0, 9, 1, "#e2ad53");
-        px(3, 1, 11, 1, "#c98439");
-        px(2, 2, 13, 1, "#e9b95e");
-        px(1, 3, 16, 1, "#a75f2b");
-        px(1, 4, 19, 1, "#d58a3f");
-
-        // White head + snout.
-        px(3, 5, 14, 7, "#080a09");
-        px(14, 6, 7, 5, "#080a09");
-        px(4, 6, 12, 5, "#f8f9f7");
-        px(15, 7, 5, 3, "#f8f9f7");
-        px(4, 9, 3, 2, "#dce1e5");
-        px(8, 7, 1, 1, "#080a09");
-        px(13, 10, 6, 1, "#080a09");
-
-        // Red bandana.
-        px(4, 12, 13, 3, "#080a09");
-        px(2, 12, 3, 2, "#080a09");
-        px(4, 12, 11, 2, "#e51f2a");
-        px(6, 13, 10, 2, "#f04a45");
-        px(2, 12, 2, 1, "#f02a32");
-        px(3, 14, 3, 2, "#d81221");
-
-        // Arms / hands.
-        px(2, 15, 5, 4, "#080a09");
-        px(3, 15, 3, 3, "#f8f9f7");
-        px(15, 15, 5, 4, "#080a09");
-        px(16, 15, 3, 3, "#f8f9f7");
-
-        // Blue overalls with black pixel outline.
-        px(5, 14, 11, 8, "#080a09");
-        px(6, 15, 9, 6, "#2658a6");
-        px(7, 17, 7, 4, "#316cc5");
-        px(7, 14, 2, 4, "#316cc5");
-        px(12, 14, 2, 4, "#316cc5");
-        px(8, 16, 1, 1, "#f1bd18");
-        px(12, 16, 1, 1, "#f1bd18");
-        px(9, 18, 4, 2, "#1f4f99");
-
-        // Legs + boots. Tiny horizontal stride keeps the sprite alive while running.
-        px(6 + stride, 20, 4, 2, "#080a09");
-        px(12 - stride, 20, 4, 2, "#080a09");
-        px(5 + stride, 22, 5, 2, "#080a09");
-        px(12 - stride, 22, 5, 2, "#080a09");
-        px(6 + stride, 22, 4, 1, "#8b542f");
-        px(13 - stride, 22, 4, 1, "#8b542f");
-
-        // Upright pitchfork: wooden shaft + three metal tines.
-        px(20, 5, 3, 19, "#080a09");
-        px(21, 6, 1, 17, "#a96531");
-        px(19, 2, 1, 6, "#080a09");
-        px(21, 2, 1, 6, "#080a09");
-        px(23, 2, 1, 6, "#080a09");
-        px(19, 7, 5, 2, "#080a09");
-        px(20, 2, 1, 5, "#d6dadd");
-        px(22, 2, 1, 5, "#d6dadd");
-        px(24, 2, 1, 5, "#d6dadd");
-        px(20, 7, 4, 1, "#b8c0c5");
-
+        ctx.drawImage(
+          dinoSprite,
+          frameIndex * DINO_FRAME_SIZE,
+          0,
+          DINO_FRAME_SIZE,
+          DINO_FRAME_SIZE,
+          Math.round(player.x - 19),
+          Math.round(player.y - 10 + bob),
+          DINO_FRAME_SIZE,
+          DINO_FRAME_SIZE,
+        );
         ctx.restore();
       }
 
@@ -662,6 +583,7 @@
 
       function gameOver() {
         state = "gameover";
+        draw();
         const rounded = Math.floor(score);
         const record = rounded > best;
         if (record) {
@@ -752,10 +674,11 @@
         if (state === "paused") resumeGame();
         else startGame();
       });
-      frame.addEventListener(
+      document.addEventListener(
         "pointerdown",
         (event) => {
-          if (event.target.closest("button")) return;
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          if (event.target.closest("button, a, input, select, textarea, label")) return;
           event.preventDefault();
           jump();
         },
