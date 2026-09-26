@@ -25,7 +25,7 @@ function worker({ response, brokenStorage = false } = {}) {
     }, URL, Response,
     caches: {
       open: async () => { if (brokenStorage) throw new Error("Storage unavailable"); return cache; },
-      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "agromind-public-v9", "agromind-public-v10", "agromind-public-v11", "another-app"],
+      keys: async () => ["agromind-public-v3", "agromind-public-v4", "agromind-public-v5", "agromind-public-v6", "agromind-public-v7", "agromind-public-v8", "agromind-public-v9", "agromind-public-v10", "agromind-public-v11", "agromind-public-v12", "another-app"],
       delete: async name => { deleted.push(name); },
     },
     fetch: async request => {
