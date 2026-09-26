@@ -270,7 +270,6 @@ begin
 
   if farm_name is null then raise exception 'FARM_NOT_FOUND'; end if;
 
-  -- Expired pending rows no longer reserve a seat or block a fresh invitation.
   update private.farm_invitations
   set status = 'expired'
   where account_id = target_account
@@ -293,9 +292,8 @@ begin
     raise exception 'MEMBER_ALREADY_ADDED';
   end if;
 
-  -- Reissuing the same farm/email invite rotates the token without consuming
-  -- another seat.
-  select i.id, i.created_at into invitation_id, invitation_created_at
+  select i.id, i.created_at
+    into invitation_id, invitation_created_at
   from private.farm_invitations i
   where i.account_id = target_account
     and i.farm_id = p_farm_id
@@ -308,6 +306,7 @@ begin
     if invitation_created_at > now() - interval '60 seconds' then
       raise exception 'INVITATION_RESEND_TOO_SOON';
     end if;
+
     update private.farm_invitations
     set role = p_role,
         token_hash = p_token_hash,
@@ -377,169 +376,20 @@ create function public.resend_farm_invitation(
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   target_account uuid;
   invitation_email text;
   invitation_farm text;
   invitation_role text;
   invitation_created_at timestamptz;
+  invitation_expires_at timestamptz;
   farm_name text;
   expiry timestamptz := now() + interval '7 days';
 begin
   if not private.is_verified() then raise exception 'AUTH_REQUIRED'; end if;
   if not private.mfa_access_allowed() then raise exception 'MFA_REQUIRED'; end if;
-  if p_token_hash !~ '^[0-9a-f]{64}
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  target_account uuid;
-begin
-  if not private.is_verified() then raise exception 'AUTH_REQUIRED'; end if;
-  if not private.mfa_access_allowed() then raise exception 'MFA_REQUIRED'; end if;
-
-  select a.id into target_account
-  from public.accounts a
-  where a.owner_user_id = auth.uid()
-  limit 1;
-  if target_account is null then raise exception 'OWNER_REQUIRED'; end if;
-
-  update private.farm_invitations
-  set status = 'revoked', revoked_at = now()
-  where id = p_invitation_id
-    and account_id = target_account
-    and status = 'pending';
-
-  if not found then raise exception 'INVITATION_NOT_FOUND'; end if;
-end
-$$;
-
-create function public.accept_farm_invitation(p_token_hash text)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  invitation_id uuid;
-  invitation_account uuid;
-  invitation_farm text;
-  invitation_email text;
-  invitation_role text;
-  invitation_expires timestamptz;
-  current_email text;
-  farm_name text;
-begin
-  if not private.is_verified() then raise exception 'AUTH_REQUIRED'; end if;
-  if not private.mfa_access_allowed() then raise exception 'MFA_REQUIRED'; end if;
   if p_token_hash !~ '^[0-9a-f]{64}$' then
-    raise exception 'INVITATION_INVALID';
-  end if;
-
-  select i.id, i.account_id, i.farm_id, i.invitee_email, i.role, i.expires_at
-    into invitation_id, invitation_account, invitation_farm,
-         invitation_email, invitation_role, invitation_expires
-  from private.farm_invitations i
-  where i.token_hash = p_token_hash
-    and i.status = 'pending'
-  for update;
-
-  if invitation_id is null then raise exception 'INVITATION_INVALID'; end if;
-  if invitation_expires <= now() then raise exception 'INVITATION_EXPIRED'; end if;
-
-  select lower(u.email) into current_email
-  from auth.users u
-  where u.id = auth.uid()
-    and u.email_confirmed_at is not null;
-
-  if current_email is null or current_email <> invitation_email then
-    raise exception 'INVITATION_EMAIL_MISMATCH';
-  end if;
-
-  insert into public.farm_memberships(account_id, farm_id, user_id, role)
-  values(invitation_account, invitation_farm, auth.uid(), invitation_role)
-  on conflict (account_id, farm_id, user_id)
-  do update set role = excluded.role;
-
-  update private.farm_invitations
-  set status = 'accepted', accepted_at = now()
-  where id = invitation_id;
-
-  select coalesce(nullif(f.data->>'name',''), f.id) into farm_name
-  from public.farms f
-  where f.account_id = invitation_account
-    and f.id = invitation_farm;
-
-  return jsonb_build_object(
-    'farm_id', invitation_farm,
-    'farm_name', farm_name,
-    'role', invitation_role
-  );
-end
-$$;
-
-create function public.decline_farm_invitation(p_token_hash text)
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  invitation_id uuid;
-  invitation_email text;
-  invitation_expires timestamptz;
-  current_email text;
-begin
-  if not private.is_verified() then raise exception 'AUTH_REQUIRED'; end if;
-  if not private.mfa_access_allowed() then raise exception 'MFA_REQUIRED'; end if;
-  if p_token_hash !~ '^[0-9a-f]{64}$' then
-    raise exception 'INVITATION_INVALID';
-  end if;
-
-  select i.id, i.invitee_email, i.expires_at
-    into invitation_id, invitation_email, invitation_expires
-  from private.farm_invitations i
-  where i.token_hash = p_token_hash
-    and i.status = 'pending'
-  for update;
-
-  if invitation_id is null then raise exception 'INVITATION_INVALID'; end if;
-  if invitation_expires <= now() then raise exception 'INVITATION_EXPIRED'; end if;
-
-  select lower(u.email) into current_email
-  from auth.users u
-  where u.id = auth.uid()
-    and u.email_confirmed_at is not null;
-
-  if current_email is null or current_email <> invitation_email then
-    raise exception 'INVITATION_EMAIL_MISMATCH';
-  end if;
-
-  update private.farm_invitations
-  set status = 'declined', revoked_at = now()
-  where id = invitation_id;
-end
-$$;
-
-revoke all on function private.team_seat_count(uuid),
-  public.get_team_overview(),
-  public.create_farm_invitation(text,text,text,text),
-  public.resend_farm_invitation(uuid,text),
-  public.revoke_farm_invitation(uuid),
-  public.accept_farm_invitation(text),
-  public.decline_farm_invitation(text)
-from public, anon, authenticated;
-
-grant execute on function public.get_team_overview(),
-  public.create_farm_invitation(text,text,text,text),
-  public.resend_farm_invitation(uuid,text),
-  public.revoke_farm_invitation(uuid),
-  public.accept_farm_invitation(text),
-  public.decline_farm_invitation(text)
-to authenticated;
- then
     raise exception 'INVALID_INVITATION_TOKEN';
   end if;
 
@@ -551,9 +401,9 @@ to authenticated;
 
   if target_account is null then raise exception 'OWNER_REQUIRED'; end if;
 
-  select i.invitee_email, i.farm_id, i.role, i.created_at
+  select i.invitee_email, i.farm_id, i.role, i.created_at, i.expires_at
     into invitation_email, invitation_farm, invitation_role,
-         invitation_created_at
+         invitation_created_at, invitation_expires_at
   from private.farm_invitations i
   where i.id = p_invitation_id
     and i.account_id = target_account
@@ -561,6 +411,12 @@ to authenticated;
   for update;
 
   if invitation_email is null then raise exception 'INVITATION_NOT_FOUND'; end if;
+  if invitation_expires_at <= now() then
+    update private.farm_invitations
+    set status = 'expired'
+    where id = p_invitation_id;
+    raise exception 'INVITATION_EXPIRED';
+  end if;
   if invitation_created_at > now() - interval '60 seconds' then
     raise exception 'INVITATION_RESEND_TOO_SOON';
   end if;
@@ -590,7 +446,7 @@ to authenticated;
     'expires_at', expiry
   );
 end
-$;
+$$;
 
 create function public.revoke_farm_invitation(p_invitation_id uuid)
 returns void
@@ -730,6 +586,7 @@ $$;
 revoke all on function private.team_seat_count(uuid),
   public.get_team_overview(),
   public.create_farm_invitation(text,text,text,text),
+  public.resend_farm_invitation(uuid,text),
   public.revoke_farm_invitation(uuid),
   public.accept_farm_invitation(text),
   public.decline_farm_invitation(text)
@@ -737,6 +594,7 @@ from public, anon, authenticated;
 
 grant execute on function public.get_team_overview(),
   public.create_farm_invitation(text,text,text,text),
+  public.resend_farm_invitation(uuid,text),
   public.revoke_farm_invitation(uuid),
   public.accept_farm_invitation(text),
   public.decline_farm_invitation(text)
