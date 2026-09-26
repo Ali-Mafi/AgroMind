@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   MailPlus,
+  RefreshCw,
   ShieldCheck,
   Trash2,
   UserRoundCheck,
@@ -20,6 +21,7 @@ import {
   changeFarmMemberRoleAction,
   inviteFarmMemberAction,
   removeFarmMemberAction,
+  resendFarmInvitationAction,
   revokeFarmInvitationAction,
 } from "../services/actions";
 import type { TeamOverview, TeamRole } from "../types";
@@ -425,26 +427,55 @@ export function TeamManagement({
                     {t("Expires")} · {format.date(new Date(invitation.expiresAt))}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={Boolean(busyKey)}
-                  onClick={() =>
-                    void run(
-                      `revoke:${invitation.id}`,
-                      () =>
-                        revokeFarmInvitationAction(
-                          { invitationId: invitation.id },
-                          cloud.user.id,
-                        ),
-                      "Invitation cancelled.",
-                    )
-                  }
-                  className="min-h-11 gap-2 rounded-xl"
-                >
-                  <X size={16} />
-                  {t("Cancel invitation")}
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={Boolean(busyKey)}
+                    onClick={() =>
+                      void run(
+                        `resend:${invitation.id}`,
+                        () =>
+                          resendFarmInvitationAction(
+                            { invitationId: invitation.id },
+                            cloud.user.id,
+                          ),
+                        "Invitation resent.",
+                      )
+                    }
+                    className="min-h-11 gap-2 rounded-xl"
+                  >
+                    <RefreshCw
+                      size={16}
+                      className={
+                        busyKey === `resend:${invitation.id}`
+                          ? "animate-spin motion-reduce:animate-none"
+                          : undefined
+                      }
+                    />
+                    {t("Resend invitation")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={Boolean(busyKey)}
+                    onClick={() =>
+                      void run(
+                        `revoke:${invitation.id}`,
+                        () =>
+                          revokeFarmInvitationAction(
+                            { invitationId: invitation.id },
+                            cloud.user.id,
+                          ),
+                        "Invitation cancelled.",
+                      )
+                    }
+                    className="min-h-11 gap-2 rounded-xl"
+                  >
+                    <X size={16} />
+                    {t("Cancel invitation")}
+                  </Button>
+                </div>
               </article>
             ))}
           </div>
