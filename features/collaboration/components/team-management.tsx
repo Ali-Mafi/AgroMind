@@ -221,7 +221,7 @@ export function TeamManagement({
                 dir="ltr"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="farmer@example.com"
+                placeholder={t("Email address")}
                 disabled={Boolean(busyKey)}
                 className="min-h-12 w-full rounded-xl border bg-background px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
               />
