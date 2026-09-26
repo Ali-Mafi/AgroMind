@@ -61,6 +61,74 @@ as $$
     (select count(*) from pending_emails)::integer
 $$;
 
+create or replace function private.enforce_team_member_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  limit_value integer;
+  current_seats integer;
+  owner_id uuid;
+  member_email text;
+  reserved boolean;
+begin
+  select owner_user_id into owner_id
+  from public.accounts
+  where id = new.account_id
+  for update;
+
+  if owner_id is null then
+    raise exception using errcode = 'P0001', message = 'ACCOUNT_NOT_FOUND';
+  end if;
+  if new.user_id = owner_id then
+    raise exception using errcode = 'P0001', message = 'OWNER_MEMBERSHIP_FORBIDDEN';
+  end if;
+
+  if exists (
+    select 1
+    from public.farm_memberships m
+    where m.account_id = new.account_id
+      and m.user_id = new.user_id
+  ) then
+    return new;
+  end if;
+
+  select lower(u.email) into member_email
+  from auth.users u
+  where u.id = new.user_id;
+
+  select exists (
+    select 1
+    from private.farm_invitations i
+    where i.account_id = new.account_id
+      and i.invitee_email = member_email
+      and i.status = 'pending'
+      and i.expires_at > now()
+  ) into reserved;
+
+  limit_value := coalesce(
+    (private.account_entitlements(new.account_id)->>'max_team_members')::integer,
+    0
+  );
+  current_seats := private.team_seat_count(new.account_id);
+
+  if reserved then
+    if limit_value <= 0 or current_seats > limit_value then
+      raise exception using errcode = 'P0001', message = 'TEAM_MEMBER_LIMIT_REACHED';
+    end if;
+    return new;
+  end if;
+
+  if current_seats >= limit_value then
+    raise exception using errcode = 'P0001', message = 'TEAM_MEMBER_LIMIT_REACHED';
+  end if;
+
+  return new;
+end
+$;
+
 create function public.get_team_overview()
 returns jsonb
 language plpgsql
