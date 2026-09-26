@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { T } from "@/features/settings/components/translated-text";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { safeNextPath } from "../lib/redirects";
 import { authenticatedDestination } from "../services/session";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
@@ -19,6 +20,13 @@ export async function AuthEntry({
   const destination = await authenticatedDestination(next);
   if (destination) redirect(destination);
   const signup = mode === "signup";
+  const nextPath = safeNextPath(next);
+  const alternateHref =
+    nextPath === "/dashboard"
+      ? signup
+        ? "/sign-in"
+        : "/sign-up"
+      : `${signup ? "/sign-in" : "/sign-up"}?next=${encodeURIComponent(nextPath)}`;
   return (
     <AuthShell
       title={signup ? "Create your account" : "Welcome back"}
@@ -66,7 +74,7 @@ export async function AuthEntry({
       <p className="mt-6 text-center text-sm text-muted-foreground">
         <T text={signup ? "Already have an account?" : "New to AgroMind?"} />{" "}
         <Link
-          href={signup ? "/sign-in" : "/sign-up"}
+          href={alternateHref}
           className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline"
         >
           <T text={signup ? "Sign In" : "Sign up"} />
