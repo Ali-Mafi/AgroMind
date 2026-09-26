@@ -43,6 +43,9 @@ export async function authenticatedDestination(requestedNext?: unknown) {
   if (await needsSecondFactor())
     return `/mfa?next=${encodeURIComponent(safeNextPath(requestedNext))}`;
 
+  const safeNext = safeNextPath(requestedNext);
+  if (safeNext.startsWith("/invite/")) return safeNext;
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -50,7 +53,5 @@ export async function authenticatedDestination(requestedNext?: unknown) {
     .eq("id", user.id)
     .single();
   if (error) throw new Error("Account services are temporarily unavailable.");
-  return data.onboarding_completed
-    ? safeNextPath(requestedNext)
-    : "/onboarding";
+  return data.onboarding_completed ? safeNext : "/onboarding";
 }
