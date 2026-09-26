@@ -1,1 +1,708 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AgroMind · Offline</title><meta name="color-scheme" content="light dark"><style>body{font:16px system-ui;margin:0;min-height:100vh;display:grid;place-items:center;background:light-dark(#f8fbf8,#122017);color:light-dark(#183b25,#eef7ef)}main{max-width:32rem;padding:2rem}h1{color:light-dark(#2e7d32,#82ce8c)}a{display:inline-block;padding:1rem;border:1px solid;border-radius:1rem;color:inherit}p{line-height:1.8}</style></head><body><main><h1>AgroMind</h1><p>You are offline. Reconnect to securely open your farms.</p><p lang="fa" dir="rtl">اتصال اینترنت قطع است. برای دسترسی امن به مزرعه‌ها دوباره متصل شوید.</p><a href="/dashboard">Try again · تلاش دوباره</a></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f8f3">
+  <meta name="color-scheme" content="light dark">
+  <title>AgroMind · Offline</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg:#f6f8f3;
+      --card:#ffffff;
+      --text:#183b25;
+      --muted:#65766b;
+      --line:#dfe8e1;
+      --primary:#17663c;
+      --primary-soft:#e8f3ec;
+      --gold:#c3a24f;
+      --danger:#a54545;
+      --shadow:0 18px 60px rgba(30,64,45,.10);
+    }
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg:#111c16;
+        --card:#182820;
+        --text:#f0f6f2;
+        --muted:#a7b6ad;
+        --line:#2e4036;
+        --primary:#82ce98;
+        --primary-soft:#20392c;
+        --gold:#d5b96e;
+        --danger:#ef9b9b;
+        --shadow:0 18px 60px rgba(0,0,0,.24);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+    button{font:inherit}
+    .shell{width:min(100%,880px)}
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.02em}
+    .mark{width:38px;height:38px;border-radius:13px;background:var(--primary);display:grid;place-items:center;color:#fff;box-shadow:var(--shadow)}
+    .mark svg{width:22px;height:22px}
+    .status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 11px;font-size:12px;color:var(--muted)}
+    .dot{width:8px;height:8px;border-radius:999px;background:#cf6c5d;box-shadow:0 0 0 4px color-mix(in srgb,#cf6c5d 15%,transparent)}
+    .status.online .dot{background:#3ca36a;box-shadow:0 0 0 4px color-mix(in srgb,#3ca36a 15%,transparent)}
+    .card{border:1px solid var(--line);background:var(--card);border-radius:28px;padding:clamp(20px,4vw,34px);box-shadow:var(--shadow);overflow:hidden}
+    h1{margin:0;font-size:clamp(30px,7vw,52px);line-height:1.04;letter-spacing:-.045em}
+    .lead{margin:14px 0 0;color:var(--muted);line-height:1.75;max-width:620px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+    .btn{min-height:46px;border-radius:14px;padding:0 17px;border:1px solid var(--line);background:var(--card);color:var(--text);font-weight:750;cursor:pointer;touch-action:manipulation}
+    .btn.primary{border-color:transparent;background:var(--primary);color:light-dark(#fff,#102017)}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .online-banner{display:none;margin-top:18px;border:1px solid color-mix(in srgb,#3ca36a 35%,var(--line));background:color-mix(in srgb,#3ca36a 8%,var(--card));border-radius:16px;padding:12px 14px;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+    .online-banner.show{display:flex}
+    .game-wrap{margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}
+    .game-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}
+    .game-kicker{margin:0 0 5px;color:var(--primary);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.16em}
+    .game-title{margin:0;font-size:22px;letter-spacing:-.025em}
+    .scoreboard{display:flex;gap:14px;font-size:13px;color:var(--muted);white-space:nowrap}
+    .scoreboard strong{display:block;color:var(--text);font-size:17px}
+    .game{position:relative;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(#dcefdc 0 64%,#a7cf82 64% 69%,#8e623c 69% 100%);isolation:isolate}
+    @media (prefers-color-scheme:dark) {
+      .game{background:linear-gradient(#243c31 0 64%,#496e4d 64% 69%,#4b382a 69% 100%)}
+    }
+    canvas{display:block;width:100%;height:auto;aspect-ratio:5/2;max-height:360px;touch-action:manipulation}
+    .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(to bottom,transparent 0 38%,color-mix(in srgb,var(--card) 84%,transparent) 78% 100%);transition:opacity .18s ease}
+    .overlay.hidden{opacity:0;pointer-events:none}
+    .panel{text-align:center;max-width:390px}
+    .panel h3{margin:0;font-size:24px;letter-spacing:-.025em}
+    .panel p{margin:8px 0 15px;color:var(--muted);font-size:14px;line-height:1.6}
+    .game-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+    .jump{display:none;width:100%;margin-top:10px}
+    .hint{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
+    .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+    [dir="rtl"] .game-kicker{letter-spacing:0}
+    @media (max-width:640px){
+      body{align-items:flex-start}
+      .top{align-items:center}
+      .card{border-radius:24px}
+      .game-head{align-items:flex-start}
+      .scoreboard{gap:10px}
+      .jump{display:block}
+      canvas{aspect-ratio:4/2.15}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *{scroll-behavior:auto!important}
+      .overlay{transition:none}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="top">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M18.5 4.5C12.2 4.7 7.7 7.4 6.3 12.2c3.3-2.3 6.3-3.2 9-2.8-4.3.7-7.4 2.8-9.2 6.2.7 2.6 2.9 4.2 5.4 4.2 4.3 0 7.5-4.5 7-15.3Z" fill="currentColor"/><path d="M5.6 12.9c-1.6.9-2.7 2.1-3.3 3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span>AgroMind</span>
+      </div>
+      <div id="networkStatus" class="status" role="status">
+        <span class="dot" aria-hidden="true"></span>
+        <span data-i18n="offlineStatus">Offline</span>
+      </div>
+    </div>
+
+    <section class="card">
+      <h1 data-i18n="title">You're offline</h1>
+      <p class="lead" data-i18n="lead">AgroMind will reconnect automatically. Your private farm data is never stored in the public offline cache.</p>
+
+      <div class="actions">
+        <button id="retryButton" class="btn primary" type="button" data-i18n="retry">Retry connection</button>
+      </div>
+
+      <div id="onlineBanner" class="online-banner" role="status" aria-live="polite">
+        <span data-i18n="backOnline">You're back online. Your game can keep running.</span>
+        <button id="returnButton" class="btn" type="button" data-i18n="returnApp">Return to AgroMind</button>
+      </div>
+
+      <div class="game-wrap">
+        <div class="game-head">
+          <div>
+            <p class="game-kicker" data-i18n="whileWait">While you wait</p>
+            <h2 class="game-title">Agro Runner 🌾</h2>
+          </div>
+          <div class="scoreboard" aria-label="Game score">
+            <span><span data-i18n="score">Score</span><strong id="score">0 m</strong></span>
+            <span><span data-i18n="best">Best</span><strong id="best">0 m</strong></span>
+          </div>
+        </div>
+
+        <div class="game" id="gameFrame">
+          <canvas id="gameCanvas" width="900" height="360" aria-label="Agro Runner game canvas"></canvas>
+          <div id="gameOverlay" class="overlay">
+            <div class="panel">
+              <h3 id="overlayTitle" data-i18n="gameIntro">Farmer Dino is ready</h3>
+              <p id="overlayText" data-i18n="gameHelp">Jump over farm obstacles. Tap the field or press Space.</p>
+              <div class="game-actions">
+                <button id="startButton" class="btn primary" type="button" data-i18n="startGame">Start game</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="jumpButton" class="btn jump" type="button" data-i18n="jump">Jump</button>
+        <p class="hint" data-i18n="hint">Tap the game or press Space / ↑ to jump. Best score stays on this device.</p>
+        <p id="gameAnnouncement" class="sr-only" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const copy = {
+        en: {
+          offlineStatus: "Offline",
+          onlineStatus: "Online",
+          title: "You're offline",
+          lead: "AgroMind will reconnect automatically. Your private farm data is never stored in the public offline cache.",
+          retry: "Retry connection",
+          retrying: "Checking…",
+          stillOffline: "Still offline. Agro Runner is ready while you wait.",
+          backOnline: "You're back online. Your game can keep running.",
+          returnApp: "Return to AgroMind",
+          whileWait: "While you wait",
+          score: "Score",
+          best: "Best",
+          gameIntro: "Farmer Dino is ready",
+          gameHelp: "Jump over farm obstacles. Tap the field or press Space.",
+          startGame: "Start game",
+          restart: "Play again",
+          gameOver: "Harvest interrupted!",
+          newRecord: "New harvest record! 🌾",
+          jump: "Jump",
+          hint: "Tap the game or press Space / ↑ to jump. Best score stays on this device.",
+          paused: "Paused",
+          pausedText: "The farm is waiting. Return to continue.",
+          resume: "Resume",
+          scoreAnnouncement: "Game over. Score {score} meters."
+        },
+        fa: {
+          offlineStatus: "آفلاین",
+          onlineStatus: "آنلاین",
+          title: "اینترنت قطع شده",
+          lead: "AgroMind به‌صورت خودکار دوباره متصل می‌شود. اطلاعات خصوصی مزرعه‌ها هیچ‌وقت در کش عمومی آفلاین ذخیره نمی‌شود.",
+          retry: "تلاش دوباره",
+          retrying: "در حال بررسی…",
+          stillOffline: "هنوز آفلاین هستید؛ تا وصل شدن اینترنت Agro Runner آماده است.",
+          backOnline: "دوباره آنلاین شدید؛ بازی می‌تواند ادامه پیدا کند.",
+          returnApp: "بازگشت به AgroMind",
+          whileWait: "تا وقتی منتظری",
+          score: "امتیاز",
+          best: "رکورد",
+          gameIntro: "دایناسور کشاورز آماده‌ست",
+          gameHelp: "از موانع مزرعه بپر. روی زمین بازی بزن یا Space را فشار بده.",
+          startGame: "شروع بازی",
+          restart: "دوباره بازی کن",
+          gameOver: "برداشت متوقف شد!",
+          newRecord: "رکورد جدید برداشت! 🌾",
+          jump: "پرش",
+          hint: "روی بازی بزن یا Space / ↑ را فشار بده. رکورد روی همین دستگاه ذخیره می‌شود.",
+          paused: "توقف موقت",
+          pausedText: "مزرعه منتظرته؛ برگرد تا ادامه بدی.",
+          resume: "ادامه",
+          scoreAnnouncement: "بازی تمام شد. امتیاز {score} متر."
+        }
+      };
+
+      function preferredLanguage() {
+        try {
+          const entry = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("agromind_display_v1="));
+          if (entry) {
+            const raw = decodeURIComponent(entry.slice(entry.indexOf("=") + 1));
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.language === "fa") return "fa";
+          }
+        } catch {}
+        return (navigator.language || "").toLowerCase().startsWith("fa") ? "fa" : "en";
+      }
+
+      const language = preferredLanguage();
+      const t = (key, values) => {
+        let value = (copy[language] && copy[language][key]) || copy.en[key] || key;
+        if (values) Object.keys(values).forEach((name) => {
+          value = value.replace("{" + name + "}", String(values[name]));
+        });
+        return value;
+      };
+
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        node.textContent = t(node.dataset.i18n);
+      });
+
+      const status = document.getElementById("networkStatus");
+      const statusText = status.querySelector("[data-i18n]");
+      const onlineBanner = document.getElementById("onlineBanner");
+      const retryButton = document.getElementById("retryButton");
+      const returnButton = document.getElementById("returnButton");
+
+      function setNetworkState(online) {
+        status.classList.toggle("online", online);
+        statusText.textContent = t(online ? "onlineStatus" : "offlineStatus");
+        onlineBanner.classList.toggle("show", online);
+      }
+
+      setNetworkState(navigator.onLine);
+      window.addEventListener("online", () => setNetworkState(true));
+      window.addEventListener("offline", () => setNetworkState(false));
+
+      retryButton.addEventListener("click", async () => {
+        retryButton.disabled = true;
+        retryButton.textContent = t("retrying");
+        try {
+          const response = await fetch("/manifest.webmanifest?connection-check=" + Date.now(), {
+            method: "GET",
+            cache: "no-store",
+            credentials: "same-origin"
+          });
+          if (!response.ok) throw new Error("offline");
+          window.location.reload();
+          return;
+        } catch {
+          setNetworkState(false);
+          document.getElementById("gameAnnouncement").textContent = t("stillOffline");
+        } finally {
+          retryButton.disabled = false;
+          retryButton.textContent = t("retry");
+        }
+      });
+      returnButton.addEventListener("click", () => window.location.reload());
+
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const frame = document.getElementById("gameFrame");
+      const overlay = document.getElementById("gameOverlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlayText = document.getElementById("overlayText");
+      const startButton = document.getElementById("startButton");
+      const jumpButton = document.getElementById("jumpButton");
+      const scoreNode = document.getElementById("score");
+      const bestNode = document.getElementById("best");
+      const announcement = document.getElementById("gameAnnouncement");
+
+      const BEST_KEY = "agromind_agro_runner_best_v1";
+      let best = 0;
+      try {
+        best = Math.max(0, Number(localStorage.getItem(BEST_KEY)) || 0);
+      } catch {}
+      bestNode.textContent = Math.floor(best) + " m";
+
+      let width = 900;
+      let height = 360;
+      let ground = 292;
+      let state = "ready";
+      let previousState = "ready";
+      let lastTime = 0;
+      let score = 0;
+      let speed = 285;
+      let spawnIn = 950;
+      let sceneryOffset = 0;
+      let obstacles = [];
+      let animation = 0;
+      let runPhase = 0;
+
+      const player = {
+        x: 105,
+        y: 0,
+        w: 55,
+        h: 66,
+        vy: 0,
+        grounded: true
+      };
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(320, rect.width);
+        height = Math.max(210, rect.height);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ground = height * .79;
+        if (state !== "running") {
+          player.y = ground - player.h;
+          draw();
+        }
+      }
+
+      const observer = new ResizeObserver(resize);
+      observer.observe(canvas);
+
+      function roundRect(x, y, w, h, r) {
+        const radius = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+      }
+
+      function palette() {
+        const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+        return dark ? {
+          sky:"#243c31", cloud:"#3d584b", hill:"#3d5d45", crop:"#5c7f4f",
+          soil:"#4b382a", line:"#6d523a", dino:"#75ba74", dino2:"#4f8e58",
+          hat:"#d2ae62", rake:"#c28f5b", metal:"#b7c2bc", eye:"#122018",
+          crate:"#986744", pipe:"#6f8a79", hay:"#c8a650", scare:"#9f7953"
+        } : {
+          sky:"#dcefdc", cloud:"#f7fbf6", hill:"#8fbd78", crop:"#78ad5d",
+          soil:"#8e623c", line:"#6f492f", dino:"#5eaa5e", dino2:"#3d8148",
+          hat:"#d6b25e", rake:"#a36f42", metal:"#65756b", eye:"#14321f",
+          crate:"#a86f47", pipe:"#768f82", hay:"#d2ad4f", scare:"#a87c52"
+        };
+      }
+
+      function drawBackground(p) {
+        ctx.fillStyle = p.sky;
+        ctx.fillRect(0, 0, width, height);
+
+        const cloudShift = (sceneryOffset * .08) % (width + 180);
+        ctx.fillStyle = p.cloud;
+        for (const base of [80, 410, 760]) {
+          const x = ((base - cloudShift + width + 180) % (width + 180)) - 90;
+          ctx.globalAlpha = .72;
+          ctx.beginPath();
+          ctx.arc(x, height * .20, 24, 0, Math.PI * 2);
+          ctx.arc(x + 25, height * .17, 31, 0, Math.PI * 2);
+          ctx.arc(x + 55, height * .21, 22, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.fillStyle = p.hill;
+        ctx.beginPath();
+        ctx.moveTo(0, ground);
+        for (let x = 0; x <= width + 80; x += 80) {
+          const y = ground - 31 - Math.sin((x + sceneryOffset * .05) * .012) * 13;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(width, ground);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = p.crop;
+        ctx.fillRect(0, ground - 7, width, 13);
+        ctx.fillStyle = p.soil;
+        ctx.fillRect(0, ground + 6, width, height - ground);
+
+        ctx.strokeStyle = p.line;
+        ctx.globalAlpha = .28;
+        ctx.lineWidth = 2;
+        const stripe = (sceneryOffset * .55) % 54;
+        for (let x = -stripe; x < width + 60; x += 54) {
+          ctx.beginPath();
+          ctx.moveTo(x, ground + 17);
+          ctx.lineTo(x - 28, height);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawDino(p) {
+        const x = player.x;
+        const y = player.y;
+        const bob = player.grounded && state === "running" ? Math.sin(runPhase) * 1.8 : 0;
+        ctx.save();
+        ctx.translate(x, y + bob);
+
+        ctx.fillStyle = p.dino2;
+        ctx.beginPath();
+        ctx.moveTo(9, 42);
+        ctx.lineTo(-22, 34);
+        ctx.lineTo(4, 26);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = p.dino;
+        roundRect(3, 20, 38, 42, 15);
+        ctx.fill();
+        roundRect(27, 5, 31, 29, 10);
+        ctx.fill();
+
+        ctx.fillStyle = p.dino2;
+        ctx.beginPath();
+        ctx.moveTo(38, 20);
+        ctx.lineTo(54, 28);
+        ctx.lineTo(37, 32);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = p.dino2;
+        ctx.lineWidth = 7;
+        ctx.lineCap = "round";
+        const leg = state === "running" && player.grounded ? Math.sin(runPhase) * 5 : 0;
+        ctx.beginPath();
+        ctx.moveTo(17, 57);
+        ctx.lineTo(14 - leg, 67);
+        ctx.moveTo(31, 57);
+        ctx.lineTo(34 + leg, 67);
+        ctx.stroke();
+
+        ctx.fillStyle = p.eye;
+        ctx.beginPath();
+        ctx.arc(48, 14, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = p.hat;
+        roundRect(24, 1, 38, 6, 3);
+        ctx.fill();
+        roundRect(32, -9, 23, 12, 5);
+        ctx.fill();
+
+        ctx.strokeStyle = p.rake;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(41, 34);
+        ctx.lineTo(63, 64);
+        ctx.stroke();
+        ctx.strokeStyle = p.metal;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(57, 60);
+        ctx.lineTo(71, 55);
+        ctx.moveTo(62, 58);
+        ctx.lineTo(67, 67);
+        ctx.moveTo(67, 56);
+        ctx.lineTo(72, 64);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawObstacle(obstacle, p) {
+        const x = obstacle.x;
+        const y = ground - obstacle.h;
+        ctx.save();
+        if (obstacle.type === "crate") {
+          ctx.fillStyle = p.crate;
+          roundRect(x, y, obstacle.w, obstacle.h, 5);
+          ctx.fill();
+          ctx.strokeStyle = p.line;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 6, y + 6, obstacle.w - 12, obstacle.h - 12);
+          ctx.beginPath();
+          ctx.moveTo(x + 7, y + 7);
+          ctx.lineTo(x + obstacle.w - 7, y + obstacle.h - 7);
+          ctx.moveTo(x + obstacle.w - 7, y + 7);
+          ctx.lineTo(x + 7, y + obstacle.h - 7);
+          ctx.stroke();
+        } else if (obstacle.type === "pipe") {
+          ctx.fillStyle = p.pipe;
+          roundRect(x + 5, y + 7, obstacle.w - 10, obstacle.h - 7, 7);
+          ctx.fill();
+          roundRect(x, y, obstacle.w, 14, 5);
+          ctx.fill();
+        } else if (obstacle.type === "hay") {
+          ctx.fillStyle = p.hay;
+          roundRect(x, y, obstacle.w, obstacle.h, 11);
+          ctx.fill();
+          ctx.strokeStyle = p.line;
+          ctx.globalAlpha = .42;
+          for (let i = 8; i < obstacle.w; i += 10) {
+            ctx.beginPath();
+            ctx.moveTo(x + i, y + 4);
+            ctx.lineTo(x + i - 7, y + obstacle.h - 4);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.strokeStyle = p.scare;
+          ctx.lineWidth = 5;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(x + obstacle.w / 2, y + 12);
+          ctx.lineTo(x + obstacle.w / 2, ground);
+          ctx.moveTo(x + 4, y + 27);
+          ctx.lineTo(x + obstacle.w - 4, y + 27);
+          ctx.stroke();
+          ctx.fillStyle = p.hat;
+          roundRect(x + 7, y + 5, obstacle.w - 14, 13, 5);
+          ctx.fill();
+          ctx.fillStyle = p.scare;
+          ctx.beginPath();
+          ctx.arc(x + obstacle.w / 2, y + 25, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function draw() {
+        const p = palette();
+        drawBackground(p);
+        obstacles.forEach((obstacle) => drawObstacle(obstacle, p));
+        drawDino(p);
+      }
+
+      function randomObstacle() {
+        const types = [
+          { type:"crate", w:42, h:42 },
+          { type:"pipe", w:38, h:51 },
+          { type:"hay", w:50, h:36 },
+          { type:"scare", w:44, h:67 }
+        ];
+        const choice = types[Math.floor(Math.random() * types.length)];
+        return { ...choice, x: width + 50 };
+      }
+
+      function resetGame() {
+        score = 0;
+        speed = 285;
+        spawnIn = 1000;
+        sceneryOffset = 0;
+        obstacles = [];
+        player.vy = 0;
+        player.grounded = true;
+        player.y = ground - player.h;
+        runPhase = 0;
+        scoreNode.textContent = "0 m";
+      }
+
+      function startGame() {
+        resetGame();
+        state = "running";
+        overlay.classList.add("hidden");
+        lastTime = performance.now();
+        cancelAnimationFrame(animation);
+        animation = requestAnimationFrame(loop);
+      }
+
+      function jump() {
+        if (state === "ready" || state === "gameover") {
+          startGame();
+          player.vy = -640;
+          player.grounded = false;
+          return;
+        }
+        if (state === "paused") {
+          resumeGame();
+          return;
+        }
+        if (state !== "running" || !player.grounded) return;
+        player.vy = -640;
+        player.grounded = false;
+      }
+
+      function collide(obstacle) {
+        const marginX = 9;
+        const marginY = 7;
+        const ax = player.x + marginX;
+        const ay = player.y + marginY;
+        const aw = player.w - marginX * 2;
+        const ah = player.h - marginY;
+        const bx = obstacle.x + 4;
+        const by = ground - obstacle.h + 4;
+        const bw = obstacle.w - 8;
+        const bh = obstacle.h - 4;
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+      }
+
+      function gameOver() {
+        state = "gameover";
+        const rounded = Math.floor(score);
+        const record = rounded > best;
+        if (record) {
+          best = rounded;
+          bestNode.textContent = best + " m";
+          try { localStorage.setItem(BEST_KEY, String(best)); } catch {}
+        }
+        overlayTitle.textContent = t(record ? "newRecord" : "gameOver");
+        overlayText.textContent = t("scoreAnnouncement", { score: rounded });
+        startButton.textContent = t("restart");
+        overlay.classList.remove("hidden");
+        announcement.textContent = t("scoreAnnouncement", { score: rounded });
+      }
+
+      function pauseGame() {
+        if (state !== "running") return;
+        previousState = state;
+        state = "paused";
+        cancelAnimationFrame(animation);
+        overlayTitle.textContent = t("paused");
+        overlayText.textContent = t("pausedText");
+        startButton.textContent = t("resume");
+        overlay.classList.remove("hidden");
+      }
+
+      function resumeGame() {
+        if (state !== "paused") return;
+        state = previousState === "running" ? "running" : "ready";
+        overlay.classList.add("hidden");
+        lastTime = performance.now();
+        animation = requestAnimationFrame(loop);
+      }
+
+      function loop(now) {
+        if (state !== "running") return;
+        const dt = Math.min(.034, Math.max(.001, (now - lastTime) / 1000));
+        lastTime = now;
+
+        speed = Math.min(540, speed + dt * 5.5);
+        sceneryOffset += speed * dt;
+        runPhase += dt * 13;
+
+        player.vy += 1650 * dt;
+        player.y += player.vy * dt;
+        const floorY = ground - player.h;
+        if (player.y >= floorY) {
+          player.y = floorY;
+          player.vy = 0;
+          player.grounded = true;
+        }
+
+        spawnIn -= dt * 1000;
+        if (spawnIn <= 0) {
+          obstacles.push(randomObstacle());
+          const difficulty = Math.max(.58, 1 - score / 1300);
+          spawnIn = (820 + Math.random() * 610) * difficulty;
+        }
+
+        for (const obstacle of obstacles) {
+          obstacle.x -= speed * dt;
+          if (collide(obstacle)) {
+            draw();
+            gameOver();
+            return;
+          }
+        }
+        obstacles = obstacles.filter((obstacle) => obstacle.x + obstacle.w > -30);
+
+        score += speed * dt * .019;
+        scoreNode.textContent = Math.floor(score) + " m";
+        draw();
+        animation = requestAnimationFrame(loop);
+      }
+
+      startButton.addEventListener("click", () => {
+        if (state === "paused") resumeGame();
+        else startGame();
+      });
+      jumpButton.addEventListener("click", jump);
+      frame.addEventListener("pointerdown", (event) => {
+        if (event.target.closest("button")) return;
+        jump();
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+          event.preventDefault();
+          jump();
+        }
+      }, { passive:false });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) pauseGame();
+      });
+
+      player.y = ground - player.h;
+      draw();
+    })();
+  </script>
+</body>
+</html>

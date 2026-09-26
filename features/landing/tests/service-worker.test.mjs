@@ -52,12 +52,12 @@ function worker({ response, brokenStorage = false } = {}) {
   };
 }
 
-test("PWA install does not redownload the 1.1 MB logo and activation drops v3", async () => {
+test("PWA install does not redownload the 1.1 MB logo and activation drops stale public caches", async () => {
   const sw = worker();
   await sw.lifecycle("install");
   assert.deepEqual(sw.installed, ["/offline.html"]);
   await sw.lifecycle("activate");
-  assert.deepEqual(sw.deleted, ["agromind-public-v3"]);
+  assert.deepEqual(sw.deleted, ["agromind-public-v3", "agromind-public-v4"]);
   assert.equal(sw.state.claimed, true);
 });
 
