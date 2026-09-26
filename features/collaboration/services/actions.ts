@@ -19,6 +19,8 @@ import {
   inviteMemberSchema,
   inviteTokenSchema,
   removeMemberSchema,
+  resendInvitationSchema,
+  resentInvitationSchema,
   revokeInvitationSchema,
 } from "../lib/validation";
 import { readTeamOverview } from "./data";
@@ -33,6 +35,7 @@ type CollaborationRpcClient = {
   rpc: (
     name:
       | "create_farm_invitation"
+      | "resend_farm_invitation"
       | "revoke_farm_invitation"
       | "accept_farm_invitation"
       | "decline_farm_invitation",
@@ -109,6 +112,76 @@ export async function inviteFarmMemberAction(
       // Do not leave an apparently valid pending invite when delivery failed.
       await rpc.rpc("revoke_farm_invitation", {
         p_invitation_id: created.id,
+      });
+      throw new Error("EMAIL_UNAVAILABLE");
+    }
+
+    return { ok: true, data: await refreshedTeam() };
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error &&
+      "message" in error &&
+      error.message === "ACCOUNT_CHANGED"
+    )
+      return {
+        ok: false,
+        error: "Your account changed. Reload before saving.",
+      };
+    return { ok: false, error: teamError(error) };
+  }
+}
+
+export async function resendFarmInvitationAction(
+  input: unknown,
+  expectedUserId: string,
+): Promise<TeamActionResult<TeamOverview>> {
+  const parsed = resendInvitationSchema.safeParse(input);
+  if (!parsed.success)
+    return {
+      ok: false,
+      error: "This invitation is invalid or no longer available.",
+    };
+
+  try {
+    const user = await verifiedActor(expectedUserId);
+    const supabase = await createClient();
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = hashInviteToken(token);
+    const rpc = supabase as unknown as CollaborationRpcClient;
+    const resendResult = await rpc.rpc("resend_farm_invitation", {
+      p_invitation_id: parsed.data.invitationId,
+      p_token_hash: tokenHash,
+    });
+    if (resendResult.error || !resendResult.data)
+      throw resendResult.error ?? new Error("INVITATION_INVALID");
+
+    const invitation = resentInvitationSchema.parse(resendResult.data);
+    const profile = await supabase
+      .from("profiles")
+      .select("language")
+      .eq("id", user.id)
+      .single();
+    const language = profile.data?.language === "fa" ? "fa" : "en";
+    const origin = await collaborationRequestOrigin();
+    const href = new URL(`/invite/${token}`, origin).toString();
+    const rendered = renderFarmInvitationEmail({
+      href,
+      farmName: invitation.farm_name,
+      role: invitation.role,
+      language,
+    });
+
+    try {
+      await sendAuthEmail({
+        ...rendered,
+        to: invitation.email,
+        idempotencyKey:
+          `agromind-team-resend/${invitation.id}/${tokenHash.slice(0, 20)}`,
+      });
+    } catch {
+      await rpc.rpc("revoke_farm_invitation", {
+        p_invitation_id: invitation.id,
       });
       throw new Error("EMAIL_UNAVAILABLE");
     }
