@@ -1,4 +1,4 @@
-const CACHE = "agromind-public-v12";
+const CACHE = "agromind-public-v14";
 const LOGO = "/logo/agromind-mark-132-v1.webp";
 const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v3.png"];
 self.addEventListener("install", (event) => {
@@ -32,11 +32,8 @@ self.addEventListener("fetch", (event) => {
     try {
       cache = await caches.open(CACHE);
     } catch {
-      // Safari storage restrictions/quota must never prevent online assets.
       return fetch(event.request);
     }
-    // Only content-addressed Next assets and the versioned public logo may be
-    // cache-first. HTML, RSC, APIs and private data never enter this cache.
     if (immutable || offlineAsset) {
       const hit = await cache.match(event.request).catch(() => undefined);
       if (hit) return hit;
