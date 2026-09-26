@@ -69,6 +69,14 @@
     .overlay{position:absolute;inset:0;display:grid;place-items:start center;padding:14px;background:linear-gradient(to bottom,color-mix(in srgb,var(--card) 40%,transparent),transparent 55%);transition:opacity .18s ease}
     .overlay.hidden{opacity:0;pointer-events:none}
     .panel{text-align:center;max-width:390px;padding:12px 16px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:18px;background:color-mix(in srgb,var(--card) 86%,transparent);box-shadow:0 10px 30px rgba(0,0,0,.08);backdrop-filter:blur(8px)}
+    .overlay.gameover{background:linear-gradient(to bottom,color-mix(in srgb,var(--card) 16%,transparent),transparent 62%);place-items:start center;padding-top:18px}
+    .overlay.gameover .panel{max-width:none;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+    .overlay.gameover .panel p{display:none}
+    .overlay.gameover .panel h3{margin:0;font-size:22px;font-weight:800}
+    .overlay.gameover .game-actions{margin-top:8px}
+    .overlay.gameover #startButton{width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;font-size:0;display:grid;place-items:center}
+    .overlay.gameover #startButton::before{content:"↻";font-size:25px;line-height:1}
+    .overlay.gameover #startButton:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 35%,transparent);outline-offset:3px}
     .panel h3{margin:0;font-size:22px;letter-spacing:-.025em}
     .panel p{margin:6px 0 10px;color:var(--muted);font-size:13px;line-height:1.5}
     .game-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
@@ -136,7 +144,7 @@
               <h3 id="overlayTitle" data-i18n="gameIntro">Farmer Dino is ready</h3>
               <p id="overlayText" data-i18n="gameHelp">Jump over farm obstacles. Tap anywhere or press Space.</p>
               <div class="game-actions">
-                <button id="startButton" class="btn primary" type="button" data-i18n="startGame">Start game</button>
+                <button id="startButton" class="btn primary" type="button" data-i18n="startGame" aria-label="Start game">Start game</button>
               </div>
             </div>
           </div>
@@ -494,16 +502,22 @@
 
         ctx.save();
         ctx.imageSmoothingEnabled = false;
+        const drawX = Math.round(player.x - 19);
+        const drawY = Math.round(player.y - 10 + bob);
+        const sourceX = frameIndex * DINO_FRAME_SIZE;
+        const bodyCut = 52;
+        const lowerShift = 4;
+
+        // Close the transparent torso/leg gap in the source sheet at render time.
         ctx.drawImage(
           dinoSprite,
-          frameIndex * DINO_FRAME_SIZE,
-          0,
-          DINO_FRAME_SIZE,
-          DINO_FRAME_SIZE,
-          Math.round(player.x - 19),
-          Math.round(player.y - 10 + bob),
-          DINO_FRAME_SIZE,
-          DINO_FRAME_SIZE,
+          sourceX, 0, DINO_FRAME_SIZE, bodyCut,
+          drawX, drawY, DINO_FRAME_SIZE, bodyCut,
+        );
+        ctx.drawImage(
+          dinoSprite,
+          sourceX, bodyCut, DINO_FRAME_SIZE, DINO_FRAME_SIZE - bodyCut,
+          drawX, drawY + bodyCut - lowerShift, DINO_FRAME_SIZE, DINO_FRAME_SIZE - bodyCut,
         );
         ctx.restore();
       }
@@ -601,6 +615,7 @@
       function startGame() {
         resetGame();
         state = "running";
+        overlay.classList.remove("gameover");
         overlay.classList.add("hidden");
         lastTime = performance.now();
         cancelAnimationFrame(animation);
@@ -655,9 +670,11 @@
           bestNode.textContent = best + " m";
           try { localStorage.setItem(BEST_KEY, String(best)); } catch {}
         }
-        overlayTitle.textContent = t(record ? "newRecord" : "gameOver");
+        overlayTitle.textContent = "Agro Runner 🌾";
         overlayText.textContent = t("scoreAnnouncement", { score: rounded });
         startButton.textContent = t("restart");
+        startButton.setAttribute("aria-label", t("restart"));
+        overlay.classList.add("gameover");
         overlay.classList.remove("hidden");
         announcement.textContent = t("scoreAnnouncement", { score: rounded });
       }
@@ -667,9 +684,11 @@
         previousState = state;
         state = "paused";
         cancelAnimationFrame(animation);
+        overlay.classList.remove("gameover");
         overlayTitle.textContent = t("paused");
         overlayText.textContent = t("pausedText");
         startButton.textContent = t("resume");
+        startButton.setAttribute("aria-label", t("resume"));
         overlay.classList.remove("hidden");
       }
 
