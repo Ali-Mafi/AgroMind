@@ -15,7 +15,7 @@ export function Footer() {
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <div
             dangerouslySetInnerHTML={{
-              __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' alt='' style='cursor:pointer' code='GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'></a>`,
+              __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' alt='' style='cursor:pointer' code='GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' width='145' height='145'></a>`,
             }}
           />
 
