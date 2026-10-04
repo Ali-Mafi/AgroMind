@@ -19,19 +19,14 @@ export function Footer() {
           <a
             referrerPolicy="origin"
             target="_blank"
-            rel="noopener noreferrer"
             href="https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
-            aria-label="نماد اعتماد الکترونیکی"
           >
             <img
               referrerPolicy="origin"
               src="https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
-              alt="نماد اعتماد الکترونیکی"
-              width={100}
-              height={100}
-              loading="lazy"
-              decoding="async"
-              className="h-auto w-[88px] cursor-pointer"
+              alt=""
+              style={{ cursor: "pointer" }}
+              code="GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
             />
           </a>
 
