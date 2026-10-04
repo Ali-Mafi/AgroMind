@@ -1,9 +1,9 @@
+import { ShieldCheck } from "lucide-react";
 import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
 
-const enamadImgAttrs = {
-  code: "GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc",
-} as Record<string, string>;
+const ENAMAD_VERIFY_URL =
+  "https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc";
 
 export function Footer() {
   return (
@@ -23,15 +23,13 @@ export function Footer() {
           <a
             referrerPolicy="origin"
             target="_blank"
-            href="https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
+            rel="noopener noreferrer"
+            href={ENAMAD_VERIFY_URL}
+            aria-label="eNAMAD"
+            className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/80 px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-background"
           >
-            <img
-              referrerPolicy="origin"
-              src="https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
-              alt=""
-              style={{ cursor: "pointer" }}
-              {...enamadImgAttrs}
-            />
+            <ShieldCheck aria-hidden="true" className="size-5" />
+            <span>eNAMAD</span>
           </a>
 
           <p className="text-sm text-muted-foreground">
