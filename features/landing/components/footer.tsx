@@ -1,6 +1,10 @@
 import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
 
+const enamadImgAttrs = {
+  code: "GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc",
+} as Record<string, string>;
+
 export function Footer() {
   return (
     <footer id="contact" className="border-t border-border/60 bg-muted/20">
@@ -26,7 +30,7 @@ export function Footer() {
               src="https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
               alt=""
               style={{ cursor: "pointer" }}
-              code="GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
+              {...enamadImgAttrs}
             />
           </a>
 
