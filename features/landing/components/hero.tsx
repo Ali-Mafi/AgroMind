@@ -19,7 +19,7 @@ export function Hero() {
   return (
     <section className={`${styles.hero} relative isolate min-h-[calc(100svh-4rem)] overflow-hidden py-16 sm:py-20 lg:flex lg:items-center lg:py-24`}>
       <div className={`${styles.fieldPattern} pointer-events-none absolute inset-0 -z-10 opacity-80`} />
-      <div className="pointer-events-none absolute -end-28 top-20 -z-10 size-80 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -inset-e-28 top-20 -z-10 size-80 rounded-full bg-primary/10 blur-3xl" />
       <AppContainer>
         <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
           <Reveal>
