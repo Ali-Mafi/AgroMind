@@ -100,7 +100,7 @@ test("PWA keeps native standard chrome, immersive routes and accessible edge-to-
   const root = readFileSync("app/layout.tsx", "utf8");
   assert.match(root, /viewportFit: "cover"/, "cover must be present before navigating from signup to Dashboard");
   assert.doesNotMatch(root, /userScalable: false|maximumScale/);
-  assert.match(root, /statusBarStyle: "default"/, "standard and auth pages use native status-bar chrome");
+  assert.match(root, /statusBarStyle: "black-translucent"/, "root stays edge-to-edge; route surfaces own the pixels behind the status bar");
   const weather = readFileSync("app/weather/page.tsx", "utf8");
   assert.match(weather, /statusBarStyle: "black-translucent"/);
   assert.doesNotMatch(weather, /userScalable: false|maximumScale/);

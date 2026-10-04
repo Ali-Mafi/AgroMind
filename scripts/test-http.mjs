@@ -166,7 +166,7 @@ try {
     const html = await response.text();
     assert.match(html, /<form/);
     const head = html.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
-    assert.match(head, /name="apple-mobile-web-app-status-bar-style" content="default"/);
+    assert.match(head, /name="apple-mobile-web-app-status-bar-style" content="black-translucent"/);
     assert.match(head, /name="viewport" content="[^"]*viewport-fit=cover/);
     if (path === "/sign-in") {
       assert.doesNotMatch(html, /href="\/verify-email/);

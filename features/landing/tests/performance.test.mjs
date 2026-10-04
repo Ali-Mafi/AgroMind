@@ -144,7 +144,7 @@ test("workspace skeleton streams before a pending private layout without exposin
 
 test("each profiled workspace wraps the unchanged auth gate, not the reverse", () => {
   for (const route of ["dashboard", "farms", "assistant", "account", "weather", "settings", "irrigation"]) {
-    assert.match(source(`app/${route}/layout.tsx`), /<WorkspaceLoadingBoundary><ProtectedLayout/);
+    assert.match(source(`app/${route}/layout.tsx`), /<WorkspaceLoadingBoundary>\s*<ProtectedLayout/);
   }
   assert.doesNotMatch(source("app/layout.tsx"), /WorkspaceLoadingBoundary/);
   assert.doesNotMatch(source("app/mfa/page.tsx"), /WorkspaceLoadingBoundary/);

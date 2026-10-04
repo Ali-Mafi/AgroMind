@@ -1,10 +1,14 @@
 import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
 
+const enamadImgAttrs = {
+  code: "GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc",
+} as Record<string, string>;
+
 export function Footer() {
   return (
     <footer id="contact" className="border-t border-border/60 bg-muted/20">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
         <div>
           <p className="font-semibold">
             {APP.name}
@@ -15,8 +19,25 @@ export function Footer() {
           </p>
         </div>
 
-        <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {APP.name}<T text=". All rights reserved." /></p>
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <a
+            referrerPolicy="origin"
+            target="_blank"
+            href="https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
+          >
+            <img
+              referrerPolicy="origin"
+              src="https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc"
+              alt=""
+              style={{ cursor: "pointer" }}
+              {...enamadImgAttrs}
+            />
+          </a>
+
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} {APP.name}<T text=". All rights reserved." />
+          </p>
+        </div>
       </div>
     </footer>
   );
