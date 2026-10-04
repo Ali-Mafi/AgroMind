@@ -1,9 +1,6 @@
-import { ShieldCheck } from "lucide-react";
 import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
-
-const ENAMAD_VERIFY_URL =
-  "https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc";
+import { EnamadBadge } from "./enamad-badge";
 
 export function Footer() {
   return (
@@ -20,17 +17,7 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col items-start gap-3 sm:items-end">
-          <a
-            referrerPolicy="origin"
-            target="_blank"
-            rel="noopener noreferrer"
-            href={ENAMAD_VERIFY_URL}
-            aria-label="eNAMAD"
-            className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/80 px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-background"
-          >
-            <ShieldCheck aria-hidden="true" className="size-5" />
-            <span>eNAMAD</span>
-          </a>
+          <EnamadBadge />
 
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} {APP.name}<T text=". All rights reserved." />
