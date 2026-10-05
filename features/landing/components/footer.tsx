@@ -20,8 +20,8 @@ export function Footer() {
                 referrerpolicy='origin' 
                 target='_blank' 
                 href='https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'
-                style='padding: 8px; padding: 16px; border: 1px solid #e0e0e2; display: flex; align-items: center; justify-content: center; border-radius: 8px;'>
-                  <div role='img' style='width: 75px, height: 75px'>
+                style='padding: 16px; border: 1px solid #e0e0e2; display: flex; align-items: center; justify-content: center; border-radius: 8px;'>
+                  <div role='img' style='width: 75px; height: 75px'>
                     <img 
                     referrerpolicy='origin' 
                     src='https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' 
