@@ -15,7 +15,24 @@ export function Footer() {
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <div
             dangerouslySetInnerHTML={{
-              __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' alt='' style='cursor:pointer' code='GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' width='145' height='145'></a>`,
+              __html: 
+              `<a 
+                referrerpolicy='origin' 
+                target='_blank' 
+                href='https://trustseal.enamad.ir/?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc'
+                class='cursor-pointer p-2 lg:p-4 flex items-center justify-center'
+                style='border: 1px solid #e0e0e2, border-radius: 8px'>
+                  <div role='img' style='width: 75px, height: 75px'>
+                    <img 
+                    referrerpolicy='origin' 
+                    src='https://trustseal.enamad.ir/logo.aspx?id=8024287&Code=GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' 
+                    alt='نماد اعتماد الکترونیک'
+                    style='cursor:pointer' 
+                    code='GGuR0pCbpfBTYSPKvDTV1QHV6hmsuXXc' 
+                    width='75' 
+                    height='75'>
+                  </div>
+              </a>`,
             }}
           />
 
