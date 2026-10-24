@@ -118,15 +118,7 @@ Never hardcode business data.
 
 # Constants
 
-Texts
-
-Numbers
-
-Labels
-
-Configuration
-
-belong inside constants.
+Stable numeric settings and shared configuration belong in constants. **User-facing text must follow existing localization**; do not replace translation sources with untranslated component strings.
 
 ---
 
@@ -152,13 +144,7 @@ Never hardcode colors if tokens exist.
 
 # Layout
 
-Use AppContainer.
-
-Use Section.
-
-Reuse spacing.
-
-Never duplicate layouts.
+Reuse AppContainer, Section and shared spacing when appropriate. Immersive Dashboard/Weather views may use their own safe-area layout. Avoid duplicate existing layout logic.
 
 ---
 
@@ -242,11 +228,7 @@ Proper labels.
 
 # Documentation
 
-Every Sprint updates:
-
-05_MASTER_PROGRESS.md
-
-Every new reusable component should be documented.
+Meaningful milestones update `docs/progress/YYYY-MM-DD.md`, the [progress index](progress/README.md), and [current Master Progress](05_MASTER_PROGRESS.md); update [Roadmap](ROADMAP.md) when priority changes. Follow [Project Rules](PROJECT_RULES.md). Document reusable contracts where they add value.
 
 ---
 

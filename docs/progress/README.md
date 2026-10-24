@@ -1,8 +1,8 @@
-# AgroMind Daily Progress Archive
+# AgroMind Daily Progress Index
 
-This directory records dated development checkpoints for AgroMind.
+Dated entries are historical evidence from the day written, not living release status. Current references: [Master Progress](../05_MASTER_PROGRESS.md), [Roadmap](../ROADMAP.md), [Project Rules](../PROJECT_RULES.md).
 
-## Recorded Days
+## Recorded dates
 
 - [2026-08-26](2026-08-26.md)
 - [2026-08-27](2026-08-27.md)
@@ -16,10 +16,12 @@ This directory records dated development checkpoints for AgroMind.
 - [2026-09-12](2026-09-12.md)
 - [2026-09-13](2026-09-13.md)
 - [2026-09-14](2026-09-14.md)
+- [2026-09-21](2026-09-21.md)
+- [2026-09-22](2026-09-22.md)
+- [2026-09-23](2026-09-23.md)
 - [2026-09-24](2026-09-24.md)
+- [2026-09-25](2026-09-25.md)
+- [2026-09-26](2026-09-26.md)
+- [2026-10-25](2026-10-25.md)
 
-Dates with no verified project activity are intentionally omitted instead of creating empty or speculative logs.
-
-## Logging Rule
-
-When a development session materially changes the product, architecture, deployment, infrastructure, or verified behavior, add/update that date's file before ending the session. Prefer facts supported by Git history, deployment state, tests, or explicit user verification.
+Record meaningful work only. Include the starting SHA, scope, changes, test evidence, limitations, results and next work. Keep historical entries intact and this index current; no invented empty logs.

@@ -1,3 +1,7 @@
+> **Historical archive — not current project status.** Some planning, 5-farm, Sprint 1 and unmerged-development claims below are outdated. See [current status](05_MASTER_PROGRESS.md), [roadmap](ROADMAP.md), [project rules](PROJECT_RULES.md), and [dated logs](progress/README.md). Original content is retained for traceability.
+
+---
+
 # 🌱 AgroMind Master Document
 
 Version: 0.1

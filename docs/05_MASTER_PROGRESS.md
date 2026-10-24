@@ -1,5 +1,48 @@
 # AgroMind Master Progress
 
+> **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
+
+## Current baseline
+
+- Repository: [Ali-Mafi/AgroMind](https://github.com/Ali-Mafi/AgroMind), branch `main`.
+- Audited source commit: [`3d3eadcff8b738b9e9f2c065621d19fc30a91233`](https://github.com/Ali-Mafi/AgroMind/commit/3d3eadcff8b738b9e9f2c065621d19fc30a91233), dated 2026-10-05.
+- Vercel project `agro-mind`: production deployment of the audited source commit **READY**; domain `agromind.ir` verified and attached. READY is not device or end-to-end acceptance.
+- [Foundation checks run 37341761200](https://github.com/Ali-Mafi/AgroMind/actions/runs/37341761200): **PASS** for the above code commit, including lint, typecheck, app/database tests (including native PostgreSQL), localization, build and HTTP checks. No claim is made about later commits.
+- Vercel's 7-day runtime-error aggregation returned zero clusters at audit time; browser/device/provider errors may still exist.
+- No open GitHub PRs at audit time.
+
+## Present in source
+
+- Next.js 16 / React 19 / TypeScript, Supabase SSR Auth, email verification/recovery, MFA, account management, cloud farms and irrigation with RLS.
+- Google OAuth merged in [PR #28](https://github.com/Ali-Mafi/AgroMind/pull/28). Apple OAuth [PR #29](https://github.com/Ali-Mafi/AgroMind/pull/29) closed **without merge**.
+- Farm/garden creation and management, Dashboard, Weather, irrigation, multilingual preferences, responsive themes, PWA/offline fallback and Agro Runner.
+- Role-aware farm sharing merged in [PR #30](https://github.com/Ali-Mafi/AgroMind/pull/30); invitation/role-management UI and server actions exist. No fresh end-to-end invite delivery test was performed in this audit.
+- eNAMAD embed code exists in the Landing footer; external trust-badge rendering was not confirmed.
+
+## Open / not verified
+
+- **AI assistant:** `features/assistant/components/assistant-workspace.tsx` is draft-only; send button is disabled. Do not claim AI chat is operational.
+- **Weather:** production Vercel lists a sensitive `WEATHERAPI_API_KEY` variable (the secret was not accessed); provider results and forecast accuracy were not verified. The older "key missing" note below is historical.
+- **Commercial activation:** subscriptions/entitlements exist as foundations; real checkout/payment completion has not been verified.
+- **Device/integration:** authenticated iPhone PWA launch/safe area/performance, offline cache upgrades, live email/OAuth, role invitations and eNAMAD rendering still need explicit testing.
+- **Brand:** application branding remains AgroMind in source; business/company naming is a separate decision.
+
+## Active next steps
+
+1. Maintain coherent evidence-based progress and workflow documentation (this docs-only pass).
+2. Validate live account/device/weather/invite flows and record reproducible issues.
+3. Design and implement the actual farm-aware AI assistant in an authorized task.
+4. Verify payment, entitlements, and trust flows before commercial launch.
+
+The canonical workflow is [Project Rules](PROJECT_RULES.md); priorities are in [Roadmap](ROADMAP.md), with dated evidence in the [Progress Index](progress/README.md). Update this snapshot when tested facts or shipped behavior change. Never rewrite old records as though they are the latest state.
+
+---
+
+## Historical archive — superseded snapshots, not active instructions
+
+Earlier "Current Sprint", "Next Step", or "hosted activation pending" claims below are preserved as contemporaneous history. Use the active snapshot and current code for today's state.
+
+
 ## General review fixes — 2026-09-26
 
 - Fixed stale native-status-bar CI expectations, saved-locale initial rendering, the landing navigation translation, marketing availability labels, and precise-location application logging.

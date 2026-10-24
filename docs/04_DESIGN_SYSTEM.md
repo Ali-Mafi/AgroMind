@@ -85,9 +85,7 @@ Typography
 
 # Typography
 
-Prefer:
-
-Geist
+Use actual app fonts: **Manrope** (Latin headings), **Inter** (Latin body), **Vazirmatn** (Persian), **Geist Mono** (monospace). Follow the variables in `app/layout.tsx` and `app/globals.css`.
 
 Hierarchy:
 
@@ -273,21 +271,9 @@ Users should never search for important information.
 
 ---
 
-# Future Design Goals
+# Implemented and planned design surfaces — 2026-10-25
 
-Dark Mode
-
-Charts
-
-Maps
-
-Sensor Widgets
-
-Weather Widgets
-
-AI Insights
-
-without redesigning the overall visual language.
+Light/Dark/System themes, weather charts, location maps and dashboard cards already exist. Live sensor widgets and AI insights remain future capabilities, not operational features merely because illustrative landing data exists. Extend the established visual language instead of redesigning it.
 
 ---
 

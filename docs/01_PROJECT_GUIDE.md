@@ -74,17 +74,9 @@ AgroMind will eventually include:
 
 ---
 
-# Current Development Stage
+# Current Development Stage — reviewed 2026-10-25
 
-Sprint 1
-
-Landing Page
-
-Current focus:
-
-- Build reusable architecture
-- Establish design system
-- Create production-ready components
+The Landing and Dashboard foundations are implemented. **Sprint 1 is historical.** Current source also includes Supabase Auth/cloud farms, weather, irrigation, team collaboration, Google OAuth, multilingual preferences and PWA; real AI chat, Apple OAuth and payment acceptance are incomplete or deferred. See [Master Progress](05_MASTER_PROGRESS.md) and [Roadmap](ROADMAP.md) for evidence and next work.
 
 ---
 
@@ -118,9 +110,7 @@ Optional:
 
 Farm area should be calculated automatically.
 
-Maximum farms per account:
-
-5
+Farm limits are based on the current plan's **`max_farms` entitlement**, not a universal five-farm rule. The documented Free plan allows **three farms**; verify live plan entitlements before quoting other limits.
 
 ---
 

@@ -18,9 +18,7 @@ Consistency is more important than creativity.
 
 # Design Philosophy
 
-AgroMind is not a marketing website.
-
-AgroMind is a professional SaaS platform for Smart Agriculture.
+AgroMind is a professional SaaS platform for Smart Agriculture **with a public marketing Landing Page**. Product data must not be confused with its illustrative marketing previews.
 
 Every screen should communicate:
 
@@ -52,9 +50,7 @@ Consistency everywhere.
 
 # Layout Rules
 
-Use AppContainer for every page.
-
-Maximum width remains consistent.
+Use shared containers and consistent width tokens where appropriate. Full-viewport Dashboard, Weather and PWA experiences may own safe-area and immersive layouts rather than being forced into AppContainer.
 
 Every section has generous spacing.
 
@@ -64,31 +60,13 @@ Sections breathe.
 
 # Section Rules
 
-Every landing section must use the reusable Section component.
-
-Section controls:
-
-• title
-• subtitle
-• alignment
-• spacing
-• variant
-
-No duplicated section layouts.
+Reuse the Section abstraction when it fits the active Landing structure. Feature-owned sections can have intentional scoped layouts; do not rewrite functioning sections solely to fit an obsolete component template.
 
 ---
 
 # Hero Rules
 
-Hero contains only:
-
-• Badge
-• Heading
-• Subtitle
-• CTA Buttons
-• Dashboard Widget
-
-Nothing else.
+Hero must express value, context and a clear action; supporting content can evolve with the current Landing implementation. An old five-item mockup is not a fixed structural contract.
 
 Hero is the visual focus of the page.
 
@@ -373,7 +351,7 @@ Review
 
 Documentation
 
-No implementation before design approval.
+The user's approval of a full task authorizes its normal implementation steps. Request separate design approval for material new directions or full redesigns, not small authorized fixes. Follow [Project Rules](PROJECT_RULES.md).
 
 ---
 

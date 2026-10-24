@@ -1,277 +1,67 @@
 # AgroMind Project Rules
 
-Version: 1.1.0
-Last updated: 2026-09-04
+Version: 2.0.0  
+Updated: 2026-10-25
 
----
+## Authority and continuity
 
-## Purpose
+- The user's latest explicit request defines scope. A read-only audit does not authorize code edits, releases, billing, schema changes or account operations.
+- The **actual current repository/branch and production SHA** are the technical source of truth. Do not substitute older chat notes, stale planning milestones or archived progress for inspected code.
+- This file is the **canonical active workflow policy**. It supersedes conflicting approval, testing and documentation instructions in `01_*`–`07_*`, the historical `AgroMind_Master_Document.md` and dated reports, unless the user gives a new explicit instruction.
+- Use [Master Progress](05_MASTER_PROGRESS.md) for current evidence, [Roadmap](ROADMAP.md) for priorities and [daily progress](progress/README.md) for historical checkpoints.
+- Continue from the last verified state; do not repeat completed refactors, audits or redesigns without a technical reason.
 
-This document defines the day-to-day engineering workflow for AgroMind.
+## Scoped end-to-end execution
 
-AgroMind must be developed as a professional, production-ready application rather than a demo project. These rules complement the existing project documentation in `docs/01_PROJECT_GUIDE.md` through `docs/07_COMPONENT_STANDARDS.md`.
+- For multi-step tasks, give a concise plan and identify important risks; inspect **relevant** live files first.
+- When the user approves a full task, finish its ordinary dependent steps without asking for "Done" after each file or substep. Stop and ask only for meaningful out-of-scope, destructive, costly, irreversible or security-critical decisions.
+- Prefer minimal, reviewable changes to sweeping refactors. Do not mix unrelated product changes into documentation or bug-fix work.
+- Handle reported regressions at the root cause before dependent feature additions. FAST MODE means less redundant narration, **not** skipped tests or safety checks.
+- Never promise background work; make clear what completed and what remains unverified.
 
-If a workflow rule here conflicts with an older workflow note, the latest explicit user-approved decision is the source of truth.
+## Security and architecture
 
----
+- Current stack: Next.js 16 App Router, React 19, TypeScript, feature-based architecture; inspect `AGENTS.md` and installed framework docs for version-specific API conventions.
+- Keep route files thin, feature logic in its owning feature, secrets and sensitive mutations server-side. Maintain Supabase ownership, RLS, MFA, entitlements and account isolation.
+- Never expose credentials, environment variable **values**, exact private locations or account data in commits, logs or reports. Reading non-secret variable names is not a live provider test.
+- App areas use real persisted user data; label illustrations and marketing sample readings. Preserve localization, RTL, region/unit settings, accessibility, Light/Dark/System themes and reduced-motion support.
+- Do not fabricate AI, sensors, weather observations, successful checkouts or working third-party badges.
 
-## 1. Start of Every Workday
+## Quality and evidence
 
-Before implementing any new task, the AI must review the current GitHub repository state.
-
-The review should include, as relevant:
-
-- Repository root and current project structure
-- Recent commits
-- Files changed since the previous work session
-- Existing documentation
-- The feature files related to the next task
-- Current types, context, services, hooks, components, and routes that may be affected
-
-The AI must not assume that a file still matches an older conversation or cached version.
-
-The repository is the primary technical source of truth.
-
-### 1.1 Start-of-Day Roadmap
-
-Immediately after the repository review and before starting implementation work, the AI must present the user with a roadmap for the current work session.
-
-The roadmap must:
-
-- List the planned work items in execution order.
-- Show the current status of each item with clear visual markers such as `✅`, `⏳`, and `❌`.
-- Distinguish work already completed from work still pending.
-- Include a realistic estimated time range for each remaining item.
-- Include an estimated total session time when it is useful.
-- Be updated if repository inspection changes the expected plan.
-- Keep estimates explicitly approximate; they are planning estimates, not guarantees.
-
-Suggested status convention:
-
-```text
-✅ Completed
-⏳ Planned / in progress
-❌ Blocked / not started when specifically relevant
-```
-
-The roadmap is a planning overview only. The project must still follow the one-step-at-a-time rule: explain and complete one implementation task, wait for confirmation or error, then continue.
-
----
-
-## 2. Daily Progress Log
-
-Every workday must have a progress file under:
-
-`docs/progress/YYYY-MM-DD.md`
-
-The daily log should record:
-
-- Repository state reviewed
-- Work completed
-- Bugs fixed
-- Architecture decisions
-- Important implementation details
-- Tests performed
-- Relevant commits
-- Current project status
-- Next planned task
-
-The daily log must be updated as meaningful milestones are completed.
-
----
-
-## 3. One Step at a Time
-
-Development must remain incremental.
-
-Before each implementation step, the AI must explain:
-
-- What will be changed
-- Why the change is needed
-- Which files are expected to be involved
-- The proposed architecture or approach
-- Important trade-offs or risks
-- How the result will be tested
-
-After explaining the step, the AI must wait for user approval before implementation when approval has not already been given.
-
-After implementation, the AI must stop and wait for the user to confirm that the step is complete or provide an error.
-
-Do not automatically continue into the next feature.
-
----
-
-## 4. Error-First Rule
-
-If an error is reported:
-
-1. Stop new feature development.
-2. Investigate the current implementation.
-3. Fix the error at its root cause when reasonably possible.
-4. Re-run the relevant quality checks.
-5. Resume feature development only after the problem is confirmed resolved.
-
-Avoid stacking new changes on top of a known broken state.
-
----
-
-## 5. Production-First Engineering
-
-Every feature must be designed for the future production application.
-
-Prefer:
-
-- Clear ownership of state
-- Feature-based architecture
-- Reusable components
-- Explicit TypeScript types
-- Small services and hooks with focused responsibilities
-- Real loading, empty, and error states
-- Accessible interactions
-- Responsive layouts
-- Theme compatibility
-- Backend-ready data structures
-- Maintainable code over short-term shortcuts
-
-Avoid:
-
-- Temporary hacks that create known technical debt
-- Duplicate business logic
-- Hardcoded user data
-- Hidden coupling between unrelated features
-- Large page components containing reusable business logic
-- `any` unless there is a documented exceptional reason
-
----
-
-## 6. Application Data vs Demo Data
-
-The real AgroMind application must not depend on demo business data.
-
-Demo/example data is allowed only in marketing or demonstration surfaces such as the Landing Page.
-
-Actual application areas such as:
-
-- Farms
-- Farm Selector
-- Dashboard
-- Weather
-- Irrigation
-- AI recommendations
-- Reports
-- Settings tied to user data
-
-must use real user-created or real persisted data.
-
-When no real data exists, the application should show a purposeful empty state instead of silently inserting demo entities.
-
----
-
-## 7. Architecture Direction
-
-Prefer the following data flow where appropriate:
-
-`UI -> hooks/context -> services -> API/data source`
-
-Feature logic should live under its owning feature whenever practical.
-
-Example:
-
-`features/weather/`
-
-- `components/`
-- `hooks/`
-- `services/`
-- `types/`
-- `utils/`
-
-Pages should primarily compose features rather than contain duplicated feature logic.
-
----
-
-## 8. Quality Gate
-
-After a meaningful implementation step, run at minimum:
+For relevant code changes, use the CI-equivalent scripts:
 
 ```bash
+npm ci
 npm run lint
+npm run typecheck
+npm test
+npm run test:db:native
+npm run localization:check
 npm run build
+npm run test:http
 ```
 
-When the feature has user interaction or persistence, also perform a focused functional test.
+- GitHub's existing Foundation checks are the authoritative repository CI gate. Run all feasible local checks; disclose environment barriers instead of claiming tests passed.
+- Documentation-only work: validate markdown, link targets and diffs; then check CI on the **new** commit.
+- UI/browser and external services also need real flow verification. "CI green", "Vercel READY", "implemented" and "verified on physical iPhone" describe different evidence levels.
+- Note the tested SHA/environment and mark outcomes **implemented**, **verified**, **blocked** or **not tested**.
+- Never suppress or delete tests solely to get green CI.
 
-Examples:
+## Git and production boundaries
 
-- Create -> Refresh -> Verify persistence
-- Edit -> Refresh -> Verify saved values
-- Delete -> Verify redirect and persistence
-- Change farm -> Verify dependent data updates
-- Missing location -> Verify empty state
-- API failure -> Verify error state
+- Confirm the current branch head before writing; preserve concurrent user work. Use meaningful commits and PRs for risky/broad changes.
+- Low-risk documentation-only updates may go straight to `main` when explicitly requested. Never force-push a stale branch or rewrite history.
+- When production is in scope, match intended commit and deployed commit; check Vercel domain separately from build status.
+- An inspection request alone never authorizes a new deployment, rollback, database migration, external paid resource or environment change. Follow the user's requested scope.
 
-A step is not considered complete only because it visually works once.
+## Progress documentation
 
----
+- Log meaningful sessions in `docs/progress/YYYY-MM-DD.md`: starting SHA, work and reasons, changed files, test results and limitations, status and next action.
+- Update [progress index](progress/README.md) for actual logs; maintain the **current snapshot** in [05_MASTER_PROGRESS.md](05_MASTER_PROGRESS.md) and only update [ROADMAP.md](ROADMAP.md) when priorities or facts change.
+- Preserve old logs as historical observations; never silently relabel outdated "next steps" or provider-state claims as current facts.
+- Finish with commit SHA, changed paths, CI/test outcome, deployment status if checked, and any remaining blockers.
 
-## 9. Git and Repository Workflow
+## Product/UI discipline
 
-Use small, meaningful commits.
-
-Commit messages should describe the actual outcome, for example:
-
-- `fix: preserve farms across refresh`
-- `feat(weather): add farm weather dashboard`
-- `refactor(farms): remove demo farms from app state`
-
-Before editing a repository file, fetch its current version when there is any chance it changed since the last review.
-
-Do not overwrite newer user work with an older copy from the conversation.
-
----
-
-## 10. UI and UX Standard
-
-A feature is not complete merely because it functions.
-
-Review:
-
-- Desktop layout
-- Mobile layout
-- Tablet behavior where relevant
-- Light theme
-- Dark theme
-- Empty state
-- Loading state
-- Error state
-- Keyboard/focus behavior where applicable
-- Clear wording
-- Visual consistency with the AgroMind design system
-
-The interface should remain calm, modern, readable, and agricultural without becoming visually noisy.
-
----
-
-## 11. Decision Logging
-
-Important architectural decisions must be documented in the daily progress log.
-
-Examples:
-
-- Moving state ownership
-- Introducing a new service layer
-- Changing persistence strategy
-- Adding a new external API
-- Changing entity types
-- Removing demo data from production flows
-
-The reason for the decision matters as much as the final code.
-
----
-
-## 12. Session Continuity
-
-At the start of a future work session, use the repository documentation and latest daily progress log to reconstruct the exact project state before proceeding.
-
-Do not rely only on conversational memory for technical facts that can be verified from the repository.
-
-The combination of Git history, project docs, and daily progress logs is the persistent project memory for AgroMind.
+Prefer the existing minimal, calm green/gold design, responsive and accessible controls, explicit loading/empty/error states, native-safe viewport handling and measured performance. Avoid unnecessary rebuilding. A feature is not user-ready simply because its draft surface renders.

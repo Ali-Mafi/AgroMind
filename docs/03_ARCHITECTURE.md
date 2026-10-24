@@ -280,17 +280,8 @@ Pure components are preferred over stateful components.
 
 ---
 
-# Future Architecture
+# Implemented and planned services — 2026-10-25
 
-AgroMind should support:
+Already integrated: App Router/API handlers, Supabase SSR authentication and cloud data, weather providers, localized PWA and offline fallback. Extend these actual boundaries rather than rebuilding them. Real AI chat and device/sensor gateways, advanced analytics and paid checkout remain planned or unverified.
 
-- REST API
-- AI Services
-- Weather Services
-- Sensor Gateway
-- Notification Service
-- PWA
-- Offline Mode
-- Multi-language Support
-
-without major architectural changes.
+See [current progress](05_MASTER_PROGRESS.md) and [workflow rules](PROJECT_RULES.md).
