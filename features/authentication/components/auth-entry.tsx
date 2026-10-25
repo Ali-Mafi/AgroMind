@@ -8,6 +8,7 @@ import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
 import { OAuthSignIn } from "./oauth-sign-in";
 import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
+import { SignupConsentProvider } from "@/features/legal/components/signup-consent";
 
 export async function AuthEntry({
   mode,
@@ -56,16 +57,23 @@ export async function AuthEntry({
         </p>
       )}
       {isSupabaseConfigured() ? (
-        <>
-          <OAuthSignIn next={next} source={signup ? "signup" : "login"} />
-          <AuthForm mode={signup ? "sign-up" : "sign-in"} next={next} />
-        </>
+        signup ? (
+          <SignupConsentProvider>
+            <LegalSignupNotice />
+            <OAuthSignIn next={next} source="signup" />
+            <AuthForm mode="sign-up" next={next} />
+          </SignupConsentProvider>
+        ) : (
+          <>
+            <OAuthSignIn next={next} source="login" />
+            <AuthForm mode="sign-in" next={next} />
+          </>
+        )
       ) : (
         <p role="status" className="rounded-xl bg-primary/5 p-4 text-sm leading-6">
           <T text="Account services are temporarily unavailable. Please try again." />
         </p>
       )}
-      {signup && <LegalSignupNotice />}
       {!signup && (
         <div className="mt-4 flex flex-wrap justify-between gap-x-4 text-sm text-primary">
           <Link className="inline-flex min-h-11 items-center hover:underline" href="/forgot-password">
