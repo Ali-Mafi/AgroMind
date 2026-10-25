@@ -35,7 +35,8 @@ export function signUpFeedback(
   if (!edited) return state;
   if (!state.error && !state.fields) return { ...state, success: undefined };
 
-  const parsed = signUpSchema.safeParse(values);
+  // The explicit checkbox has its own UI state; field feedback stays focused on edited identity inputs.
+  const parsed = signUpSchema.safeParse({ ...values, accepted_terms: "on" });
   const currentErrors = parsed.success ? {} : validationState(parsed.error).fields ?? {};
   const visibleFields: Record<string, string> = {};
 

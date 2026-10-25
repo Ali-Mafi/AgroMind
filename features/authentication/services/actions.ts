@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfig } from "@/lib/supabase/config";
+import { REVIEWED_ON } from "@/features/legal/content";
 import {
   emailSchema,
   resetSchema,
@@ -104,6 +105,8 @@ export async function signUpAction(
           username: parsed.data.username,
           language: parsed.data.language,
           verification_watch_hash: watch.hash,
+          terms_accepted_version: REVIEWED_ON,
+          terms_accepted_at: new Date().toISOString(),
         },
       },
     });
@@ -270,6 +273,13 @@ async function oauthRequestOrigin() {
 export async function signInWithGoogleAction(form: FormData): Promise<void> {
   const next = safeNextPath(form.get("next"));
   const source = form.get("source") === "signup" ? "signup" : "login";
+  if (source === "signup" && form.get("accepted_terms") !== "on") {
+    const fallback = new URL("/sign-up", siteOrigin());
+    fallback.searchParams.set("status", "terms-required");
+    const next = safeNextPath(form.get("next"));
+    if (next !== "/dashboard") fallback.searchParams.set("next", next);
+    redirect(fallback.toString());
+  }
   let providerUrl: string | null = null;
 
   try {
@@ -279,7 +289,10 @@ export async function signInWithGoogleAction(form: FormData): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.set(
       "agromind_oauth_intent",
-      encodeURIComponent(JSON.stringify({ next, source })),
+      encodeURIComponent(JSON.stringify({
+        next, source,
+        ...(source === "signup" ? { termsVersion: REVIEWED_ON } : {}),
+      })),
       {
         httpOnly: true,
         secure: true,

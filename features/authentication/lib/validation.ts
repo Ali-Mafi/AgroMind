@@ -86,6 +86,9 @@ export const signUpSchema = z
     password: passwordSchema,
     confirmPassword: z.string(),
     language: z.enum(["en", "fa"]).default("en"),
+    accepted_terms: z.string().optional().refine(value => value === "on", {
+      message: "You must agree to the Terms of Service to create an account.",
+    }),
   })
   .refine((value) => value.password === value.confirmPassword, {
     message: "Passwords do not match.",
