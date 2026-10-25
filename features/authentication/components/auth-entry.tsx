@@ -7,7 +7,6 @@ import { authenticatedDestination } from "../services/session";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
 import { OAuthSignIn } from "./oauth-sign-in";
-import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
 import { SignupConsentProvider } from "@/features/legal/components/signup-consent";
 
 export async function AuthEntry({
@@ -58,11 +57,12 @@ export async function AuthEntry({
       )}
       {isSupabaseConfigured() ? (
         signup ? (
-          <SignupConsentProvider>
-            <LegalSignupNotice />
+          <>
             <OAuthSignIn next={next} source="signup" />
-            <AuthForm mode="sign-up" next={next} />
-          </SignupConsentProvider>
+            <SignupConsentProvider>
+              <AuthForm mode="sign-up" next={next} />
+            </SignupConsentProvider>
+          </>
         ) : (
           <>
             <OAuthSignIn next={next} source="login" />

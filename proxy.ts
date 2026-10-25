@@ -70,6 +70,7 @@ export const config = {
     "/settings/:path*",
     "/weather/:path*",
     "/onboarding/:path*",
+    "/accept-terms",
     "/sign-in",
     "/sign-up",
     "/login",

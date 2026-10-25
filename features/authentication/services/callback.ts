@@ -4,7 +4,6 @@ import { siteOrigin, safeNextPath } from "../lib/redirects";
 import { tokenHashSchema } from "../lib/validation";
 import { clearPendingSignup } from "../lib/pending-signup";
 import { authenticatedDestination } from "./session";
-import { REVIEWED_ON } from "@/features/legal/content";
 
 const OAUTH_INTENT_COOKIE = "agromind_oauth_intent";
 
@@ -47,14 +46,12 @@ function oauthIntent(request: NextRequest) {
     const parsed = JSON.parse(decodeURIComponent(raw)) as {
       next?: unknown;
       source?: unknown;
-      termsVersion?: unknown;
     };
     return {
       next: safeNextPath(
         typeof parsed.next === "string" ? parsed.next : null,
       ),
       source: parsed.source === "signup" ? "signup" : "login",
-      termsVersion: parsed.termsVersion === REVIEWED_ON ? REVIEWED_ON : null,
     } as const;
   } catch {
     return null;
@@ -86,21 +83,6 @@ async function handleOAuthCallback(
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) return securedRedirect(failure, true);
-
-    if (intent?.source === "signup") {
-      if (intent.termsVersion !== REVIEWED_ON) {
-        await supabase.auth.signOut({ scope: "local" });
-        return securedRedirect(failure, true);
-      }
-      const result = await supabase.auth.updateUser({ data: {
-        terms_accepted_version: REVIEWED_ON,
-        terms_accepted_at: new Date().toISOString(),
-      } });
-      if (result.error) {
-        await supabase.auth.signOut({ scope: "local" });
-        return securedRedirect(failure, true);
-      }
-    }
 
     await clearPendingSignup();
     const destination = await authenticatedDestination(intent?.next);

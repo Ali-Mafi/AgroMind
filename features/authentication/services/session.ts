@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { safeNextPath } from "../lib/redirects";
+import { needsGoogleTerms } from "../lib/terms-gate";
 
 export const currentUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
@@ -29,6 +30,7 @@ export const requireUser = cache(async () => {
   if (!user) redirect("/sign-in");
   if (!user.email_confirmed_at) redirect("/verify-email");
   if (await needsSecondFactor()) redirect("/mfa");
+  if (needsGoogleTerms(user)) redirect("/accept-terms");
   return user;
 });
 
@@ -44,6 +46,8 @@ export async function authenticatedDestination(requestedNext?: unknown) {
     return `/mfa?next=${encodeURIComponent(safeNextPath(requestedNext))}`;
 
   const safeNext = safeNextPath(requestedNext);
+  if (needsGoogleTerms(user))
+    return `/accept-terms?next=${encodeURIComponent(safeNext)}`;
   if (safeNext.startsWith("/invite/")) return safeNext;
 
   const supabase = await createClient();

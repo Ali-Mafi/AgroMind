@@ -279,13 +279,6 @@ async function oauthRequestOrigin() {
 export async function signInWithGoogleAction(form: FormData): Promise<void> {
   const next = safeNextPath(form.get("next"));
   const source = form.get("source") === "signup" ? "signup" : "login";
-  if (source === "signup" && form.get("accepted_terms") !== "on") {
-    const fallback = new URL("/sign-up", siteOrigin());
-    fallback.searchParams.set("status", "terms-required");
-    const next = safeNextPath(form.get("next"));
-    if (next !== "/dashboard") fallback.searchParams.set("next", next);
-    redirect(fallback.toString());
-  }
   let providerUrl: string | null = null;
 
   try {
@@ -295,10 +288,7 @@ export async function signInWithGoogleAction(form: FormData): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.set(
       "agromind_oauth_intent",
-      encodeURIComponent(JSON.stringify({
-        next, source,
-        ...(source === "signup" ? { termsVersion: REVIEWED_ON } : {}),
-      })),
+      encodeURIComponent(JSON.stringify({ next, source })),
       {
         httpOnly: true,
         secure: true,

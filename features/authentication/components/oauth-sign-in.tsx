@@ -5,7 +5,6 @@ import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { signInWithGoogleAction } from "../services/actions";
-import { useSignupConsent } from "@/features/legal/components/signup-consent";
 
 function GoogleMark() {
   return (
@@ -34,7 +33,7 @@ function GoogleMark() {
   );
 }
 
-function GoogleSubmitButton({ disabled = false }: { disabled?: boolean }) {
+function GoogleSubmitButton() {
   const { pending } = useFormStatus();
   const t = useTranslation();
 
@@ -42,7 +41,7 @@ function GoogleSubmitButton({ disabled = false }: { disabled?: boolean }) {
     <Button
       type="submit"
       variant="outline"
-      disabled={pending || disabled}
+      disabled={pending}
       className="min-h-12 w-full gap-3 rounded-xl bg-card font-semibold"
     >
       {pending ? (
@@ -63,16 +62,12 @@ export function OAuthSignIn({
   source: "login" | "signup";
 }) {
   const t = useTranslation();
-  const consent = useSignupConsent();
-  const termsAccepted = source === "signup" && consent?.accepted === true;
-
   return (
     <div className="mb-5">
       <form action={signInWithGoogleAction}>
         <input type="hidden" name="next" value={next ?? "/dashboard"} />
         <input type="hidden" name="source" value={source} />
-        {source === "signup" && <input type="hidden" name="accepted_terms" value={termsAccepted ? "on" : ""} />}
-        <GoogleSubmitButton disabled={source === "signup" && !termsAccepted} />
+        <GoogleSubmitButton />
       </form>
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">

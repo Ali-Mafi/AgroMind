@@ -23,6 +23,7 @@ import { signUpFeedback, type SignUpValues } from "../lib/sign-up-feedback";
 import { LoginCaptcha } from "./login-captcha";
 import { useSignupConsent } from "@/features/legal/components/signup-consent";
 import { LEGAL_SIGNUP_AGREEMENT } from "@/features/legal/content";
+import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
 
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
@@ -354,6 +355,7 @@ export function AuthForm({
             {t("Resend verification email")}
           </Link>
         )}
+        {mode === "sign-up" && <LegalSignupNotice />}
         <Button
           type="submit"
           disabled={pending || (mode === "sign-up" && !termsAccepted)}
