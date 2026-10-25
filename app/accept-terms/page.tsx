@@ -12,7 +12,7 @@ import { authenticatedDestination, currentUser, needsSecondFactor } from "@/feat
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "AgroMind | Accept Terms",
+  title: "AgroMind | " + GOOGLE_TERMS_GATE.en.title,
   robots: { index: false, follow: false },
 };
 

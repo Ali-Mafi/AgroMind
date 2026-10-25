@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { InvitationAccept } from "@/features/collaboration/components/invitation-accept";
 import { inviteTokenSchema } from "@/features/collaboration/lib/validation";
+import { needsGoogleTerms } from "@/features/authentication/lib/terms-gate";
 import {
   currentUser,
   needsSecondFactor,
@@ -47,6 +48,8 @@ export default async function Page({
     redirect("/verify-email");
   if (await needsSecondFactor())
     redirect(`/mfa?next=${encodeURIComponent(next)}`);
+  if (needsGoogleTerms(user))
+    redirect(`/accept-terms?next=${encodeURIComponent(next)}`);
 
   return (
     <InvitationAccept
