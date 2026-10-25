@@ -2,6 +2,7 @@ export type LegalKind = "privacy" | "cookies" | "terms";
 export type LegalLanguage = "en" | "fa";
 type Doc = { heading: string; intro: string; sections: ReadonlyArray<readonly [string, readonly string[]]> };
 export const LEGAL_UPDATED = "2026-10-25";
+export const LEGAL_SUPPORT_EMAIL = "support@agromind.ir";
 export const LEGAL_NAV = [
   ["privacy", "/privacy", "Privacy Policy", "حریم خصوصی"],
   ["cookies", "/cookies", "Cookie Policy", "سیاست کوکی‌ها"],

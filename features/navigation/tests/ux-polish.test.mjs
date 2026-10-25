@@ -97,7 +97,8 @@ for (const language of ["en", "fa"]) {
     assert.doesNotMatch(help, /ticket.*success|<summary|<details/);
     const about = workspaceFixture({ language, page: "about" });
     assert.match(about, /href="\/account\/help"/);
-    assert.doesNotMatch(about, /href="\/(privacy|terms)/);
+    for (const route of ["/privacy", "/terms", "/cookies"])
+      assert.ok(about.includes(`href="${route}"`), route);
     assert.match(about, language === "fa" ? /نسخه برنامه/ : /App version/);
     for (const match of about.matchAll(/href="(\/[^"?#]*)"/g)) {
       assert.ok(

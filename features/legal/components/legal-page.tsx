@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { DEFAULT_PREFERENCES, resolvePreferences } from "@/features/settings/lib/preferences";
 import { PREFERENCES_COOKIE, preferencesFromCookie } from "@/features/settings/lib/preferences-cookie";
-import { LEGAL_DOCUMENTS, LEGAL_NAV, LEGAL_UI, LEGAL_UPDATED, type LegalKind } from "../content";
+import { LEGAL_DOCUMENTS, LEGAL_NAV, LEGAL_UI, LEGAL_UPDATED, LEGAL_SUPPORT_EMAIL, type LegalKind } from "../content";
 export async function LegalPage({ kind }: { kind: LegalKind }) {
  const preferences = preferencesFromCookie((await cookies()).get(PREFERENCES_COOKIE)?.value);
  const lang = resolvePreferences(preferences ?? DEFAULT_PREFERENCES).language === "fa" ? "fa" : "en";
@@ -26,7 +26,7 @@ export async function LegalPage({ kind }: { kind: LegalKind }) {
    <footer className="mt-8 flex flex-col gap-3 border-t border-border/60 pt-6">
     <nav aria-label={ui.nav} className="flex flex-wrap gap-x-5 gap-y-3">{LEGAL_NAV.map(([id,href,en,fa]) =>
      <Link key={id} href={href} aria-current={kind === id ? "page" : undefined} className="text-sm font-medium text-primary hover:underline">{lang === "fa" ? fa : en}</Link>)}</nav>
-    <a href="mailto:support@agromind.ir" className="text-xs text-primary hover:underline">support@agromind.ir</a>
+    <a href={`mailto:${LEGAL_SUPPORT_EMAIL}`} className="text-xs text-primary hover:underline">{LEGAL_SUPPORT_EMAIL}</a>
    </footer>
   </div>
  </main>;
