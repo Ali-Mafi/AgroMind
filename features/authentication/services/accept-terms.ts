@@ -36,10 +36,23 @@ export async function acceptGoogleTermsAction(
     }
   }
 
-  // A new request re-reads the refreshed Supabase user; the usual protected
-  // layout then checks onboarding and routes to /onboarding if needed.
+  // Route unfinished Google accounts to onboarding immediately; honor a
+  // previously authorized deep link only after onboarding is complete.
+  const supabase = await createClient();
+  const profile = await supabase.from("profiles")
+    .select("onboarding_completed")
+    .eq("id", user.id)
+    .single();
+  if (profile.error || !profile.data) return { error: "unavailable" };
+
+  const requested = safeNextPath(form.get("next"));
+  const destination = profile.data.onboarding_completed
+    ? requested
+    : requested.startsWith("/invite/")
+      ? requested
+      : "/onboarding";
   revalidatePath("/", "layout");
-  redirect(safeNextPath(form.get("next")));
+  redirect(destination);
 }
 
 export async function declineGoogleTermsAction(): Promise<void> {

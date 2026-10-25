@@ -954,13 +954,25 @@ test("post-Google acceptance is required in the server action and stored before 
     user_metadata: {},
   };
   const calls = [];
-  const client = { auth: {
-    updateUser: async (payload) => {
-      calls.push(payload);
-      return { data: { user }, error: null };
+  let onboardingCompleted = false;
+  const client = {
+    auth: {
+      updateUser: async (payload) => {
+        calls.push(payload);
+        return { data: { user }, error: null };
+      },
+      signOut: async () => ({ error: null }),
     },
-    signOut: async () => ({ error: null }),
-  } };
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({
+            data: { onboarding_completed: onboardingCompleted }, error: null,
+          }),
+        }),
+      }),
+    }),
+  };
   const action = loadTs("features/authentication/services/accept-terms.ts", {
     "@/lib/supabase/server": { createClient: async () => client },
     "./session": { currentUser: async () => user, needsSecondFactor: async () => false },
@@ -972,9 +984,14 @@ test("post-Google acceptance is required in the server action and stored before 
   assert.equal(calls.length, 0);
   await assert.rejects(
     action.acceptGoogleTermsAction({}, form({ accepted_terms: "on", next: "/farms" })),
-    /REDIRECT:\/farms/,
+    /REDIRECT:\/onboarding/,
   );
   assert.equal(calls.length, 1);
   assert.equal(calls[0].data.terms_accepted_version, "2026-10-25");
   assert.ok(Number.isFinite(Date.parse(calls[0].data.terms_accepted_at)));
+  onboardingCompleted = true;
+  await assert.rejects(
+    action.acceptGoogleTermsAction({}, form({ accepted_terms: "on", next: "/farms" })),
+    /REDIRECT:\/farms/,
+  );
 });
