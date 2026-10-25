@@ -294,7 +294,7 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
     terms_accepted_version: "2026-10-25",
     terms_accepted_at: sent.options.data.terms_accepted_at,
   });
-  assert.match(sent.options.data.terms_accepted_at, /^\\d{4}-\\d{2}-\\d{2}T/);
+  assert.match(sent.options.data.terms_accepted_at, /^[0-9]{4}-[0-9]{2}-[0-9]{2}T/);
   assert.deepEqual(
     h.calls.find((call) => call.name === "rememberPending").args[0],
     {
@@ -930,5 +930,5 @@ test("Google signup records checked Terms in OAuth intent and authenticated user
   assert.equal(new URL(response.headers.get("location")).pathname, "/onboarding");
   const accepted = h.calls.find(c => c.name === "updateUser").args[0].data;
   assert.equal(accepted.terms_accepted_version, "2026-10-25");
-  assert.match(accepted.terms_accepted_at, /^\\d{4}-\\d{2}-\\d{2}T/);
+  assert.match(accepted.terms_accepted_at, /^[0-9]{4}-[0-9]{2}-[0-9]{2}T/);
 });

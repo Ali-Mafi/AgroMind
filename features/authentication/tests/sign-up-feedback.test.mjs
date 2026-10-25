@@ -96,7 +96,9 @@ function formHarness(mode = "sign-up") {
 test("real signup handlers retain every controlled value after a server error and clear corrected feedback", () => {
   const h = formHarness();
   const entered = { ...valid, email: "invalid" };
-  for (const [name, value] of Object.entries(entered)) h.input(name).onChange({ target: { value } });
+  for (const [name, value] of Object.entries(entered)) {
+    if (name !== "accepted_terms") h.input(name).onChange({ target: { value } });
+  }
   let prevented = false;
   h.render().props.onSubmit({ preventDefault: () => { prevented = true; } });
   assert.equal(prevented, false);
@@ -112,7 +114,9 @@ test("real signup handlers retain every controlled value after a server error an
 
 test("signup retains duplicate-submit protection, disables pending fields and keeps retry values", () => {
   const h = formHarness();
-  for (const [name, value] of Object.entries(valid)) h.input(name).onChange({ target: { value } });
+  for (const [name, value] of Object.entries(valid)) {
+    if (name !== "accepted_terms") h.input(name).onChange({ target: { value } });
+  }
   let blocked = 0;
   const event = { preventDefault: () => { blocked++; } };
   h.render().props.onSubmit(event);

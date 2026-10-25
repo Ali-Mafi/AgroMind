@@ -85,6 +85,12 @@ export async function signUpAction(
   _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
+  // Reject forged or unchecked requests before any account/provider operations.
+  if (form.get("accepted_terms") !== "on") {
+    return { error: "Please check the highlighted fields.", fields: {
+      accepted_terms: "You must agree to the Terms of Service to create an account.",
+    } };
+  }
   const parsed = signUpSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
   if (form.get("website")) return genericEmail;
