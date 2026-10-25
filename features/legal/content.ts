@@ -194,3 +194,25 @@ export const LEGAL_UI = {
 } as const;
 
 export const LEGAL_SUPPORT_EMAIL = "support@agromind.ir";
+
+export const TERMS_REQUIRED_MESSAGE = "You must agree to the Terms of Service to create an account.";
+export const LEGAL_SIGNUP_AGREEMENT = {
+  en: {
+    label: "I have read and agree to the Terms of Service.",
+    details: "Read the full policies:",
+    terms: "Terms of Service",
+    privacy: "Privacy Policy",
+    cookies: "Cookie Policy",
+    hint: "Check the box above to create an account with email or Google.",
+    error: "You must accept the Terms of Service to sign up.",
+  },
+  fa: {
+    label: "قوانین و مقررات را مطالعه کرده‌ام و می‌پذیرم.",
+    details: "مطالعه متن کامل:",
+    terms: "قوانین و مقررات و شرایط استفاده",
+    privacy: "سیاست حریم خصوصی",
+    cookies: "سیاست کوکی‌ها",
+    hint: "برای ثبت‌نام با ایمیل یا گوگل، تیک بالا را بزنید.",
+    error: "برای ثبت‌نام باید قوانین و مقررات را بپذیرید.",
+  },
+} as const;

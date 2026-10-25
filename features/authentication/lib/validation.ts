@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TERMS_REQUIRED_MESSAGE } from "@/features/legal/content";
 
 export const emailSchema = z
   .string()
@@ -87,7 +88,7 @@ export const signUpSchema = z
     confirmPassword: z.string(),
     language: z.enum(["en", "fa"]).default("en"),
     accepted_terms: z.string().optional().refine(value => value === "on", {
-      message: "You must agree to the Terms of Service to create an account.",
+      message: TERMS_REQUIRED_MESSAGE,
     }),
   })
   .refine((value) => value.password === value.confirmPassword, {

@@ -22,6 +22,7 @@ import {
 import { signUpFeedback, type SignUpValues } from "../lib/sign-up-feedback";
 import { LoginCaptcha } from "./login-captcha";
 import { useSignupConsent } from "@/features/legal/components/signup-consent";
+import { LEGAL_SIGNUP_AGREEMENT } from "@/features/legal/content";
 
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
@@ -327,7 +328,7 @@ export function AuthForm({
           <LoginCaptcha attempt={state} />
         )}
         {mode === "sign-up" && feedback.fields?.accepted_terms && (
-          <p role="alert" className="text-sm text-destructive">{t(feedback.fields.accepted_terms)}</p>
+          <p role="alert" className="text-sm text-destructive">{LEGAL_SIGNUP_AGREEMENT[language === "fa" ? "fa" : "en"].error}</p>
         )}
         {feedback.error && (
           <p

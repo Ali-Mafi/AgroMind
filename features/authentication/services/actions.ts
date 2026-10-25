@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfig } from "@/lib/supabase/config";
-import { REVIEWED_ON } from "@/features/legal/content";
+import { REVIEWED_ON, TERMS_REQUIRED_MESSAGE } from "@/features/legal/content";
 import {
   emailSchema,
   resetSchema,
@@ -88,7 +88,7 @@ export async function signUpAction(
   // Reject forged or unchecked requests before any account/provider operations.
   if (form.get("accepted_terms") !== "on") {
     return { error: "Please check the highlighted fields.", fields: {
-      accepted_terms: "You must agree to the Terms of Service to create an account.",
+      accepted_terms: TERMS_REQUIRED_MESSAGE,
     } };
   }
   const parsed = signUpSchema.safeParse(Object.fromEntries(form));
