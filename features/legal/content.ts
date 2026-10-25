@@ -216,3 +216,32 @@ export const LEGAL_SIGNUP_AGREEMENT = {
     error: "برای ثبت‌نام باید قوانین و مقررات را بپذیرید.",
   },
 } as const;
+
+export const GOOGLE_TERMS_GATE = {
+  en: {
+    title: "One last step",
+    description: "Before setting up your AgroMind account, please review and accept our terms.",
+    label: "I have read and agree to the Terms of Service.",
+    privacy: "Privacy Policy",
+    cookies: "Cookie Policy",
+    terms: "Terms of Service",
+    continue: "Agree and continue",
+    loading: "Saving your choice…",
+    decline: "Not now — sign out",
+    error: "Please accept the Terms of Service to continue.",
+    unavailable: "We couldn't save your choice. Please try again.",
+  },
+  fa: {
+    title: "فقط یک مرحله دیگه",
+    description: "پیش از راه‌اندازی حساب AgroMind، قوانین را مطالعه و تأیید کنید.",
+    label: "قوانین و مقررات را مطالعه کرده‌ام و می‌پذیرم.",
+    privacy: "حریم خصوصی",
+    cookies: "سیاست کوکی‌ها",
+    terms: "قوانین و مقررات",
+    continue: "تأیید و ادامه",
+    loading: "در حال ثبت تأیید…",
+    decline: "فعلاً نه — خروج از حساب",
+    error: "برای ادامه باید قوانین و مقررات را بپذیرید.",
+    unavailable: "ثبت تأیید انجام نشد. دوباره تلاش کنید.",
+  },
+} as const;
