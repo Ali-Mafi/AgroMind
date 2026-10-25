@@ -19,6 +19,12 @@
 - Role-aware farm sharing merged in [PR #30](https://github.com/Ali-Mafi/AgroMind/pull/30); invitation/role-management UI and server actions exist. No fresh end-to-end invite delivery test was performed in this audit.
 - eNAMAD embed code exists in the Landing footer; external trust-badge rendering was not confirmed.
 
+## Agro Runner crow obstacle — 2026-10-25
+
+- Added an animated pixel-art crow that flies above the standing Dino; staying grounded is safe while jumping into it can trigger a collision.
+- Introduced a visible early crow spawn, a cooldown between later crows, bilingual instructions and focused spawn/hitbox tests. Preserved the working `farmer-dino-sheet-v4.png`.
+- Offline public cache upgraded to v17; real installed-iPhone gameplay still requires user visual acceptance.
+
 ## Temporary Agro Runner v4 source comparison — 2026-10-25
 
 - At the user's request, switched the active Farmer Dino sprite **from v5 to the existing v4 PNG** for an A/B visual comparison. No image regeneration, change to frame size/count, movement logic, collision physics, or one-pass Canvas renderer.

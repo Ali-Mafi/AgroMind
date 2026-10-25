@@ -40,6 +40,10 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.doesNotMatch(offline, /drawFarmerDino/);
   assert.doesNotMatch(offline, /drawPixelDinoFallback/);
   assert.match(offline, /pixelCloud/);
+  assert.match(offline, /function drawCrow\(obstacle, p\)/);
+  assert.match(offline, /CROW_FLIGHT_HEIGHT = 114/);
+  assert.match(offline, /spawnedObstacles === 4/);
+  assert.match(offline, /stay down when a crow flies over you/);
   assert.match(offline, /steppedMountain/);
   assert.match(offline, /Wooden fence|wooden fence/i);
 
@@ -69,7 +73,7 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v16/);
+  assert.match(sw, /agromind-public-v17/);
   assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v4.png"];'));
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);

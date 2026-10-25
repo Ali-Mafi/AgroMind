@@ -142,7 +142,7 @@
           <div id="gameOverlay" class="overlay">
             <div class="panel">
               <h3 id="overlayTitle" data-i18n="gameIntro">Farmer Dino is ready</h3>
-              <p id="overlayText" data-i18n="gameHelp">Jump over farm obstacles. Tap anywhere or press Space.</p>
+              <p id="overlayText" data-i18n="gameHelp">Jump over obstacles; stay down when a crow flies over you. Tap or press Space to jump.</p>
               <div class="game-actions">
                 <button id="startButton" class="btn primary" type="button" data-i18n="startGame" aria-label="Start game">Start game</button>
               </div>
@@ -175,7 +175,7 @@
           score: "Score",
           best: "Best",
           gameIntro: "Farmer Dino is ready",
-          gameHelp: "Jump over farm obstacles. Tap anywhere or press Space.",
+          gameHelp: "Jump over obstacles; stay down when a crow flies over you. Tap or press Space to jump.",
           startGame: "Start game",
           restart: "Play again",
           gameOver: "Harvest interrupted!",
@@ -200,7 +200,7 @@
           score: "امتیاز",
           best: "رکورد",
           gameIntro: "دایناسور کشاورز آماده‌ست",
-          gameHelp: "از موانع مزرعه بپر. هرجای صفحه بزن یا Space را فشار بده.",
+          gameHelp: "از روی موانع بپر؛ وقتی کلاغ از بالای سرت رد می‌شه، روی زمین بمون. برای پرش تپ کن یا Space رو بزن.",
           startGame: "شروع بازی",
           restart: "دوباره بازی کن",
           gameOver: "برداشت متوقف شد!",
@@ -293,6 +293,8 @@
       const DINO_FRAME_COUNT = 4;
       const DINO_RUN_FRAME_STEP = 2.2;
       const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v4.png";
+      // The crow clears a grounded Dino, but can hit a Dino mid-jump.
+      const CROW_FLIGHT_HEIGHT = 114;
       const dinoSprite = new Image();
       dinoSprite.decoding = "sync";
 
@@ -314,6 +316,8 @@
       let spawnIn = 950;
       let sceneryOffset = 0;
       let obstacles = [];
+      let spawnedObstacles = 0;
+      let lastCrowSpawn = -3;
       let animation = 0;
       let runPhase = 0;
       let jumpBufferUntil = 0;
@@ -378,14 +382,16 @@
           grassLight:"#89b958", soil:"#573823", soilDark:"#35251a", soilLight:"#785033",
           fence:"#745039", fenceLight:"#987052", flower:"#edf7e9",
           line:"#2c2119", crate:"#9a623c", pipe:"#6f8591", pipeLight:"#aab8c0",
-          hay:"#c99d43", hayLight:"#e1bb5c", scare:"#9a6545", hat:"#d0a151"
+          hay:"#c99d43", hayLight:"#e1bb5c", scare:"#9a6545", hat:"#d0a151",
+          crow:"#19232d", crowWing:"#899dac", crowBeak:"#e6b354"
         } : {
           sky:"#43b3f3", cloud:"#f5fbff", mountainFar:"#78bfd4", mountainNear:"#4f9f88",
           tree:"#4f9d50", treeDark:"#397d3e", field:"#8fd05d", grass:"#66b83e",
           grassLight:"#a7e25b", soil:"#8b4e2b", soilDark:"#5f351f", soilLight:"#ad6b3c",
           fence:"#8b5a35", fenceLight:"#b17a4d", flower:"#ffffff",
           line:"#5f3a25", crate:"#a86738", pipe:"#6c8490", pipeLight:"#a9bdc7",
-          hay:"#d89d31", hayLight:"#f2bf47", scare:"#a65e3a", hat:"#d9a248"
+          hay:"#d89d31", hayLight:"#f2bf47", scare:"#a65e3a", hat:"#d9a248",
+          crow:"#202c36", crowWing:"#4c606e", crowBeak:"#d6a641"
         };
       }
 
@@ -511,7 +517,43 @@
         ctx.restore();
       }
 
+      function crowTop() {
+        return ground - CROW_FLIGHT_HEIGHT;
+      }
+
+      function drawCrow(obstacle, p) {
+        const x = Math.round(obstacle.x);
+        const y = Math.round(crowTop());
+        const wingsUp = Math.floor(runPhase / 1.5) % 2 === 0;
+
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        // Pixel-art silhouette flying to the left.
+        ctx.fillStyle = p.crow;
+        ctx.fillRect(x + 12, y + 10, 21, 12); // Body
+        ctx.fillRect(x + 6, y + 7, 13, 12);  // Head
+        ctx.fillRect(x + 31, y + 13, 7, 4); // Tail
+        ctx.fillRect(x + 34, y + 11, 6, 3);
+        ctx.fillStyle = p.crowBeak;
+        ctx.fillRect(x, y + 13, 7, 3);
+        ctx.fillStyle = "#f5fbff";
+        ctx.fillRect(x + 9, y + 10, 2, 2);
+        ctx.fillStyle = p.crowWing;
+        if (wingsUp) {
+          ctx.fillRect(x + 20, y + 2, 10, 12);
+          ctx.fillRect(x + 17, y + 6, 16, 6);
+        } else {
+          ctx.fillRect(x + 19, y + 14, 12, 10);
+          ctx.fillRect(x + 16, y + 13, 17, 5);
+        }
+        ctx.restore();
+      }
+
       function drawObstacle(obstacle, p) {
+        if (obstacle.type === "crow") {
+          drawCrow(obstacle, p);
+          return;
+        }
         const x = obstacle.x;
         const y = ground - obstacle.h;
         ctx.save();
@@ -576,6 +618,14 @@
       }
 
       function randomObstacle() {
+        spawnedObstacles += 1;
+        // First crow is predictable so players discover that staying grounded
+        // is safe. Later crows stay spaced at least three spawns apart.
+        if (spawnedObstacles === 4 ||
+            (spawnedObstacles > 4 && spawnedObstacles - lastCrowSpawn >= 3 && Math.random() < .34)) {
+          lastCrowSpawn = spawnedObstacles;
+          return { type: "crow", w: 40, h: 26, x: width + 50 };
+        }
         const types = [
           { type:"crate", w:42, h:42 },
           { type:"pipe", w:38, h:51 },
@@ -592,6 +642,8 @@
         spawnIn = 1000;
         sceneryOffset = 0;
         obstacles = [];
+        spawnedObstacles = 0;
+        lastCrowSpawn = -3;
         player.vy = 0;
         player.grounded = true;
         player.y = ground - player.h;
@@ -642,10 +694,13 @@
         const ay = player.y + marginY;
         const aw = player.w - marginX * 2;
         const ah = player.h - marginY;
-        const bx = obstacle.x + 4;
-        const by = ground - obstacle.h + 4;
-        const bw = obstacle.w - 8;
-        const bh = obstacle.h - 4;
+        // Only the crow's body is solid: wing tips are decorative.
+        // Grounded Dino hitbox starts at ground - 65, well below the crow.
+        const isCrow = obstacle.type === "crow";
+        const bx = obstacle.x + (isCrow ? 9 : 4);
+        const by = isCrow ? crowTop() + 8 : ground - obstacle.h + 4;
+        const bw = obstacle.w - (isCrow ? 16 : 8);
+        const bh = isCrow ? 14 : obstacle.h - 4;
         return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
       }
 
