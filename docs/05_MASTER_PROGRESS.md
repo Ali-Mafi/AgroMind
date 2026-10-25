@@ -39,6 +39,13 @@
 - Added image-pixel integrity and single-draw regression tests and updated stale-cache assertions.
 - Real installed-iPhone appearance and PWA cache refresh remain to be accepted; do not mark device verification complete based solely on CI/READY.
 
+## Public legal and privacy foundation — 2026-10-25
+
+- Published bilingual Privacy, Cookie and Terms documents and linked them from landing, account and signup.
+- First-party cookies, browser storage and external providers are disclosed from inspected code in [Privacy Data Flow](PRIVACY_DATA_FLOW.md).
+- No inert tracking-consent banner was introduced; any future nonessential tracking must be gated by a real choice where legally required.
+- Operator identity, data-retention/deletion commitments, provider agreements and legal compliance review remain open before commercial launch.
+
 ## Open / not verified
 
 - **AI assistant:** `features/assistant/components/assistant-workspace.tsx` is draft-only; send button is disabled. Do not claim AI chat is operational.

@@ -13,6 +13,13 @@ Supabase SSR Auth and MFA, email verification/recovery, Google OAuth, cloud farm
 3. Test signup/verification/recovery/Google login and farm team invite/role acceptance using authorized test users.
 4. Verify live eNAMAD image/link and record reproducible issues with focused regression tests.
 
+## P0b — Privacy and operational readiness
+
+- Bilingual public Privacy, Cookie and Terms pages and entry links: implemented.
+- Confirm operator identity, retention/export/deletion procedures and third-party terms with qualified legal review before commercial launch.
+- Gate future nonessential tracking behind actual consent where necessary; do not introduce fictional cookie choices.
+- Maintain [Privacy Data Flow](PRIVACY_DATA_FLOW.md) and plan uptime/error/incident/backup monitoring.
+
 ## P1 — Real farm-aware AI assistant (planned)
 
 Implement authenticated, RLS-safe farm context, chat API/provider, usage limits, reliability and localized UX. Validate privacy, model errors and cost boundaries. The current Assistant is a draft-only UI with sending disabled.

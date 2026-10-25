@@ -92,6 +92,22 @@ try {
     }
   }
 
+  // Public notices must render in both supported locales without a session.
+  for (const url of ["/privacy", "/cookies", "/terms"]) {
+    for (const lang of ["en", "fa"]) {
+      const cookie = "agromind_display_v1=" + encodeURIComponent(JSON.stringify({ version:1, country: lang === "fa" ? "IR" : "US", language:lang, regionConfirmed:true }));
+      const response = await fetch(base + url, { headers:{ cookie } });
+      assert.equal(response.status, 200, url);
+      const html = await response.text();
+      const heading = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? "";
+      assert.ok(heading.length > 5, url);
+      assert.equal(/[\u0600-\u06ff]/.test(heading), lang === "fa");
+      for (const path of ["/privacy", "/cookies", "/terms"]) assert.ok(html.includes('href="' + path + '"'));
+      assert.match(html, /support@agromind\.ir/);
+      console.log("PASS public legal page", url, lang);
+    }
+  }
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
