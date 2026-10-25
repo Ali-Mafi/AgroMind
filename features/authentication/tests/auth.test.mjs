@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { loadTs, localRequire } from "../../weather/tests/helpers/load-ts.mjs";
+import { readFileSync } from "node:fs";
 import { localizedRenderer } from "../../settings/tests/helpers/render.mjs";
 
 const { safeNextPath, safeMfaNextPath, isPrivatePath } = loadTs(
@@ -436,7 +437,6 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   assert.deepEqual(unsafeIntent, {
     next: "/dashboard",
     source: "signup",
-    termsVersion: "2026-10-25",
   });
 });
 
@@ -703,7 +703,6 @@ function oauthIntentCookie(next = "/dashboard", source = "login") {
       JSON.stringify({
         next: safeNextPath(next),
         source: source === "signup" ? "signup" : "login",
-        ...(source === "signup" ? { termsVersion: "2026-10-25" } : {}),
       }),
     )
   );
@@ -892,7 +891,7 @@ for (const language of ["en", "fa"])
   );
  
 
-test("unchecked, missing or tampered Terms agreement rejects signup before Supabase", async () => {
+test("email signup still requires an explicit checkbox; Google starts OAuth without it", async () => {
   for (const terms of [undefined, "", "off", "false", "true", "ON"]) {
     const h = harness();
     const values = { ...signup };
@@ -905,30 +904,77 @@ test("unchecked, missing or tampered Terms agreement rejects signup before Supab
   const h = harness();
   await assert.rejects(
     h.actions.signInWithGoogleAction(form({ source: "signup" })),
-    /REDIRECT:https:\/\/agromind\.ir\/sign-up\?status=terms-required/,
-  );
-  assert.equal(h.calls.some(c => c.name === "oauth"), false);
-});
-
-test("Google signup records checked Terms in OAuth intent and authenticated user metadata", async () => {
-  const h = harness();
-  await assert.rejects(
-    h.actions.signInWithGoogleAction(form({ source: "signup", accepted_terms: "on" })),
     /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
   );
   const intent = JSON.parse(decodeURIComponent(h.authCookies.get("agromind_oauth_intent").value));
-  assert.deepEqual(intent, { next: "/dashboard", source: "signup", termsVersion: "2026-10-25" });
+  assert.deepEqual(intent, { next: "/dashboard", source: "signup" });
+});
+
+test("Google users without a recorded acceptance are gated before private routes", () => {
+  const { needsGoogleTerms } = loadTs("features/authentication/lib/terms-gate.ts");
+  const fresh = { app_metadata: { provider: "google" }, user_metadata: {} };
+  const accepted = { ...fresh, user_metadata: { terms_accepted_version: "2026-10-25" } };
+  assert.equal(needsGoogleTerms(fresh), true);
+  assert.equal(needsGoogleTerms(accepted), false);
+  assert.equal(needsGoogleTerms({ app_metadata: { providers: ["email","google"] } }), true);
+  assert.equal(needsGoogleTerms({ identities: [{ provider: "google" }] }), true);
+  assert.equal(needsGoogleTerms({ app_metadata: { provider: "email" } }), false);
+  assert.equal(needsGoogleTerms(null), false);
+
+  const session = readFileSync("features/authentication/services/session.ts", "utf8");
+  const cloud = readFileSync("features/cloud/services/data.ts", "utf8");
+  assert.match(session, /if \(needsGoogleTerms\(user\)\) redirect\("\/accept-terms"\)/);
+  assert.match(session, /return `\/accept-terms\?next=/);
+  assert.match(cloud, /await requireUser\(\)/);
+});
+
+test("Google OAuth callback routes unaccepted user to agreement instead of onboarding", async () => {
+  const h = harness();
   const { NextRequest } = localRequire("next/server");
   const callback = loadTs("features/authentication/services/callback.ts", {
     ...h.mocks,
-    "./session": { authenticatedDestination: async () => "/onboarding" },
+    "./session": { authenticatedDestination: async () => "/accept-terms?next=%2Fdashboard" },
   });
   const response = await callback.handleAuthCallback(new NextRequest(
     "https://agromind.ir/auth/callback?code=test",
     { headers: { cookie: oauthIntentCookie("/dashboard", "signup") } },
   ));
-  assert.equal(new URL(response.headers.get("location")).pathname, "/onboarding");
-  const accepted = h.calls.find(c => c.name === "updateUser").args[0].data;
-  assert.equal(accepted.terms_accepted_version, "2026-10-25");
-  assert.match(accepted.terms_accepted_at, /^[0-9]{4}-[0-9]{2}-[0-9]{2}T/);
+  const url = new URL(response.headers.get("location"));
+  assert.equal(url.pathname, "/accept-terms");
+  assert.equal(url.searchParams.get("next"), "/dashboard");
+  assert.equal(h.calls.some(c => c.name === "updateUser"), false);
+});
+
+test("post-Google acceptance is required in the server action and stored before redirect", async () => {
+  const { needsGoogleTerms } = loadTs("features/authentication/lib/terms-gate.ts");
+  const user = {
+    id: "google-user",
+    email_confirmed_at: "2026-10-26",
+    app_metadata: { provider: "google" },
+    user_metadata: {},
+  };
+  const calls = [];
+  const client = { auth: {
+    updateUser: async (payload) => {
+      calls.push(payload);
+      return { data: { user }, error: null };
+    },
+    signOut: async () => ({ error: null }),
+  } };
+  const action = loadTs("features/authentication/services/accept-terms.ts", {
+    "@/lib/supabase/server": { createClient: async () => client },
+    "./session": { currentUser: async () => user, needsSecondFactor: async () => false },
+    "../lib/terms-gate": { needsGoogleTerms },
+    "next/navigation": { redirect: url => { throw new Error("REDIRECT:" + url); } },
+    "next/cache": { revalidatePath: () => {} },
+  });
+  assert.deepEqual(await action.acceptGoogleTermsAction({}, form({ next: "/dashboard" })), { error: "required" });
+  assert.equal(calls.length, 0);
+  await assert.rejects(
+    action.acceptGoogleTermsAction({}, form({ accepted_terms: "on", next: "/farms" })),
+    /REDIRECT:\/farms/,
+  );
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].data.terms_accepted_version, "2026-10-25");
+  assert.ok(Number.isFinite(Date.parse(calls[0].data.terms_accepted_at)));
 });

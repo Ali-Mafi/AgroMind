@@ -27,7 +27,7 @@ test("cookie and privacy disclosures describe existing technical behavior", () =
 
 test("public and account entrypoints point to legal notices", () => {
   assert.match(readFileSync("features/landing/components/footer.tsx","utf8"), /<LegalLinks/);
-  assert.match(readFileSync("features/authentication/components/auth-entry.tsx","utf8"), /<LegalSignupNotice/);
+  assert.match(readFileSync("features/authentication/components/auth-form.tsx","utf8"), /<LegalSignupNotice/);
   assert.match(readFileSync("features/account/components/about-product.tsx","utf8"), /<LegalLinks/);
 });
 
@@ -51,18 +51,31 @@ test("legal notices open in a global native modal without changing routes", () =
   assert.match(signup, /<LegalLink/);
 });
 
-test("registration uses one required, default-unchecked agreement shared by both signup forms", () => {
+test("compact Terms checkbox sits at the end of email form, not above Google", () => {
   const entry = readFileSync("features/authentication/components/auth-entry.tsx", "utf8");
+  const form = readFileSync("features/authentication/components/auth-form.tsx", "utf8");
   const notice = readFileSync("features/legal/components/legal-signup-notice.tsx", "utf8");
   const provider = readFileSync("features/legal/components/signup-consent.tsx", "utf8");
-  const emailForm = readFileSync("features/authentication/components/auth-form.tsx", "utf8");
   const oauth = readFileSync("features/authentication/components/oauth-sign-in.tsx", "utf8");
   assert.match(entry, /<SignupConsentProvider>/);
-  assert.match(entry, /<LegalSignupNotice \/>/);
+  assert.ok(form.indexOf("<LegalSignupNotice />") > form.indexOf("confirmPassword"));
+  assert.ok(form.indexOf("<LegalSignupNotice />") < form.indexOf('type="submit"'));
   assert.match(provider, /useState\(false\)/);
   assert.match(notice, /type="checkbox"/);
   assert.match(notice, /required/);
   assert.match(notice, /kind="terms"/);
-  assert.match(emailForm, /name="accepted_terms"/);
-  assert.match(oauth, /name="accepted_terms"/);
+  assert.doesNotMatch(notice, /rounded-2xl|bg-muted\/20 p-4/);
+  assert.doesNotMatch(oauth, /accepted_terms|useSignupConsent/);
+});
+
+test("Google accept-terms is a required authenticated step before onboarding", () => {
+  const step = readFileSync("features/authentication/components/google-terms-step.tsx", "utf8");
+  const route = readFileSync("app/accept-terms/page.tsx", "utf8");
+  const session = readFileSync("features/authentication/services/session.ts", "utf8");
+  assert.match(step, /type="checkbox"/);
+  assert.match(step, /disabled=\{!accepted \|\| pending\}/);
+  assert.match(step, /kind="terms"/);
+  assert.match(route, /needsGoogleTerms\(user\)/);
+  assert.match(route, /<GoogleTermsStep/);
+  assert.match(session, /\/accept-terms/);
 });

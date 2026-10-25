@@ -32,3 +32,10 @@ Source review: 2026-10-25, starting commit `05f6bd1a20e9431139cbf013c22c5eac63a6
 - [ ] Publish real purchase, cancellation, renewal and refund terms before activating payments.
 
 This work cannot guarantee absence of current/future bugs or regulatory compliance.
+
+## Google OAuth post-login consent (2026-10-26)
+
+- Signup uses one compact checkbox located before the final email submit button.
+- Google signup/signin begins without a pre-OAuth checkbox; Google accounts missing the latest policy acknowledgement are redirected to `/accept-terms` before onboarding and all private data snapshots.
+- Accepting writes a version/date to Supabase auth user metadata; declining signs out. Existing Google users with the matching version bypass the step.
+- **Limitation:** Supabase auth user_metadata is client-writable and is not a tamper-proof acceptance/audit ledger. Before relying on this for formal legal evidence, move acceptance to a server-controlled database audit record and verify RLS and retention.

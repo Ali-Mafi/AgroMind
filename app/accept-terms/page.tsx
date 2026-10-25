@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
+import { cookies } from "next/headers";
+import { DEFAULT_PREFERENCES, resolvePreferences } from "@/features/settings/lib/preferences";
+import { PREFERENCES_COOKIE, preferencesFromCookie } from "@/features/settings/lib/preferences-cookie";
+import { GOOGLE_TERMS_GATE } from "@/features/legal/content";
 import { GoogleTermsStep } from "@/features/authentication/components/google-terms-step";
 import { safeNextPath } from "@/features/authentication/lib/redirects";
 import { needsGoogleTerms } from "@/features/authentication/lib/terms-gate";
@@ -27,7 +31,10 @@ export default async function Page({
   if (!needsGoogleTerms(user))
     redirect((await authenticatedDestination(safeNext)) ?? "/sign-in");
 
-  return <AuthShell title="Accept the Terms" description="Just one more step before you start.">
+  const prefs = preferencesFromCookie((await cookies()).get(PREFERENCES_COOKIE)?.value);
+  const language = resolvePreferences(prefs ?? DEFAULT_PREFERENCES).language === "fa" ? "fa" : "en";
+  const copy = GOOGLE_TERMS_GATE[language];
+  return <AuthShell title={copy.title} description={copy.description}>
     <GoogleTermsStep next={safeNext} />
   </AuthShell>;
 }

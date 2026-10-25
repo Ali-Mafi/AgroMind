@@ -48,9 +48,10 @@
 
 ## Registration requires explicit Terms acceptance — 2026-10-25
 
-- Signup has one mandatory unchecked checkbox for Terms plus in-place Privacy/Cookies notices. Both email and Google signup buttons share its state.
-- Server-side email/Google signup actions require explicit acknowledgment; policy revision and server timestamp are stored in Supabase user metadata. Previous accounts/login are unaffected.
-- Future risk: Google OAuth started on the sign-in page may provision a new user without the signup checkbox. A universal first-login policy gate must be reviewed before commercial launch.
+- Email signup keeps a compact mandatory unchecked checkbox directly above the final form button; its server action requires acknowledgement.
+- Google OAuth starts without the checkbox; users with a Google identity and no accepted policy revision are sent to an authenticated `/accept-terms` step before onboarding/private pages, even when they started from sign-in.
+- The acceptance action stores the policy revision and timestamp on Supabase user metadata, or lets the user sign out without accepting. Existing approved Google sessions are not repeatedly prompted.
+- User metadata is user-editable; a durable server-controlled legal audit log remains open before formal commercial launch.
 
 ## Global legal modal — 2026-10-25
 
@@ -297,3 +298,11 @@ Never continue to the next implementation step without user confirmation.
 - Browser verification is blocked by the normal Sign In screen; no authenticated session or physical iPhone is available. Existing Home Screen installations can retain installation metadata. Do not claim the native status-bar outcome has been verified from a build/test pass.
 - Next step: review the deployed Dashboard after fully closing/reopening the PWA; if the older status-bar mode persists, re-add it through Safari and check the header and light-theme selector on the device.
 - Follow-up verification: CI caught missing static-image ambient types before Next's first build on a clean checkout. Added a tracked reference to Next's image types and reproduced typecheck in a clean source-only directory. The initial production image probe used local build hashes (which differ from the hosted build); those 404/400 results do not test the hosted component's actual URLs. The public optimizer responds successfully for the original assets; per-build hashed image responses remain covered by the production-build HTTP suite.
+
+## 2026-10-26 — Compact Terms UX and post-Google gate
+
+- Compressed and moved the email registration checkbox into the bottom of the form before submit.
+- Google OAuth no longer asks for consent before Google sign-in. On return, Google users without acceptance are directed to `/accept-terms`, which requires a checkbox before accessing onboarding or protected pages.
+- Onboarding/dashboards are protected by a server-side requireUser gate and authenticated redirect routing. A separate authenticated server action updates the acceptance revision and time, or the user can decline and sign out.
+- Supabase user_metadata is editable by the user; treat this as a product UX and route gate, **not** an independently verifiable legal audit trail. A trusted database-backed event table is future hardening.
+- Added new regression tests; physical iPhone acceptance still outstanding.

@@ -14,7 +14,6 @@ export function GoogleTermsStep({ next }: { next: string }) {
   const [state, action, pending] = useActionState(acceptGoogleTermsAction, {});
 
   return <div className="space-y-5" dir={language === "fa" ? "rtl" : "ltr"}>
-    <p className="text-sm leading-7 text-muted-foreground">{copy.description}</p>
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={next} />
       <label className="flex cursor-pointer items-start gap-3 text-sm leading-7">
