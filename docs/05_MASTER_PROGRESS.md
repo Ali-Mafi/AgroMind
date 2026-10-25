@@ -19,6 +19,12 @@
 - Role-aware farm sharing merged in [PR #30](https://github.com/Ali-Mafi/AgroMind/pull/30); invitation/role-management UI and server actions exist. No fresh end-to-end invite delivery test was performed in this audit.
 - eNAMAD embed code exists in the Landing footer; external trust-badge rendering was not confirmed.
 
+## Temporary Agro Runner v4 source comparison — 2026-10-25
+
+- At the user's request, switched the active Farmer Dino sprite **from v5 to the existing v4 PNG** for an A/B visual comparison. No image regeneration, change to frame size/count, movement logic, collision physics, or one-pass Canvas renderer.
+- Bumped the public offline Service Worker cache from v15 to v16 and adjusted the relevant offline/sprite tests. The v5 pixel-repair integrity test remains, explicitly documenting the retained archived asset; it is **not** evidence that v4's leg gap is repaired.
+- The previous v5 change was reported as visually unchanged on the user's device. Current v4 appearance and PWA update need direct device acceptance after reconnect/reopening. If unchanged again, investigate installed Service Worker, cached `offline.html`, and actual loaded asset URL before further artwork changes.
+
 ## Latest Agro Runner repair — 2026-10-25
 
 - Repaired 12 transparent pixels at the torso-to-leg junction in the two running frames while preserving the original 336×84 character sheet and all four frame designs; added the versioned `farmer-dino-sheet-v5.png`.

@@ -56,7 +56,7 @@ function decodeSprite(path) {
     pixels.subarray((y * width + frame * 84 + x) * 4, (y * width + frame * 84 + x) * 4 + 4);
 }
 
-test("repaired Farmer Dino running frames keep both legs attached to the torso", () => {
+test("archived repaired v5 running frames keep both legs attached to the torso", () => {
   const color = decodeSprite("public/offline/agro-runner/farmer-dino-sheet-v5.png");
   for (const [frame, first, last] of [[1, 49, 54], [2, 39, 44]]) {
     for (let x = first; x <= last; x++) {
@@ -75,6 +75,6 @@ test("offline renderer draws exactly one complete Dino sprite frame", () => {
   assert.ok(renderer);
   assert.equal((renderer.match(/ctx\.drawImage\(/g) ?? []).length, 1);
   assert.doesNotMatch(renderer, /bodyCut|lowerShift/);
-  assert.match(html, /farmer-dino-sheet-v5\.png/);
+  assert.match(html, /farmer-dino-sheet-v4\.png/);
   assert.match(html, /return 1 \+ \(Math\.floor\(runPhase \/ DINO_RUN_FRAME_STEP\) % 2\)/);
 });

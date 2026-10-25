@@ -292,7 +292,7 @@
       const DINO_FRAME_SIZE = 84;
       const DINO_FRAME_COUNT = 4;
       const DINO_RUN_FRAME_STEP = 2.2;
-      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v5.png";
+      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v4.png";
       const dinoSprite = new Image();
       dinoSprite.decoding = "sync";
 
@@ -492,7 +492,7 @@
       }
 
       function drawDino() {
-        // Draw the entire repaired frame as one image. Splitting the upper and
+        // Draw the complete sprite frame in one pass. Splitting the upper and
         // lower body caused a visible seam and made the leg animation drift.
         if (!dinoSpriteUsable()) return;
 

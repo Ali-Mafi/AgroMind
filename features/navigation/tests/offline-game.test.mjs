@@ -24,7 +24,7 @@ test("offline fallback ships a self-contained Agro Runner game", () => {
   assert.match(offline, /DINO_FRAME_SIZE = 84/);
   assert.match(offline, /DINO_FRAME_COUNT = 4/);
   assert.match(offline, /DINO_RUN_FRAME_STEP = 2\.2/);
-  assert.match(offline, /farmer-dino-sheet-v5\.png/);
+  assert.match(offline, /farmer-dino-sheet-v4\.png/);
   assert.match(offline, /naturalWidth === DINO_FRAME_SIZE \* DINO_FRAME_COUNT/);
   assert.match(offline, /naturalHeight === DINO_FRAME_SIZE/);
   assert.match(offline, /dinoSprite\.addEventListener\("load"/);
@@ -69,8 +69,8 @@ test("offline game preserves reconnect behavior without interrupting gameplay", 
 });
 
 test("service worker precaches only the public offline shell and refreshes its version", () => {
-  assert.match(sw, /agromind-public-v15/);
-  assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v5.png"];'));
+  assert.match(sw, /agromind-public-v16/);
+  assert.ok(sw.includes('const SHELL = ["/offline.html", "/offline/agro-runner/farmer-dino-sheet-v4.png"];'));
   assert.match(sw, /event\.request\.mode === "navigate"/);
   assert.match(sw, /match\("\/offline\.html"\)/);
 
