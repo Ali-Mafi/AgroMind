@@ -10,6 +10,7 @@ const valid = {
   email: "farmer@example.test",
   password: "AgroMind#1384",
   confirmPassword: "AgroMind#1384",
+  accepted_terms: "on",
 };
 const errors = (values) => validationState(signUpSchema.safeParse(values).error);
 
@@ -81,6 +82,7 @@ function formHarness(mode = "sign-up") {
     "@/features/settings/hooks/use-translation": { useTranslation: () => (value) => value },
     "@/features/settings/context/settings-context": { useSettings: () => ({ language: "en" }) },
     "../services/actions": {},
+    "@/features/legal/components/signup-consent": { useSignupConsent: () => ({ accepted: true }) },
   });
   const render = () => hooks.render(AuthForm, { mode });
   return {

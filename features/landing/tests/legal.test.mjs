@@ -50,3 +50,19 @@ test("legal notices open in a global native modal without changing routes", () =
   assert.match(links, /<LegalLink/);
   assert.match(signup, /<LegalLink/);
 });
+
+test("registration uses one required, default-unchecked agreement shared by both signup forms", () => {
+  const entry = readFileSync("features/authentication/components/auth-entry.tsx", "utf8");
+  const notice = readFileSync("features/legal/components/legal-signup-notice.tsx", "utf8");
+  const provider = readFileSync("features/legal/components/signup-consent.tsx", "utf8");
+  const emailForm = readFileSync("features/authentication/components/auth-form.tsx", "utf8");
+  const oauth = readFileSync("features/authentication/components/oauth-sign-in.tsx", "utf8");
+  assert.match(entry, /<SignupConsentProvider>/);
+  assert.match(entry, /<LegalSignupNotice \/>/);
+  assert.match(provider, /useState\(false\)/);
+  assert.match(notice, /type="checkbox"/);
+  assert.match(notice, /required/);
+  assert.match(notice, /kind="terms"/);
+  assert.match(emailForm, /name="accepted_terms"/);
+  assert.match(oauth, /name="accepted_terms"/);
+});

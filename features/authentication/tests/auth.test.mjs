@@ -22,6 +22,7 @@ const signup = {
   password: "AgroMind#1384",
   confirmPassword: "AgroMind#1384",
   language: "fa",
+  accepted_terms: "on",
 };
 
 function harness({
@@ -74,6 +75,7 @@ function harness({
       updateUser: record("update", { data: { user }, error }),
       signOut: record("signOut", { error }),
       exchangeCodeForSession: record("exchange", { error }),
+      updateUser: record("updateUser", { data: { user }, error: null }),
       mfa: {
         getAuthenticatorAssuranceLevel: record("assurance", {
           data: assurance,
@@ -289,7 +291,10 @@ test("signup stores pending identity and rejects duplicate accounts explicitly",
     username: "test_farmer",
     language: "fa",
     verification_watch_hash: "a".repeat(64),
+    terms_accepted_version: "2026-10-25",
+    terms_accepted_at: sent.options.data.terms_accepted_at,
   });
+  assert.match(sent.options.data.terms_accepted_at, /^\\d{4}-\\d{2}-\\d{2}T/);
   assert.deepEqual(
     h.calls.find((call) => call.name === "rememberPending").args[0],
     {
@@ -415,7 +420,7 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   const unsafe = harness();
   await assert.rejects(
     unsafe.actions.signInWithGoogleAction(
-      form({ next: "https://evil.test", source: "signup" }),
+      form({ next: "https://evil.test", source: "signup", accepted_terms: "on" }),
     ),
     /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
   );
@@ -431,6 +436,7 @@ test("Google OAuth starts a server-side PKCE flow with a trusted callback and sa
   assert.deepEqual(unsafeIntent, {
     next: "/dashboard",
     source: "signup",
+    termsVersion: "2026-10-25",
   });
 });
 
@@ -468,7 +474,7 @@ test("Google OAuth initiation fails safely without exposing provider errors", as
 
   await assert.rejects(
     h.actions.signInWithGoogleAction(
-      form({ next: "/farms", source: "signup" }),
+      form({ next: "/farms", source: "signup", accepted_terms: "on" }),
     ),
     (error) => {
       const target = error.message.replace("REDIRECT:", "");
@@ -697,6 +703,7 @@ function oauthIntentCookie(next = "/dashboard", source = "login") {
       JSON.stringify({
         next: safeNextPath(next),
         source: source === "signup" ? "signup" : "login",
+        ...(source === "signup" ? { termsVersion: "2026-10-25" } : {}),
       }),
     )
   );
@@ -883,3 +890,45 @@ for (const language of ["en", "fa"])
       }
     },
   );
+ 
+
+test("unchecked, missing or tampered Terms agreement rejects signup before Supabase", async () => {
+  for (const terms of [undefined, "", "off", "false", "true", "ON"]) {
+    const h = harness();
+    const values = { ...signup };
+    if (terms === undefined) delete values.accepted_terms;
+    else values.accepted_terms = terms;
+    const result = await h.actions.signUpAction({}, form(values));
+    assert.match(result.fields.accepted_terms, /agree to the Terms/);
+    assert.equal(h.calls.length, 0);
+  }
+  const h = harness();
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(form({ source: "signup" })),
+    /REDIRECT:https:\/\/agromind\.ir\/sign-up\?status=terms-required/,
+  );
+  assert.equal(h.calls.some(c => c.name === "oauth"), false);
+});
+
+test("Google signup records checked Terms in OAuth intent and authenticated user metadata", async () => {
+  const h = harness();
+  await assert.rejects(
+    h.actions.signInWithGoogleAction(form({ source: "signup", accepted_terms: "on" })),
+    /REDIRECT:https:\/\/gedwexwxaojpqyeiebwm\.supabase\.co\/auth\/v1\/authorize/,
+  );
+  const intent = JSON.parse(decodeURIComponent(h.authCookies.get("agromind_oauth_intent").value));
+  assert.deepEqual(intent, { next: "/dashboard", source: "signup", termsVersion: "2026-10-25" });
+  const { NextRequest } = localRequire("next/server");
+  const callback = loadTs("features/authentication/services/callback.ts", {
+    ...h.mocks,
+    "./session": { authenticatedDestination: async () => "/onboarding" },
+  });
+  const response = await callback.handleAuthCallback(new NextRequest(
+    "https://agromind.ir/auth/callback?code=test",
+    { headers: { cookie: oauthIntentCookie("/dashboard", "signup") } },
+  ));
+  assert.equal(new URL(response.headers.get("location")).pathname, "/onboarding");
+  const accepted = h.calls.find(c => c.name === "updateUser").args[0].data;
+  assert.equal(accepted.terms_accepted_version, "2026-10-25");
+  assert.match(accepted.terms_accepted_at, /^\\d{4}-\\d{2}-\\d{2}T/);
+});

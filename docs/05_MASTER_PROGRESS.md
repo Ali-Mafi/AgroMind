@@ -46,6 +46,12 @@
 - No inert tracking-consent banner was introduced; any future nonessential tracking must be gated by a real choice where legally required.
 - Operator identity, data-retention/deletion commitments, provider agreements and legal compliance review remain open before commercial launch.
 
+## Registration requires explicit Terms acceptance — 2026-10-25
+
+- Signup has one mandatory unchecked checkbox for Terms plus in-place Privacy/Cookies notices. Both email and Google signup buttons share its state.
+- Server-side email/Google signup actions require explicit acknowledgment; policy revision and server timestamp are stored in Supabase user metadata. Previous accounts/login are unaffected.
+- Future risk: Google OAuth started on the sign-in page may provision a new user without the signup checkbox. A universal first-login policy gate must be reviewed before commercial launch.
+
 ## Global legal modal — 2026-10-25
 
 - Privacy, Cookie and Terms open in a keyboard-accessible native popup (with X close and Escape) from Landing, signup and Account About without navigation.
