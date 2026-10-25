@@ -167,3 +167,28 @@ export const NOTICES = {
     }
   }
 } as const;
+
+export const LEGAL_UI = {
+  en: {
+    back: "Back to AgroMind",
+    navigation: "Legal documents",
+    reviewed: "Last reviewed",
+    support: "Support",
+    signupStart: "Before signing up, review our ",
+    signupSeparator: ", ",
+    signupAnd: " and ",
+    signupEnd: ".",
+  },
+  fa: {
+    back: "بازگشت به AgroMind",
+    navigation: "اسناد حقوقی",
+    reviewed: "تاریخ بازبینی",
+    support: "پشتیبانی",
+    signupStart: "پیش از ثبت‌نام می‌توانید ",
+    signupSeparator: "، ",
+    signupAnd: " و ",
+    signupEnd: " را مطالعه کنید.",
+  },
+} as const;
+
+export const LEGAL_SUPPORT_EMAIL = "support@agromind.ir";

@@ -18,7 +18,12 @@ function filesUnder(directory) {
   });
 }
 
-const files = SOURCE_ROOTS.flatMap(filesUnder);
+// The public legal disclosure catalog contains *paired* complete English/Persian
+// notices, verified by features/landing/tests/legal.test.mjs. Do not treat this
+// bilingual data source as untranslated JSX; still scan all legal components.
+const files = SOURCE_ROOTS.flatMap(filesUnder).filter((file) =>
+  !file.endsWith(path.join("features", "legal", "content.ts")),
+);
 const translationKeys = new Set();
 const hardcoded = [];
 

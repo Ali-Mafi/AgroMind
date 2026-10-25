@@ -2,10 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { loadTs } from "../../weather/tests/helpers/load-ts.mjs";
-const { NOTICES, LINKS } = loadTs("features/legal/content.ts");
+const { NOTICES, LINKS, LEGAL_UI } = loadTs("features/legal/content.ts");
 
 test("every policy is available in Persian and English", () => {
   assert.deepEqual(LINKS.map(entry => entry[1]), ["/privacy", "/cookies", "/terms"]);
+  for(const lang of ["en","fa"]) assert.ok(LEGAL_UI[lang].back.length && LEGAL_UI[lang].signupStart.length);
   for(const kind of ["privacy","cookies","terms"]) {
     assert.match(readFileSync(`app/${kind}/page.tsx`,"utf8"), /<LegalPage kind=/);
     for(const lang of ["en","fa"]) {
