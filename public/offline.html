@@ -292,7 +292,7 @@
       const DINO_FRAME_SIZE = 84;
       const DINO_FRAME_COUNT = 4;
       const DINO_RUN_FRAME_STEP = 2.2;
-      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v3.png";
+      const DINO_SPRITE_URL = "/offline/agro-runner/farmer-dino-sheet-v5.png";
       const dinoSprite = new Image();
       dinoSprite.decoding = "sync";
 
@@ -492,8 +492,8 @@
       }
 
       function drawDino() {
-        // Only the verified Farmer Dino sheet is rendered. There is deliberately
-        // no second/fallback character underneath it, preventing hybrid frames.
+        // Draw the entire repaired frame as one image. Splitting the upper and
+        // lower body caused a visible seam and made the leg animation drift.
         if (!dinoSpriteUsable()) return;
 
         const frameIndex = dinoFrameIndex();
@@ -502,22 +502,11 @@
 
         ctx.save();
         ctx.imageSmoothingEnabled = false;
-        const drawX = Math.round(player.x - 19);
-        const drawY = Math.round(player.y - 10 + bob);
-        const sourceX = frameIndex * DINO_FRAME_SIZE;
-        const bodyCut = 52;
-        const lowerShift = 4;
-
-        // Close the transparent torso/leg gap in the source sheet at render time.
         ctx.drawImage(
           dinoSprite,
-          sourceX, 0, DINO_FRAME_SIZE, bodyCut,
-          drawX, drawY, DINO_FRAME_SIZE, bodyCut,
-        );
-        ctx.drawImage(
-          dinoSprite,
-          sourceX, bodyCut, DINO_FRAME_SIZE, DINO_FRAME_SIZE - bodyCut,
-          drawX, drawY + bodyCut - lowerShift, DINO_FRAME_SIZE, DINO_FRAME_SIZE - bodyCut,
+          frameIndex * DINO_FRAME_SIZE, 0, DINO_FRAME_SIZE, DINO_FRAME_SIZE,
+          Math.round(player.x - 19), Math.round(player.y - 4 + bob),
+          DINO_FRAME_SIZE, DINO_FRAME_SIZE,
         );
         ctx.restore();
       }

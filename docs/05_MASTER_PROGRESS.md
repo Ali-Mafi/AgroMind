@@ -19,6 +19,14 @@
 - Role-aware farm sharing merged in [PR #30](https://github.com/Ali-Mafi/AgroMind/pull/30); invitation/role-management UI and server actions exist. No fresh end-to-end invite delivery test was performed in this audit.
 - eNAMAD embed code exists in the Landing footer; external trust-badge rendering was not confirmed.
 
+## Latest Agro Runner repair — 2026-10-25
+
+- Repaired 12 transparent pixels at the torso-to-leg junction in the two running frames while preserving the original 336×84 character sheet and all four frame designs; added the versioned `farmer-dino-sheet-v5.png`.
+- `offline.html` now renders each complete frame in a single Canvas draw (no torso/lower-body offset); adjusted the artwork baseline without changing jump physics or collision handling.
+- Bumped offline public cache from v14 to v15 and precached the new sprite so existing iPhone PWAs can fetch it after Service Worker activation.
+- Added image-pixel integrity and single-draw regression tests and updated stale-cache assertions.
+- Real installed-iPhone appearance and PWA cache refresh remain to be accepted; do not mark device verification complete based solely on CI/READY.
+
 ## Open / not verified
 
 - **AI assistant:** `features/assistant/components/assistant-workspace.tsx` is draft-only; send button is disabled. Do not claim AI chat is operational.
