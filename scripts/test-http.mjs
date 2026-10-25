@@ -108,6 +108,22 @@ try {
     }
   }
 
+  for (const path of ["/privacy", "/cookies", "/terms"]) {
+    for (const language of ["en","fa"]) {
+      const cookie = "agromind_display_v1=" + encodeURIComponent(JSON.stringify({
+        version: 1, country: language === "fa" ? "IR" : "US",
+        language, regionConfirmed: true,
+      }));
+      const response = await fetch(base + path, { headers: { cookie } });
+      assert.equal(response.status, 200, path);
+      const html = await response.text();
+      assert.match(html, language === "fa" ? /سیاست|شرایط/ : /Privacy|Cookie|Terms/);
+      for (const href of ["/privacy","/cookies","/terms"]) assert.ok(html.includes('href="' + href + '"'));
+      assert.match(html, /support@agromind\.ir/);
+      console.log("PASS legal public route", path, language);
+    }
+  }
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",

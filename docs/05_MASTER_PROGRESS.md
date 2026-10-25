@@ -46,6 +46,12 @@
 - No inert tracking-consent banner was introduced; any future nonessential tracking must be gated by a real choice where legally required.
 - Operator identity, data-retention/deletion commitments, provider agreements and legal compliance review remain open before commercial launch.
 
+## Legal and cookie transparency — 2026-10-25
+
+- Added English/Persian public Privacy, Cookie and Terms pages, linked from Landing, signup and Account About.
+- Audited first-party storage and major providers without installing a nonfunctional cookie-consent banner. The actual legal entity, deletion/retention obligations and vendor agreements still need review.
+- See [privacy data-flow checklist](PRIVACY_DATA_FLOW.md) for facts and outstanding responsibilities.
+
 ## Open / not verified
 
 - **AI assistant:** `features/assistant/components/assistant-workspace.tsx` is draft-only; send button is disabled. Do not claim AI chat is operational.

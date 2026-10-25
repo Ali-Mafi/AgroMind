@@ -1,33 +1,34 @@
-# AgroMind Privacy and Legal Readiness
+# Privacy, Cookies and Legal Launch — Data Flow
 
-Audited against `main` at a5596716e86fa4b785546674acbbeb7eac9454ff on 2026-10-25.
+Source review: 2026-10-25, starting commit `05f6bd1a20e9431139cbf013c22c5eac63a60447`. This is a factual engineering inventory, not a legal compliance certification.
 
-| Data / function | Source | Destination / lifespan |
+| Processing | Evidence | Storage/provider |
 | --- | --- | --- |
-| Login and MFA | Supabase SSR Auth | HttpOnly, Secure production cookies, Supabase session data (provider-managed expiry) |
-| Pending signup | `features/authentication/lib/pending-signup.ts` | Four HttpOnly `agromind_pending_*` cookies; max 24 hours |
-| Display settings | `features/settings/lib/preferences-cookie.ts` | `agromind_display_v1` cookie for 365 days |
-| Local preferences, theme, offline game score | Browser storage | localStorage; removable in browser |
-| Public PWA assets | `public/sw.js` | CacheStorage; not authenticated farms/APIs |
-| Farm records and collaboration | Supabase cloud, RLS | Stored farm data including coordinates and invited members |
-| Location & weather | `/api/location`, `/api/weather` | BigDataCloud/Nominatim, WeatherAPI/Open-Meteo; coordinates in requests |
-| Account email | Authentication email hook | Resend |
-| Optional Google login | OAuth | Google/Supabase |
-| Username anti-abuse | LoginCaptcha | Cloudflare Turnstile |
-| Public badge | Landing footer | eNAMAD image/link |
-| Support form | Account Help | Draft only; no submission backend |
+| Session, MFA, security | `lib/supabase/server.ts`, `lib/supabase/config.ts` | Supabase; HttpOnly first-party auth cookies |
+| Email verification in progress | `features/authentication/lib/pending-signup.ts` | `agromind_pending_*` cookies, around 24h |
+| Locale/units | `features/settings/lib/preferences-cookie.ts` | `agromind_display_v1` up to 365 days |
+| Themes, preferences, game scores | client components | localStorage |
+| Farms, teams, irrigation | Supabase cloud migrations/actions | Supabase database and RLS |
+| Weather, location | `app/api/weather`, `app/api/location` | WeatherAPI, Open-Meteo, BigDataCloud, Nominatim |
+| Auth emails / external sign-in | Auth actions and providers | Resend; optional Google |
+| Abuse prevention | LoginCaptcha | conditional Cloudflare Turnstile |
+| Trust seal | landing footer | external eNAMAD resource |
+| PWA offline mode | `public/sw.js` | public-only CacheStorage |
 
-## Release blockers and recurring checks
+## Shipped now
 
-- [x] Public bilingual Privacy, Cookie and Terms pages linked from landing, signup and account.
-- [x] Disclosure distinguishes essential cookies from non-existent optional tracking choices.
-- [x] Public HTTP and source tests in both languages.
-- [ ] Confirm legal registered operator identity and contact/address; obtain qualified jurisdiction-specific legal review before commercial launch.
-- [ ] Define and implement account deletion/export workflows and auditable retention/backups schedule.
-- [ ] Validate external service contracts, data-transfer regions and embedded-provider storage behavior (Cloudflare, eNAMAD).
-- [ ] Before adding nonessential analytics/marketing cookies, implement working consent gating, reject and withdrawal controls where legally required; never ship trackers first.
-- [ ] Add monitoring, incident procedures, dependency checks and routine restore tests.
-- [ ] Verify physical iPhone PWA, keyboard/a11y, production rendering and provider behaviors.
-- [ ] Publish real purchase, billing, refunds and cancellation conditions before commercial checkout.
+- Public bilingual `/privacy`, `/cookies`, `/terms` and discoverable links from Landing, signup and Account About.
+- Descriptions of current storage and vendors without promising nonexistent legal status or retention SLAs.
+- Content and public HTTP checks.
 
-This inventory describes inspected code, not a blanket legal compliance certification.
+## Before formal commercial launch
+
+- [ ] Confirm registered operating entity name and service address; publish verified identity.
+- [ ] Validate jurisdictions, vendor contracts, server/backup regions and third-party storage/identifiers with qualified legal review.
+- [ ] Establish verified retention periods, user data export/deletion workflow and backup handling.
+- [ ] If optional advertising or analytics tracking is introduced, implement pre-consent blocking and real reject/withdraw controls where required.
+- [ ] Verify physical iPhone PWA, RTL, keyboard accessibility and live browser storage behavior.
+- [ ] Establish error/uptime monitoring, security/dependency review, incident response and restore tests.
+- [ ] Publish real purchase, cancellation, renewal and refund terms before activating payments.
+
+This work cannot guarantee absence of current/future bugs or regulatory compliance.

@@ -20,6 +20,13 @@ Supabase SSR Auth and MFA, email verification/recovery, Google OAuth, cloud farm
 - Gate future nonessential tracking behind actual consent where necessary; do not introduce fictional cookie choices.
 - Maintain [Privacy Data Flow](PRIVACY_DATA_FLOW.md) and plan uptime/error/incident/backup monitoring.
 
+## P0b — Legal and reliability readiness
+
+- Public bilingual legal notices and links: implemented; production/device acceptance still required.
+- Before launch: verify legal operator, retention/deletion process, vendor contracts and actual jurisdiction requirements.
+- Introduce nonessential analytics or ads only with real pre-consent gating when applicable.
+- Follow [Privacy Data Flow](PRIVACY_DATA_FLOW.md) for remaining audit/security steps.
+
 ## P1 — Real farm-aware AI assistant (planned)
 
 Implement authenticated, RLS-safe farm context, chat API/provider, usage limits, reliability and localized UX. Validate privacy, model errors and cost boundaries. The current Assistant is a draft-only UI with sending disabled.

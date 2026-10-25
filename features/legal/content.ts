@@ -1,158 +1,169 @@
+// Public draft notices: based on source audit, not a compliance certification.
 export type LegalKind = "privacy" | "cookies" | "terms";
 export type LegalLanguage = "en" | "fa";
-type Doc = { heading: string; intro: string; sections: ReadonlyArray<readonly [string, readonly string[]]> };
-export const LEGAL_UPDATED = "2026-10-25";
-export const LEGAL_SUPPORT_EMAIL = "support@agromind.ir";
-export const LEGAL_NAV = [
-  ["privacy", "/privacy", "Privacy Policy", "حریم خصوصی"],
-  ["cookies", "/cookies", "Cookie Policy", "سیاست کوکی‌ها"],
-  ["terms", "/terms", "Terms of Service", "شرایط استفاده"],
-] as const;
-export const LEGAL_UI = {
-  en: { home: "Back to AgroMind", updated: "Last updated", nav: "Legal information", note: "This notice describes the current product. Before commercial launch, the registered operator and data-retention details require verification.", signup: ["By registering, review our", "and", ". How we store information is explained in our", "."] },
-  fa: { home: "بازگشت به AgroMind", updated: "آخرین به‌روزرسانی", nav: "اطلاعات حقوقی", note: "این اطلاعیه وضعیت فعلی محصول را شرح می‌دهد. هویت رسمی ارائه‌دهنده و مدت نگهداری داده پیش از عرضه تجاری باید تأیید شوند.", signup: ["پیش از ثبت‌نام،", "و", "را بخوانید. نحوه ذخیره اطلاعات در", "آمده است."] },
+export const REVIEWED_ON = "2026-10-25";
+export const LINKS = [["privacy","/privacy","Privacy Policy","حریم خصوصی"],["cookies","/cookies","Cookie Policy","سیاست کوکی‌ها"],["terms","/terms","Terms of Service","شرایط استفاده"]] as const;
+export const NOTICES = {
+  "privacy": {
+    "en": {
+      "title": "Privacy Policy",
+      "description": "What information AgroMind handles, why it is used and how to contact us.",
+      "items": [
+        [
+          "Service operator",
+          "AgroMind operates at agromind.ir. Its final registered company name and legal address are not yet confirmed for publication. Contact support@agromind.ir for operator and privacy inquiries. This notice must be updated with verified legal details."
+        ],
+        [
+          "Account and farm records",
+          "Account information includes email, username, authentication and security factors, and optional profile details such as name, language, country and time zone. Farm and garden records may include names, precise coordinates, areas, crops, plants and irrigation schedules. Team features may use invitation email addresses and member access roles."
+        ],
+        [
+          "Purposes and location",
+          "We use information to authenticate accounts, manage farms, apply permissions, provide weather and irrigation features, and address security/support issues. Browser location requires permission and can be declined; users can select a location manually. Weather or reverse-geocoding requests transmit selected coordinates to the relevant providers."
+        ],
+        [
+          "Third-party services",
+          "The app uses Vercel for hosting, Supabase for authentication and cloud data, and Resend for account emails. WeatherAPI and Open-Meteo supply weather; BigDataCloud or OpenStreetMap Nominatim handle optional reverse geocoding. Cloudflare Turnstile may load for username login, and Google is involved only if you choose Google sign-in. The landing page embeds an eNAMAD trust badge. Provider processing may occur outside your country."
+        ],
+        [
+          "Cookies, retention and rights",
+          "Essential auth cookies, temporary signup cookies, preference storage and public offline caches support the app. Details are in our Cookie Policy. Removing the app or clearing browser data does not erase cloud farm records. A verified retention schedule and self-service full account deletion are not yet published. Email support@agromind.ir from your account address for data access, correction or deletion requests; identity verification, legal duties and backups may affect handling."
+        ],
+        [
+          "Security and revisions",
+          "Access controls and multifactor options reduce risks but cannot guarantee a completely secure service. Do not share your password or verification codes. This farm-management product is not designed specifically for children. Notices will be revised for material new uses of information, analytics or advertising."
+        ]
+      ]
+    },
+    "fa": {
+      "title": "سیاست حفظ حریم خصوصی",
+      "description": "چه اطلاعاتی در AgroMind پردازش می‌شود، چرا استفاده می‌شود و راه ارتباط چیست.",
+      "items": [
+        [
+          "مسئول ارائه خدمات",
+          "AgroMind نام سرویس در agromind.ir است. نام ثبتی نهایی و نشانی رسمی شرکت هنوز برای انتشار تأیید نشده است. برای پرسش هویتی یا حریم خصوصی به support@agromind.ir ایمیل بزنید. بعد از تأیید اطلاعات قانونی، این متن به‌روزرسانی می‌شود."
+        ],
+        [
+          "اطلاعات حساب و مزرعه",
+          "داده حساب شامل ایمیل، نام کاربری، اطلاعات ورود و امنیت و مشخصات اختیاری مانند نام، زبان، کشور و منطقه زمانی است. رکوردهای باغ و مزرعه ممکن است نام، مختصات دقیق، مساحت، محصول، گیاه و زمان‌بندی آبیاری داشته باشند. قابلیت‌های تیمی می‌توانند ایمیل دعوت‌شونده و نقش دسترسی را پردازش کنند."
+        ],
+        [
+          "هدف و موقعیت مکانی",
+          "از داده برای ورود امن، مدیریت مزرعه، اعمال سطح دسترسی، هواشناسی و آبیاری و رسیدگی به پشتیبانی استفاده می‌شود. مکان‌یابی دستگاه نیاز به اجازه مرورگر دارد و قابل ردکردن است؛ می‌توانید مکان را دستی انتخاب کنید. در درخواست هواشناسی یا یافتن نام محل، مختصات انتخابی به ارائه‌دهندگان مربوط ارسال می‌شود."
+        ],
+        [
+          "خدمات بیرونی",
+          "میزبانی با Vercel، احراز هویت و داده ابری با Supabase و ایمیل حساب با Resend انجام می‌شود. WeatherAPI و Open-Meteo هواشناسی را فراهم می‌کنند؛ BigDataCloud یا OpenStreetMap Nominatim برای یافتن نام مکان استفاده می‌شوند. Cloudflare Turnstile ممکن است برای ورود با نام کاربری بارگیری شود و در صورت انتخاب ورود گوگل، Google دخیل است. نشان اینماد در لندینگ از بیرون بارگیری می‌شود. پردازش طرف‌های ثالث ممکن است بیرون از کشور شما باشد."
+        ],
+        [
+          "کوکی، نگهداری و حقوق کاربر",
+          "کوکی‌های ورود، کوکی موقت ثبت‌نام، ذخیره تنظیمات و کش عمومی آفلاین برای عملکرد اپ استفاده می‌شوند. جزئیات در سیاست کوکی آمده است. پاک‌کردن کوکی یا حذف اپ اطلاعات ابری مزرعه را حذف نمی‌کند. برنامه نگهداری قطعی و حذف کامل خودکار حساب هنوز منتشر نشده است. برای دسترسی، اصلاح یا درخواست حذف داده، از ایمیل حساب به support@agromind.ir پیام بدهید؛ احراز هویت، قوانین و پشتیبان‌گیری می‌توانند در رسیدگی مؤثر باشند."
+        ],
+        [
+          "امنیت و تغییرات",
+          "کنترل دسترسی و ورود چندمرحله‌ای خطر را کاهش می‌دهند ولی امنیت مطلق تضمین‌شدنی نیست. رمز و کد تأیید را به دیگران ندهید. سرویس مخصوص کودکان طراحی نشده و هنگام استفاده جدید و مهم از داده‌ها یا اضافه‌شدن تبلیغات و آنالیتیکس، متن بازبینی می‌شود."
+        ]
+      ]
+    }
+  },
+  "cookies": {
+    "en": {
+      "title": "Cookie & Storage Policy",
+      "description": "An inventory of the browser and offline storage used by AgroMind.",
+      "items": [
+        [
+          "Why there is no accept-all banner",
+          "At this audit, no first-party optional advertising or analytics tracker was found in the application source. The existing storage serves sign-in, signup continuation, display choices and offline use. We have not installed a fictional consent banner. If nonessential trackers are added, they must be blocked pending valid permission where required, with real reject and withdraw choices."
+        ],
+        [
+          "Essential authentication and signup",
+          "Supabase auth uses session cookies, typically named with an sb- prefix. Server cookie options are HttpOnly, SameSite=Lax and Secure in production; exact cookie names and expiry depend on the provider. agromind_pending_email, agromind_pending_username, agromind_pending_verification and agromind_pending_next store temporary signup state for about 24 hours."
+        ],
+        [
+          "Display choices and offline content",
+          "agromind_display_v1 is a first-party preference cookie lasting at most 365 days; it contains language, region and units, not passwords or farm details. Browser localStorage also remembers preferences, themes or game scores. The PWA CacheStorage holds public app assets and an offline game, not private farm API responses."
+        ],
+        [
+          "External services and controls",
+          "Cloudflare Turnstile may load for username login and the landing trust badge is served by eNAMAD. External providers may have their own technical identifiers. You can change display settings in the app and clear cookies/site data through the browser. Clearing session cookies signs you out; it does not erase cloud data. For questions write to support@agromind.ir."
+        ]
+      ]
+    },
+    "fa": {
+      "title": "سیاست کوکی‌ها و ذخیره‌سازی",
+      "description": "فهرست کوکی‌ها، حافظه مرورگر و فایل‌های آفلاین AgroMind.",
+      "items": [
+        [
+          "چرا بنر پذیرش همه نداریم",
+          "در بررسی کد فعلی، ردیاب مستقل تبلیغاتی یا آنالیتیکس اختیاری پیدا نشد. ذخیره‌سازی موجود برای ورود، ادامه ثبت‌نام، تنظیمات و حالت آفلاین است. بنر نمایشی با گزینه‌های بی‌اثر اضافه نکردیم. اگر ردیابی غیرضروری اضافه شود، در موارد لازم باید تا رضایت واقعی غیرفعال بماند و پذیرش، رد و لغو رضایت به‌درستی کار کنند."
+        ],
+        [
+          "کوکی‌های ورود و ثبت‌نام",
+          "نشست ورود Supabase معمولاً از کوکی با پیشوند sb- استفاده می‌کند. تنظیمات سمت سرور HttpOnly و SameSite=Lax و در Production گزینه Secure است؛ نام دقیق و انقضا ممکن است تغییر کند. کوکی‌های agromind_pending_email، agromind_pending_username، agromind_pending_verification و agromind_pending_next اطلاعات موقت ثبت‌نام را تقریباً تا ۲۴ ساعت نگه می‌دارند."
+        ],
+        [
+          "انتخاب‌های نمایش و حالت آفلاین",
+          "کوکی داخلی agromind_display_v1 حداکثر تا ۳۶۵ روز زبان، منطقه و واحدها را نگه می‌دارد، نه رمز یا داده مزرعه. localStorage ممکن است تنظیمات، تم یا امتیاز بازی را ذخیره کند. CacheStorage اپ PWA فایل‌های عمومی و بازی آفلاین را نگه می‌دارد و برای ذخیره پاسخ‌های خصوصی API مزرعه طراحی نشده است."
+        ],
+        [
+          "خدمات بیرونی و کنترل‌ها",
+          "Cloudflare Turnstile ممکن است برای ورود با نام کاربری اجرا شود و نشان اینماد از سرویس بیرونی دریافت می‌شود. این ارائه‌دهندگان می‌توانند شناسه فنی خود را داشته باشند. تنظیمات نمایش از داخل اپ قابل تغییر است و کوکی و داده سایت از مرورگر پاک می‌شود. حذف کوکی ورود از حساب خارجتان می‌کند ولی داده‌های ابری را پاک نمی‌کند. پشتیبانی: support@agromind.ir."
+        ]
+      ]
+    }
+  },
+  "terms": {
+    "en": {
+      "title": "Terms of Service",
+      "description": "Terms for using the current AgroMind farm-management service.",
+      "items": [
+        [
+          "Scope and availability",
+          "AgroMind currently supports farm and garden records, weather, irrigation planning, account preferences and collaboration features. Live AI advice, sensors and paid checkout are not confirmed available. Connectivity, maintenance and providers can interrupt service; perfect uptime and zero bugs cannot be guaranteed."
+        ],
+        [
+          "Accounts and permitted use",
+          "Keep credentials private and enter only information you are authorized to handle. Do not access others' farms, bypass authentication or misuse the service. You retain your rights to underlying farm records; our software and brand are protected under applicable law."
+        ],
+        [
+          "Weather and agricultural decisions",
+          "Weather forecasts, mapping and irrigation information may be delayed or inaccurate. They are decision-support tools, not guarantees of safety, yield, water availability or financial results. Check real field conditions and professional guidance before critical decisions."
+        ],
+        [
+          "Payments and changes",
+          "Subscription entitlements exist but an end-to-end payment system has not been verified for launch. Prices, renewals, refunds and cancellation policies must be added before any paid offering. We may update features and terms with appropriate notice where required."
+        ],
+        [
+          "Operator and contact",
+          "Questions: support@agromind.ir. The operator's final registered identity, governing-law/dispute process and commercial policies must be verified for the actual selling jurisdiction before formal launch. Mandatory rights are not waived by this draft."
+        ]
+      ]
+    },
+    "fa": {
+      "title": "شرایط استفاده از AgroMind",
+      "description": "شرایط استفاده از امکانات فعلی مدیریت مزرعه و باغ.",
+      "items": [
+        [
+          "خدمات و دسترس‌پذیری",
+          "AgroMind در وضعیت فعلی مدیریت باغ و مزرعه، هواشناسی، برنامه آبیاری، تنظیمات حساب و همکاری تیمی دارد. مشاوره فعال هوش مصنوعی، حسگر و پرداخت پولی هنوز تأیید نشده‌اند. اینترنت، نگهداری فنی و سرویس‌های بیرونی می‌توانند موجب اختلال شوند و تضمین نبود هرگونه خطا ممکن نیست."
+        ],
+        [
+          "حساب و استفاده مجاز",
+          "رمزها را محرمانه نگه دارید و فقط اطلاعاتی را ثبت کنید که اجازه پردازش آن را دارید. ورود بدون مجوز به مزرعه دیگران، دورزدن احراز هویت یا سوءاستفاده از سامانه ممنوع است. حقوق مربوط به داده اصلی مزرعه برای شما محفوظ است و نرم‌افزار و برند تابع حقوق مالکیت فکری قابل‌اعمال هستند."
+        ],
+        [
+          "هواشناسی و تصمیم کشاورزی",
+          "پیش‌بینی هوا، نقشه و اطلاعات آبیاری ممکن است با تأخیر یا نادرست باشند و تضمین ایمنی، برداشت، آب یا نتیجه اقتصادی نیستند. پیش از تصمیم حیاتی شرایط واقعی زمین و نظر متخصص را بررسی کنید."
+        ],
+        [
+          "پرداخت و تغییرات",
+          "زیرساخت اشتراک در کد موجود است ولی مسیر پرداخت کامل برای عرضه تأیید نشده است. پیش از هر فروش پولی باید قیمت، تمدید، لغو و بازگشت وجه واقعی منتشر شود. امکانات و شرایط با اطلاع مناسب در موارد لازم می‌توانند تغییر کنند."
+        ],
+        [
+          "مسئول و ارتباط",
+          "پرسش‌ها: support@agromind.ir. نام رسمی متصدی، حقوق حاکم، فرایند اختلاف و سیاست فروش باید قبل از عرضه رسمی در حوزه فعالیت موردنظر تأیید شوند. این پیش‌نویس حقوق الزامی کاربران را ساقط نمی‌کند."
+        ]
+      ]
+    }
+  }
 } as const;
-export const LEGAL_DOCUMENTS: Record<LegalKind, Record<LegalLanguage, Doc>> = {
-privacy: {
-  en: { heading: "Privacy Policy", intro: "Your data, location, account and privacy rights in AgroMind.", sections: [
-    ["Who we are", [
-      "AgroMind is the product operated at agromind.ir. Its registered legal operator and official address have not yet been confirmed for publication. For privacy or operator-identity inquiries, contact support@agromind.ir. Do not infer a particular registered company or location from the brand name."
-    ]],
-    ["Information we collect", [
-      "Account creation and security involve your email address, username, password authentication, verification factors, and optionally name, country, language and time zone. Account recovery and team invitations may require email addresses.",
-      "Farm and garden features store records you enter, including farm names, land area, crops, plants, selected or precise location coordinates, irrigation schedules and information shared with authorized team members."
-    ]],
-    ["Purposes and services", [
-      "We use this data to run sign-in and account protection, manage your farms and authorized collaborators, display maps and forecasts, and respond to help requests. Technical request data may be processed for security, debugging and service operation.",
-      "When requested, farm coordinates are sent from the application server to weather providers WeatherAPI or Open-Meteo. Optional reverse geocoding may send device or chosen coordinates to BigDataCloud or OpenStreetMap Nominatim. Your device only provides its current location after browser permission; manual location entry is an alternative."
-    ]],
-    ["Third-party processing", [
-      "The current stack uses Vercel for hosting, Supabase for account and farm data, and Resend for account emails. Username login may load Cloudflare Turnstile; selecting Google sign-in involves Google. The landing page embeds an image from the eNAMAD trust service.",
-      "Providers receive the information relevant to each request and may process it in different regions. This notice does not claim that data stays in one country or that external services cannot use their own technical identifiers."
-    ]],
-    ["Storage, retention and choices", [
-      "Essential authentication and pending-signup cookies maintain login and email verification. Display preferences are kept in a first-party cookie and device storage; the service worker caches public offline files, not private authenticated farm responses. Read the Cookie Policy for specifics.",
-      "An automated whole-account deletion feature and a complete published retention schedule have not been verified. Clearing browser storage does not delete cloud farm records. To request access, correction or deletion, email support@agromind.ir from your registered address. We may verify your identity and handle the request under applicable law and technical backup requirements; no specific deletion deadline is promised."
-    ]],
-    ["Security and updates", [
-      "Authenticated pages, access controls and multi-factor features reduce risk, but no software can promise perfect security. Do not disclose passwords or verification codes. This farm-management product is not designed specifically for children.",
-      "We have not identified an independent optional advertising or analytics-cookie system in the audited application code. Material new data uses, advertising or optional analytics require review of this notice and any applicable consent controls before deployment."
-    ]]
-  ] },
-  fa: { heading: "سیاست حفظ حریم خصوصی", intro: "داده‌های حساب، موقعیت مزرعه و راه‌های کنترل اطلاعات شما در AgroMind.", sections: [
-    ["ارائه‌دهنده خدمات", [
-      "AgroMind نام محصول فعال در agromind.ir است. نام حقوقی و نشانی رسمی مسئول خدمات هنوز برای انتشار تأیید نشده است. برای سؤال درباره هویت ارائه‌دهنده یا حریم خصوصی به support@agromind.ir پیام بدهید. از نام برند نباید هویت ثبتی مشخصی برداشت شود."
-    ]],
-    ["چه اطلاعاتی می‌گیریم", [
-      "حساب کاربری شامل ایمیل، نام کاربری، اطلاعات ورود و تأیید هویت و در صورت تمایل نام، کشور، زبان و منطقه زمانی است. بازیابی حساب و دعوت اعضای تیم ممکن است از نشانی ایمیل استفاده کند.",
-      "بخش مزرعه و باغ، اطلاعاتی که وارد می‌کنید مانند نام زمین، مساحت، محصول، گیاه، موقعیت انتخابی یا مختصات دقیق، برنامه آبیاری و داده‌های به‌اشتراک‌گذاشته‌شده با اعضای مجاز تیم را نگه می‌دارد."
-    ]],
-    ["چرا و چگونه پردازش می‌شوند", [
-      "از اطلاعات برای ورود و امنیت حساب، مدیریت مزرعه، تعیین سطح دسترسی تیم، نمایش نقشه و هواشناسی و رسیدگی به درخواست‌های پشتیبانی استفاده می‌کنیم. داده فنی درخواست‌ها ممکن است برای نگهداری، عیب‌یابی و امنیت پردازش شود.",
-      "مختصات مورددرخواست از طریق سرور برای پیش‌بینی هوا به WeatherAPI یا Open-Meteo فرستاده می‌شود. برای یافتن نام مکان ممکن است BigDataCloud یا OpenStreetMap Nominatim استفاده شود. موقعیت فعلی دستگاه فقط پس از مجوز مرورگر دریافت می‌شود و می‌توانید مکان را دستی وارد کنید."
-    ]],
-    ["سرویس‌های بیرونی", [
-      "برنامه برای میزبانی از Vercel، برای داده و ورود از Supabase و برای ایمیل حساب از Resend استفاده می‌کند. ورود با نام کاربری ممکن است Cloudflare Turnstile را بارگیری کند؛ ورود گوگل در صورت انتخاب شما از Google استفاده می‌کند و در صفحه لندینگ تصویر نشان اینماد از سرویس بیرونی دریافت می‌شود.",
-      "این ارائه‌دهندگان می‌توانند داده لازم را در مناطق مختلف پردازش کنند. ادعا نمی‌کنیم همه اطلاعات در یک کشور باقی می‌ماند یا سرویس‌های بیرونی هیچ شناسه فنی ندارند."
-    ]],
-    ["کوکی، نگهداری و حقوق کاربر", [
-      "کوکی نشست و ثبت‌نام ناتمام برای ورود و تأیید ایمیل، کوکی نمایش و حافظه دستگاه برای ترجیحات و کش آفلاین برای فایل‌های عمومی استفاده می‌شوند؛ داده خصوصی مزرعه عمداً در کش PWA ذخیره نمی‌شود. جزئیات در سیاست کوکی‌ها آمده است.",
-      "فرایند خودکار حذف کامل حساب و زمان‌بندی قطعی نگهداری هر نوع داده هنوز تأیید نشده است. پاک‌کردن کوکی داده مزرعه را از پایگاه ابری حذف نمی‌کند. برای دریافت، اصلاح یا درخواست حذف اطلاعات از ایمیل حساب به support@agromind.ir بنویسید. ممکن است احراز هویت و بررسی الزامات قانونی و چرخه پشتیبان لازم باشد؛ در این متن زمان قطعی حذف وعده نمی‌دهیم."
-    ]],
-    ["امنیت و تغییرات", [
-      "ورود محافظت‌شده، کنترل دسترسی و امکانات احراز هویت دومرحله‌ای برای کاهش خطر به کار می‌روند ولی امنیت صددرصد تضمین‌شده نیست. رمز و کد تأیید را به کسی ندهید. این محصول ویژه کودکان طراحی نشده است.",
-      "در کد فعلی سامانه مستقل کوکی تبلیغاتی یا آنالیتیکس اختیاری پیدا نکردیم. قبل از هر تغییر مهم در استفاده از داده، تبلیغات یا تحلیل اختیاری، این متن و کنترل‌های رضایت لازم باید بازبینی شوند."
-    ]]
-  ] },
-},
-cookies: {
-  en: { heading: "Cookie & Storage Policy", intro: "What stays in your browser and what cookies currently do.", sections: [
-    ["Essential cookies and sign-in", [
-      "Supabase session cookies (often starting with sb-) enable authenticated access. In production the server config uses HttpOnly, Secure and SameSite=Lax. Exact provider-generated names and expiration may change. Blocking these cookies prevents account features from working.",
-      "agromind_pending_email, agromind_pending_username, agromind_pending_verification and agromind_pending_next are temporary HttpOnly cookies used to continue email signup; their configured maximum age is 24 hours."
-    ]],
-    ["Display preferences", [
-      "agromind_display_v1 is a first-party cookie containing display settings such as language, region and unit preferences, not passwords or private farm records. Its maximum age is 365 days and it uses SameSite=Lax and Secure when HTTPS is used."
-    ]],
-    ["Other device storage", [
-      "LocalStorage can keep preferences, selected appearance and Agro Runner scores. CacheStorage allows the PWA to show the public offline game without a network connection. Authenticated pages, farm data responses and APIs are deliberately excluded from the offline cache."
-    ]],
-    ["Third parties and optional tracking", [
-      "Cloudflare Turnstile may load for username sign-in; the eNAMAD badge is loaded from an external host on the landing page. Providers may use their own technical storage or identifiers according to their policies.",
-      "An independent optional advertising/analytics tracker was not found in the application code during this review. We do not present an inactive accept-all banner. Any future nonessential tracking must wait for a working consent/denial/withdrawal choice wherever required by applicable law."
-    ]],
-    ["Managing storage", [
-      "You can change display settings in AgroMind or clear site data in your browser. Clearing session cookies signs you out; clearing CacheStorage may remove offline functionality until reconnected. Removing device storage does not erase your cloud account or farm information. For questions contact support@agromind.ir."
-    ]]
-  ] },
-  fa: { heading: "سیاست کوکی‌ها و حافظه مرورگر", intro: "کوکی‌ها و داده‌هایی که AgroMind در دستگاه شما نگه می‌دارد.", sections: [
-    ["کوکی‌های ضروری حساب", [
-      "کوکی‌های ورود Supabase (معمولاً با پیشوند sb-) برای دسترسی امن به حساب به کار می‌روند. تنظیمات محیط عملیاتی شامل HttpOnly و Secure و SameSite=Lax است. نام و زمان انقضای دقیق ممکن است با سرویس احراز هویت تغییر کند. مسدودکردن این کوکی‌ها ورود را مختل می‌کند.",
-      "کوکی‌های agromind_pending_email و agromind_pending_username و agromind_pending_verification و agromind_pending_next به ادامه تأیید ایمیل هنگام ثبت‌نام کمک می‌کنند. این کوکی‌ها HttpOnly هستند و حداکثر ۲۴ ساعت اعتبار دارند."
-    ]],
-    ["کوکی تنظیمات نمایش", [
-      "کوکی agromind_display_v1 برای زبان، منطقه و واحدهای اندازه‌گیری استفاده می‌شود و شامل رمز یا اطلاعات خصوصی مزرعه نیست. حداکثر عمر آن ۳۶۵ روز است و از SameSite=Lax و در اتصال HTTPS از Secure استفاده می‌کند."
-    ]],
-    ["حافظه‌های دیگر دستگاه", [
-      "LocalStorage می‌تواند تنظیمات، تم و امتیاز Agro Runner را حفظ کند. CacheStorage نسخه آفلاین و فایل‌های عمومی PWA را نگه می‌دارد. صفحات حساب، پاسخ API و داده خصوصی مزرعه عمداً در کش آفلاین ذخیره نمی‌شوند."
-    ]],
-    ["سرویس‌های بیرونی و ردیابی اختیاری", [
-      "Cloudflare Turnstile ممکن است هنگام ورود با نام کاربری بارگیری شود و تصویر اینماد از دامنه بیرونی در لندینگ نمایش داده می‌شود. این سرویس‌ها می‌توانند طبق سیاست خود از شناسه‌های فنی استفاده کنند.",
-      "در بررسی فعلی کد، سامانه مستقل تبلیغات یا آنالیتیکس اختیاری پیدا نشده؛ بنابراین بنر نمایشی «قبول همه» نمی‌گذاریم. اگر بعدها ردیابی غیرضروری اضافه شود، پیش از فعال‌سازی و طبق قوانین قابل‌اعمال، انتخاب واقعی پذیرش، رد و پس‌گرفتن رضایت لازم است."
-    ]],
-    ["کنترل حافظه", [
-      "از تنظیمات برنامه یا مرورگر می‌توانید ترجیحات و داده سایت را پاک کنید. پاک‌کردن نشست باعث خروج از حساب و حذف کش ممکن است باعث عدم دسترسی آفلاین تا اتصال مجدد شود. پاک‌کردن حافظه مرورگر، داده ابری حساب یا مزرعه را حذف نمی‌کند. پرسش‌ها: support@agromind.ir."
-    ]]
-  ] },
-},
-terms: {
-  en: { heading: "Terms of Service", intro: "The current features, responsible use, and important limits.", sections: [
-    ["Scope and availability", [
-      "AgroMind currently offers farm and garden records, forecasts, irrigation scheduling, account security, display preferences and team collaboration. Experimental or coming-soon services (including live AI chat and sensor integration) should not be treated as active features.",
-      "Maintenance, internet connectivity and external providers can affect availability. We do not promise uninterrupted service or zero defects."
-    ]],
-    ["Accounts and records", [
-      "Keep account details accurate and authentication factors private. Manage your invited team members carefully. You are responsible for information you submit and must not submit someone else's confidential records without authorization.",
-      "AgroMind uses submitted records to deliver the product; it does not claim ownership of your underlying farm data. Software, interface and branding remain subject to their applicable intellectual property rights."
-    ]],
-    ["Prohibited activity", [
-      "Do not bypass authentication, RLS or access permissions, collect other users' data, disrupt the service, impersonate others, or use AgroMind for unlawful activity. Protective restrictions may apply to abusive behavior in accordance with applicable law."
-    ]],
-    ["Agricultural risk and forecasts", [
-      "Weather forecasts, map data and irrigation suggestions can be delayed, incomplete or wrong; none guarantees crop yield, water availability or financial results. Check local conditions, equipment safety and specialist guidance before making critical decisions. Do not rely only on the app in situations affecting safety or property."
-    ]],
-    ["Payments and external providers", [
-      "Subscription/entitlement code exists, but end-to-end commercial checkout has not been verified. No subscription price, renewal, billing, refund or cancellation commitment is invented here. Actual paid terms must be provided before paid purchase is enabled.",
-      "Google, weather, maps and other service providers may have their own terms."
-    ]],
-    ["Privacy, changes and contact", [
-      "Our Privacy and Cookie policies describe current data use. Material changes should be disclosed as applicable law requires. To contact the service, email support@agromind.ir.",
-      "Registered legal-operator, governing-law and dispute-resolution details remain subject to confirmation before formal commercial launch. These terms do not exclude rights that applicable laws make non-waivable."
-    ]]
-  ] },
-  fa: { heading: "شرایط استفاده از AgroMind", intro: "قواعد استفاده از خدمات فعلی و محدودیت‌های مهم.", sections: [
-    ["خدمات و دسترس‌پذیری", [
-      "AgroMind در وضعیت فعلی مدیریت مزرعه و باغ، نمایش هواشناسی، برنامه آبیاری، امنیت حساب، تنظیمات و همکاری تیمی را ارائه می‌دهد. امکانات آزمایشی یا «به‌زودی» مانند چت واقعی هوش مصنوعی و اتصال حسگرها را نباید فعال فرض کرد.",
-      "نگهداری فنی، قطع اینترنت و اختلال سرویس بیرونی ممکن است دسترسی را محدود کند. سرویس کاملاً بدون خطا یا بی‌وقفه تضمین نمی‌شود."
-    ]],
-    ["حساب و داده", [
-      "اطلاعات درست وارد کنید، رمز و کدها را محرمانه نگه دارید و سطح دسترسی اعضای دعوت‌شده را مدیریت کنید. مسئول اطلاعات ثبت‌شده هستید و نباید داده محرمانه دیگران را بدون اجازه وارد کنید.",
-      "AgroMind از سوابق شما برای ارائه خدمات استفاده می‌کند و مالکیت داده اصلی مزرعه را ادعا نمی‌کند. حقوق نرم‌افزار، رابط کاربری و برند تابع قوانین مرتبط است."
-    ]],
-    ["استفاده غیرمجاز", [
-      "دورزدن ورود، امنیت و سطح دسترسی، جمع‌آوری اطلاعات دیگران، اختلال در برنامه، جعل هویت یا فعالیت غیرقانونی ممنوع است. برای مقابله با سوءاستفاده می‌توان مطابق قوانین قابل‌اعمال محدودیت حفاظتی ایجاد کرد."
-    ]],
-    ["خطرات کشاورزی", [
-      "پیش‌بینی هوا، داده نقشه و پیشنهاد آبیاری ممکن است با تأخیر، ناقص یا اشتباه باشد و تضمین محصول، تأمین آب یا سود نیست. پیش از اقدام مهم، شرایط محلی، ایمنی تجهیزات و نظر متخصص را بررسی کنید و فقط به برنامه تکیه نکنید."
-    ]],
-    ["پرداخت و خدمات بیرونی", [
-      "زیرساخت پلن در کد وجود دارد اما کارکرد کامل خرید پولی هنوز تأیید نشده است. بنابراین قیمت، تمدید، لغو یا بازپرداخت ساختگی در این متن درج نشده؛ شرایط واقعی فروش باید پیش از فعال‌شدن پرداخت منتشر شود.",
-      "سرویس‌های گوگل، هواشناسی، نقشه و دیگر ارائه‌دهندگان ممکن است شرایط جداگانه داشته باشند."
-    ]],
-    ["حریم خصوصی، تغییرات و ارتباط", [
-      "سیاست حریم خصوصی و کوکی‌ها نحوه پردازش فعلی داده را توضیح می‌دهند. تغییر مهم باید در حدود قوانین قابل‌اعمال اطلاع‌رسانی شود. راه ارتباط: support@agromind.ir.",
-      "هویت حقوقی ثبت‌شده، قانون حاکم و روش حل اختلاف هنوز باید پیش از عرضه تجاری نهایی شوند. این متن حقوق قانونیِ غیرقابل‌اسقاط کاربران را حذف نمی‌کند."
-    ]]
-  ] }
-}
-};
