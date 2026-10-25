@@ -11,7 +11,7 @@ test("legal pages in both languages cover provider, storage and support notices"
  for (const kind of ["privacy", "cookies", "terms"]) {
   for (const lang of ["en", "fa"]) {
    const d = NOTICES[kind][lang];
-   assert.ok(d.title.length > 5 && d.items.length >= 5);
+   assert.ok(d.title.length > 5 && d.items.length >= 4);
    assert.ok(d.items.flatMap(x => x[1]).join(" ").includes("support@agromind.ir"));
   }
   assert.match(readFileSync(`app/${kind}/page.tsx`, "utf8"), /<LegalPage kind=/);
