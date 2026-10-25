@@ -8,7 +8,6 @@ import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
 import { OAuthSignIn } from "./oauth-sign-in";
 import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
-import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
 
 export async function AuthEntry({
   mode,
@@ -66,7 +65,6 @@ export async function AuthEntry({
           <T text="Account services are temporarily unavailable. Please try again." />
         </p>
       )}
-      {signup && <LegalSignupNotice />}
       {signup && <LegalSignupNotice />}
       {!signup && (
         <div className="mt-4 flex flex-wrap justify-between gap-x-4 text-sm text-primary">

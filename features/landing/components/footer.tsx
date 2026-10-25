@@ -1,7 +1,6 @@
 import { T } from "@/features/settings/components/translated-text";
 import { APP } from "@/constants/app";
 import { LegalLinks } from "@/features/legal/components/legal-links";
-import { LegalLinks } from "@/features/legal/components/legal-links";
 
 export function Footer() {
   return (
@@ -37,7 +36,6 @@ export function Footer() {
             }}
           />
 
-          <LegalLinks />
           <LegalLinks />
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} {APP.name}<T text=". All rights reserved." />

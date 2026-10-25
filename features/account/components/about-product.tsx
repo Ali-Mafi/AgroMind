@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { APP } from "@/constants/app";
 import { LegalLinks } from "@/features/legal/components/legal-links";
-import { LegalLinks } from "@/features/legal/components/legal-links";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 
 const capabilities = [
@@ -101,7 +100,6 @@ export function AboutProduct() {
           ))}
         </div>
       </section>
-      <section className="app-card max-w-4xl p-5 sm:p-6"><LegalLinks /></section>
       <section className="app-card max-w-4xl p-5 sm:p-6"><LegalLinks /></section>
       <section className="app-card flex max-w-4xl flex-wrap items-center justify-between gap-5 p-5 sm:p-6">
         <p className="text-sm text-muted-foreground">
