@@ -30,3 +30,23 @@ test("public and account entrypoints point to legal notices", () => {
   assert.match(readFileSync("features/authentication/components/auth-entry.tsx","utf8"), /<LegalSignupNotice/);
   assert.match(readFileSync("features/account/components/about-product.tsx","utf8"), /<LegalLinks/);
 });
+
+test("legal notices open in a global native modal without changing routes", () => {
+  const layout = readFileSync("app/layout.tsx", "utf8");
+  const provider = readFileSync("features/legal/components/legal-modal-provider.tsx", "utf8");
+  const link = readFileSync("features/legal/components/legal-link.tsx", "utf8");
+  const dialog = readFileSync("features/legal/components/legal-modal-dialog.tsx", "utf8");
+  const links = readFileSync("features/legal/components/legal-links.tsx", "utf8");
+  const signup = readFileSync("features/legal/components/legal-signup-notice.tsx", "utf8");
+  assert.match(layout, /<LegalModalProvider>/);
+  assert.match(provider, /lazy\(\(\)\s*=>/);
+  assert.match(provider, /openLegal/);
+  assert.match(link, /event\.preventDefault\(\)/);
+  assert.match(link, /isUnmodifiedLegalClick/);
+  assert.match(dialog, /dialog\.showModal\(\)/);
+  assert.match(dialog, /onCancel=/);
+  assert.match(dialog, /aria-label=\{ui\.close\}/);
+  assert.match(dialog, /onSelect\(id\)/);
+  assert.match(links, /<LegalLink/);
+  assert.match(signup, /<LegalLink/);
+});

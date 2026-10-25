@@ -172,6 +172,7 @@ export const LEGAL_UI = {
   en: {
     back: "Back to AgroMind",
     navigation: "Legal documents",
+    close: "Close",
     reviewed: "Last reviewed",
     support: "Support",
     signupStart: "Before signing up, review our ",
@@ -182,6 +183,7 @@ export const LEGAL_UI = {
   fa: {
     back: "بازگشت به AgroMind",
     navigation: "اسناد حقوقی",
+    close: "بستن",
     reviewed: "تاریخ بازبینی",
     support: "پشتیبانی",
     signupStart: "پیش از ثبت‌نام می‌توانید ",

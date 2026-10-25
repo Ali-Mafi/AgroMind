@@ -46,6 +46,12 @@
 - No inert tracking-consent banner was introduced; any future nonessential tracking must be gated by a real choice where legally required.
 - Operator identity, data-retention/deletion commitments, provider agreements and legal compliance review remain open before commercial launch.
 
+## Global legal modal — 2026-10-25
+
+- Privacy, Cookie and Terms open in a keyboard-accessible native popup (with X close and Escape) from Landing, signup and Account About without navigation.
+- Shared bilingual notices are lazily loaded inside a lightweight global provider; public URL routes remain available to open or share directly.
+- Real iPhone modal interaction and accessibility verification still require device testing.
+
 ## Legal and cookie transparency — 2026-10-25
 
 - Added English/Persian public Privacy, Cookie and Terms pages, linked from Landing, signup and Account About.

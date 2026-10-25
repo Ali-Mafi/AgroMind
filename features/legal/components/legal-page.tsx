@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalLink } from "./legal-link";
 import { cookies } from "next/headers";
 import { DEFAULT_PREFERENCES, resolvePreferences } from "@/features/settings/lib/preferences";
 import { PREFERENCES_COOKIE, preferencesFromCookie } from "@/features/settings/lib/preferences-cookie";
@@ -27,7 +28,7 @@ export async function LegalPage({ kind }: { kind: LegalKind }) {
       </div>
       <footer className="border-t pt-6">
         <nav aria-label={ui.navigation} className="flex flex-wrap gap-4 text-sm">
-          {LINKS.map(([key,href,en,titleFa]) => <Link key={key} href={href} aria-current={kind === key ? "page" : undefined} className="font-semibold text-primary hover:underline">{fa ? titleFa : en}</Link>)}
+          {LINKS.map(([key, ,en,titleFa]) => <LegalLink key={key} kind={key} className="font-semibold text-primary hover:underline">{fa ? titleFa : en}</LegalLink>)}
         </nav>
         <p className="mt-4 text-sm text-muted-foreground">{ui.support}: <a className="text-primary" href="mailto:support@agromind.ir">{LEGAL_SUPPORT_EMAIL}</a></p>
       </footer>

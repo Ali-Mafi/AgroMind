@@ -13,6 +13,7 @@ import { NavigationFeedback } from "@/features/navigation/components/navigation-
 
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { SettingsProvider } from "@/features/settings/context/settings-context";
+import { LegalModalProvider } from "@/features/legal/components/legal-modal-provider";
 import { RegionProvider } from "@/features/region/context/region-context";
 import { RegionOnboardingEntry } from "@/features/settings/components/region-onboarding-entry";
 import { DEFAULT_PREFERENCES, resolvePreferences } from "@/features/settings/lib/preferences";
@@ -103,11 +104,13 @@ export default async function RootLayout({
         <ThemeProvider>
           <PwaSessionSafety />
           <SettingsProvider initialPreferences={initialPreferences}>
-            <NavigationFeedback />
-            <RegionProvider>
-              <RegionOnboardingEntry />
-              {children}
-            </RegionProvider>
+            <LegalModalProvider>
+              <NavigationFeedback />
+              <RegionProvider>
+                <RegionOnboardingEntry />
+                {children}
+              </RegionProvider>
+            </LegalModalProvider>
           </SettingsProvider>
         </ThemeProvider>
       </body>
