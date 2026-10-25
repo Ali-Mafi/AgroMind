@@ -22,7 +22,7 @@ test("cookie and privacy disclosures describe existing technical behavior", () =
   const privacy=NOTICES.privacy.en.items.map(item=>item[1]).join(" ");
   for(const name of ["agromind_display_v1","agromind_pending_email","Supabase"]) assert.ok(cookie.includes(name));
   for(const service of ["Vercel","Resend","WeatherAPI","Open-Meteo","Turnstile","Nominatim"]) assert.ok(privacy.includes(service));
-  assert.match(cookie, /non-essential trackers|nonessential trackers|nonessential tracking/i);
+  assert.match(cookie, /non-essential tracking|nonessential trackers|nonessential tracking/i);
 });
 
 test("public and account entrypoints point to legal notices", () => {

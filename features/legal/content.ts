@@ -2,7 +2,7 @@
 export type LegalKind = "privacy" | "cookies" | "terms";
 export type LegalLanguage = "en" | "fa";
 export const REVIEWED_ON = "2026-10-25";
-export const LINKS = [["privacy","/privacy","Privacy Policy","حریم خصوصی"],["cookies","/cookies","Cookie Policy","سیاست کوکی‌ها"],["terms","/terms","Terms of Service","شرایط استفاده"]] as const;
+export const LINKS = [["privacy","/privacy","Privacy Policy","حریم خصوصی"],["cookies","/cookies","Cookie Policy","سیاست کوکی‌ها"],["terms","/terms","Terms and Conditions","شرایط و مقررات"]] as const;
 export const NOTICES = {
   "privacy": {
     "en": {
@@ -237,7 +237,7 @@ export const GOOGLE_TERMS_GATE = {
     label: "شرایط و مقررات استفاده از خدمات را مطالعه کرده‌ام و مفاد آن را می‌پذیرم.",
     privacy: "حریم خصوصی",
     cookies: "سیاست کوکی‌ها",
-    terms: "قوانین و مقررات",
+    terms: "شرایط و مقررات",
     continue: "پذیرش و ادامه",
     loading: "در حال ثبت پذیرش…",
     decline: "عدم پذیرش و خروج از حساب",

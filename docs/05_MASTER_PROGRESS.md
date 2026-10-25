@@ -46,6 +46,11 @@
 - No inert tracking-consent banner was introduced; any future nonessential tracking must be gated by a real choice where legally required.
 - Operator identity, data-retention/deletion commitments, provider agreements and legal compliance review remain open before commercial launch.
 
+## Formal user-facing legal copy — 2026-10-26
+
+- Updated bilingual Privacy, Cookie and Terms document wording to formal, natural institutional prose; revised registration and Google post-login acknowledgment text for consistency.
+- Kept factual disclosures and the existing checkbox, modal, route gating and policy revision unchanged; legal review and operator particulars remain outstanding.
+
 ## Registration requires explicit Terms acceptance — 2026-10-25
 
 - Email signup keeps a compact mandatory unchecked checkbox directly above the final form button; its server action requires acknowledgement.
