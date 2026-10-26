@@ -51,7 +51,7 @@ export function HelpCenter() {
   return (
     <>
       <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-        {t("Find a quick answer and get back to your farm.")}
+        {t("Submit a request, check its status or consult the help guides below.")}
       </p>
       <section className="app-card space-y-4 p-5 sm:p-7">
         <div className="flex items-start gap-3">

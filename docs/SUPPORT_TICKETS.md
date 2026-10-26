@@ -66,3 +66,9 @@ For expired uncertain jobs, reconcile the provider's delivery record using the i
 Automated coverage includes schema validation, ownership/IDOR attempts, direct DML denial, role revocation, AAL2/fresh-MFA checks, internal-note privacy, transitions/version conflicts, pagination/read receipts, limits, duplicate concurrency, outbox leases/recovery, localized templates and Help Center regressions. HTTP tests cover unauthenticated redirects, no-store headers and scheduler authentication. Mobile layouts have responsive/accessibility regression checks; authenticated browser/device acceptance is separate and remains unverified without authorized sessions.
 
 See the session log and master progress for actual run/deployment evidence. Configuration presence is not email delivery evidence; local database tests are not a production customer-session test.
+
+## Interface polish and staff mailbox — 2026-10-26
+
+- Admin tickets now distinguish unread and read using a distinct start-border, background tint, clear indicator and accessible label. Statuses have distinct treatments; unread totals are page-scoped. Staff statuses distinguish staff response needed from waiting for the customer.
+- Customer Help places the visible submission form before their ticket list. Conversation messages are visually separated for customers, staff and private notes. Authorization and data models are unchanged.
+- Staff new-ticket notifications have a dedicated subject and short, safe message with no ticket body. The production recipient is intended to be `admin@agromind.ir`. Email delivery remains dependent on verified mailbox, server-only worker credential, activation and scheduled retries, followed by a real inbox test.

@@ -42,7 +42,7 @@ export async function drainSupportEmails() {
             ? `https://agromind.ir/admin/support?ticket=${job.ticketId}`
             : `https://agromind.ir/account/help/tickets/${job.ticketId}`;
         await sendAuthEmail({
-          ...supportEmail(job.number, job.event, job.language, href),
+          ...supportEmail(job.number, job.event, job.language, href, job.audience === "staff" ? "staff" : "user"),
           to,
           idempotencyKey: `support/${job.id}`,
         });

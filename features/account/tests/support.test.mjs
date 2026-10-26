@@ -40,6 +40,11 @@ test("support email contains safe links and localized copy without message bodie
     assert.match(rendered.html, new RegExp(`lang="${lang}"`));
     assert.match(rendered.text, /AM-00000001/);
   }
+  const newTicket = supportEmail("AM-00000002", "created", "fa", "https://agromind.ir/admin/support?ticket=123", "staff");
+  assert.match(newTicket.subject, /درخواست پشتیبانی جدید/);
+  assert.match(newTicket.text, /درخواست پشتیبانی جدید ثبت شده است/);
+  assert.match(newTicket.html, /admin\/support/);
+  assert.doesNotMatch(newTicket.text, /A description with enough details/);
   assert.doesNotMatch(
     supportEmail("<script>", "reply", "en", 'https://agromind.ir/?x="').html,
     /<script>|href="[^"]*""/,
@@ -114,6 +119,11 @@ test("support UI uses accessible responsive controls and text-only rendering", (
   assert.match(ui, /role="alert"/);
   assert.match(ui, /role="status"/);
   assert.match(ui, /whitespace-pre-wrap break-words/);
+  assert.match(ui, /border-s-primary/);
+  assert.match(ui, /Unread on this page/);
+  const help = readFileSync("features/account/components/help-center.tsx", "utf8");
+  assert.ok(help.indexOf("<SupportTicketForm />") < help.indexOf("<SupportWorkspace />"));
+  assert.match(help, /Frequently asked questions/);
   assert.doesNotMatch(ui, /dangerouslySetInnerHTML/);
   const { translator } = loadTs("features/settings/lib/translation.ts");
   for (const key of [

@@ -1,4 +1,6 @@
 export const SUPPORT_PERSIAN: Record<string, string> = {
+  "Submit a request, check its status or consult the help guides below.": "درخواست پشتیبانی ثبت کنید، وضعیت آن را پیگیری کنید یا راهنماهای زیر را مطالعه کنید.",
+
   "Review new requests, reply to customers and track unresolved cases.": "درخواست‌های جدید را بررسی کنید، پاسخ دهید و موارد باز را پیگیری کنید.",
   "Follow your requests, read replies and continue the conversation here.": "درخواست‌های ثبت‌شده و پاسخ‌های پشتیبانی را در این بخش مشاهده و پیگیری کنید.",
   "Tickets on this page": "درخواست‌های این صفحه",
