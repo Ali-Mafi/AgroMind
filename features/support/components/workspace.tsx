@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { CircleDot, CheckCheck, Inbox, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountShell } from "@/features/account/components/account-shell";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
@@ -15,7 +16,25 @@ import {
   type SupportData,
 } from "../lib/schema";
 const control =
-  "min-h-11 w-full rounded-xl border bg-background px-3 py-2 text-base";
+  "min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20";
+const statusTone: Record<string, string> = {
+  open: "border-border bg-muted/50 text-foreground",
+  waiting_for_support: "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+  waiting_for_user: "border-sky-500/30 bg-sky-500/10 text-sky-800 dark:text-sky-200",
+  resolved: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200",
+  closed: "border-border bg-muted text-muted-foreground",
+};
+const priorityTone: Record<string, string> = {
+  high: "text-rose-700 dark:text-rose-300",
+  normal: "text-muted-foreground",
+  low: "text-muted-foreground",
+};
+function statusLabel(status: string, staff: boolean) {
+  if (staff && status === "waiting_for_support") return "Needs staff response";
+  if (staff && status === "waiting_for_user") return "Waiting for customer";
+  return statusLabels[status as keyof typeof statusLabels] ?? status;
+}
+
 export function SupportPage({
   staff = false,
   ticketId,
@@ -103,35 +122,38 @@ export function SupportWorkspace({
       timeStyle: "short",
     }).format(new Date(value));
   const ticket = data.ticket;
+  const visibleTickets = data.tickets?.slice(0, 20) ?? [];
+  const unreadCount = visibleTickets.filter((item) => item.unread).length;
   return (
     <section
       className="app-card min-w-0 space-y-5 p-5 sm:p-7"
       aria-busy={loading || busy}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">
-          {t(
-            ticketId
-              ? "Support ticket"
-              : staff
-                ? "Support workspace"
-                : "My support tickets",
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 pb-5">
+        <div className="min-w-0 space-y-2">
+          <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl">
+            <Inbox className="size-5 shrink-0 text-primary" aria-hidden="true" />
+            {t(ticketId ? "Support ticket" : staff ? "Support workspace" : "My support tickets")}
+          </h2>
+          {!ticketId && (
+            <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+              {t(staff ? "Review new requests, reply to customers and track unresolved cases." : "Follow your requests, read replies and continue the conversation here.")}
+            </p>
           )}
-        </h2>
+        </div>
         <Button
           variant="outline"
+          className="min-h-11 shrink-0"
           disabled={loading || busy}
           onClick={() => { setLoading(true); void refresh(); }}
         >
           {t("Refresh")}
         </Button>
-      </div>
+      </header>
       {staff && (
-        <p className="text-sm text-muted-foreground">
-          {t(
-            "Staff actions require an authenticator verification within the last 15 minutes.",
-          )}{" "}
-          <Link href="/admin/support/verify" className="text-primary underline">
+        <p className="rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs leading-6 text-muted-foreground">
+          {t("Staff actions require an authenticator verification within the last 15 minutes.")}{" "}
+          <Link href="/admin/support/verify" className="font-semibold text-primary underline-offset-4 hover:underline">
             {t("Verify identity")}
           </Link>
         </p>
@@ -149,7 +171,7 @@ export function SupportWorkspace({
       )}
       {!ticketId && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 rounded-xl border border-border/70 bg-muted/15 p-3 sm:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-1 text-sm">
               {t("Status")}
               <select
@@ -207,7 +229,7 @@ export function SupportWorkspace({
                   </select>
                 </label>
                 <form
-                  className="flex items-end gap-2"
+                  className="flex items-end gap-2 sm:col-span-2 xl:col-span-3"
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (query === search && page === 0) { setLoading(true); void refresh(); } else { setLoading(true); setQuery(search); }
@@ -228,45 +250,58 @@ export function SupportWorkspace({
               </>
             )}
           </div>
-          {!loading && !error && !data.tickets?.length && (
-            <p className="text-sm text-muted-foreground">
-              {t("No tickets match this view.")}
-            </p>
+          {!loading && !error && (
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" aria-live="polite">
+              <span>{t("Tickets on this page")}: <strong className="tabular-nums text-foreground">{visibleTickets.length}</strong></span>
+              <span className={unreadCount ? "font-semibold text-primary" : ""}>
+                {t("Unread on this page")}: <strong className="tabular-nums">{unreadCount}</strong>
+              </span>
+            </div>
           )}
-          <ul className="divide-y">
-            {data.tickets?.slice(0, 20).map((item) => (
-              <li key={item.id} className="py-4">
+          {!loading && !error && !visibleTickets.length && (
+            <div className="rounded-xl border border-dashed border-border p-7 text-center">
+              <Inbox className="mx-auto mb-3 size-8 text-muted-foreground/60" aria-hidden="true" />
+              <p className="font-medium">{t("No tickets match this view.")}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {t(staff ? "Try another status or search term." : "Your submitted requests will appear here.")}
+              </p>
+            </div>
+          )}
+          <ul className="space-y-2" aria-label={t(staff ? "Support workspace" : "My support tickets")}>
+            {visibleTickets.map((item) => (
+              <li key={item.id}>
                 <Link
-                  className="block space-y-2 rounded-lg focus-visible:outline-2 focus-visible:outline-primary"
-                  href={
-                    staff
-                      ? `/admin/support?ticket=${item.id}`
-                      : `/account/help/tickets/${item.id}`
-                  }
+                  className={`group block rounded-xl border border-s-4 px-4 py-3.5 transition-colors hover:border-primary/50 hover:bg-primary/[0.04] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                    item.unread
+                      ? "border-primary/30 border-s-primary bg-primary/[0.07] shadow-sm"
+                      : "border-border border-s-transparent bg-card"
+                  }`}
+                  href={staff ? `/admin/support?ticket=${item.id}` : `/account/help/tickets/${item.id}`}
+                  aria-label={`${t(item.unread ? "Unread" : "Read")} · ${item.ticket_number} · ${item.subject}`}
                 >
-                  <div className="flex flex-wrap gap-2">
-                    <bdi className="text-sm text-muted-foreground">
-                      {item.ticket_number}
-                    </bdi>
-                    {item.unread && (
-                      <span className="text-sm font-semibold text-primary">
-                        {t("Unread")}
-                      </span>
-                    )}
-                  </div>
-                  <p className="break-words font-medium">{item.subject}</p>
-                  <p className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                    <span>{t(statusLabels[item.status])}</span>
-                    <span>{t(priorityLabels[item.priority])}</span>
-                    <time dateTime={item.updated_at}>
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <bdi className="text-xs font-medium tabular-nums text-muted-foreground">{item.ticket_number}</bdi>
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold ${item.unread ? "text-primary" : "text-muted-foreground"}`}>
+                          {item.unread ? <CircleDot className="size-3.5" aria-hidden="true" /> : <CheckCheck className="size-3.5" aria-hidden="true" />}
+                          {t(item.unread ? "Unread" : "Read")}
+                        </span>
+                      </div>
+                      <h3 className={`break-words text-sm leading-6 sm:text-base ${item.unread ? "font-bold" : "font-medium"}`}>{item.subject}</h3>
+                      {staff && item.user_email && <p className="break-all text-xs text-muted-foreground">{item.user_email}</p>}
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className={`rounded-md border px-2 py-1 font-medium ${statusTone[item.status]}`}>
+                          {t(statusLabel(item.status, staff))}
+                        </span>
+                        {staff && <span className={`font-medium ${priorityTone[item.priority]}`}>{t("Priority")}: {t(priorityLabels[item.priority])}</span>}
+                        {!staff && <span className="text-muted-foreground">{t(item.category)}</span>}
+                      </div>
+                    </div>
+                    <time dateTime={item.updated_at} className="shrink-0 text-end text-[11px] leading-5 text-muted-foreground sm:text-xs">
                       {date(item.updated_at)}
                     </time>
-                  </p>
-                  {staff && (
-                    <p className="break-all text-sm text-muted-foreground">
-                      {item.user_email}
-                    </p>
-                  )}
+                  </div>
                 </Link>
               </li>
             ))}
@@ -281,55 +316,47 @@ export function SupportWorkspace({
           >
             {t("Back to tickets")}
           </Link>
-          <div className="space-y-2">
-            <bdi>{ticket.ticket_number}</bdi>
-            <h3 className="break-words text-lg font-semibold">
-              {ticket.subject}
-            </h3>
-            <p className="text-sm">
-              {t(ticket.category)} · {t(statusLabels[ticket.status])} ·{" "}
-              {t(priorityLabels[ticket.priority])}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t("Created")}:{" "}
-              <time dateTime={ticket.created_at}>
-                {date(ticket.created_at)}
-              </time>
-              <br />
-              {t("Updated")}:{" "}
-              <time dateTime={ticket.updated_at}>
-                {date(ticket.updated_at)}
-              </time>
+          <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+            <bdi className="text-xs font-medium tabular-nums text-muted-foreground">{ticket.ticket_number}</bdi>
+            <h3 className="break-words text-lg font-semibold">{ticket.subject}</h3>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className={`rounded-md border px-2 py-1 font-medium ${statusTone[ticket.status]}`}>{t(statusLabel(ticket.status, staff))}</span>
+              <span className="rounded-md border border-border bg-card px-2 py-1">{t(ticket.category)}</span>
+              {staff && <span className={`rounded-md border border-border bg-card px-2 py-1 ${priorityTone[ticket.priority]}`}>{t("Priority")}: {t(priorityLabels[ticket.priority])}</span>}
+            </div>
+            <p className="text-xs leading-6 text-muted-foreground">
+              {t("Created")}: <time dateTime={ticket.created_at}>{date(ticket.created_at)}</time>
+              {" · "}
+              {t("Updated")}: <time dateTime={ticket.updated_at}>{date(ticket.updated_at)}</time>
             </p>
           </div>
-          <ol className="divide-y">
-            {data.messages?.map((message) => (
-              <li key={message.id} className="space-y-2 py-4">
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span>
-                    {t(
-                      message.internal
-                        ? "Internal note"
-                        : message.staff
-                          ? "Support team"
-                          : "Customer",
-                    )}
-                  </span>
-                  <time dateTime={message.created_at}>
-                    {date(message.created_at)}
-                  </time>
-                </div>
-                <p
-                  dir="auto"
-                  className="whitespace-pre-wrap break-words text-sm leading-7"
-                >
-                  {message.body}
-                </p>
-              </li>
-            ))}
-          </ol>
+          <div className="space-y-3">
+            <h4 className="flex items-center gap-2 text-sm font-semibold">
+              <MessageSquareText className="size-4 text-primary" aria-hidden="true" /> {t("Conversation history")}
+            </h4>
+            <ol className="space-y-3" aria-label={t("Conversation history")}>
+              {data.messages?.map((message) => (
+                <li key={message.id} className={`max-w-[95%] space-y-2 rounded-xl border px-4 py-3 sm:max-w-[88%] ${
+                  message.internal
+                    ? "border-amber-500/30 bg-amber-500/10"
+                    : message.staff
+                      ? "ms-auto border-primary/20 bg-primary/[0.07]"
+                      : "me-auto border-border bg-muted/35"
+                }`}>
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {t(message.internal ? "Internal note" : message.staff ? "Support team" : "Customer")}
+                    </span>
+                    <time dateTime={message.created_at}>{date(message.created_at)}</time>
+                  </div>
+                  <p dir="auto" className="whitespace-pre-wrap break-words text-sm leading-7">{message.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
           {staff && (
             <form
+              className="rounded-xl border border-border/70 bg-muted/15 p-4"
               key={ticket.version}
               onSubmit={(e) => {
                 e.preventDefault();
@@ -388,6 +415,7 @@ export function SupportWorkspace({
           )}
           {(staff || !["resolved", "closed"].includes(ticket.status)) && (
             <form
+              className="rounded-xl border border-border/70 p-4"
               onSubmit={(e) => {
                 e.preventDefault();
                 void submit({ action: "reply", ticketId, body, internal });

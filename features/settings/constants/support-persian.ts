@@ -1,4 +1,19 @@
 export const SUPPORT_PERSIAN: Record<string, string> = {
+  "Review new requests, reply to customers and track unresolved cases.": "درخواست‌های جدید را بررسی کنید، پاسخ دهید و موارد باز را پیگیری کنید.",
+  "Follow your requests, read replies and continue the conversation here.": "درخواست‌های ثبت‌شده و پاسخ‌های پشتیبانی را در این بخش مشاهده و پیگیری کنید.",
+  "Tickets on this page": "درخواست‌های این صفحه",
+  "Unread on this page": "خوانده‌نشده در این صفحه",
+  "Read": "خوانده‌شده",
+  "Needs staff response": "نیازمند پاسخ پشتیبانی",
+  "Waiting for customer": "در انتظار پاسخ کاربر",
+  "Try another status or search term.": "وضعیت یا عبارت جست‌وجوی دیگری انتخاب کنید.",
+  "Your submitted requests will appear here.": "درخواست‌های ثبت‌شده شما در این بخش نمایش داده می‌شوند.",
+  "Conversation history": "سوابق گفت‌وگو",
+  "Send a support request": "ثبت درخواست پشتیبانی",
+  "Describe the issue and choose a category. You can follow the response in your tickets below.": "موضوع درخواست، دسته‌بندی و شرح مشکل را وارد کنید. پاسخ را در فهرست درخواست‌های خود پیگیری خواهید کرد.",
+  "Frequently asked questions": "پرسش‌های متداول",
+  "You can also contact support by email. For better tracking, we recommend submitting a ticket.": "برای ارتباط مستقیم می‌توانید ایمیل ارسال کنید؛ بااین‌حال، ثبت تیکت برای پیگیری دقیق‌تر توصیه می‌شود.",
+
   "Use the guides above, email support, or submit a support ticket.":
     "از راهنماهای بالا استفاده کنید، ایمیل بفرستید یا درخواست پشتیبانی ثبت کنید.",
   "Support workspace": "مدیریت پشتیبانی",

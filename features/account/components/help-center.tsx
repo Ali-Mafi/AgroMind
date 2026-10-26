@@ -53,6 +53,22 @@ export function HelpCenter() {
       <p className="max-w-2xl text-base leading-7 text-muted-foreground">
         {t("Find a quick answer and get back to your farm.")}
       </p>
+      <section className="app-card space-y-4 p-5 sm:p-7">
+        <div className="flex items-start gap-3">
+          <span className="app-icon-container shrink-0"><LifeBuoy size={21} aria-hidden="true" /></span>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">{t("Send a support request")}</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {t("Describe the issue and choose a category. You can follow the response in your tickets below.")}
+            </p>
+          </div>
+        </div>
+        <SupportTicketForm />
+      </section>
+      <SupportWorkspace />
+      <div className="border-t border-border/70 pt-6">
+        <h2 className="mb-4 text-lg font-semibold">{t("Frequently asked questions")}</h2>
+      </div>
       <section
         aria-label={t("Quick help")}
         className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
@@ -110,37 +126,19 @@ export function HelpCenter() {
           ))}
         </div>
       </section>
-      <SupportWorkspace />
       <section className="app-card p-5 sm:p-7">
         <div className="flex items-center gap-3">
-          <span className="app-icon-container">
-            <LifeBuoy size={21} aria-hidden="true" />
-          </span>
-          <h2 className="text-lg font-semibold">{t("Need more help?")}</h2>
+          <span className="app-icon-container"><Mail size={21} aria-hidden="true" /></span>
+          <h2 className="text-lg font-semibold">{t("Email Support")}</h2>
         </div>
-        <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          {t(
-            "Use the guides above, email support, or submit a support ticket.",
-          )}
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          {t("You can also contact support by email. For better tracking, we recommend submitting a ticket.")}
         </p>
-        <Disclosure
-          title={t("Submit Support Ticket")}
-          className="mt-5 border-t pt-2 text-sm"
-        >
-          <SupportTicketForm />
-        </Disclosure>
-        <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-5">
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="app-secondary-link min-h-11 rounded-xl px-4"
-            aria-label={t("Email Support")}
-          >
-            <Mail size={17} aria-hidden="true" />
-            {t("Email Support")}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="app-secondary-link min-h-11 rounded-xl px-4" aria-label={t("Email Support")}>
+            <Mail size={17} aria-hidden="true" /> {t("Email Support")}
           </a>
-          <p className="text-sm text-muted-foreground">
-            <bdi>{SUPPORT_EMAIL}</bdi>
-          </p>
+          <bdi className="text-sm text-muted-foreground">{SUPPORT_EMAIL}</bdi>
         </div>
       </section>
     </>

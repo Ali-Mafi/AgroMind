@@ -3,6 +3,7 @@ export function supportEmail(
   event: string,
   language: string,
   href: string,
+  audience: "staff" | "user" = "user",
 ) {
   const fa = language === "fa";
   const copy = fa
@@ -16,7 +17,10 @@ export function supportEmail(
         reply: "There is a new reply to your support ticket.",
         status: "Your support ticket status has changed.",
       };
-  const text = `${copy[event as keyof typeof copy] ?? copy.status}\n${number}\n${href}`;
+  const header = audience === "staff" && event === "created"
+    ? (fa ? "درخواست پشتیبانی جدید ثبت شده است." : "A new support ticket has been submitted.")
+    : copy[event as keyof typeof copy] ?? copy.status;
+  const text = `${header}\n${number}\n${href}`;
   const escape = (s: string) =>
     s.replace(
       /[&<>"']/g,
@@ -30,7 +34,9 @@ export function supportEmail(
         })[c]!,
     );
   return {
-    subject: `${fa ? "پشتیبانی AgroMind" : "AgroMind Support"} · ${number}`,
+    subject: audience === "staff" && event === "created"
+      ? `${fa ? "درخواست پشتیبانی جدید" : "New support ticket"} · ${number}`
+      : `${fa ? "پشتیبانی AgroMind" : "AgroMind Support"} · ${number}`,
     text,
     html: `<div lang="${fa ? "fa" : "en"}" dir="${fa ? "rtl" : "ltr"}"><p>${escape(text.split("\n")[0])}</p><p>${escape(number)}</p><a href="${escape(href)}">${fa ? "مشاهده درخواست" : "View ticket"}</a></div>`,
   };
