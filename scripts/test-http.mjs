@@ -55,6 +55,13 @@ try {
     });
   });
 
+  for (const route of ["/admin/support", "/admin/support/verify", "/account/help/tickets/00000000-0000-4000-8000-000000000000"]) {
+    const response = await fetch(base + route, { redirect: "manual" });
+    assert.equal(response.status, 307);
+    assert.match(response.headers.get("location"), /sign-in/);
+    assert.match(response.headers.get("cache-control"), /no-store/);
+  }
+  assert.equal((await fetch(base + "/api/support/notifications")).status, 401);
   {
     const response = await fetch(base + "/");
     assert.equal(response.status, 200);

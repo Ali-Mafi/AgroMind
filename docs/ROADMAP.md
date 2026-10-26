@@ -27,6 +27,10 @@ Supabase SSR Auth and MFA, email verification/recovery, Google OAuth, cloud farm
 - Introduce nonessential analytics or ads only with real pre-consent gating when applicable.
 - Follow [Privacy Data Flow](PRIVACY_DATA_FLOW.md) for remaining audit/security steps.
 
+## Support operations — implemented, activation acceptance remaining
+
+The persisted customer/staff ticket system and database migration are implemented. Complete the verified-staff bootstrap, notification configuration/scheduler and real customer/staff/inbox/mobile acceptance in [Support Tickets](SUPPORT_TICKETS.md). Automated checks and hosted RLS/grant inspection do not replace these acceptance steps.
+
 ## P1 — Real farm-aware AI assistant (planned)
 
 Implement authenticated, RLS-safe farm context, chat API/provider, usage limits, reliability and localized UX. Validate privacy, model errors and cost boundaries. The current Assistant is a draft-only UI with sending disabled.

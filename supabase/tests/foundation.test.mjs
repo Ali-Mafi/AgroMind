@@ -15,7 +15,7 @@ function wasmResult(result) {
     rowCount: result.rows.length || result.affectedRows || 0,
   };
 }
-function wasmClient(user, level = "aal1", sessionId = user) {
+function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
   return {
     connect: async () => {},
     end: async () => {},
@@ -41,7 +41,7 @@ function wasmClient(user, level = "aal1", sessionId = user) {
             user,
           ]);
         await tx.query("select set_config('request.jwt.claims',$1,true)", [
-          JSON.stringify({ sub: user, aal: level, session_id: sessionId }),
+          JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
         ]);
         return wasmResult(await tx.query(sql, values));
       });
@@ -75,8 +75,8 @@ async function port() {
   await new Promise((resolve) => server.close(resolve));
   return value;
 }
-async function asUser(user, level = "aal1", sessionId = user) {
-  if (!native) return wasmClient(user, level, sessionId);
+async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
+  if (!native) return wasmClient(user, level, sessionId, fresh);
   const client = postgres.getPgClient();
   await client.connect();
   await client.query("set role authenticated");
@@ -84,7 +84,7 @@ async function asUser(user, level = "aal1", sessionId = user) {
     user,
   ]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level, session_id: sessionId }),
+    JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
   ]);
   return client;
 }
@@ -1196,4 +1196,104 @@ test("username login limits are durable, atomic and inaccessible to users",async
     assert.equal((await admin.query("select consume_username_login_attempt($1) as ok",["b".repeat(64)])).rows[0].ok,false);
     assert.equal((await admin.query("select * from private.username_login_limits where bucket=$1",["user:"+"b".repeat(64)])).rowCount,0);
   }finally{await c.end();await admin.query("delete from private.username_login_limits");}
+});
+
+const supportCommand = async (client, payload) => (await client.query("select public.support_command($1) as result", [payload])).rows[0].result;
+const supportRead = async (client, payload) => (await client.query("select public.support_read($1) as result", [payload])).rows[0].result;
+const newTicket = () => ({ action: "create", requestId: randomUUID(), subject: "Support test", category: "Other", body: "Please help with this test issue." });
+test("support ownership, direct DML denial, validation, idempotency and rate limits", async () => {
+ const owner = await asUser(users[18]), other = await asUser(users[19]);
+ try {
+  const payload = newTicket(); const { id } = await supportCommand(owner,payload);
+  assert.equal((await supportCommand(owner,payload)).id,id);
+  await assert.rejects(supportCommand(owner,{ ...payload, subject: "Changed" }), /SUPPORT_CONFLICT/);
+  assert.equal((await owner.query("select * from support_tickets where id=$1",[id])).rowCount,1);
+  assert.equal((await other.query("select * from support_tickets where id=$1",[id])).rowCount,0);
+  assert.equal((await other.query("select * from support_ticket_messages where ticket_id=$1",[id])).rowCount,0);
+  await assert.rejects(supportRead(other,{ticketId:id}),/SUPPORT_DENIED/);
+  await assert.rejects(supportRead(other,{staff:true}),/SUPPORT_DENIED/);
+  await assert.rejects(supportCommand(other,{action:"reply",ticketId:id,requestId:randomUUID(),body:"Intrusion",internal:false}),/SUPPORT_DENIED/);
+  await assert.rejects(owner.query("update support_tickets set priority='high' where id=$1",[id]),/permission denied/);
+  await assert.rejects(owner.query("insert into support_ticket_messages(ticket_id,author_id,body) values($1,$2,'Bypass')",[id,users[18]]),/permission denied/);
+  await assert.rejects(owner.query("select * from private.support_outbox"),/permission denied/);
+  await assert.rejects(owner.query("select support_email_jobs()"),/permission denied/);
+  await assert.rejects(supportCommand(owner,{...newTicket(),body:"short"}),/SUPPORT_INVALID/);
+  await assert.rejects(supportCommand(owner,{...newTicket(),category:"fake"}),/check constraint/);
+  await assert.rejects(supportCommand(owner,{action:"reply",ticketId:id,requestId:randomUUID(),body:"note",internal:true}),/SUPPORT_INVALID/);
+  await assert.rejects(supportCommand(owner,{action:"update",ticketId:id,requestId:randomUUID(),version:1,status:"closed",priority:"high"}),/SUPPORT_DENIED/);
+  for(let i=0;i<4;i++) await supportCommand(owner,newTicket());
+  await assert.rejects(supportCommand(owner,newTicket()),/SUPPORT_RATE/);
+  assert.equal((await admin.query("select count(*)::int as n from private.support_outbox where ticket_id=$1",[id])).rows[0].n,2);
+ } finally { await owner.end(); await other.end(); }
+});
+test("support staff registry, AAL2 freshness, internal-note privacy, transitions and audit", async () => {
+ const actor=users[20];
+ await admin.query("insert into private.support_staff(user_id,granted_by) values($1,'test')",[actor]);
+ const staff=await asUser(actor,"aal2",actor,true), stale=await asUser(actor,"aal2"), low=await asUser(actor), owner=await asUser(users[19]);
+ try {
+  const {id}=await supportCommand(owner,newTicket());
+  assert.equal((await low.query("select support_is_staff() as ok")).rows[0].ok,false);
+  await assert.rejects(supportRead(low,{staff:true}),/SUPPORT_DENIED/);
+  await assert.rejects(supportCommand(stale,{action:"reply",ticketId:id,requestId:randomUUID(),body:"test",internal:false}),/SUPPORT_MFA/);
+  await supportCommand(staff,{action:"reply",ticketId:id,requestId:randomUUID(),body:"Private investigation",internal:true});
+  assert.equal((await supportRead(owner,{ticketId:id})).messages.length,1);
+  assert.equal((await owner.query("select * from support_ticket_messages where ticket_id=$1",[id])).rowCount,1);
+  assert.equal((await supportRead(staff,{ticketId:id,staff:true})).messages.length,2);
+  await supportCommand(staff,{action:"reply",ticketId:id,requestId:randomUUID(),body:"Public answer",internal:false});
+  let view=await supportRead(owner,{ticketId:id}); assert.equal(view.ticket.status,"waiting_for_user");
+  await supportCommand(owner,{action:"reply",ticketId:id,requestId:randomUUID(),body:"Thank you",internal:false});
+  view=await supportRead(owner,{ticketId:id}); assert.equal(view.ticket.status,"waiting_for_support");
+  const change={action:"update",ticketId:id,requestId:randomUUID(),version:view.ticket.version,status:"resolved",priority:"high"};
+  await supportCommand(staff,change);
+  await assert.rejects(supportCommand(staff,{...change,requestId:randomUUID()}),/SUPPORT_CONFLICT/);
+  await assert.rejects(supportCommand(owner,{action:"reply",ticketId:id,requestId:randomUUID(),body:"Reply",internal:false}),/SUPPORT_CLOSED/);
+  await supportCommand(owner,{action:"reopen",ticketId:id,requestId:randomUUID()});
+  view=await supportRead(owner,{ticketId:id}); assert.equal(view.ticket.status,"waiting_for_support");
+  assert.equal(view.ticket.priority,"high");
+  assert.equal((await admin.query("select count(*)::int as n from private.support_audit where ticket_id=$1",[id])).rows[0].n,3);
+  await admin.query("delete from private.support_staff where user_id=$1",[actor]);
+  await assert.rejects(supportRead(staff,{ticketId:id}),/SUPPORT_DENIED/);
+ } finally { await staff.end();await stale.end();await low.end();await owner.end(); }
+});
+test("support notification leases recover failure and do not re-send acknowledged jobs", async () => {
+ const jobs=(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs;
+ assert.ok(jobs.length>0); const job=jobs[0];
+ await admin.query("select support_email_ack($1,$2,false)",[job.id,job.lease]);
+ assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
+ await admin.query("update private.support_outbox set lease_until=now()-interval '1 second' where id=$1",[job.id]);
+ const retried=(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs.find(j=>j.id===job.id);
+ assert.ok(retried); assert.notEqual(retried.lease,job.lease);
+ await admin.query("select support_email_ack($1,$2,true)",[job.id,job.lease]);
+ assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
+ await admin.query("select support_email_ack($1,$2,true)",[job.id,retried.lease]);
+ assert.ok((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at);
+ assert.ok(!(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs.some(j=>j.id===job.id));
+});
+test("support pagination, unread receipts and hourly reply limit",async()=>{
+ const owner=await asUser(users[17]);
+ try {
+  const {id}=await supportCommand(owner,newTicket());
+  // Simulate a persisted public staff response without granting any user staff access.
+  await admin.query("insert into support_ticket_messages(ticket_id,author_id,body,staff) values($1,$2,'Answer',true)",[id,users[20]]);
+  await admin.query("update support_tickets set last_staff_at=now() where id=$1",[id]);
+  assert.equal((await supportRead(owner,{})).tickets.find(t=>t.id===id).unread,true);
+  await supportRead(owner,{ticketId:id});
+  // Read receipts use the message timestamp, not read completion time.
+  await admin.query("update support_tickets set last_staff_at=(select max(created_at) from support_ticket_messages where ticket_id=$1) where id=$1",[id]);
+  assert.equal((await supportRead(owner,{})).tickets.find(t=>t.id===id).unread,false);
+  for(let i=0;i<59;i++) await supportCommand(owner,{action:'reply',ticketId:id,requestId:randomUUID(),body:`Message ${i}`,internal:false});
+  const first=await supportRead(owner,{ticketId:id,page:0}),second=await supportRead(owner,{ticketId:id,page:1});
+  assert.equal(first.messages.length,50);assert.equal(first.hasMore,true);assert.equal(second.messages.length,11);assert.equal(second.hasMore,false);
+  assert.equal(new Set([...first.messages,...second.messages].map(m=>m.id)).size,61);
+  await assert.rejects(supportCommand(owner,{action:'reply',ticketId:id,requestId:randomUUID(),body:'Limited',internal:false}),/SUPPORT_RATE/);
+ }finally{await owner.end();}
+});
+test("native concurrent duplicate support replies create one message", {skip:!native},async()=>{
+ const a=await asUser(users[16]),b=await asUser(users[16]);
+ try {
+  const {id}=await supportCommand(a,newTicket());
+  const reply={action:'reply',ticketId:id,requestId:randomUUID(),body:'Concurrent reply',internal:false};
+  await Promise.all([supportCommand(a,reply),supportCommand(b,reply)]);
+  assert.equal((await supportRead(a,{ticketId:id})).messages.length,2);
+ }finally{await a.end();await b.end();}
 });

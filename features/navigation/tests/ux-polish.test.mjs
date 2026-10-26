@@ -82,16 +82,16 @@ for (const language of ["en", "fa"]) {
     assert.match(html, language === "fa" ? /ذرت/ : /Corn/);
     assert.doesNotMatch(html, /<details|<summary/);
   });
-  test(`${language}: help and about use real routes and disclose unavailable support`, () => {
+  test(`${language}: help and about use real routes and provide support ticket entry`, () => {
     const help = workspaceFixture({ language, page: "help" });
     assert.match(help, /id="ticket-subject"/);
     assert.match(help, /id="ticket-description"/);
-    assert.match(help, /type="submit"[^>]*disabled/);
+    assert.match(help, /type="submit"/);
     assert.match(
       help,
       language === "fa"
-        ? /ارسال درخواست هنوز فعال نیست/
-        : /Ticket submission is not available yet/,
+        ? /درخواست‌های پشتیبانی من/
+        : /My support tickets/,
     );
     assert.match(help, /mailto:support@agromind\.ir/);
     assert.doesNotMatch(help, /ticket.*success|<summary|<details/);

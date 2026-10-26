@@ -16,6 +16,7 @@ import { Disclosure } from "@/components/ui/disclosure";
 import { NavigationArrow } from "@/components/ui/navigation-arrow";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { HELP_TOPICS } from "../constants/help";
+import { SupportWorkspace } from "@/features/support/components/workspace";
 import { SupportTicketForm } from "./support-ticket-form";
 
 const icons = [
@@ -109,6 +110,7 @@ export function HelpCenter() {
           ))}
         </div>
       </section>
+      <SupportWorkspace />
       <section className="app-card p-5 sm:p-7">
         <div className="flex items-center gap-3">
           <span className="app-icon-container">
@@ -117,7 +119,9 @@ export function HelpCenter() {
           <h2 className="text-lg font-semibold">{t("Need more help?")}</h2>
         </div>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          {t("Use the guides above, email support, or prepare a ticket draft.")}
+          {t(
+            "Use the guides above, email support, or submit a support ticket.",
+          )}
         </p>
         <Disclosure
           title={t("Submit Support Ticket")}

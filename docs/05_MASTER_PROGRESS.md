@@ -2,6 +2,14 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Support ticket system — 2026-10-26
+
+- Continued from real main `098899aecf69ffda4ff7ae08bbeaf56b9c19912b`. Replaced the draft-only Help form with persisted tickets, personal lists/status filters, unread receipts, conversations/replies and resolved-ticket reopening. Added protected `/admin/support` search/filters, staff replies, internal notes, status/priority controls and fresh-MFA verification.
+- Applied `20261026065610_support_tickets.sql` to AgroMind `gedwexwxaojpqyeiebwm`. Hosted catalog checks confirm RLS on both public tables, SELECT-only customer grants, no anonymous table/RPC access and no automatically granted staff accounts. Native isolation/authorization/concurrency tests pass; actual production customer/staff sessions remain untested.
+- Local validation: 270 application tests; 24 native PostgreSQL tests; PGlite 22 passed with 2 native-only skips; typecheck, localization (zero missing/hardcoded strings), build and HTTP checks pass. Lint has zero errors and one pre-existing warning in `verification-pending.tsx`.
+- Transactional email outbox, localized templates, Resend idempotency, leasing and retries implemented. **Email activation/delivery is not verified:** server worker credential, confirmed support recipient, cron secret and scheduler are not configured. Staff bootstrap is manual; no arbitrary account was promoted.
+- [Setup and operations](SUPPORT_TICKETS.md); [session evidence](progress/2026-10-26-support.md). This entry records local/schema evidence; matching code commit CI and production release are checked separately after push. Authenticated browser/mobile and real inbox acceptance remain outstanding.
+
 ## Current baseline
 
 - Repository: [Ali-Mafi/AgroMind](https://github.com/Ali-Mafi/AgroMind), branch `main`.

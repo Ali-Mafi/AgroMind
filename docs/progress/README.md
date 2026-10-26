@@ -23,5 +23,6 @@ Dated entries are historical evidence from the day written, not living release s
 - [2026-09-25](2026-09-25.md)
 - [2026-09-26](2026-09-26.md)
 - [2026-10-25](2026-10-25.md)
+- [2026-10-26 support system](2026-10-26-support.md)
 
 Record meaningful work only. Include the starting SHA, scope, changes, test evidence, limitations, results and next work. Keep historical entries intact and this index current; no invented empty logs.

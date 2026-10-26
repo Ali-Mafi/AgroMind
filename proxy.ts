@@ -67,6 +67,7 @@ export const config = {
     "/farms/:path*",
     "/irrigation/:path*",
     "/account/:path*",
+    "/admin/:path*",
     "/settings/:path*",
     "/weather/:path*",
     "/onboarding/:path*",

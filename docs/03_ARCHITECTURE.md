@@ -285,3 +285,7 @@ Pure components are preferred over stateful components.
 Already integrated: App Router/API handlers, Supabase SSR authentication and cloud data, weather providers, localized PWA and offline fallback. Extend these actual boundaries rather than rebuilding them. Real AI chat and device/sensor gateways, advanced analytics and paid checkout remain planned or unverified.
 
 See [current progress](05_MASTER_PROGRESS.md) and [workflow rules](PROJECT_RULES.md).
+
+## Support service — 2026-10-26
+
+`features/support` owns schemas, server actions, user/staff presentation and the notification worker. Existing Account Help hosts creation/list entry points; thin routes serve ticket details and `/admin/support`. Authenticated SSR clients call invoker RPCs backed by private transactional implementations. Public ticket/message tables have read-only customer grants plus RLS; private registry, command receipts, audit, read receipts and email outbox are never exposed to customers. Role authority is independent of farm membership and requires AAL2; staff writes also require recent TOTP proof. Notification jobs are committed with mutations and drained separately through the existing Resend transport. See [Support Tickets](SUPPORT_TICKETS.md) for limits, bootstrap, recovery and unconfigured operations.
