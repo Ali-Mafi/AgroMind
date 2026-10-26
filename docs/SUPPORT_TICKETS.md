@@ -72,3 +72,13 @@ See the session log and master progress for actual run/deployment evidence. Conf
 - Admin tickets now distinguish unread and read using a distinct start-border, background tint, clear indicator and accessible label. Statuses have distinct treatments; unread totals are page-scoped. Staff statuses distinguish staff response needed from waiting for the customer.
 - Customer Help places the visible submission form before their ticket list. Conversation messages are visually separated for customers, staff and private notes. Authorization and data models are unchanged.
 - Staff new-ticket notifications have a dedicated subject and short, safe message with no ticket body. The production recipient is intended to be `admin@agromind.ir`. Email delivery remains dependent on verified mailbox, server-only worker credential, activation and scheduled retries, followed by a real inbox test.
+
+## Production scheduler (2026-10-26)
+
+A Vercel Cron route is now configured in `vercel.json` with `0 8 * * *` UTC, which is compatible with the Hobby daily scheduling limit. When service credentials and `SUPPORT_EMAIL_ENABLED=true` are available, user and staff mutations also attempt an immediate best-effort notification drain via Next.js `after()`. The daily cron acts as a delayed fallback for retryable jobs; it does **not** guarantee immediate delivery or precise execution time on Hobby.
+
+- The production Vercel project includes `SUPPORT_NOTIFICATION_EMAIL=admin@agromind.ir` and a server-only `CRON_SECRET`. Their presence is not proof that the mailbox accepts deliveries.
+- `SUPABASE_SERVICE_ROLE_KEY` is **not** present. Copy it securely from the matching Supabase project's server API settings into Production environment variables in Vercel; never paste it into a chat, commit, or use a `NEXT_PUBLIC_` prefix.
+- Enable `SUPPORT_EMAIL_ENABLED=true` only after verifying the sender, inbox and worker credential; redeploy and perform one authorized ticket-created delivery test.
+- The Vercel cron is protected with Bearer `CRON_SECRET` headers. Do not expose it or remove the constant-time authorization check.
+- More frequent scheduled retry delivery requires a Vercel plan supporting sub-daily cron or a separately configured authorized scheduler.
