@@ -1297,3 +1297,46 @@ test("native concurrent duplicate support replies create one message", {skip:!na
   assert.equal((await supportRead(a,{ticketId:id})).messages.length,2);
  }finally{await a.end();await b.end();}
 });
+
+test("support notifications keep the ticket owner's language across staff replies and status updates", async () => {
+  const owner = await asUser(users[15]);
+  const staffId = users[20];
+  await admin.query("insert into private.support_staff(user_id,granted_by) values($1,'locale-test') on conflict(user_id) do nothing", [staffId]);
+  const staff = await asUser(staffId, "aal2", staffId, true);
+  try {
+    // Profile is Persian; the actual submit UI was English. Ticket language wins.
+    await admin.query("update public.profiles set language='fa' where id=$1", [users[15]]);
+    // This last test isolates the new jobs from the outbox/lease tests above.
+    await admin.query("update private.support_outbox set sent_at=now() where sent_at is null");
+    const { id } = await supportCommand(owner, { ...newTicket(), language: "en" });
+    assert.equal((await admin.query("select notification_language from public.support_tickets where id=$1", [id])).rows[0].notification_language, "en");
+    let jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    assert.equal(jobs.find(j => j.audience === "user" && j.event === "created")?.language, "en");
+    assert.equal(jobs.find(j => j.audience === "staff" && j.event === "created")?.language, "fa");
+    for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
+
+    await supportCommand(staff, { action:"reply",ticketId:id,requestId:randomUUID(),body:"Thank you for contacting our team.",internal:false });
+    jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    assert.equal(jobs.find(j => j.audience === "user" && j.event === "reply")?.language, "en");
+    for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
+
+    const ticket = await supportRead(staff, { ticketId:id, staff:true });
+    await supportCommand(staff, { action:"update",ticketId:id,requestId:randomUUID(),version:ticket.ticket.version,status:"resolved",priority:"normal" });
+    jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    assert.equal(jobs.find(j => j.audience === "user" && j.event === "status")?.language, "en");
+    for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
+
+    await admin.query("update public.profiles set language='en' where id=$1", [users[15]]);
+    assert.equal((await admin.query("select notification_language from public.support_tickets where id=$1", [id])).rows[0].notification_language, "en");
+    const persian = await supportCommand(owner, { ...newTicket(), language:"fa" });
+    assert.equal((await admin.query("select notification_language from public.support_tickets where id=$1", [persian.id])).rows[0].notification_language, "fa");
+    await assert.rejects(supportCommand(owner, { ...newTicket(), language:"invalid" }), /SUPPORT_INVALID/);
+
+    const legacy = await supportCommand(owner, newTicket());
+    assert.equal((await admin.query("select notification_language from public.support_tickets where id=$1", [legacy.id])).rows[0].notification_language, "en");
+  } finally {
+    await staff.end();
+    await owner.end();
+    await admin.query("delete from private.support_staff where user_id=$1", [staffId]);
+  }
+});

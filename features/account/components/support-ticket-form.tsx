@@ -5,11 +5,13 @@ import { writeSupport } from "@/features/support/services/actions";
 import { Button } from "@/components/ui/button";
 import { PreferenceSelect } from "@/features/settings/components/preference-select";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
+import { useSettings } from "@/features/settings/context/settings-context";
 import { SUPPORT_CATEGORIES } from "../constants/help";
 import { validateSupportDraft, type SupportDraft } from "../lib/support-draft";
 
 export function SupportTicketForm() {
   const t = useTranslation();
+  const { language } = useSettings();
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState("");
@@ -45,6 +47,7 @@ export function SupportTicketForm() {
             subject: draft.subject,
             category: draft.category,
             body: draft.description,
+            language: language === "fa" ? "fa" : "en",
           });
           if (result.error) setFailure(result.error);
           else router.push(`/account/help/tickets/${result.id}`);

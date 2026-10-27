@@ -17,6 +17,7 @@ export const commandSchema = z.discriminatedUnion("action", [
       subject: z.string().trim().min(3).max(120),
       category: z.enum(SUPPORT_CATEGORIES),
       body: z.string().trim().min(20).max(4000),
+      language: z.enum(["fa", "en"]).optional(),
     })
     .strict(),
   z

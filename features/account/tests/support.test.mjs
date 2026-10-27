@@ -14,6 +14,9 @@ const payload = {
 };
 test("support validation rejects spoofed ownership, roles, malformed fields and excessive pages", () => {
   assert.ok(commandSchema.safeParse(payload).success);
+  assert.ok(commandSchema.safeParse({ ...payload, language: "en" }).success);
+  assert.ok(commandSchema.safeParse({ ...payload, language: "fa" }).success);
+  assert.ok(commandSchema.safeParse({ ...payload }).success); // Pre-upgrade clients remain supported.
   for (const extra of [
     { userId: randomUUID() },
     { role: "admin" },
@@ -21,6 +24,8 @@ test("support validation rejects spoofed ownership, roles, malformed fields and 
     { subject: "x" },
     { body: "x".repeat(4001) },
     { category: "invented" },
+    { language: "de" },
+    { language: null },
   ])
     assert.equal(
       commandSchema.safeParse({ ...payload, ...extra }).success,
@@ -154,6 +159,12 @@ test("notification failures acknowledge retry without throwing or losing a ticke
     }
   }
 });
+test("ticket creation submits the customer's current display language", () => {
+  const form = readFileSync("features/account/components/support-ticket-form.tsx", "utf8");
+  assert.match(form, /useSettings\(\)/);
+  assert.match(form, /language: language === "fa" \? "fa" : "en"/);
+});
+
 test("support UI uses accessible responsive controls and text-only rendering", () => {
   const ui = readFileSync("features/support/components/workspace.tsx", "utf8");
   assert.match(ui, /sm:grid-cols-2/);
