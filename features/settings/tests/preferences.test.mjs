@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { loadTs, localRequire } from "../../weather/tests/helpers/load-ts.mjs";
 import { localizedRenderer } from "./helpers/render.mjs";
 
