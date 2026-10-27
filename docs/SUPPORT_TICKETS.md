@@ -95,3 +95,11 @@ A Vercel Cron route is now configured in `vercel.json` with `0 8 * * *` UTC, whi
 Support tickets now persist `notification_language` (`fa` or `en`) when the customer submits a new request. The support creation form passes the current resolved display language in the existing validated RPC payload; server-side SQL validates it. Older clients without the new field fall back to their saved profile language, then English. Existing tickets were backfilled from saved profile language because earlier notifications did not record an immutable locale.
 
 All future customer notification events for a ticket (created, staff public reply and status change) use this persisted value. Staff-directed notifications deliberately remain Persian for the current Iranian support mailbox, independently of the customer's language. Other authentication/RLS/mutation behavior is unchanged. Native database coverage verifies English and Persian ticket language, staff replies, status changes and older-client fallback.
+
+## Staff workspace visual consistency — 2026-10-27
+
+- The staff admin route `/admin/support` previously mounted `SupportPage` without the shared protected `AppShell`. Consequently it missed the app-scoped design tokens, responsive page gutters, iOS safe-area/status-bar fade and navigation layout used by Account, Farms and Settings.
+- Following the **existing** `requireSupportStaff()` gate, the staff page now renders through `ProtectedLayout` and `AppShell` just like other authenticated workspace pages. The support mutation/authorization and database APIs are unchanged.
+- Staff tickets use the existing shared `accountCardClass` padding/border and standard `PageHeader` descriptive hierarchy, avoiding duplicate workspace titles. The Account tab is the active tab while in the admin support subroute.
+- `/admin/support/verify` remains an independent `AuthShell` page so the MFA re-verification flow is not nested inside the workspace chrome. Any session or role requirements remain enforced server-side.
+- Targeted regression coverage checks common shell structure, staff authorization gate, shared card design, navigation state and distinct MFA screen.

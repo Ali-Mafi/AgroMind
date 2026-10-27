@@ -35,7 +35,7 @@ export function BottomNavigation() {
   const farm = pathFarm && pathFarm !== "new" ? pathFarm : params.get("farm");
   const target = (href: string) =>
     farm ? `${href}?farm=${encodeURIComponent(farm)}` : href;
-  const active = pathname.startsWith("/settings")
+  const active = pathname.startsWith("/settings") || pathname.startsWith("/admin/support")
     ? "/account"
     : pathname.startsWith("/irrigation")
       ? "/farms"

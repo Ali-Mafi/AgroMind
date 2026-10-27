@@ -97,6 +97,34 @@ test("support tickets stay within mobile widths and staff controls reflow", () =
   assert.match(ui, /<time dateTime=\{item.updated_at\} className="min-w-0 break-words/);
 });
 
+test("admin support shares the standard protected workspace layout and typography", () => {
+  const page = readFileSync("app/admin/support/page.tsx", "utf8");
+  const ui = readFileSync("features/support/components/workspace.tsx", "utf8");
+  const shell = readFileSync("components/layout/app-shell.tsx", "utf8");
+  const styles = readFileSync("components/layout/app-shell.css", "utf8");
+  const verify = readFileSync("app/admin/support/verify/page.tsx", "utf8");
+  const nav = readFileSync("features/navigation/components/bottom-navigation.tsx", "utf8");
+
+  assert.match(page, /await requireSupportStaff\(\)/);
+  assert.match(page, /<ProtectedLayout>/);
+  assert.match(page, /<AppShell>/);
+  assert.ok(page.indexOf("<ProtectedLayout>") < page.indexOf("<AppShell>"));
+  assert.match(shell, /className="agromind-app agromind-workspace"/);
+  assert.match(shell, /className="app-content outline-none"/);
+  assert.match(styles, /\.app-page \{/);
+  assert.match(styles, /\.app-card \{/);
+  assert.match(ui, /import \{ AccountShell, accountCardClass \}/);
+  assert.match(ui, /staff \? accountCardClass/);
+  assert.match(ui, /<PageHeader/);
+  assert.match(ui, /Ticket inbox/);
+  assert.match(nav, /pathname\.startsWith\("\/admin\/support"\)/);
+
+  // The MFA challenge is a distinct auth route, not nested under an app shell.
+  assert.match(verify, /await requireSupportStaff\(\)/);
+  assert.match(verify, /<AuthShell/);
+  assert.doesNotMatch(verify, /<AppShell/);
+});
+
 test("notification failures acknowledge retry without throwing or losing a ticket", async () => {
   const names = [
     "SUPPORT_EMAIL_ENABLED",
@@ -178,8 +206,8 @@ test("support UI uses accessible responsive controls and text-only rendering", (
   assert.match(ui, /border-s-\[3px\] border-s-primary/);
   assert.match(ui, /: "border-border bg-card"/);
   assert.doesNotMatch(ui, /border-s-transparent/);
-  // Staff content follows the same generous card spacing as other account pages.
-  assert.match(ui, /staff \? "p-5 sm:p-7 lg:p-8" : "p-3\.5 sm:p-6 lg:p-7"/);
+  // Staff content uses the same shared card class as the Account pages.
+  assert.match(ui, /staff \? accountCardClass : "app-card space-y-5 p-3\.5 sm:p-6 lg:p-7"/);
   assert.match(ui, /Unread on this page/);
   const help = readFileSync("features/account/components/help-center.tsx", "utf8");
   assert.ok(help.indexOf("<SupportTicketForm />") < help.indexOf("<SupportWorkspace />"));

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CircleDot, CheckCheck, Clock3, Inbox, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AccountShell } from "@/features/account/components/account-shell";
+import { AccountShell, accountCardClass } from "@/features/account/components/account-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
@@ -54,7 +54,11 @@ function StaffSupportPage({ ticketId }: { ticketId?: string }) {
   const t = useTranslation();
   return (
     <main className="app-page min-w-0">
-      <PageHeader title={t("Support workspace")} back={Boolean(ticketId)} />
+      <PageHeader
+        title={t(ticketId ? "Support ticket" : "Support workspace")}
+        description={ticketId ? undefined : t("Review new requests, reply to customers and track unresolved cases.")}
+        back={Boolean(ticketId)}
+      />
       <SupportWorkspace staff ticketId={ticketId} />
     </main>
   );
@@ -137,20 +141,18 @@ export function SupportWorkspace({
   const unreadCount = visibleTickets.filter((item) => item.unread).length;
   return (
     <section
-      className={`app-card w-full min-w-0 max-w-full space-y-5 ${
-        staff ? "p-5 sm:p-7 lg:p-8" : "p-3.5 sm:p-6 lg:p-7"
-      }`}
+      className={`${staff ? accountCardClass : "app-card space-y-5 p-3.5 sm:p-6 lg:p-7"} w-full min-w-0 max-w-full`}
       aria-busy={loading || busy}
     >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 pb-5">
         <div className="min-w-0 space-y-2">
           <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl">
             <Inbox className="size-5 shrink-0 text-primary" aria-hidden="true" />
-            {t(ticketId ? "Support ticket" : staff ? "Support workspace" : "My support tickets")}
+            {t(ticketId ? "Ticket details" : staff ? "Ticket inbox" : "My support tickets")}
           </h2>
-          {!ticketId && (
+          {!ticketId && !staff && (
             <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-              {t(staff ? "Review new requests, reply to customers and track unresolved cases." : "Follow your requests, read replies and continue the conversation here.")}
+              {t("Follow your requests, read replies and continue the conversation here.")}
             </p>
           )}
         </div>

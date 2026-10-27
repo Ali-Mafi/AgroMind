@@ -19,6 +19,8 @@ export const SUPPORT_PERSIAN: Record<string, string> = {
   "Use the guides above, email support, or submit a support ticket.":
     "از راهنماهای بالا استفاده کنید، ایمیل بفرستید یا درخواست پشتیبانی ثبت کنید.",
   "Support workspace": "مدیریت پشتیبانی",
+  "Ticket inbox": "صندوق درخواست‌ها",
+  "Ticket details": "جزئیات درخواست",
   "Support ticket": "درخواست پشتیبانی",
   "My support tickets": "درخواست‌های پشتیبانی من",
   Open: "باز",
