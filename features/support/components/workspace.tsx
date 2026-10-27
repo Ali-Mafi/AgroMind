@@ -1,9 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CircleDot, CheckCheck, Inbox, MessageSquareText } from "lucide-react";
+import { CircleDot, CheckCheck, Clock3, Inbox, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountShell } from "@/features/account/components/account-shell";
+import { PageHeader } from "@/components/layout/page-header";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import { SUPPORT_CATEGORIES } from "@/features/account/constants/help";
@@ -42,10 +43,20 @@ export function SupportPage({
   staff?: boolean;
   ticketId?: string;
 }) {
+  if (staff) return <StaffSupportPage ticketId={ticketId} />;
   return (
-    <AccountShell title={staff ? "Support workspace" : "Support ticket"}>
-      <SupportWorkspace staff={staff} ticketId={ticketId} />
+    <AccountShell title="Support ticket">
+      <SupportWorkspace ticketId={ticketId} />
     </AccountShell>
+  );
+}
+function StaffSupportPage({ ticketId }: { ticketId?: string }) {
+  const t = useTranslation();
+  return (
+    <main className="app-page min-w-0">
+      <PageHeader title={t("Support workspace")} back={Boolean(ticketId)} />
+      <SupportWorkspace staff ticketId={ticketId} />
+    </main>
   );
 }
 export function SupportWorkspace({
@@ -126,7 +137,7 @@ export function SupportWorkspace({
   const unreadCount = visibleTickets.filter((item) => item.unread).length;
   return (
     <section
-      className="app-card min-w-0 space-y-5 p-5 sm:p-7"
+      className="app-card w-full min-w-0 max-w-full space-y-5 p-3.5 sm:p-6 lg:p-7"
       aria-busy={loading || busy}
     >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 pb-5">
@@ -171,7 +182,7 @@ export function SupportWorkspace({
       )}
       {!ticketId && (
         <>
-          <div className="grid gap-3 rounded-xl border border-border/70 bg-muted/15 p-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid w-full min-w-0 grid-cols-1 gap-3 rounded-2xl border border-border/70 bg-muted/20 p-3 sm:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-1 text-sm">
               {t("Status")}
               <select
@@ -229,14 +240,14 @@ export function SupportWorkspace({
                   </select>
                 </label>
                 <form
-                  className="flex items-end gap-2 sm:col-span-2 xl:col-span-3"
+                  className="flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-end xl:col-span-3"
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (query === search && page === 0) { setLoading(true); void refresh(); } else { setLoading(true); setQuery(search); }
                     setPage(0);
                   }}
                 >
-                  <label className="min-w-0 flex-1 text-sm">
+                  <label className="block w-full min-w-0 flex-1 text-sm">
                     {t("Ticket number, subject or user email")}
                     <input
                       className={control}
@@ -245,21 +256,30 @@ export function SupportWorkspace({
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </label>
-                  <Button type="submit">{t("Search")}</Button>
+                  <Button type="submit" className="min-h-11 w-full sm:w-auto">{t("Search")}</Button>
                 </form>
               </>
             )}
           </div>
           {!loading && !error && (
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" aria-live="polite">
-              <span>{t("Tickets on this page")}: <strong className="tabular-nums text-foreground">{visibleTickets.length}</strong></span>
-              <span className={unreadCount ? "font-semibold text-primary" : ""}>
-                {t("Unread on this page")}: <strong className="tabular-nums">{unreadCount}</strong>
+            <div className="flex flex-wrap items-center gap-2 text-xs" aria-live="polite">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-muted-foreground">
+                {t("Tickets on this page")}:
+                <strong className="tabular-nums text-foreground">{visibleTickets.length}</strong>
+              </span>
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium ${
+                unreadCount
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-muted/40 text-muted-foreground"
+              }`}>
+                <CircleDot className="size-3.5 shrink-0" aria-hidden="true" />
+                {t("Unread on this page")}:
+                <strong className="tabular-nums">{unreadCount}</strong>
               </span>
             </div>
           )}
           {!loading && !error && !visibleTickets.length && (
-            <div className="rounded-xl border border-dashed border-border p-7 text-center">
+            <div className="rounded-2xl border border-dashed border-border p-6 text-center sm:p-8">
               <Inbox className="mx-auto mb-3 size-8 text-muted-foreground/60" aria-hidden="true" />
               <p className="font-medium">{t("No tickets match this view.")}</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -267,38 +287,40 @@ export function SupportWorkspace({
               </p>
             </div>
           )}
-          <ul className="space-y-2" aria-label={t(staff ? "Support workspace" : "My support tickets")}>
+          <ul className="grid min-w-0 grid-cols-1 gap-3" aria-label={t(staff ? "Support workspace" : "My support tickets")}>
             {visibleTickets.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className="min-w-0">
                 <Link
-                  className={`group block rounded-xl border border-s-4 px-4 py-3.5 transition-colors hover:border-primary/50 hover:bg-primary/[0.04] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  className={`group block w-full min-w-0 max-w-full rounded-2xl border border-s-[3px] p-3.5 transition-colors hover:border-primary/50 hover:bg-primary/[0.05] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-5 ${
                     item.unread
-                      ? "border-primary/30 border-s-primary bg-primary/[0.07] shadow-sm"
+                      ? "border-primary/40 border-s-primary bg-primary/[0.06] shadow-sm"
                       : "border-border border-s-transparent bg-card"
                   }`}
                   href={staff ? `/admin/support?ticket=${item.id}` : `/account/help/tickets/${item.id}`}
                   aria-label={`${t(item.unread ? "Unread" : "Read")} · ${item.ticket_number} · ${item.subject}`}
                 >
-                  <div className="flex min-w-0 items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <bdi className="text-xs font-medium tabular-nums text-muted-foreground">{item.ticket_number}</bdi>
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold ${item.unread ? "text-primary" : "text-muted-foreground"}`}>
-                          {item.unread ? <CircleDot className="size-3.5" aria-hidden="true" /> : <CheckCheck className="size-3.5" aria-hidden="true" />}
-                          {t(item.unread ? "Unread" : "Read")}
-                        </span>
-                      </div>
-                      <h3 className={`break-words text-sm leading-6 sm:text-base ${item.unread ? "font-bold" : "font-medium"}`}>{item.subject}</h3>
-                      {staff && item.user_email && <p className="break-all text-xs text-muted-foreground">{item.user_email}</p>}
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className={`rounded-md border px-2 py-1 font-medium ${statusTone[item.status]}`}>
-                          {t(statusLabel(item.status, staff))}
-                        </span>
-                        {staff && <span className={`font-medium ${priorityTone[item.priority]}`}>{t("Priority")}: {t(priorityLabels[item.priority])}</span>}
-                        {!staff && <span className="text-muted-foreground">{t(item.category)}</span>}
-                      </div>
-                    </div>
-                    <time dateTime={item.updated_at} className="shrink-0 text-end text-[11px] leading-5 text-muted-foreground sm:text-xs">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <bdi dir="ltr" className="max-w-full text-xs font-medium tabular-nums text-muted-foreground">{item.ticket_number}</bdi>
+                    <span className={`inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold ${item.unread ? "text-primary" : "text-muted-foreground"}`}>
+                      {item.unread ? <CircleDot className="size-3.5" aria-hidden="true" /> : <CheckCheck className="size-3.5" aria-hidden="true" />}
+                      {t(item.unread ? "Unread" : "Read")}
+                    </span>
+                  </div>
+                  <h3 className={`mt-2.5 min-w-0 max-w-full break-words text-sm leading-7 [overflow-wrap:anywhere] sm:text-base ${item.unread ? "font-bold" : "font-semibold"}`}>{item.subject}</h3>
+                  {staff && item.user_email && (
+                    <p className="mt-1.5 min-w-0 break-all text-xs leading-5 text-muted-foreground" dir="ltr">{item.user_email}</p>
+                  )}
+                  <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 text-xs">
+                    <span className={`max-w-full break-words rounded-md border px-2.5 py-1 font-medium ${statusTone[item.status]}`}>
+                      {t(statusLabel(item.status, staff))}
+                    </span>
+                    {staff && <span className={`break-words font-medium ${priorityTone[item.priority]}`}>{t("Priority")}: {t(priorityLabels[item.priority])}</span>}
+                    {!staff && <span className="break-words text-muted-foreground">{t(item.category)}</span>}
+                  </div>
+                  <div className="mt-3 flex min-w-0 items-start gap-1.5 border-t border-border/60 pt-2.5 text-xs leading-6 text-muted-foreground">
+                    <Clock3 className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
+                    <span className="shrink-0">{t("Updated")}:</span>
+                    <time dateTime={item.updated_at} className="min-w-0 break-words [overflow-wrap:anywhere]">
                       {date(item.updated_at)}
                     </time>
                   </div>
@@ -316,9 +338,9 @@ export function SupportWorkspace({
           >
             {t("Back to tickets")}
           </Link>
-          <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+          <div className="min-w-0 space-y-3 rounded-2xl border border-border bg-muted/20 p-3.5 sm:p-5">
             <bdi className="text-xs font-medium tabular-nums text-muted-foreground">{ticket.ticket_number}</bdi>
-            <h3 className="break-words text-lg font-semibold">{ticket.subject}</h3>
+            <h3 className="min-w-0 break-words text-lg font-semibold [overflow-wrap:anywhere]">{ticket.subject}</h3>
             <div className="flex flex-wrap gap-2 text-xs">
               <span className={`rounded-md border px-2 py-1 font-medium ${statusTone[ticket.status]}`}>{t(statusLabel(ticket.status, staff))}</span>
               <span className="rounded-md border border-border bg-card px-2 py-1">{t(ticket.category)}</span>
@@ -336,7 +358,7 @@ export function SupportWorkspace({
             </h4>
             <ol className="space-y-3" aria-label={t("Conversation history")}>
               {data.messages?.map((message) => (
-                <li key={message.id} className={`max-w-[95%] space-y-2 rounded-xl border px-4 py-3 sm:max-w-[88%] ${
+                <li key={message.id} className={`w-fit min-w-0 max-w-full space-y-2 rounded-2xl border px-3.5 py-3 sm:max-w-[88%] sm:px-4 ${
                   message.internal
                     ? "border-amber-500/30 bg-amber-500/10"
                     : message.staff
@@ -349,14 +371,14 @@ export function SupportWorkspace({
                     </span>
                     <time dateTime={message.created_at}>{date(message.created_at)}</time>
                   </div>
-                  <p dir="auto" className="whitespace-pre-wrap break-words text-sm leading-7">{message.body}</p>
+                  <p dir="auto" className="whitespace-pre-wrap break-words text-sm leading-7 [overflow-wrap:anywhere]">{message.body}</p>
                 </li>
               ))}
             </ol>
           </div>
           {staff && (
             <form
-              className="rounded-xl border border-border/70 bg-muted/15 p-4"
+              className="min-w-0 rounded-2xl border border-border/70 bg-muted/15 p-3.5 sm:p-5"
               key={ticket.version}
               onSubmit={(e) => {
                 e.preventDefault();
@@ -370,8 +392,8 @@ export function SupportWorkspace({
                 });
               }}
             >
-              <fieldset disabled={busy} className="grid gap-3 sm:grid-cols-3">
-                <label className="text-sm">
+              <fieldset disabled={busy} className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+                <label className="block min-w-0 space-y-1 text-sm">
                   {t("Status")}
                   <select
                     name="status"
@@ -385,7 +407,7 @@ export function SupportWorkspace({
                     ))}
                   </select>
                 </label>
-                <label className="text-sm">
+                <label className="block min-w-0 space-y-1 text-sm">
                   {t("Priority")}
                   <select
                     name="priority"
@@ -399,7 +421,7 @@ export function SupportWorkspace({
                     ))}
                   </select>
                 </label>
-                <Button type="submit" className="self-end">
+                <Button type="submit" className="min-h-11 w-full md:w-auto">
                   {t("Save changes")}
                 </Button>
               </fieldset>
@@ -415,7 +437,7 @@ export function SupportWorkspace({
           )}
           {(staff || !["resolved", "closed"].includes(ticket.status)) && (
             <form
-              className="rounded-xl border border-border/70 p-4"
+              className="min-w-0 rounded-2xl border border-border/70 p-3.5 sm:p-5"
               onSubmit={(e) => {
                 e.preventDefault();
                 void submit({ action: "reply", ticketId, body, internal });
@@ -439,7 +461,7 @@ export function SupportWorkspace({
                   )}
                 </p>
                 {staff && (
-                  <label className="flex min-h-11 items-center gap-2 text-sm">
+                  <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
                     <input
                       type="checkbox"
                       checked={internal}
@@ -448,7 +470,7 @@ export function SupportWorkspace({
                     {t("Internal note — only visible to support staff")}
                   </label>
                 )}
-                <Button type="submit" disabled={!body.trim()}>
+                <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={!body.trim()}>
                   {t(busy ? "Sending…" : "Send reply")}
                 </Button>
               </fieldset>
@@ -458,7 +480,7 @@ export function SupportWorkspace({
       )}
       <nav
         aria-label={t("Ticket pagination")}
-        className="flex justify-between gap-3"
+        className="flex min-w-0 flex-wrap justify-between gap-3"
       >
         <Button
           variant="outline"
