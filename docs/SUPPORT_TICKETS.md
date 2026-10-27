@@ -82,3 +82,10 @@ A Vercel Cron route is now configured in `vercel.json` with `0 8 * * *` UTC, whi
 - Enable `SUPPORT_EMAIL_ENABLED=true` only after verifying the sender, inbox and worker credential; redeploy and perform one authorized ticket-created delivery test.
 - The Vercel cron is protected with Bearer `CRON_SECRET` headers. Do not expose it or remove the constant-time authorization check.
 - More frequent scheduled retry delivery requires a Vercel plan supporting sub-daily cron or a separately configured authorized scheduler.
+
+## Support interface and branded notification polish — 2026-10-27
+
+- Ticket date/time is no longer placed as a fixed-width sibling beside a ticket subject. Both admin and customer list cards now use an independent wrapping metadata row, fixed responsive padding, explicit min-width-zero children, and accessible read/unread labels. Long Persian dates, subjects and account emails must not push cards beyond the viewport.
+- The staff route uses a dedicated page shell instead of incorrectly labelling the support console as Account. Search fields stack on narrow screens; status/priority editing flows to one column before the desktop layout; reply actions remain finger-friendly.
+- All localized support notification HTML (both customers and staff) now uses an image-free, table-based email layout with inline styles, warm paper surface, forest-green header and call-to-action, field-inspired wheat/green accent bands, clearly presented ticket number and RTL-aware Persian typography. Plain-text alternatives remain, full ticket/message bodies are excluded, and action URLs are restricted to trusted HTTPS `agromind.ir` routes.
+- These changes modify presentation only, not ticket ownership, RLS, staff privileges, queue retry semantics or notification destinations. Real inbox and actual mobile-device verification remain separate from automated tests.

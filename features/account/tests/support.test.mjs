@@ -50,6 +50,47 @@ test("support email contains safe links and localized copy without message bodie
     /<script>|href="[^"]*""/,
   );
 });
+test("branded support emails are responsive, accessible and safe in both locales", () => {
+  for (const language of ["fa", "en"]) {
+    for (const event of ["created", "reply", "status"]) {
+      const customer = supportEmail("AM-00000001", event, language, "https://agromind.ir/account/help/tickets/42", "user");
+      assert.match(customer.html, /<!doctype html>/i);
+      assert.match(customer.html, /role="presentation"/);
+      assert.match(customer.html, /width="100%"/);
+      assert.match(customer.html, /max-width:600px/);
+      assert.match(customer.html, /background-color:#194936/);
+      assert.match(customer.html, /background-color:#f4f6ef/);
+      assert.match(customer.html, /style="display:inline-block;padding:14px 23px/);
+      assert.match(customer.html, new RegExp('lang="' + language + '"'));
+      assert.match(customer.html, new RegExp('dir="' + (language === "fa" ? "rtl" : "ltr") + '"'));
+      assert.match(customer.html, /href="https:\/\/agromind\.ir\/account\/help\/tickets\/42"/);
+      assert.match(customer.text, /AM-00000001/);
+      assert.doesNotMatch(customer.html, /<script|<img|@import|font-face/i);
+      assert.doesNotMatch(customer.text, /password|verification code/i);
+    }
+    const staff = supportEmail("AM-00000001", "created", language, "https://agromind.ir/admin/support?ticket=42", "staff");
+    assert.match(staff.html, /admin\/support/);
+    assert.match(staff.subject, language === "fa" ? /درخواست پشتیبانی جدید/ : /New support ticket/);
+  }
+  const injection = supportEmail("<img src=x onerror=alert(1)>", "reply", "en", "javascript:alert(1)");
+  assert.doesNotMatch(injection.html, /<img|href="javascript:|<script/i);
+  assert.match(injection.html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(injection.html, /href="https:\/\/agromind\.ir\/account\/help"/);
+});
+
+test("support tickets stay within mobile widths and staff controls reflow", () => {
+  const ui = readFileSync("features/support/components/workspace.tsx", "utf8");
+  assert.match(ui, /grid min-w-0 grid-cols-1 gap-3/);
+  assert.match(ui, /group block w-full min-w-0 max-w-full/);
+  assert.match(ui, /\[overflow-wrap:anywhere\]/);
+  assert.match(ui, /border-t border-border\/60 pt-2\.5/);
+  assert.match(ui, /flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row/);
+  assert.match(ui, /grid min-w-0 grid-cols-1 gap-3 md:grid-cols-/);
+  assert.match(ui, /w-full sm:w-auto/);
+  assert.match(ui, /<StaffSupportPage ticketId=\{ticketId\} \/>/);
+  assert.doesNotMatch(ui, /date\(item\.updated_at\)\}\s*<\/time>\s*<\/div>\s*<\/Link>/);
+});
+
 test("notification failures acknowledge retry without throwing or losing a ticket", async () => {
   const names = [
     "SUPPORT_EMAIL_ENABLED",
