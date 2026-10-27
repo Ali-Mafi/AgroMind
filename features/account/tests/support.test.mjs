@@ -173,6 +173,13 @@ test("support UI uses accessible responsive controls and text-only rendering", (
   assert.match(ui, /role="status"/);
   assert.match(ui, /whitespace-pre-wrap break-words/);
   assert.match(ui, /border-s-primary/);
+  // Unread tickets have an emphasized start border, but read tickets retain
+  // a complete neutral four-sided border in both RTL and LTR layouts.
+  assert.match(ui, /border-s-\[3px\] border-s-primary/);
+  assert.match(ui, /: "border-border bg-card"/);
+  assert.doesNotMatch(ui, /border-s-transparent/);
+  // Staff content follows the same generous card spacing as other account pages.
+  assert.match(ui, /staff \? "p-5 sm:p-7 lg:p-8" : "p-3\.5 sm:p-6 lg:p-7"/);
   assert.match(ui, /Unread on this page/);
   const help = readFileSync("features/account/components/help-center.tsx", "utf8");
   assert.ok(help.indexOf("<SupportTicketForm />") < help.indexOf("<SupportWorkspace />"));

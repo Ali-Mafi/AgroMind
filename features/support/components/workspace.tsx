@@ -137,7 +137,9 @@ export function SupportWorkspace({
   const unreadCount = visibleTickets.filter((item) => item.unread).length;
   return (
     <section
-      className="app-card w-full min-w-0 max-w-full space-y-5 p-3.5 sm:p-6 lg:p-7"
+      className={`app-card w-full min-w-0 max-w-full space-y-5 ${
+        staff ? "p-5 sm:p-7 lg:p-8" : "p-3.5 sm:p-6 lg:p-7"
+      }`}
       aria-busy={loading || busy}
     >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 pb-5">
@@ -291,10 +293,10 @@ export function SupportWorkspace({
             {visibleTickets.map((item) => (
               <li key={item.id} className="min-w-0">
                 <Link
-                  className={`group block w-full min-w-0 max-w-full rounded-2xl border border-s-[3px] p-3.5 transition-colors hover:border-primary/50 hover:bg-primary/[0.05] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-5 ${
+                  className={`group block w-full min-w-0 max-w-full rounded-2xl border p-3.5 transition-colors hover:border-primary/50 hover:bg-primary/[0.05] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-5 ${
                     item.unread
-                      ? "border-primary/40 border-s-primary bg-primary/[0.06] shadow-sm"
-                      : "border-border border-s-transparent bg-card"
+                      ? "border-primary/40 border-s-[3px] border-s-primary bg-primary/[0.06] shadow-sm"
+                      : "border-border bg-card"
                   }`}
                   href={staff ? `/admin/support?ticket=${item.id}` : `/account/help/tickets/${item.id}`}
                   aria-label={`${t(item.unread ? "Unread" : "Read")} · ${item.ticket_number} · ${item.subject}`}
