@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { loadTs } from "../../weather/tests/helpers/load-ts.mjs";
 
-const { DEFAULT_PREFERENCES } = loadTs("features/settings/lib/preferences.ts");
+const { DEFAULT_PREFERENCES, resolvePreferences } = loadTs("features/settings/lib/preferences.ts");
 const { preferencesFromProfile } = loadTs("features/settings/lib/account-preferences.ts");
 
 test("cloud profile wins over stale device locale without changing units or calendar", () => {
