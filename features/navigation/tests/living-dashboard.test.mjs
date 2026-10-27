@@ -105,7 +105,7 @@ test("PWA keeps native standard chrome, immersive routes and accessible edge-to-
   assert.match(weather, /statusBarStyle: "black-translucent"/);
   assert.doesNotMatch(weather, /userScalable: false|maximumScale/);
   const css = readFileSync("app/globals.css", "utf8");
-  assert.match(css, /body:not\(:has\(\[data-dashboard-immersive\]\)\)/);
+  assert.match(css, /body:not\(:has\(\[data-dashboard-immersive\], \[data-weather-immersive\], \.agromind-workspace\)\)/);
   assert.match(css, /padding-top: env\(safe-area-inset-top/);
   assert.match(workspaceFixture(), /data-dashboard-immersive/);
   assert.match(workspaceFixture({ empty: true }), /data-dashboard-immersive/);
