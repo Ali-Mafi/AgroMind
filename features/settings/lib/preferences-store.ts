@@ -21,6 +21,7 @@ export function getPreferencesSnapshot() {
 export function updatePreferences(change: Partial<Preferences> | ((previous: Preferences) => Preferences)) {
   const previous = getPreferencesSnapshot().preferences;
   const preferences = typeof change === "function" ? change(previous) : { ...previous, ...change };
+  if (preferences === previous) return; // No-op cloud sync must not re-emit.
   let saved = true;
   try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences)); } catch { saved = false; }
   syncDisplayPreferences(preferences);

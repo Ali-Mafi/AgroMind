@@ -21,7 +21,14 @@ export function AccountPreferenceSync({
     if (!isHydrated || !profileCountry) return;
     // Cloud values seed this account and reflect successful profile saves.
     // Hydration and navigation must never write old device values to the server.
-    update((previous) => preferencesFromProfile(previous, profileCountry, profileLanguage));
+    update((previous) => {
+      const next = preferencesFromProfile(previous, profileCountry, profileLanguage);
+      return next.country === previous.country &&
+        next.language === previous.language &&
+        next.regionConfirmed === previous.regionConfirmed
+        ? previous
+        : next;
+    });
   }, [userId, profileCountry, profileLanguage, isHydrated, update]);
 
   return null;

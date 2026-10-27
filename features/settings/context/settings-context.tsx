@@ -5,6 +5,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useSyncExternalStore,
   type ReactNode,
@@ -81,9 +82,13 @@ export function SettingsProvider({
     };
   }, [preferences, isHydrated, snapshot.saved]);
 
-  useEffect(() => {
-    document.documentElement.lang = value.language;
-    document.documentElement.dir = value.direction;
+  // Commit direction and font-triggering lang before the browser paints the
+  // newly translated React tree. useEffect runs after paint and can display
+  // an English/RTL or Persian/LTR frame during a locale transition.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (root.lang !== value.language) root.lang = value.language;
+    if (root.dir !== value.direction) root.dir = value.direction;
   }, [value.language, value.direction]);
 
   useEffect(() => {

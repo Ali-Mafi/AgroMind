@@ -12,12 +12,20 @@ export function AccountSettingsPanel() {
   const { preferences, update } = useSettings();
 
   async function saveLocale(change: Partial<Preferences>) {
+    if (busy) return;
     const resolved = resolvePreferences({ ...preferences, ...change });
+    // Apply the new display locale and cookie before revalidatePath("/", "layout")
+    // can refresh the root HTML. Otherwise the old cookie can reintroduce an
+    // outdated dir/lang and font after the client has switched languages.
+    const rollback = Object.fromEntries(
+      (Object.keys(change) as (keyof Preferences)[]).map((key) => [key, preferences[key]]),
+    ) as Partial<Preferences>;
+    update(change);
     const saved = await run(() => saveAccountPreferences(
       { country_code: resolved.country, language: resolved.language },
       cloud.user.id,
     ));
-    if (saved) update(change);
+    if (!saved) update(rollback);
   }
 
   return <SettingsPanel onLocaleChange={saveLocale} savingLocale={busy} />;

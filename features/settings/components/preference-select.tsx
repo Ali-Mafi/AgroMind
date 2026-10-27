@@ -44,6 +44,7 @@ export function PreferenceSelect<V extends string>({
         {label}
       </label>
       <Select.Root
+        key={direction}
         disabled={disabled}
         value={value || null}
         items={options}

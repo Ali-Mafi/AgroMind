@@ -76,6 +76,17 @@ test("Persian month navigation keeps canonical ISO dates including Nowruz and le
   assert.equal(parseLocalDate("2026-02-30"), null);
 });
 
+test("the root and popup use the resolved locale direction before paint", () => {
+  const root = readFileSync("features/settings/context/settings-context.tsx", "utf8");
+  const select = readFileSync("features/settings/components/preference-select.tsx", "utf8");
+  const account = readFileSync("features/settings/components/account-settings-panel.tsx", "utf8");
+  assert.match(root, /useLayoutEffect\(\(\) => \{/);
+  assert.match(root, /root\.lang = value\.language/);
+  assert.match(root, /root\.dir = value\.direction/);
+  assert.match(select, /<Select\.Root\s+key=\{direction\}/);
+  assert.ok(account.indexOf("update(change)") < account.indexOf("await run("));
+});
+
 test("preference store survives reload, synchronizes tabs and retains edits when storage is blocked", (t) => {
   const savedWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   const savedStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
