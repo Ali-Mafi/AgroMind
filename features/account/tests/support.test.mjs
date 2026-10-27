@@ -197,3 +197,13 @@ test("support UI uses accessible responsive controls and text-only rendering", (
   const { isPrivatePath } = loadTs("features/authentication/lib/redirects.ts");
   assert.ok(isPrivatePath("/admin/support"));
 });
+
+test("admin support uses the same workspace styling as signed-in pages without changing MFA", () => {
+  const staffPage = readFileSync("app/admin/support/page.tsx", "utf8");
+  const verifyPage = readFileSync("app/admin/support/verify/page.tsx", "utf8");
+  assert.match(staffPage, /await requireSupportStaff\(\)/);
+  assert.match(staffPage, /import \{ AppShell \} from "@\/components\/layout\/app-shell"/);
+  assert.match(staffPage, /<AppShell>[\s\S]*<SupportPage key=\{ticket \?\? "list"\} staff ticketId=\{ticket\} \/>[\s\S]*<\/AppShell>/);
+  assert.match(verifyPage, /<AuthShell/);
+  assert.doesNotMatch(verifyPage, /<AppShell/);
+});
