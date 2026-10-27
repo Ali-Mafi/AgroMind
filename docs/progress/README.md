@@ -26,3 +26,5 @@ Dated entries are historical evidence from the day written, not living release s
 - [2026-10-26 support system](2026-10-26-support.md)
 
 Record meaningful work only. Include the starting SHA, scope, changes, test evidence, limitations, results and next work. Keep historical entries intact and this index current; no invented empty logs.
+
+- [2026-10-27 — Standard workspace iOS safe-area](2026-10-27.md)

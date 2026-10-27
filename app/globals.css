@@ -171,10 +171,10 @@
   }
 }
 
-/* iOS standalone uses a translucent status bar. Dashboard and Weather paint
-   their own immersive surfaces behind it; standard routes reserve the top
-   inset so controls never collide with the notch. */
-body:not(:has([data-dashboard-immersive])) {
+/* iOS standalone uses a translucent status bar. The entire signed-in workspace
+   paints underneath it; individual page content handles its own safe inset.
+   Non-workspace routes (e.g. authentication) retain their original top spacing. */
+body:not(:has([data-dashboard-immersive], [data-weather-immersive], .agromind-workspace)) {
   padding-top: env(safe-area-inset-top, 0px);
 }
 body {

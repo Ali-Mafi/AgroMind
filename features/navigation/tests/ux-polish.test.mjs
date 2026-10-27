@@ -131,6 +131,26 @@ for (const language of ["en", "fa"]) {
   });
 }
 
+
+test("iOS workspace fills the status-bar background without obscuring controls or immersive routes", () => {
+  const globalCss = readFileSync(path.join(root, "app/globals.css"), "utf8");
+  const shellCss = readFileSync(path.join(root, "components/layout/app-shell.css"), "utf8");
+  const shell = readFileSync(path.join(root, "components/layout/app-shell.tsx"), "utf8");
+  const rootLayout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  assert.match(rootLayout, /viewportFit: "cover"/);
+  assert.match(rootLayout, /statusBarStyle: "black-translucent"/);
+  assert.match(shell, /className="agromind-app agromind-workspace"/);
+  assert.match(globalCss, /body:not\(:has\(\[data-dashboard-immersive\], \[data-weather-immersive\], \.agromind-workspace\)\)/);
+  assert.match(shellCss, /\.agromind-workspace \.app-page \{/);
+  assert.match(shellCss, /padding-block-start: calc\(1\.5rem \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(shellCss, /@media \(display-mode: standalone\) and \(max-width: 1023px\)/);
+  assert.match(shellCss, /pointer-events: none/);
+  assert.match(shellCss, /backdrop-filter: blur\(12px\)/);
+  assert.match(shellCss, /-webkit-mask-image: linear-gradient/);
+  assert.match(shellCss, /body:not\(:has\(\[data-dashboard-immersive\], \[data-weather-immersive\]\)\)/);
+  assert.doesNotMatch(globalCss, /body:not\(:has\(\[data-dashboard-immersive\]\)\) \{\s*padding-top:/);
+});
+
 test("mobile composer follows the visual viewport, ignores pinch zoom, and resets after blur", () => {
   const { composerKeyboardInset } = loadTs(
     "features/assistant/lib/composer-layout.ts",

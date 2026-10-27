@@ -328,3 +328,50 @@
     animation: none;
   }
 }
+
+/* Workspace pages (Account, Farms, Settings, Irrigation, Assistant, etc.) are
+   edge-to-edge on installed iOS: the surface paints behind the translucent
+   status bar, while interactive content starts below the safe area.
+   Keep the dashboard and immersive Weather layout unchanged. */
+body:not(:has([data-dashboard-immersive], [data-weather-immersive]))
+  .agromind-workspace .app-page {
+  padding-block-start: calc(1.5rem + env(safe-area-inset-top, 0px));
+}
+@media (min-width: 640px) {
+  body:not(:has([data-dashboard-immersive], [data-weather-immersive]))
+    .agromind-workspace .app-page {
+    padding-block-start: calc(2rem + env(safe-area-inset-top, 0px));
+  }
+}
+@media (min-width: 1024px) {
+  body:not(:has([data-dashboard-immersive], [data-weather-immersive]))
+    .agromind-workspace .app-page {
+    padding-block-start: calc(2.5rem + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* Native-like frosted fade for content passing beneath the clock/battery.
+   This never clips the page or blurs the entire scrolling content: images and
+   cards can continue underneath, and only the top viewport strip is frosted.
+   A gradient mask prevents any hard horizontal boundary. */
+@media (display-mode: standalone) and (max-width: 1023px) {
+  body:not(:has([data-dashboard-immersive], [data-weather-immersive]))
+    .agromind-workspace::before {
+    content: "";
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: calc(env(safe-area-inset-top, 0px) + 2rem);
+    z-index: 40;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--background) 24%, transparent),
+      transparent
+    );
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+  }
+}
