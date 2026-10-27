@@ -88,7 +88,8 @@ test("support tickets stay within mobile widths and staff controls reflow", () =
   assert.match(ui, /grid min-w-0 grid-cols-1 gap-3 md:grid-cols-/);
   assert.match(ui, /w-full sm:w-auto/);
   assert.match(ui, /<StaffSupportPage ticketId=\{ticketId\} \/>/);
-  assert.doesNotMatch(ui, /date\(item\.updated_at\)\}\s*<\/time>\s*<\/div>\s*<\/Link>/);
+  assert.match(ui, /<Clock3 className="mt-1 size-3.5 shrink-0"/);
+  assert.match(ui, /<time dateTime=\{item.updated_at\} className="min-w-0 break-words/);
 });
 
 test("notification failures acknowledge retry without throwing or losing a ticket", async () => {
