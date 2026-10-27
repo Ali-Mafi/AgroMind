@@ -21,6 +21,7 @@ Updated: 2026-10-25
 
 ## Security and architecture
 
+- **Security-first product requirement:** Farm operations and users' capital may depend on AgroMind. Treat security, operational safety and recoverability as release gates, not optional polish. Follow [Security-First Policy](SECURITY_FIRST.md) for threat modeling, risk levels and future work. This document is a requirement, not authorization for unrequested production changes.
 - Current stack: Next.js 16 App Router, React 19, TypeScript, feature-based architecture; inspect `AGENTS.md` and installed framework docs for version-specific API conventions.
 - Keep route files thin, feature logic in its owning feature, secrets and sensitive mutations server-side. Maintain Supabase ownership, RLS, MFA, entitlements and account isolation.
 - Never expose credentials, environment variable **values**, exact private locations or account data in commits, logs or reports. Reading non-secret variable names is not a live provider test.

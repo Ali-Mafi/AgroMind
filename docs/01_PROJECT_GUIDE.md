@@ -154,6 +154,7 @@ AgroMind should become software that farmers trust every day.
 
 Every decision must improve:
 
+- Security, operational safety, and recoverability — see [Security-First Policy](SECURITY_FIRST.md)
 - User Experience
 - Maintainability
 - Scalability
