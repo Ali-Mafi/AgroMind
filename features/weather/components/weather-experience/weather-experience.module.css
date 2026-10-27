@@ -238,3 +238,34 @@
   .page *, .sheet * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 :global([dir="rtl"]) .temperatureRange { background: linear-gradient(270deg, var(--weather-green), #e4dc8d, #f7b155); }
+
+/* Match the installed iOS workspace's soft top-edge fade while retaining the
+   full-bleed animated weather background. This fixed layer sits over scrolling
+   weather text/cards, below the weather dock (z-index: 8) and modal top layer.
+   The masked blur has no pointer interaction or hard bottom edge. */
+@media (display-mode: standalone) and (max-width: 1023px) {
+  .page::after {
+    content: "";
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: calc(env(safe-area-inset-top, 0px) + 2rem);
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(13, 37, 54, 0.16), transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+  }
+  /* Keep initial Weather controls below the frosted strip, including
+     the narrower iPhone breakpoint (which has a different base inset). */
+  .content {
+    padding-top: calc(max(22px, env(safe-area-inset-top)) + 1.5rem);
+  }
+}
+@media (display-mode: standalone) and (max-width: 520px) {
+  .content {
+    padding-top: calc(max(14px, env(safe-area-inset-top)) + 1.5rem);
+  }
+}

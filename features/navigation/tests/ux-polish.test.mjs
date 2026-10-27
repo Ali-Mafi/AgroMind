@@ -151,6 +151,34 @@ test("iOS workspace fills the status-bar background without obscuring controls o
   assert.doesNotMatch(globalCss, /body:not\(:has\(\[data-dashboard-immersive\]\)\) \{\s*padding-top:/);
 });
 
+
+test("installed iOS dashboard and immersive Weather share the status-bar frosted fade", () => {
+  const shell = readFileSync(path.join(root, "components/layout/app-shell.css"), "utf8");
+  const dashboardCss = readFileSync(path.join(root, "features/dashboard/components/dashboard-overview/dashboard-overview.module.css"), "utf8");
+  const weather = readFileSync(path.join(root, "features/weather/components/weather-experience/weather-experience.module.css"), "utf8");
+  const weatherCard = readFileSync(path.join(root, "features/weather/components/weather-dashboard/weather-dashboard.module.css"), "utf8");
+
+  // Existing workspace overlay now covers Dashboard without tinting its
+  // full-bleed farm photograph as though it were a normal solid page.
+  assert.match(shell, /@media \(display-mode: standalone\) and \(max-width: 1023px\)/);
+  assert.match(shell, /\.agromind-workspace::before \{/);
+  assert.match(shell, /body:has\(\[data-dashboard-immersive\]\) \.agromind-workspace::before/);
+  assert.match(shell, /-webkit-backdrop-filter: blur\(12px\)/);
+  assert.match(shell, /-webkit-mask-image: linear-gradient/);
+  assert.doesNotMatch(dashboardCss, /backdrop-filter|filter:\s*blur/);
+
+  // Immersive Weather does not use AppShell, so it needs its own native fade.
+  assert.match(weather, /@media \(display-mode: standalone\) and \(max-width: 1023px\)/);
+  assert.match(weather, /\.page::after \{/);
+  assert.match(weather, /z-index: 5/);
+  assert.match(weather, /pointer-events: none/);
+  assert.match(weather, /-webkit-backdrop-filter: blur\(12px\)/);
+  assert.match(weather, /-webkit-mask-image: linear-gradient/);
+  assert.match(weather, /padding-top: calc\(max\(14px, env\(safe-area-inset-top\)\) \+ 1\.5rem\)/);
+  assert.match(weather, /\.dock \{[^}]*z-index: 8/);
+  assert.doesNotMatch(weatherCard, /backdrop-filter|filter:\s*blur/);
+});
+
 test("mobile composer follows the visual viewport, ignores pinch zoom, and resets after blur", () => {
   const { composerKeyboardInset } = loadTs(
     "features/assistant/lib/composer-layout.ts",
