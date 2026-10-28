@@ -65,7 +65,25 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /https:\/\/t.me\/agromindir/);
     assert.match(email.text, /Instagram: agromind.ir/);
     assert.match(email.text, /Telegram: agromindir/);
-    assert.doesNotMatch(email.html, /<script|<iframe|data:image|@import|@font-face|onerror=/);
+    assert.doesNotMatch(email.html, /<script|<iframe|data:image|@import|onerror=/);
+    if (language === "fa") {
+      assert.match(email.html, /@font-face\{font-family:Vazirmatn;/);
+      assert.match(email.html, /https:\/\/agromind\.ir\/email\/fonts\/vazirmatn-variable\.woff2/);
+      assert.match(email.html, /font-family:'Vazirmatn',Tahoma,Arial/);
+      assert.ok(existsSync("public/email/fonts/vazirmatn-variable.woff2"));
+      assert.ok(existsSync("public/email/fonts/OFL.txt"));
+    } else {
+      assert.doesNotMatch(email.html, /@font-face/);
+    }
+    assert.match(email.html, /<body class="email-body"/);
+    assert.match(email.html, /u \+ \.email-body \.gmail-blend-screen\{background:#000;mix-blend-mode:screen\}/);
+    assert.match(email.html, /u \+ \.email-body \.gmail-blend-difference\{background:#000;mix-blend-mode:difference\}/);
+    assert.match(email.html, /class="email-title"[^>]*color:#ffffff[^>]*>.*gmail-blend-screen/);
+    assert.match(email.html, /background-image:url\('[^']+footer-leaves\.png[^']*'\),linear-gradient\(#102c20,#102c20\)/);
+    assert.match(email.html, /gmail-blend-difference[^>]*>AgroMind<\/span>/);
+    for (const label of ["Instagram", "Telegram", "agromind.ir", "agromindir"]) {
+      assert.ok(email.html.includes(`>${label}</span>`), label);
+    }
     const withoutImages = email.html.replace(/<img\b[^>]*>/g, "");
     assert.match(withoutImages, /<h1/);
     assert.match(withoutImages, /data-email-cta="primary"/);
