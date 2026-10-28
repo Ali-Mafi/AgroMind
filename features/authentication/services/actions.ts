@@ -1,5 +1,7 @@
 "use server";
 
+import { observeLogin } from "@/features/account-security/services/login";
+import { recordSecurityEvent, securityContext } from "@/features/account-security/services/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -219,6 +221,8 @@ export async function signInAction(
       }
       userId = result.user.id;
     }
+
+    await observeLogin("password");
 
     // RLS blocks protected cloud tables at aal1 after MFA is enrolled, so the
     // assurance check must happen before reading the profile.
@@ -512,6 +516,7 @@ export async function verifyEmailAction(
             : "This link is invalid. Request a new email.",
       };
     if (type === "signup") await supabase.auth.signOut({ scope: "local" });
+    else await observeLogin("recovery");
   } catch {
     return unavailable;
   }
@@ -555,6 +560,7 @@ export async function resetPasswordAction(
       assurance.data.currentLevel !== "aal2";
 
     if (!mfaRequired) {
+      const context = await securityContext(supabase);
       const updated = await supabase.auth.updateUser({
         password: parsed.data.password,
       });
@@ -566,6 +572,7 @@ export async function resetPasswordAction(
               : unavailable.error,
         };
 
+      await recordSecurityEvent(context, "password_changed", crypto.randomUUID());
       const signedOut = await supabase.auth.signOut({ scope: "global" });
       if (signedOut.error)
         return {
@@ -586,8 +593,10 @@ export async function resetPasswordAction(
 export async function logoutAction(): Promise<{ error?: string }> {
   try {
     const supabase = await createClient();
+    const context = await securityContext(supabase).catch(() => null);
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) return unavailable;
+    if (context) await recordSecurityEvent(context, "logout", context.sessionId);
     revalidatePath("/", "layout");
     return {};
   } catch {

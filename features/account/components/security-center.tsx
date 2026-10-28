@@ -1,5 +1,7 @@
 "use client";
 
+import { SessionPanel } from "@/features/account-security/components/session-panel";
+import type { SecuritySnapshot } from "@/features/account-security/types/security";
 import Image from "next/image";
 import {
   Check,
@@ -71,9 +73,11 @@ async function copyText(value: string) {
 }
 
 export function SecurityCenter({
-  initialState,
+  initialState, sessionSnapshot = null, sessionError = false,
 }: {
   initialState: MfaSecurityState;
+  sessionSnapshot?: SecuritySnapshot | null;
+  sessionError?: boolean;
 }) {
   const t = useTranslation();
   const settings = useSettings();
@@ -496,43 +500,9 @@ export function SecurityCenter({
         </section>
       )}
 
-      <section className={accountCardClass}>
-        <h2 className="text-xl font-bold">{t("Sessions")}</h2>
-        {initialState.currentSession && (
-          <div className="mt-3 rounded-xl border p-3">
-            <p className="font-semibold">{t("Current session")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("Signed in since")}:{" "}
-              <time dateTime={initialState.currentSession.createdAt}>
-                {settings.format.date(
-                  new Date(initialState.currentSession.createdAt),
-                )}
-              </time>
-            </p>
-          </div>
-        )}
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          {t(
-            "AgroMind blocks revoked sessions from cloud data immediately. Previously issued tokens may remain valid at the authentication provider until they expire.",
-          )}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            disabled={busy || !!setup}
-            onClick={() => choose("others")}
-          >
-            {t("Sign out other sessions")}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={busy || !!setup}
-            onClick={() => choose("global")}
-          >
-            {t("Sign out all sessions")}
-          </Button>
-        </div>
-      </section>
+      <SessionPanel snapshot={sessionSnapshot} error={sessionError} mfaEnabled={initialState.enabled}
+        onRevoke={(scope) => { if (!busy && !setup) choose(scope); }}
+        onEnroll={() => { if (!busy && !setup) choose("setup"); }} />
 
       {!operation && message.error && (
         <p role="alert" className="text-sm text-destructive">
@@ -682,7 +652,8 @@ export function SecurityCenter({
               onSubmit={(event) => submitForm(event, submit)}
               className="space-y-5"
             >
-              <FreshIdentityFields state={initialState} />
+              <FreshIdentityFields state={initialState} totpOnly={operation === "others" || operation === "global"} />
+              {(operation === "others" || operation === "global") && <p className="text-sm leading-6 text-muted-foreground">{t(operation === "others" ? "All other sessions will lose access. This device stays signed in. A fresh authenticator code is required." : "All sessions, including this device, will lose access. A fresh authenticator code is required.")}</p>}
 
               {message.error && (
                 <p

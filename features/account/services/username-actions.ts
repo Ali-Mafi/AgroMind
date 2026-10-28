@@ -1,5 +1,6 @@
 "use server";
 
+import { securityContext, recordSecurityEvent } from "@/features/account-security/services/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usernameSchema } from "@/features/authentication/lib/validation";
@@ -107,6 +108,7 @@ export async function updateUsernameAction(
       return { error: unavailable };
     }
 
+    await securityContext(supabase).then(c => recordSecurityEvent(c, "username_changed", crypto.randomUUID())).catch(() => {});
     revalidatePath("/account/profile");
     revalidatePath("/", "layout");
     return {

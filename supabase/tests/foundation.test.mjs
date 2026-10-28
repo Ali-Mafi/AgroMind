@@ -125,7 +125,7 @@ before(
     await admin.query(`
     create role anon nologin; create role authenticated nologin; create role service_role nologin; create schema auth;
     create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb not null default '{}', email_confirmed_at timestamptz);
-    create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz);
+    create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz,refreshed_at timestamp);
     create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
     create trigger test_session after insert on auth.users for each row execute function auth.test_session();
     create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
@@ -1339,4 +1339,146 @@ test("support notifications keep the ticket owner's language across staff replie
     await owner.end();
     await admin.query("delete from private.support_staff where user_id=$1", [staffId]);
   }
+});
+
+// Account security: these fixtures use isolated accounts and actual migrations.
+async function securityFixture() {
+ const user=randomUUID(), session=randomUUID(), factor=randomUUID();
+ await admin.query("insert into auth.users(id,email,email_confirmed_at) values($1,'security@example.test',now())",[user]);
+ await admin.query("insert into auth.sessions(id,user_id) values($1,$2)",[session,user]);
+ await admin.query("insert into auth.mfa_factors values($1,$2,'verified')",[factor,user]);
+ return {user,session,factor};
+}
+async function observeSecurity(user,session,provider='password',aal='aal2',client=admin) {
+ return (await client.query("select public.security_observe_session($1,$2,$3,$4,$5) as queued",[user,session,{device:'Mobile',os:'iOS',browser:'Safari',ip:'203.0.113.9',city:'Qazvin'},provider,aal])).rows[0].queued;
+}
+async function beginSecurity(f,hash='a'.repeat(64),scope='others',client=admin) {
+ return (await client.query("select security_begin_revocation($1,$2,$3,$4,$5) as id",[f.user,f.session,f.factor,scope,hash])).rows[0].id;
+}
+test("new password/Google sessions enqueue exactly once only after required MFA; refresh/reload/tabs are idempotent",async()=>{
+ for(const provider of ['password','google']) {
+  const f=await securityFixture();
+  assert.equal(await observeSecurity(f.user,f.session,provider,'aal1'),false);
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1",[f.user])).rows[0].n,0);
+  assert.equal(await observeSecurity(f.user,f.session,provider),true);
+  for(let i=0;i<4;i++) assert.equal(await observeSecurity(f.user,f.session,provider),false);
+  const rows=(await admin.query("select e.kind,e.details,o.security_payload from private.security_events e join private.support_outbox o on o.security_event_id=e.id where e.user_id=$1",[f.user])).rows;
+  assert.equal(rows.length,1);assert.equal(rows[0].details.provider,provider);assert.equal(rows[0].security_payload.details.metadata.city,'Qazvin');
+ }
+ const f=await securityFixture();await admin.query("delete from auth.mfa_factors where id=$1",[f.factor]);
+ assert.equal(await observeSecurity(f.user,f.session,'password','aal1'),true);
+});
+test("baseline sessions, missing metadata, ownership and immutable user-scoped security history",async()=>{
+ const f=await securityFixture(), foreign=await securityFixture();
+ await admin.query("insert into private.security_sessions(session_id,user_id,created_at,baseline) values($1,$2,now(),true)",[f.session,f.user]);
+ assert.equal(await observeSecurity(f.user,f.session),false);
+ assert.equal(await observeSecurity(foreign.user,f.session),false);
+ const owner=await asUser(f.user,'aal2',f.session), other=await asUser(foreign.user,'aal2',foreign.session), low=await asUser(f.user,'aal1',f.session);
+ try {
+  const own=(await owner.query("select security_snapshot() as s")).rows[0].s;
+  assert.ok(own.sessions.some(s=>s.id===f.session&&s.current));assert.ok(own.sessions.every(s=>s.id!==foreign.session));
+  assert.deepEqual(own.sessions.find(s=>s.id===f.user).metadata,{});
+  await admin.query("select security_record_event($1,$2,'logout',$3)",[f.user,f.session,f.session]);
+  await admin.query("select security_record_event($1,$2,'logout',$3)",[f.user,f.session,f.session]);
+  assert.equal((await owner.query("select security_snapshot() as s")).rows[0].s.events.length,1);
+  assert.equal((await other.query("select security_snapshot() as s")).rows[0].s.events.length,0);
+  await assert.rejects(low.query("select security_snapshot()"),/SECURITY_DENIED/);
+  for(const sql of ["select * from private.security_events","delete from private.security_events","select security_prune()","select security_observe_session(null,null,'{}',null,null)","select security_begin_revocation(null,null,null,'others',null)","select transactional_email_jobs(true,true)"])
+   await assert.rejects(owner.query(sql),/permission denied/);
+ }finally{await owner.end();await other.end();await low.end();}
+});
+test("single-use, expiring proof denies old JWTs before native sign-out and never blocks a foreign/current session for others",async()=>{
+ const f=await securityFixture(), foreign=await securityFixture();
+ const current=await asUser(f.user,'aal2',f.session), remote=await asUser(f.user,'aal2',f.user), other=await asUser(foreign.user,'aal2',foreign.session);
+ try {
+  const op=await beginSecurity(f);
+  await assert.rejects(admin.query("select security_consume_revocation($1,$2,$3)",[op,foreign.user,foreign.session]),/SECURITY_REPLAY/);
+  const consumed=(await admin.query("select security_consume_revocation($1,$2,$3) as result",[op,f.user,f.session])).rows[0].result;
+  assert.equal(consumed.scope,'others');assert.equal(consumed.count,1);
+  await assert.rejects(admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]),/SECURITY_REPLAY/);
+  assert.ok((await current.query("select get_current_session() as s")).rows[0].s);
+  assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
+  assert.equal((await remote.query("select get_current_session() as s")).rows[0].s,null);
+  assert.equal((await remote.query("select * from profiles")).rowCount,0);
+  await assert.rejects(create(remote,farm('revoked-security-farm')),/AUTH_REQUIRED/);
+  await assert.rejects(remote.query("select complete_onboarding()"),/AUTH_REQUIRED|MFA_REQUIRED/);
+  assert.equal((await admin.query("select security_finish_revocation($1,$2,true) as done",[op,f.user])).rows[0].done,false);
+  assert.equal((await current.query("select security_snapshot() as s")).rows[0].s.sessions.find(s=>s.id===f.user).state,'blocked');
+  // Native Auth deletion is simulated only in the isolated auth fixture, never production.
+  await admin.query("delete from auth.sessions where id=$1",[f.user]);
+  const next=await beginSecurity(f,'b'.repeat(64));
+  await admin.query("update private.security_revocations set expires_at=now()-interval '1 second' where id=$1",[next]);
+  await assert.rejects(admin.query("select security_consume_revocation($1,$2,$3)",[next,f.user,f.session]),/SECURITY_REPLAY/);
+  await assert.rejects(beginSecurity({...f,factor:foreign.factor},'c'.repeat(64)),/SECURITY_DENIED/);
+ }finally{await current.end();await remote.end();await other.end();}
+});
+test("security quota and replay apply across requests; global sign-out preserves no app access",async()=>{
+ const f=await securityFixture();
+ for(let i=0;i<5;i++){
+  const op=await beginSecurity(f,String(i).repeat(64));
+  await admin.query("select security_finish_revocation($1,$2,false)",[op,f.user]);
+ }
+ await assert.rejects(beginSecurity(f,'f'.repeat(64)),/SECURITY_RATE/);
+ const g=await securityFixture();const op=await beginSecurity(g,'a'.repeat(64));
+ await admin.query("select security_finish_revocation($1,$2,false)",[op,g.user]);
+ await assert.rejects(beginSecurity(g,'a'.repeat(64)),/SECURITY_REPLAY/);
+ const all=await beginSecurity(g,'b'.repeat(64),'global');
+ await admin.query("select security_consume_revocation($1,$2,$3)",[all,g.user,g.session]);
+ const c=await asUser(g.user,'aal2',g.session);
+ try{assert.equal((await c.query("select get_current_session() as s")).rows[0].s,null);}finally{await c.end();}
+ await admin.query("delete from auth.sessions where user_id=$1",[g.user]);
+ assert.equal((await admin.query("select security_finish_revocation($1,$2,true) as done",[all,g.user])).rows[0].done,true);
+ assert.equal((await admin.query("select security_finish_revocation($1,$2,true) as done",[all,g.user])).rows[0].done,true);
+});
+test("security emails share durable leases, immutable retry payloads and retention cleanup",async()=>{
+ const f=await securityFixture();await observeSecurity(f.user,f.session);
+ let jobs=(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs;
+ const job=jobs.find(j=>j.securityDetails?.metadata?.ip==='203.0.113.9'&&j.to==='security@example.test');assert.ok(job);
+ await admin.query("select support_email_ack($1,$2,false)",[job.id,job.lease]);
+ await admin.query("update private.support_outbox set lease_until=now()-interval '1 second' where id=$1",[job.id]);
+ await admin.query("update profiles set language='en' where id=$1",[f.user]);
+ await admin.query("update auth.users set email='changed@example.test' where id=$1",[f.user]);
+ const retried=(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs.find(j=>j.id===job.id);
+ assert.ok(retried);assert.equal(retried.to,job.to);assert.equal(retried.language,job.language);assert.deepEqual(retried.securityDetails,job.securityDetails);
+ await admin.query("select support_email_ack($1,$2,true)",[job.id,job.lease]);
+ assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
+ await admin.query("select support_email_ack($1,$2,true)",[job.id,retried.lease]);
+ assert.ok(!(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs.some(j=>j.id===job.id));
+ await admin.query("update private.security_sessions set observed_at=now()-interval '31 days' where user_id=$1",[f.user]);
+ await admin.query("update private.security_events set created_at=now()-interval '31 days' where user_id=$1",[f.user]);
+ await admin.query("select security_prune()");
+ assert.deepEqual((await admin.query("select metadata from private.security_sessions where session_id=$1",[f.session])).rows[0].metadata,{});
+ assert.ok(!(await admin.query("select details from private.security_events where user_id=$1",[f.user])).rows[0].details.metadata);
+ await admin.query("update private.security_events set created_at=now()-interval '91 days' where user_id=$1",[f.user]);
+ await admin.query("select security_prune()");
+ assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1",[f.user])).rows[0].n,0);
+});
+test("native concurrent login completion and revocation proof consumption have exactly one winner",{skip:!native},async()=>{
+ const f=await securityFixture();const a=postgres.getPgClient(),b=postgres.getPgClient();await a.connect();await b.connect();
+ try{
+  const queued=await Promise.all([observeSecurity(f.user,f.session,'password','aal2',a),observeSecurity(f.user,f.session,'password','aal2',b)]);
+  assert.equal(queued.filter(Boolean).length,1);
+  const begun=await Promise.allSettled([beginSecurity(f,'d'.repeat(64),'others',a),beginSecurity(f,'e'.repeat(64),'others',b)]);
+  assert.equal(begun.filter(r=>r.status==='fulfilled').length,1);
+  const op=begun.find(r=>r.status==='fulfilled').value;
+  const consumed=await Promise.allSettled([a.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]),b.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session])]);
+  assert.equal(consumed.filter(r=>r.status==='fulfilled').length,1);
+ }finally{await a.end();await b.end();}
+});
+test("manual rollback refuses pending native sessions and restores the prior schema without weakening active denies",async()=>{
+ const f=await securityFixture();const op=await beginSecurity(f,'9'.repeat(64));
+ await admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]);
+ const script=await readFile('supabase/rollback/account_session_security.sql','utf8');
+ const run=()=>native?admin.query(script):embedded.exec(script);
+ await assert.rejects(run(),/ROLLBACK_BLOCKED/);await admin.query('rollback');
+ // Simulate supported native sign-out completing in this test fixture only.
+ await admin.query("delete from auth.sessions where id in(select session_id from private.security_denied_sessions)");
+ await run();
+ const c=await asUser(f.user,'aal2',f.session);
+ try{
+  const session=(await c.query('select get_current_session() as s')).rows[0].s;
+  assert.ok(session.created_at);assert.equal(session.id,undefined);
+  assert.equal((await admin.query("select to_regclass('private.security_events') as t")).rows[0].t,null);
+  assert.ok(Array.isArray((await admin.query('select support_email_jobs() as jobs')).rows[0].jobs));
+ }finally{await c.end();}
 });

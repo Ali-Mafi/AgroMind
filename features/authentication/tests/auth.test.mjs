@@ -86,7 +86,7 @@ function harness({
     },
     rpc: async (name, args) => {
       calls.push({ name: "rpc", args: [name, args] });
-      if (name === "get_current_session") return {data:{created_at:"2026-09-16"},error:null};
+      if (name === "get_current_session") return {data:{id:"session-a",created_at:"2026-09-16"},error:null};
       if (name === "username_available") return { data: usernameAvailable, error: null };
       if (name === "pending_signup_verified") return { data: pendingVerified, error: null };
       return { data: null, error: null };
@@ -661,7 +661,7 @@ test("password recovery requires MFA before changing a password on MFA-enabled a
 test("logout calls Supabase, reports failures safely, and does not pretend success", async () => {
   const h = harness();
   assert.deepEqual(await h.actions.logoutAction(), {});
-  assert.deepEqual(h.calls[0], { name: "signOut", args: [{ scope: "local" }] });
+  assert.deepEqual(h.calls.find(c => c.name === "signOut"), { name: "signOut", args: [{ scope: "local" }] });
   const failed = harness({ error: { message: "secret detail" } });
   assert.match((await failed.actions.logoutAction()).error, /unavailable/);
 });
