@@ -42,7 +42,9 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /max-width:480px/);
     const cta = [...email.html.matchAll(/<a\b[^>]*data-email-cta="primary"[^>]*>/g)];
     assert.equal(cta.length, 1);
-    assert.match(email.html, /wheat-field.jpg"[^>]*alt="[^"]+"/);
+    assert.match(email.html, /background="https:\/\/agromind.ir\/email\/signature-v2\/landscape.jpg"/);
+    assert.match(email.html, /<v:fill[^>]+landscape.jpg/);
+    assert.match(email.html, /bgcolor="#102c20"/);
     for (const image of email.html.matchAll(/src="https:\/\/agromind.ir(\/email\/[^\"]+)"/g)) assert.ok(existsSync(`public${image[1]}`));
     assert.match(email.html, /https:\/\/www.instagram.com\/agromind.ir\//);
     assert.match(email.html, /https:\/\/t.me\/agromindir/);

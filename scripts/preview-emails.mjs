@@ -9,7 +9,10 @@ const {renderFarmInvitationEmail}=loadTs("features/collaboration/emails/template
 const {supportEmail}=loadTs("features/support/lib/email.ts");
 const assetDestination=path.join(destination,"assets");
 mkdirSync(assetDestination,{recursive:true});
-for(const file of readdirSync("public/email/signature-v1")) if(/\.(png|jpg)$/.test(file)) copyFileSync(path.join("public/email/signature-v1",file),path.join(assetDestination,file));
+for(const version of ["signature-v1", "signature-v2"]) {
+  mkdirSync(path.join(assetDestination,version),{recursive:true});
+  for(const file of readdirSync(`public/email/${version}`)) if(/\.(png|jpg)$/.test(file)) copyFileSync(path.join("public/email",version,file),path.join(assetDestination,version,file));
+}
 const cases=[];
 for(const language of ["fa","en"]) {
   for(const kind of ["signup","recovery"]) cases.push({name:`${kind}-${language}`,language,...renderAuthEmail(kind,"b".repeat(64),language)});
@@ -19,7 +22,7 @@ for(const language of ["fa","en"]) {
 for(const item of cases) {
   // Remove even synthetic hashes and invitation tokens from exported artifacts.
   const scrub=(value)=>value.replace(/https:\/\/agromind\.ir\/(?:auth\/callback|invite\/)[^\s"<>]*/g,"https://agromind.ir");
-  writeFileSync(path.join(destination,`${item.name}.html`),scrub(item.html).replaceAll('src="https://agromind.ir/email/signature-v1/', 'src="assets/'));
+  writeFileSync(path.join(destination,`${item.name}.html`),scrub(item.html).replaceAll('https://agromind.ir/email/', 'assets/'));
   writeFileSync(path.join(destination,`${item.name}.txt`),scrub(item.text));
 }
 writeFileSync(path.join(destination,"manifest.json"),JSON.stringify(cases.map(({name,language,subject})=>({name,language,subject})),null,2));

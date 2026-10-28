@@ -44,9 +44,10 @@ export function renderAuthEmail(
   };
   return renderPremiumEmail({
     language, subject: content.subject, eyebrow: fa ? "حساب کاربری" : "ACCOUNT",
-    title: content.title, subtitle: content.subtitle,
+    title: content.title, titleAccent: signup ? (fa ? "ایمیل" : "email address") : undefined, subtitle: content.subtitle,
     greeting: fa ? "کاربر گرامی،" : "Dear user,", paragraphs: content.paragraphs,
     action: { label: content.cta, href: url.toString() },
-    information: { title: fa ? "اطلاع‌رسانی امنیتی" : "Security information", paragraphs: [content.note, content.ignore] },
+    information: { title: fa ? "اطلاع‌رسانی امنیتی" : "Security information", paragraphs: [content.note] },
+    afterInformation: [content.ignore],
   });
 }

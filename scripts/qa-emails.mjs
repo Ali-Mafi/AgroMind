@@ -15,6 +15,8 @@ for(const [engine,browserType] of Object.entries({chromium,webkit}).filter(([nam
   const widths=engine==="chromium"?[320,375,800]:[375,800];
   for(const item of manifest) for(const width of widths) for(const environment of engine==="chromium"?["light","dark","images-off","css-stripped"]:["light"]) {
     const page=await browser.newPage({viewport:{width,height:1000},colorScheme:environment==="dark"?"dark":"light"});
+    const failedAssets=[];
+    page.on("requestfailed",request=>failedAssets.push(request.url()));
     await page.route("**/*",async route=>{
       const url=new URL(route.request().url());
       if(url.origin==="https://email-preview.invalid"&&url.pathname.startsWith("/assets/")) {
@@ -33,12 +35,17 @@ for(const [engine,browserType] of Object.entries({chromium,webkit}).filter(([nam
       const visible=(el)=>el.getBoundingClientRect().width&&el.getBoundingClientRect().height&&getComputedStyle(el).display!=="none";
       const cells=[...document.querySelectorAll("td")].filter(visible);
       const text=[...document.querySelectorAll("p,h1,h2,a,span")].filter(visible);
-      return {overflow:document.documentElement.scrollWidth>innerWidth,misaligned:[...cells,...text].filter(el=>getComputedStyle(el).textAlign!=="center").map(el=>el.tagName), images:[...document.images].filter(el=>!el.complete||!el.naturalWidth).length,cta:!!document.querySelector('[data-email-cta="primary"]'),title:document.querySelector("h1")?.textContent};
+      const offCenter=[...document.querySelectorAll('img,table,[data-email-cta="primary"]')].filter(visible).filter(el=>{
+        const rect=el.getBoundingClientRect(), parent=el.parentElement.getBoundingClientRect();
+        return Math.abs(rect.x+rect.width/2-parent.x-parent.width/2)>2;
+      }).map(el=>el.tagName);
+      return {overflow:document.documentElement.scrollWidth>innerWidth,misaligned:[...cells,...text].filter(el=>getComputedStyle(el).textAlign!=="center").map(el=>el.tagName),offCenter, images:[...document.images].filter(el=>!el.complete||!el.naturalWidth).length,cta:!!document.querySelector('[data-email-cta="primary"]'),title:document.querySelector("h1")?.textContent};
     });
     assert.equal(geometry.overflow,false,`${engine}/${item.name}/${width}/${environment}: overflow`);
     assert.deepEqual(geometry.misaligned,[],`${engine}/${item.name}/${width}/${environment}: alignment`);
+    assert.deepEqual(geometry.offCenter,[],`${engine}/${item.name}/${width}/${environment}: element centers`);
     assert.ok(geometry.cta&&geometry.title);
-    if(environment!=="images-off")assert.equal(geometry.images,0);
+    if(environment!=="images-off") {assert.equal(geometry.images,0);assert.deepEqual(failedAssets,[]);}
     if(engine==="chromium"&&width!==320)await page.screenshot({path:path.join(snapshots,`${item.name}-${width}-${environment}.png`),fullPage:true});
     results.push({engine,name:item.name,width,environment,...geometry});
     await page.close();

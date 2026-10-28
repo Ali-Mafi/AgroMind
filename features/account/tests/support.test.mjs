@@ -63,8 +63,8 @@ test("branded support emails are responsive, accessible and safe in both locales
       assert.match(customer.html, /role="presentation"/);
       assert.match(customer.html, /width="100%"/);
       assert.match(customer.html, /max-width:600px/);
-      assert.match(customer.html, /background-color:#123b2b/);
-      assert.match(customer.html, /background-color:#f2eedf/);
+      assert.match(customer.html, /background-color:#102c20/);
+      assert.match(customer.html, /background-color:#efede6/);
       assert.match(customer.html, /data-email-cta="primary"/);
       assert.match(customer.html, new RegExp('lang="' + language + '"'));
       assert.match(customer.html, new RegExp('dir="' + (language === "fa" ? "rtl" : "ltr") + '"'));
