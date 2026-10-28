@@ -59,11 +59,12 @@ test("every section has explicit symmetric alignment, directions, assets and tex
   }
 });
 
-test("approved Persian verification wording is retained without an unverified lifetime", () => {
+test("approved Persian verification wording states confirmed one-hour lifetime", () => {
   const email = renderAuthEmail("signup", fixtureToken, "fa");
   assert.equal(email.subject, "تأیید نشانی ایمیل | AgroMind");
-  for (const line of ["تأیید نشانی ایمیل", "یک گام تا شروع مسیر هوشمند کشاورزی", "کاربر گرامی،", "از ثبت‌نام شما در AgroMind سپاسگزاریم.", "برای فعال‌سازی حساب کاربری و تکمیل فرایند ثبت‌نام، لطفاً روی دکمه زیر کلیک کنید و نشانی ایمیل خود را تأیید کنید.", "اطلاع‌رسانی امنیتی", "این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است.", "اگر این درخواست از طرف شما نبوده است، نیازی به اقدامی نیست و می‌توانید این ایمیل را نادیده بگیرید.", "کشاورزی پایدار | تصمیم‌های هوشمند | همکاری مؤثر"]) assert.ok(email.text.includes(line), line);
+  for (const line of ["تأیید نشانی ایمیل", "یک گام تا شروع مسیر هوشمند کشاورزی", "کاربر گرامی،", "از ثبت‌نام شما در AgroMind سپاسگزاریم.", "برای فعال‌سازی حساب کاربری و تکمیل فرایند ثبت‌نام، لطفاً روی دکمه زیر کلیک کنید و نشانی ایمیل خود را تأیید کنید.", "اطلاع‌رسانی امنیتی", "این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است و تا ۱ ساعت اعتبار دارد.", "اگر این درخواست از طرف شما نبوده است، نیازی به اقدامی نیست و می‌توانید این ایمیل را نادیده بگیرید.", "کشاورزی پایدار | تصمیم‌های هوشمند | همکاری مؤثر"]) assert.ok(email.text.includes(line), line);
   assert.doesNotMatch(email.text, /۲۴ ساعت|24 hours/);
+  assert.match(renderAuthEmail("signup", fixtureToken, "en").text, /valid for one hour/);
   assert.match(readFileSync("supabase/config.toml", "utf8"), /otp_expiry = 3600/);
 });
 
