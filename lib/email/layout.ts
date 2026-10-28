@@ -114,7 +114,7 @@ body,table,td,p,h1,h2,a{text-align:center}
    live text, so blocking remote images cannot erase these labels. */
 u + .email-body .email-live-label{display:none!important;max-height:0!important;overflow:hidden!important;font-size:0!important}
 u + .email-body .email-gmail-label{display:block!important;max-height:none!important;overflow:visible!important;height:auto!important}
-/* All previous nested mix-blend-mode text layers are removed. */
+/* Previous nested compositing spans are gone; no horizontal rule artifacts. */
 table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media screen and (max-width:480px){.outer-pad{padding:16px 10px!important}.content-pad{padding-left:22px!important;padding-right:22px!important}.email-title{font-size:27px!important}.highlight{display:block!important;width:100%!important;padding:12px 0!important;border:0!important}.hero-content{padding:24px 18px 20px!important}.hero-title-pad{padding-top:24px!important}}
 /* Signature Premium keeps its approved light reading surface in dark-mode inboxes.
