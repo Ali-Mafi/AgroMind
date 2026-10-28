@@ -85,7 +85,10 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     // Real Gmail iOS rendered white horizontal rules around the previous blend
     // wrappers; this HTML must never emit those elements or their CSS.
     assert.doesNotMatch(email.html, /gmail-blend-screen|gmail-blend-difference|mix-blend-mode/);
-    assert.match(email.html, /<h1 class="email-title"[^>]*><img src="https:\/\/agromind\.ir\/email\/lettering\?/);
+    assert.match(email.html, /<h1 class="email-title"[^>]*><span class="email-live-label"[^>]*>/);
+    assert.match(email.html, /<img class="email-gmail-label" src="https:\/\/agromind\.ir\/email\/lettering\?/);
+    assert.match(email.html, /u \+ \.email-body \.email-live-label\{display:none!important/);
+    assert.match(email.html, /u \+ \.email-body \.email-gmail-label\{display:block!important/);
     assert.match(email.html, /kind=brand/);
     assert.match(email.html, /kind=tagline/);
     assert.match(email.html, /kind=title/);
