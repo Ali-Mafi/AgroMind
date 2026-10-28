@@ -63,8 +63,8 @@ export async function GET(request: Request) {
   // multi-word strings in Latin visual order. Flip word order for the PNG
   // raster, so Persian reads right-to-left after painting. The HTML alt and
   // the live-text fallback always retain the original logical string.
-  const shown = isFa ? text.trim().split(/\\s+/).reverse().join(" ") : text;
-  const coloredAccent = accent && (isFa ? accent.trim().split(/\\s+/).reverse().join(" ") : accent);
+  const shown = isFa ? text.trim().split(/\s+/).reverse().join(" ") : text;
+  const coloredAccent = accent && (isFa ? accent.trim().split(/\s+/).reverse().join(" ") : accent);
   const png = new ImageResponse(
     <div style={{
       display: "flex",
