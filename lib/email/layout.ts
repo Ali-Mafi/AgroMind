@@ -126,7 +126,7 @@ ${metadata ? `<tr><td class="content-pad" ${centered}padding:5px 42px 0;"><table
 <!--[if mso]><table ${table} width="312"><tr><td align="center" style="text-align:center;"><![endif]-->
 <table ${table} width="100%" style="width:100%;max-width:312px;table-layout:fixed;"><tr><td bgcolor="#153a29" ${centered}background-color:#153a29;background-image:linear-gradient(#153a29,#153a29);border-radius:13px;">
 <!--[if mso]><v:roundrect href="${safeHref}" style="height:54px;v-text-anchor:middle;width:312px;" arcsize="24%" strokecolor="#b99a58" strokeweight="1px" fillcolor="#153a29"><w:anchorlock/><center dir="${direction}" style="color:#ffffff;font-family:${emailFont};font-size:17px;font-weight:normal;text-align:center;">${e(message.action.label)}</center></v:roundrect><![endif]-->
-<!--[if !mso]><!--><a data-email-cta="primary" href="${safeHref}" style="display:block;padding:15px 8px;text-align:center;border:1px solid #b99a58;border-radius:13px;color:#ffffff;font-size:17px;line-height:22px;font-family:${emailFont};text-decoration:none;">${lettering("cta", message.action.label, message.language, 260, 38)}</a><!--<![endif]-->
+<!--[if !mso]><!--><a data-email-cta="primary" href="${safeHref}" style="display:block;padding:15px 8px;text-align:center;border:1px solid #b99a58;border-radius:13px;color:#ffffff;font-size:17px;line-height:22px;font-family:${emailFont};text-decoration:none;">${e(message.action.label)}</a><!--<![endif]-->
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr>
