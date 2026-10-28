@@ -70,7 +70,14 @@ test("branded support emails are responsive, accessible and safe in both locales
       assert.match(customer.html, new RegExp('dir="' + (language === "fa" ? "rtl" : "ltr") + '"'));
       assert.match(customer.html, /href="https:\/\/agromind\.ir\/account\/help\/tickets\/42"/);
       assert.match(customer.text, /AM-00000001/);
-      assert.doesNotMatch(customer.html, /<script|@import|font-face/i);
+      assert.doesNotMatch(customer.html, /<script|@import/i);
+      // Only the approved first-party OFL-licensed Persian font is permitted.
+      if (language === "fa") {
+        assert.match(customer.html, /@font-face\{font-family:Vazirmatn/);
+        assert.match(customer.html, /https:\/\/agromind\.ir\/email\/fonts\/vazirmatn-variable\.woff2/);
+      } else {
+        assert.doesNotMatch(customer.html, /@font-face/i);
+      }
       assert.doesNotMatch(customer.text, /password|verification code/i);
     }
     const staff = supportEmail("AM-00000001", "created", language, "https://agromind.ir/admin/support?ticket=42", "staff");
