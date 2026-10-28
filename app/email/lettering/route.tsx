@@ -111,11 +111,5 @@ export async function GET(request: Request) {
       },
     },
   );
-  if (searchParams.get("previewBase64") === "1") {
-    const bytes = await png.arrayBuffer();
-    return new Response(Buffer.from(bytes).toString("base64"), {
-      headers: { "Content-Type": "text/plain", "Cache-Control": "no-store" },
-    });
-  }
   return png;
 }
