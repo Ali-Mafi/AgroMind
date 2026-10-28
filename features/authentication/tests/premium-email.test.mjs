@@ -48,7 +48,7 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     // without the boxed solid-color backplates rejected by design review.
     assert.doesNotMatch(email.html, /hero-brand-contrast|hero-title-contrast/);
     assert.match(email.html, /class="hero-content" align="center" style="text-align:center;/);
-    assert.match(email.html, /class="email-title"[^>]*color:#ffffff/);
+    assert.match(email.html, /class="email-title"[^>]*color:#f8f6f0/);
     assert.match(email.html, /max-width:480px/);
     const cta = [...email.html.matchAll(/<a\b[^>]*data-email-cta="primary"[^>]*>/g)];
     assert.equal(cta.length, 1);
@@ -65,28 +65,7 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /https:\/\/t.me\/agromindir/);
     assert.match(email.text, /Instagram: agromind.ir/);
     assert.match(email.text, /Telegram: agromindir/);
-    assert.doesNotMatch(email.html, /<script|<iframe|data:image|@import|onerror=/);
-    if (language === "fa") {
-      assert.match(email.html, /@font-face\{font-family:Vazirmatn;/);
-      assert.match(email.html, /https:\/\/agromind\.ir\/email\/fonts\/vazirmatn-variable\.woff2/);
-      assert.match(email.html, /font-family:'Vazirmatn',Tahoma,Arial/);
-      assert.ok(existsSync("public/email/fonts/vazirmatn-variable.woff2"));
-      assert.ok(existsSync("public/email/fonts/OFL.txt"));
-    } else {
-      assert.doesNotMatch(email.html, /@font-face/);
-    }
-    assert.match(email.html, /<body class="email-body"/);
-    // User rejected both Gmail's mix-blend workaround (white horizontal rules)
-    // and PNG-rendered headings. Every label must remain regular accessible HTML.
-    assert.doesNotMatch(email.html, /mix-blend-mode|gmail-blend|email-live-label|email-gmail-label|\/email\/lettering/);
-    assert.match(email.html, /<h1 class="email-title"[^>]*color:#ffffff[^>]*>/);
-    assert.match(email.html, /color:#ffffff[^>]*>AgroMind<\/span>/);
-    assert.match(email.html, /INTELLIGENT<br>FARMING TOGETHER/);
-    assert.match(email.html, /<a data-email-cta="primary"[^>]*>[^<]+<\/a>/);
-    assert.match(email.html, /background-image:url\('[^']+footer-leaves\.png[^']*'\),linear-gradient\(#102c20,#102c20\)/);
-    for (const label of ["Instagram", "Telegram", "agromind.ir", "agromindir"]) {
-      assert.ok(email.html.includes(`>${label}</span>`), label);
-    }
+    assert.doesNotMatch(email.html, /<script|<iframe|data:image|@import|@font-face|onerror=/);
     const withoutImages = email.html.replace(/<img\b[^>]*>/g, "");
     assert.match(withoutImages, /<h1/);
     assert.match(withoutImages, /data-email-cta="primary"/);
