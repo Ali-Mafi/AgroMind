@@ -28,7 +28,7 @@ const variants: Record<Variant, { width: number; height: number; size: number; c
 const allowed = /^[\p{L}\p{M}\p{N}\s.,،:؛!?؟'’()\-ـ©|]+$/u;
 const publicBrandLabels = new Set([
   "AgroMind", "INTELLIGENT\nFARMING TOGETHER", "Instagram", "Telegram",
-  "agromind.ir", "agromindir", "© 2026 AgroMind",
+  "agromind.ir", "agromindir",
 ]);
 
 export async function GET(request: Request) {
@@ -43,13 +43,14 @@ export async function GET(request: Request) {
       !text || text.length > 100 || !allowed.test(text) ||
       ((variantName === "brand" || variantName === "tagline" || variantName === "social" ||
         variantName === "handle" || variantName === "website" || variantName === "copyright") &&
-        !publicBrandLabels.has(text))) {
+        !publicBrandLabels.has(text) && !(variantName === "copyright" && /^© 20\\d{2} AgroMind$/.test(text)))) {
     return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
 
   // ImageResponse requires a static TTF/OTF/WOFF (not WOFF2). This is the
   // genuine OFL-licensed Vazirmatn font, independent of inbox font support.
   const font = await readFile(join(process.cwd(), "public/email/fonts/vazirmatn-regular.ttf"));
+  const serifFont = await readFile(join(process.cwd(), "public/email/fonts/instrument-serif-regular.ttf"));
   const size = text.length > 65 ? variant.size * 0.73
     : text.length > 38 ? variant.size * 0.86 : variant.size;
   const isFa = language === "fa";
@@ -64,10 +65,11 @@ export async function GET(request: Request) {
       whiteSpace: "pre-wrap",
       overflowWrap: "break-word",
       direction: isFa ? "rtl" : "ltr",
-      fontFamily: "Vazirmatn",
+      fontFamily: variantName === "brand" ? "Instrument Serif" : "Vazirmatn",
       fontSize: size,
       lineHeight: 1.23,
       fontWeight: 400,
+      letterSpacing: variantName === "tagline" ? 4 : 0,
       color: variant.color,
       padding: "0 12px",
     }}>
@@ -76,7 +78,10 @@ export async function GET(request: Request) {
     {
       width: variant.width,
       height: variant.height,
-      fonts: [{ name: "Vazirmatn", data: font, weight: 400, style: "normal" }],
+      fonts: [
+        { name: "Vazirmatn", data: font, weight: 400, style: "normal" },
+        { name: "Instrument Serif", data: serifFont, weight: 400, style: "normal" },
+      ],
       headers: {
         "Cache-Control": "public, max-age=86400, s-maxage=31536000, immutable",
         "X-Content-Type-Options": "nosniff",
