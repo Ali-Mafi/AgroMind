@@ -46,36 +46,13 @@ const table = 'role="presentation" border="0" cellpadding="0" cellspacing="0" al
 const centered = 'align="center" style="text-align:center;';
 const font = "Tahoma,Arial,Helvetica,sans-serif";
 const persianFont = "'Vazirmatn',Tahoma,Arial,Helvetica,sans-serif";
-// Rasterize only short public-facing decorative lettering. Gmail iOS can
-// invert live text over photos even when CSS explicitly requests white. PNG
-// labels use real licensed fonts, have alt text, and never contain user data.
-function lettering(kind: string, label: string, language: EmailLanguage, width: number, height: number, accent?: string) {
-  const url = new URL("/email/lettering", origin);
-  url.searchParams.set("kind", kind);
-  url.searchParams.set("text", label);
-  url.searchParams.set("lang", language);
-  if (accent) url.searchParams.set("accent", accent);
-  // Default to selectable live text when remote images are blocked (Zoho,
-  // Outlook, etc). Gmail's own selector switches to PNG only for Gmail, where
-  // its dark-mode compositor otherwise inverts letters over photographic art.
-  const family = language === "fa" ? persianFont : font;
-  const fallback = accent && label.endsWith(accent)
-    ? escapeEmailHtml(label.slice(0, -accent.length)) + '<span style="color:#d2b16c;">' + escapeEmailHtml(accent) + '</span>'
-    : escapeEmailHtml(label).replaceAll("\n", "<br>");
-  const liveStyle = ({
-    brand: `display:inline-block;color:#ffffff;font-family:Georgia,'Times New Roman',serif;font-size:${width < 180 ? 25 : 29}px;line-height:1.25;`,
-    tagline: "display:inline-block;color:#ece5d1;font-family:Arial,Helvetica,sans-serif;font-size:8px;line-height:1.6;letter-spacing:2.5px;",
-    title: `display:inline;color:#ffffff;font-family:${family};`,
-    subtitle: `display:inline;color:#ffffff;font-family:${family};font-size:16px;line-height:1.95;`,
-    social: "display:block;color:#fff9e9;font-size:12px;line-height:1.9;",
-    handle: "display:block;color:#e1ce95;font-size:12px;line-height:1.9;",
-    website: "display:inline;color:#ffffff;font-size:12px;line-height:1.8;",
-    copyright: "display:inline;color:#d9d8bf;font-size:11px;line-height:1.8;",
-  } as Record<string, string>)[kind] ?? "display:inline;color:#ffffff;";
-  return `<span class="email-live-label" style="text-align:center;${liveStyle}">${fallback}</span><img class="email-gmail-label" src="${escapeEmailHtml(url.href)}" width="${width}" height="${height}" alt="${escapeEmailHtml(label.replaceAll("\n", " "))}" style="display:none;max-height:0;overflow:hidden;margin:0 auto;border:0;width:100%;max-width:${width}px;height:auto;">`;
+// Gmail iOS inverts live text independently of the photo. These wrappers
+// only receive blend effects in Gmail, leaving the original artwork intact.
+function retainLightText(html: string) {
+  return '<span class="gmail-blend-screen" style="display:inline-block;max-width:100%;text-align:center;text-decoration:none;border:0;outline:0;box-shadow:none;"><span class="gmail-blend-difference" style="display:inline-block;max-width:100%;text-align:center;text-decoration:none;border:0;outline:0;box-shadow:none;">' + html + '</span></span>';
 }
-function paragraph(value: string, style = "", family = font) {
-  return `<p style="margin:0 0 12px;text-align:center;font-size:15px;line-height:1.95;font-family:${family};color:#30382f;overflow-wrap:anywhere;${style}">${escapeEmailHtml(value)}</p>`;
+function paragraph(value: string, style = "", family = font, protect = false) {
+  return `<p style="margin:0 0 12px;text-align:center;font-size:15px;line-height:1.95;font-family:${family};color:#30382f;overflow-wrap:anywhere;${style}">${protect ? retainLightText(escapeEmailHtml(value)) : escapeEmailHtml(value)}</p>`;
 }
 
 export function renderPremiumEmail(message: PremiumEmail) {
@@ -84,7 +61,7 @@ export function renderPremiumEmail(message: PremiumEmail) {
   const fontFaceCss = fa
     ? "@font-face{font-family:Vazirmatn;font-style:normal;font-weight:100 900;font-display:swap;src:url(https://agromind.ir/email/fonts/vazirmatn-variable.woff2) format('woff2')}"
     : "";
-  const p = (value: string, style = "") => paragraph(value, style, emailFont);
+  const p = (value: string, style = "", protect = false) => paragraph(value, style, emailFont, protect);
   const direction = fa ? "rtl" : "ltr";
   const e = escapeEmailHtml;
   const href = actionUrl(message.action.href);
@@ -96,11 +73,14 @@ export function renderPremiumEmail(message: PremiumEmail) {
   const highlightDetails = fa
     ? ["برای آینده‌ای بهتر", "با داده‌های واقعی", "میان کشاورزان و متخصصان"]
     : ["For a better future", "With real-world data", "Connecting farmers and experts"];
-  const brand = (compact = false) => `<a href="${origin}" style="display:inline-block;text-align:center;text-decoration:none;"><img src="${artwork}/signature-leaf.png${imageRevision}" width="${compact ? 23 : 34}" height="${compact ? 32 : 48}" alt="" style="display:block;margin:0 auto 4px;border:0;">${lettering("brand", "AgroMind", "en", compact ? 166 : 190, compact ? 42 : 48)}</a><p dir="ltr" style="margin:5px 0 0;text-align:center;">${lettering("tagline", "INTELLIGENT\nFARMING TOGETHER", "en", 198, 42)}</p>`;
+  const title = message.titleAccent && message.title.endsWith(message.titleAccent)
+    ? `${e(message.title.slice(0, -message.titleAccent.length))}<span style="text-align:center;color:#d2b16c;">${e(message.titleAccent)}</span>`
+    : e(message.title);
+  const brand = (compact = false) => `<a href="${origin}" style="display:inline-block;text-align:center;text-decoration:none;"><img src="${artwork}/signature-leaf.png${imageRevision}" width="${compact ? 23 : 34}" height="${compact ? 32 : 48}" alt="" style="display:block;margin:0 auto 4px;border:0;"><span dir="ltr" style="display:block;text-align:center;color:#ffffff;font-family:Georgia,'Times New Roman',serif;font-size:${compact ? 25 : 29}px;line-height:1.25;">${retainLightText("AgroMind")}</span></a><p dir="ltr" style="margin:7px 0 0;text-align:center;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:8px;line-height:1.6;letter-spacing:2.5px;">${retainLightText("INTELLIGENT<br>FARMING TOGETHER")}</p>`;
   const metadata = (message.metadata ?? []).map(({label, value}) =>
     `<tr><td ${centered}padding:0 0 18px;"><p style="margin:0 0 5px;text-align:center;font-size:12px;line-height:1.8;font-family:${emailFont};color:#697669;">${e(label)}</p><p dir="ltr" style="margin:0;text-align:center;font-size:19px;line-height:1.7;font-family:${emailFont};font-weight:bold;color:#194936;overflow-wrap:anywhere;word-break:break-word;">${e(value)}</p></td></tr>`).join("");
   const featureCells = highlights.map((label, index) => `<td class="highlight" dir="${direction}" width="33.33%" ${centered}width:33.33%;vertical-align:top;padding:8px 5px;${index ? "border-left:1px solid #ddd7c9;" : ""}"><table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td ${centered}padding:0 0 8px;"><img src="${artwork}/highlight-${index + 1}.png${imageRevision}" width="30" height="30" alt="" style="display:block;margin:0 auto;border:0;"></td></tr><tr><td ${centered}overflow-wrap:anywhere;word-break:break-word;font-size:13px;font-weight:bold;line-height:1.9;font-family:${emailFont};color:#30382f;">${e(label)}</td></tr><tr><td ${centered}padding-top:4px;overflow-wrap:anywhere;word-break:break-word;font-size:11px;line-height:1.9;font-family:${emailFont};color:#73766b;">${e(highlightDetails[index])}</td></tr></table></td>`).join("");
-  const social = (name: "instagram" | "telegram", label: string, handle: string) => `<td width="50%" ${centered}width:50%;vertical-align:top;padding:8px 4px;"><a href="${EMAIL_SOCIAL_LINKS[name]}" style="display:inline-block;text-align:center;color:#fff9e9;text-decoration:none;font-size:12px;line-height:1.9;"><img src="${assets}/${name}.png${imageRevision}" width="24" height="24" alt="" style="display:block;margin:0 auto 7px;border:0;">${lettering("social", label, "en", 110, 30)}${lettering("handle", handle, "en", 132, 30)}</a></td>`;
+  const social = (name: "instagram" | "telegram", label: string, handle: string) => `<td width="50%" ${centered}width:50%;vertical-align:top;padding:8px 4px;"><a href="${EMAIL_SOCIAL_LINKS[name]}" style="display:inline-block;text-align:center;color:#fff9e9;text-decoration:none;font-size:12px;line-height:1.9;"><img src="${assets}/${name}.png${imageRevision}" width="24" height="24" alt="" style="display:block;margin:0 auto 7px;border:0;"><span style="display:block;text-align:center;">${retainLightText(label)}</span><span dir="ltr" style="display:block;text-align:center;color:#e1ce95;">${retainLightText(handle)}</span></a></td>`;
 
   const html = `<!doctype html>
 <html lang="${message.language}" dir="${direction}" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word">
@@ -109,13 +89,11 @@ export function renderPremiumEmail(message: PremiumEmail) {
 <style>
 :root{color-scheme:light;supported-color-schemes:light}
 body,table,td,p,h1,h2,a{text-align:center}
-/* Gmail iOS only: use transparent raster lettering on the photo and footer.
-   Zoho, Outlook, Apple Mail and clients that strip Gmail style blocks retain
-   live text, so blocking remote images cannot erase these labels. */
-u + .email-body .email-live-label{display:none!important;max-height:0!important;overflow:hidden!important;font-size:0!important}
-u + .email-body .email-gmail-label{display:block!important;max-height:none!important;overflow:visible!important;height:auto!important}
-/* Previous nested compositing spans are gone; no horizontal rule artifacts. */
-table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+/* Gmail iOS: keep blend layers as real inline-block boxes. Gmail's
+   inline text-decoration / blend compositing can create overline/underline
+   seams when one of the nested layers is treated as a bare inline span. */
+u + .email-body .gmail-blend-screen{background:#000;mix-blend-mode:screen;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important}
+u + .email-body .gmail-blend-difference{background:#000;mix-blend-mode:difference;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important}table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media screen and (max-width:480px){.outer-pad{padding:16px 10px!important}.content-pad{padding-left:22px!important;padding-right:22px!important}.email-title{font-size:27px!important}.highlight{display:block!important;width:100%!important;padding:12px 0!important;border:0!important}.hero-content{padding:24px 18px 20px!important}.hero-title-pad{padding-top:24px!important}}
 /* Signature Premium keeps its approved light reading surface in dark-mode inboxes.
    Light-only metadata opts out of inversion in supported Gmail and Apple Mail. */
@@ -131,8 +109,8 @@ ${fontFaceCss}
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-content" ${centered}padding:25px 36px 22px;">
 ${brand()}
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:31px;">
-<h1 class="email-title" style="margin:0 0 8px;text-align:center;color:#ffffff;font-family:${emailFont};font-size:34px;font-weight:normal;line-height:1.55;">${lettering("title", message.title, message.language, 500, 77, message.titleAccent)}</h1>
-${message.subtitle ? `<p style="margin:0;text-align:center;">${lettering("subtitle", message.subtitle, message.language, 500, 45)}</p>` : ""}
+<h1 class="email-title" style="margin:0 0 8px;text-align:center;color:#ffffff;font-family:${emailFont};font-size:34px;font-weight:normal;line-height:1.55;">${retainLightText(title)}</h1>
+${message.subtitle ? p(message.subtitle, "font-size:16px;color:#ffffff;margin-bottom:0;", true) : ""}
 </td></tr></table>
 </td></tr><tr><td class="content-surface" bgcolor="#f8f6f0" height="14" ${centered}height:14px;background-color:#f8f6f0;border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <!--[if mso]></v:textbox></v:rect><![endif]-->
@@ -146,7 +124,7 @@ ${metadata ? `<tr><td class="content-pad" ${centered}padding:5px 42px 0;"><table
 <!--[if mso]><table ${table} width="312"><tr><td align="center" style="text-align:center;"><![endif]-->
 <table ${table} width="100%" style="width:100%;max-width:312px;table-layout:fixed;"><tr><td bgcolor="#153a29" ${centered}background-color:#153a29;background-image:linear-gradient(#153a29,#153a29);border-radius:13px;">
 <!--[if mso]><v:roundrect href="${safeHref}" style="height:54px;v-text-anchor:middle;width:312px;" arcsize="24%" strokecolor="#b99a58" strokeweight="1px" fillcolor="#153a29"><w:anchorlock/><center dir="${direction}" style="color:#ffffff;font-family:${emailFont};font-size:17px;font-weight:normal;text-align:center;">${e(message.action.label)}</center></v:roundrect><![endif]-->
-<!--[if !mso]><!--><a data-email-cta="primary" href="${safeHref}" style="display:block;padding:15px 8px;text-align:center;border:1px solid #b99a58;border-radius:13px;color:#ffffff;font-size:17px;line-height:22px;font-family:${emailFont};text-decoration:none;">${e(message.action.label)}</a><!--<![endif]-->
+<!--[if !mso]><!--><a data-email-cta="primary" href="${safeHref}" style="display:block;padding:15px 8px;text-align:center;border:1px solid #b99a58;border-radius:13px;color:#ffffff;font-size:17px;line-height:22px;font-family:${emailFont};text-decoration:none;">${retainLightText(e(message.action.label))}</a><!--<![endif]-->
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr>
@@ -163,8 +141,8 @@ ${brand(true)}
 <table ${table} width="100%"><tr><td height="10" ${centered}height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <table ${table} width="100%" dir="ltr" style="width:100%;max-width:280px;table-layout:fixed;"><tr>${social("instagram", "Instagram", "agromind.ir")}${social("telegram", "Telegram", "agromindir")}</tr></table>
 <table ${table} width="44" style="width:44px;"><tr><td height="15" ${centered}height:15px;border-bottom:1px solid #7c744b;font-size:0;line-height:0;">&nbsp;</td></tr></table>
-<p dir="ltr" style="margin:17px 0 8px;text-align:center;font-size:12px;line-height:1.8;"><a href="${origin}" style="text-align:center;color:#ffffff;text-decoration:none;">${lettering("website", "agromind.ir", "en", 150, 30)}</a></p>
-<p dir="ltr" style="margin:0;text-align:center;color:#ffffff;font-size:11px;line-height:1.8;">${lettering("copyright", "© " + new Date().getUTCFullYear() + " AgroMind", "en", 230, 28)}</p>
+<p dir="ltr" style="margin:17px 0 8px;text-align:center;font-size:12px;line-height:1.8;"><a href="${origin}" style="text-align:center;color:#ffffff;text-decoration:none;">${retainLightText("agromind.ir")}</a></p>
+<p dir="ltr" style="margin:0;text-align:center;color:#ffffff;font-size:11px;line-height:1.8;">${retainLightText("© " + new Date().getUTCFullYear() + " AgroMind")}</p>
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table></body></html>`;

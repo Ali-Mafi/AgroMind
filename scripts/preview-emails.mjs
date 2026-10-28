@@ -22,14 +22,7 @@ for(const language of ["fa","en"]) {
 for(const item of cases) {
   // Remove even synthetic hashes and invitation tokens from exported artifacts.
   const scrub=(value)=>value.replace(/https:\/\/agromind\.ir\/(?:auth\/callback|invite\/)[^\s"<>]*/g,"https://agromind.ir");
-  // Local browser fixtures render the live HTML-text fallback (also used by
-  // Zoho/Outlook and image-blocked clients). Gmail's proprietary `u + body`
-  // CSS swap is tested separately through the real first-party PNG endpoint;
-  // it cannot be simulated by a local Chromium screenshot.
-  const offlineHtml=scrub(item.html)
-    .replace(/<img class="email-gmail-label"[^>]*>/g, "")
-    .replaceAll('https://agromind.ir/email/', 'assets/');
-  writeFileSync(path.join(destination,`${item.name}.html`),offlineHtml);
+  writeFileSync(path.join(destination,`${item.name}.html`),scrub(item.html).replaceAll('https://agromind.ir/email/', 'assets/'));
   writeFileSync(path.join(destination,`${item.name}.txt`),scrub(item.text));
 }
 writeFileSync(path.join(destination,"manifest.json"),JSON.stringify(cases.map(({name,language,subject})=>({name,language,subject})),null,2));
