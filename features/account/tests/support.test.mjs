@@ -63,14 +63,14 @@ test("branded support emails are responsive, accessible and safe in both locales
       assert.match(customer.html, /role="presentation"/);
       assert.match(customer.html, /width="100%"/);
       assert.match(customer.html, /max-width:600px/);
-      assert.match(customer.html, /background-color:#194936/);
-      assert.match(customer.html, /background-color:#f4f6ef/);
-      assert.match(customer.html, /style="display:inline-block;padding:14px 23px/);
+      assert.match(customer.html, /background-color:#102c20/);
+      assert.match(customer.html, /background-color:#efede6/);
+      assert.match(customer.html, /data-email-cta="primary"/);
       assert.match(customer.html, new RegExp('lang="' + language + '"'));
       assert.match(customer.html, new RegExp('dir="' + (language === "fa" ? "rtl" : "ltr") + '"'));
       assert.match(customer.html, /href="https:\/\/agromind\.ir\/account\/help\/tickets\/42"/);
       assert.match(customer.text, /AM-00000001/);
-      assert.doesNotMatch(customer.html, /<script|<img|@import|font-face/i);
+      assert.doesNotMatch(customer.html, /<script|@import|font-face/i);
       assert.doesNotMatch(customer.text, /password|verification code/i);
     }
     const staff = supportEmail("AM-00000001", "created", language, "https://agromind.ir/admin/support?ticket=42", "staff");
@@ -78,7 +78,7 @@ test("branded support emails are responsive, accessible and safe in both locales
     assert.match(staff.subject, language === "fa" ? /درخواست پشتیبانی جدید/ : /New support ticket/);
   }
   const injection = supportEmail("<img src=x onerror=alert(1)>", "reply", "en", "javascript:alert(1)");
-  assert.doesNotMatch(injection.html, /<img|href="javascript:|<script/i);
+  assert.doesNotMatch(injection.html, /<img src=x|href="javascript:|<script/i);
   assert.match(injection.html, /&lt;img src=x onerror=alert\(1\)&gt;/);
   assert.match(injection.html, /href="https:\/\/agromind\.ir\/account\/help"/);
 });

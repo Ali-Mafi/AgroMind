@@ -2,6 +2,13 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Signature Premium email candidate — 2026-10-28
+
+- Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.
+- Final local evidence: 283 app tests, 23 PGlite tests and 216 Chromium layout/environment checks pass; lint/typecheck/localization/build/HTTP pass (one existing lint warning). Physical email clients and WebKit are unverified. New-head CI/preview status is recorded on PR #42.
+- **Draft PR #42, not released:** visual comparison complete; actual hosted Supabase OTP expiry remains inaccessible behind dashboard sign-in. Local 3600s is not hosted evidence; duration remains unstated. Production remains `185f663e58a51f65e01a1b78d0436fb9b3290bb7`. [Final-polish evidence and remaining action](progress/2026-10-28-email-polish.md); [email architecture](EMAIL_SYSTEM.md).
+- Current Vercel production inspection found support credential/recipient/activation/cron and Auth-hook/Resend variable names present. Values and actual delivery were not checked or changed; older missing-configuration entries below describe their original inspection dates.
+
 ## Support ticket system — 2026-10-26
 
 - Continued from real main `098899aecf69ffda4ff7ae08bbeaf56b9c19912b`. Replaced the draft-only Help form with persisted tickets, personal lists/status filters, unread receipts, conversations/replies and resolved-ticket reopening. Added protected `/admin/support` search/filters, staff replies, internal notes, status/priority controls and fresh-MFA verification.

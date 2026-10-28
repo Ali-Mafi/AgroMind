@@ -36,7 +36,7 @@ test("both email templates contain an explicit plain text alternative and one br
       const email = renderAuthEmail(kind, "b".repeat(64), language);
       assert.match(email.text, /AgroMind/);
       assert.match(email.text, /https:\/\/agromind.ir\/auth\/callback/);
-      assert.equal((email.html.match(/<a /g) ?? []).length, 1);
+      assert.equal((email.html.match(/data-email-cta="primary"/g) ?? []).length, 1);
       assert.match(
         email.html,
         new RegExp('dir="' + (language === "fa" ? "rtl" : "ltr") + '"'),

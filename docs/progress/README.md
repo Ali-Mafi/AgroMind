@@ -28,3 +28,7 @@ Dated entries are historical evidence from the day written, not living release s
 Record meaningful work only. Include the starting SHA, scope, changes, test evidence, limitations, results and next work. Keep historical entries intact and this index current; no invented empty logs.
 
 - [2026-10-27 — Standard workspace iOS safe-area](2026-10-27.md)
+
+- [2026-10-28 — Signature Premium email candidate](2026-10-28-email.md)
+
+- [2026-10-28 — Signature Premium reference polish](2026-10-28-email-polish.md)
