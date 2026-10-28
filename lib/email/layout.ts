@@ -73,14 +73,14 @@ export function renderPremiumEmail(message: PremiumEmail) {
 
   const html = `<!doctype html>
 <html lang="${message.language}" dir="${direction}" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${e(message.subject)}</title>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"><title>${e(message.subject)}</title>
 <!--[if mso]><xml><o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office"><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 <style>
-:root{color-scheme:light dark;supported-color-schemes:light dark}
+:root{color-scheme:light;supported-color-schemes:light}
 body,table,td,p,h1,h2,a{text-align:center}table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media screen and (max-width:480px){.outer-pad{padding:16px 10px!important}.content-pad{padding-left:22px!important;padding-right:22px!important}.email-title{font-size:27px!important}.highlight{display:block!important;width:100%!important;padding:12px 0!important;border:0!important}.hero-content{padding:24px 18px 20px!important}.hero-title-pad{padding-top:24px!important}}
-@media(prefers-color-scheme:dark){body,.outer{background-color:#17251e!important}.card,.content-surface{background-color:#f8f6f0!important}.info-panel{background-color:#f0ece3!important}.email-title{color:#f8f6f0!important}.brand-header,.footer{background-color:#102c20!important}}
-[data-ogsc] .outer{background-color:#17251e!important}[data-ogsc] .card,[data-ogsc] .content-surface{background-color:#f8f6f0!important}[data-ogsc] .brand-header,[data-ogsc] .footer{background-color:#102c20!important}
+/* Signature Premium keeps its approved light reading surface in dark-mode inboxes.
+   Light-only metadata opts out of inversion in supported Gmail and Apple Mail. */
 </style></head>
 <body style="margin:0;padding:0;width:100%;text-align:center;background-color:#efede6;color:#194936;font-family:${font};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 <div style="display:none!important;max-height:0;overflow:hidden;mso-hide:all;text-align:center;">${e(message.subtitle ?? message.title)}</div>
@@ -90,10 +90,16 @@ body,table,td,p,h1,h2,a{text-align:center}table{mso-table-lspace:0pt;mso-table-r
 <tr><td class="brand-header" background="${artwork}/landscape.jpg${imageRevision}" bgcolor="#102c20" ${centered}background-color:#102c20;background-image:url('${artwork}/landscape.jpg${imageRevision}');background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:13px 13px 0 0;">
 <!--[if mso]><v:rect fill="true" stroke="false" style="width:600px;"><v:fill type="frame" src="${artwork}/landscape.jpg${imageRevision}" color="#102c20" aspect="atleast"/><v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true;"><![endif]-->
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-content" ${centered}padding:25px 36px 22px;">
+<!-- Forced dark-mode inversion can recolor live text while preserving a photo.
+     Pair header lettering with a dark solid-color fallback of known contrast. -->
+<table ${table} width="74%" style="width:74%;max-width:270px;table-layout:fixed;"><tr><td class="hero-brand-contrast" bgcolor="#102c20" ${centered}padding:12px 14px;background-color:#102c20;border-radius:12px;">
 ${brand()}
-<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:31px;">
+</td></tr></table>
+<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:21px;">
+<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-contrast" bgcolor="#102c20" ${centered}padding:11px 12px 16px;background-color:#102c20;border:1px solid #b99a58;border-radius:12px;">
 <h1 class="email-title" style="margin:0 0 8px;text-align:center;color:#f8f6f0;font-size:34px;font-weight:normal;line-height:1.55;">${title}</h1>
 ${message.subtitle ? paragraph(message.subtitle, "font-size:16px;color:#f8f6f0;margin-bottom:0;") : ""}
+</td></tr></table>
 </td></tr></table>
 </td></tr><tr><td class="content-surface" bgcolor="#f8f6f0" height="14" ${centered}height:14px;background-color:#f8f6f0;border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <!--[if mso]></v:textbox></v:rect><![endif]-->

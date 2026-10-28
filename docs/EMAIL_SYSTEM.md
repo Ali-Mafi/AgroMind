@@ -10,6 +10,12 @@ All presentation tables/cells retain `align="center"` and inline text centering.
 
 Instagram: https://www.instagram.com/agromind.ir/ ; Telegram: https://t.me/agromindir ; website: https://agromind.ir . Both supplied social URLs returned HTTP 200 on 2026-10-28. Instagram can serve a login shell; HTTP success does not establish account ownership or access to posts.
 
+## Dark-mode readability policy
+
+Signature Premium intentionally retains its approved warm-ivory reading surface and forest-green header, rather than offering a separate dark palette. The shared HTML sets `color-scheme` to `light only` and `supported-color-schemes` to `light`. This allows compatible Gmail apps (Google accounts) and Apple Mail to preserve the original color contrast instead of inverting text independently of the agricultural background image. The prior explicit dark-mode media query/Outlook overrides have been removed.
+
+The integrated photographic header keeps its image, but the centered brand and live title/subtitle now sit on solid forest-green, explicitly `bgcolor`-backed contrast panels. These remain readable when background images are blocked or CSS backgrounds fail. The palette and real text remain present without loading imagery. Unsupported email apps (including forced-inversion modes of some clients) may still alter colors; this cannot be guaranteed without real inbox testing. Verify with a newly delivered email, not an existing message. No authentication, CTA, or delivery behavior changed.
+
 ## Verification copy and expiration accuracy
 
 The supplied Persian signup subject, title, subtitle, greeting, body, CTA, ignore notice and brand highlights are preserved verbatim. The duration in the approved reference was **24 hours**, but the project owner confirmed via the hosted Supabase Auth settings on 2026-10-28 that Production Email OTP Expiration is **3600 seconds (one hour)**. Therefore the security sentence accurately says `این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است و تا ۱ ساعت اعتبار دارد.` The English translation also states one hour. No hosted authentication settings were changed.
