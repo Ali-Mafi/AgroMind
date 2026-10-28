@@ -48,7 +48,17 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     // without the boxed solid-color backplates rejected by design review.
     assert.doesNotMatch(email.html, /hero-brand-contrast|hero-title-contrast/);
     assert.match(email.html, /class="hero-content" align="center" style="text-align:center;/);
-    assert.match(email.html, /class="email-title"[^>]*color:#f8f6f0/);
+    assert.match(email.html, /class="email-title"[^>]*color:#b3c2b5/);
+    // A restrained tint compensates for Gmail iOS forced color inversion.
+    // Scope to photo header + forest footer, not the warm-ivory reading surface.
+    assert.match(email.html, /color:#b3c2b5;font-family:Georgia/);
+    assert.match(email.html, /color:#afbaad;font-family:Arial,Helvetica/);
+    assert.match(email.html, /color:#b6a479;">agromindir<\/span>/);
+    assert.match(email.html, /color:#b6a479;">agromind.ir<\/span>/);
+    assert.match(email.html, /color:#b3c2b5;text-decoration:none;">agromind.ir<\/a>/);
+    assert.match(email.html, /color:#afbaad;font-size:11px;line-height:1.8;">© /);
+    assert.doesNotMatch(email.html, /mix-blend-mode|gmail-blend|\/email\/lettering|class="hero-title-contrast"/);
+    assert.match(email.html, /color:#30382f;overflow-wrap:anywhere/);
     assert.match(email.html, /max-width:480px/);
     const cta = [...email.html.matchAll(/<a\b[^>]*data-email-cta="primary"[^>]*>/g)];
     assert.equal(cta.length, 1);

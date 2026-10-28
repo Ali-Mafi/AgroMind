@@ -45,6 +45,14 @@ function actionUrl(value: string) {
 const table = 'role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"';
 const centered = 'align="center" style="text-align:center;';
 const font = "Tahoma,Arial,Helvetica,sans-serif";
+// Gmail iOS forcibly inverts live text in dark mode but preserves photographic
+// images and the forest-green footer. Using slightly muted light-mode inks
+// makes the inverted result less near-black without markup, rasterized text,
+// box backgrounds, or mix-blend-mode side effects. Keep this limited to
+// decorative header/footer copy; all other content and CTAs stay unchanged.
+const headerFooterInk = "#b3c2b5";
+const headerFooterSecondary = "#afbaad";
+const headerFooterGold = "#b6a479";
 function paragraph(value: string, style = "") {
   return `<p style="margin:0 0 12px;text-align:center;font-size:15px;line-height:1.95;color:#30382f;overflow-wrap:anywhere;${style}">${escapeEmailHtml(value)}</p>`;
 }
@@ -65,11 +73,11 @@ export function renderPremiumEmail(message: PremiumEmail) {
   const title = message.titleAccent && message.title.endsWith(message.titleAccent)
     ? `${e(message.title.slice(0, -message.titleAccent.length))}<span style="text-align:center;color:#d2b16c;">${e(message.titleAccent)}</span>`
     : e(message.title);
-  const brand = (compact = false) => `<a href="${origin}" style="display:inline-block;text-align:center;text-decoration:none;"><img src="${artwork}/signature-leaf.png${imageRevision}" width="${compact ? 23 : 34}" height="${compact ? 32 : 48}" alt="" style="display:block;margin:0 auto 4px;border:0;"><span dir="ltr" style="display:block;text-align:center;color:#f8f6f0;font-family:Georgia,'Times New Roman',serif;font-size:${compact ? 25 : 29}px;line-height:1.25;">AgroMind</span></a><p dir="ltr" style="margin:7px 0 0;text-align:center;color:#ece5d1;font-family:Arial,Helvetica,sans-serif;font-size:8px;line-height:1.6;letter-spacing:2.5px;">INTELLIGENT<br>FARMING TOGETHER</p>`;
+  const brand = (compact = false) => `<a href="${origin}" style="display:inline-block;text-align:center;text-decoration:none;"><img src="${artwork}/signature-leaf.png${imageRevision}" width="${compact ? 23 : 34}" height="${compact ? 32 : 48}" alt="" style="display:block;margin:0 auto 4px;border:0;"><span dir="ltr" style="display:block;text-align:center;color:${headerFooterInk};font-family:Georgia,'Times New Roman',serif;font-size:${compact ? 25 : 29}px;line-height:1.25;">AgroMind</span></a><p dir="ltr" style="margin:7px 0 0;text-align:center;color:${headerFooterSecondary};font-family:Arial,Helvetica,sans-serif;font-size:8px;line-height:1.6;letter-spacing:2.5px;">INTELLIGENT<br>FARMING TOGETHER</p>`;
   const metadata = (message.metadata ?? []).map(({label, value}) =>
     `<tr><td ${centered}padding:0 0 18px;"><p style="margin:0 0 5px;text-align:center;font-size:12px;line-height:1.8;color:#697669;">${e(label)}</p><p dir="ltr" style="margin:0;text-align:center;font-size:19px;line-height:1.7;font-weight:bold;color:#194936;overflow-wrap:anywhere;word-break:break-word;">${e(value)}</p></td></tr>`).join("");
   const featureCells = highlights.map((label, index) => `<td class="highlight" dir="${direction}" width="33.33%" ${centered}width:33.33%;vertical-align:top;padding:8px 5px;${index ? "border-left:1px solid #ddd7c9;" : ""}"><table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td ${centered}padding:0 0 8px;"><img src="${artwork}/highlight-${index + 1}.png${imageRevision}" width="30" height="30" alt="" style="display:block;margin:0 auto;border:0;"></td></tr><tr><td ${centered}overflow-wrap:anywhere;word-break:break-word;font-size:13px;font-weight:bold;line-height:1.9;color:#30382f;">${e(label)}</td></tr><tr><td ${centered}padding-top:4px;overflow-wrap:anywhere;word-break:break-word;font-size:11px;line-height:1.9;color:#73766b;">${e(highlightDetails[index])}</td></tr></table></td>`).join("");
-  const social = (name: "instagram" | "telegram", label: string, handle: string) => `<td width="50%" ${centered}width:50%;vertical-align:top;padding:8px 4px;"><a href="${EMAIL_SOCIAL_LINKS[name]}" style="display:inline-block;text-align:center;color:#fff9e9;text-decoration:none;font-size:12px;line-height:1.9;"><img src="${assets}/${name}.png${imageRevision}" width="24" height="24" alt="" style="display:block;margin:0 auto 7px;border:0;"><span style="display:block;text-align:center;">${label}</span><span dir="ltr" style="display:block;text-align:center;color:#e1ce95;">${handle}</span></a></td>`;
+  const social = (name: "instagram" | "telegram", label: string, handle: string) => `<td width="50%" ${centered}width:50%;vertical-align:top;padding:8px 4px;"><a href="${EMAIL_SOCIAL_LINKS[name]}" style="display:inline-block;text-align:center;color:${headerFooterInk};text-decoration:none;font-size:12px;line-height:1.9;"><img src="${assets}/${name}.png${imageRevision}" width="24" height="24" alt="" style="display:block;margin:0 auto 7px;border:0;"><span style="display:block;text-align:center;">${label}</span><span dir="ltr" style="display:block;text-align:center;color:${headerFooterGold};">${handle}</span></a></td>`;
 
   const html = `<!doctype html>
 <html lang="${message.language}" dir="${direction}" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word">
@@ -92,8 +100,8 @@ body,table,td,p,h1,h2,a{text-align:center}table{mso-table-lspace:0pt;mso-table-r
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-content" ${centered}padding:25px 36px 22px;">
 ${brand()}
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:31px;">
-<h1 class="email-title" style="margin:0 0 8px;text-align:center;color:#f8f6f0;font-size:34px;font-weight:normal;line-height:1.55;">${title}</h1>
-${message.subtitle ? paragraph(message.subtitle, "font-size:16px;color:#f8f6f0;margin-bottom:0;") : ""}
+<h1 class="email-title" style="margin:0 0 8px;text-align:center;color:${headerFooterInk};font-size:34px;font-weight:normal;line-height:1.55;">${title}</h1>
+${message.subtitle ? paragraph(message.subtitle, `font-size:16px;color:${headerFooterSecondary};margin-bottom:0;`) : ""}
 </td></tr></table>
 </td></tr><tr><td class="content-surface" bgcolor="#f8f6f0" height="14" ${centered}height:14px;background-color:#f8f6f0;border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <!--[if mso]></v:textbox></v:rect><![endif]-->
@@ -124,8 +132,8 @@ ${brand(true)}
 <table ${table} width="100%"><tr><td height="10" ${centered}height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <table ${table} width="100%" dir="ltr" style="width:100%;max-width:280px;table-layout:fixed;"><tr>${social("instagram", "Instagram", "agromind.ir")}${social("telegram", "Telegram", "agromindir")}</tr></table>
 <table ${table} width="44" style="width:44px;"><tr><td height="15" ${centered}height:15px;border-bottom:1px solid #7c744b;font-size:0;line-height:0;">&nbsp;</td></tr></table>
-<p dir="ltr" style="margin:17px 0 8px;text-align:center;font-size:12px;line-height:1.8;"><a href="${origin}" style="text-align:center;color:#f8f6f0;text-decoration:none;">agromind.ir</a></p>
-<p dir="ltr" style="margin:0;text-align:center;color:#d9d8bf;font-size:11px;line-height:1.8;">© ${new Date().getUTCFullYear()} AgroMind</p>
+<p dir="ltr" style="margin:17px 0 8px;text-align:center;font-size:12px;line-height:1.8;"><a href="${origin}" style="text-align:center;color:${headerFooterInk};text-decoration:none;">agromind.ir</a></p>
+<p dir="ltr" style="margin:0;text-align:center;color:${headerFooterSecondary};font-size:11px;line-height:1.8;">© ${new Date().getUTCFullYear()} AgroMind</p>
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table></body></html>`;
