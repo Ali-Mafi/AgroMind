@@ -89,10 +89,13 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /kind=brand/);
     assert.match(email.html, /kind=tagline/);
     assert.match(email.html, /kind=title/);
-    assert.match(email.html, /kind=cta/);
+    assert.doesNotMatch(email.html, /kind=cta/);
+    assert.match(email.html, /data-email-cta="primary"[^>]*>[^<]+<\/a>/);
     assert.match(email.html, /kind=copyright/);
     assert.match(email.html, /kind=handle/);
     assert.match(email.html, /alt="AgroMind"/);
+    assert.ok(existsSync("public/email/fonts/vazirmatn-regular.ttf"));
+    assert.ok(existsSync("public/email/fonts/instrument-serif-regular.ttf"));
     assert.match(email.html, /src="https:\/\/agromind\.ir\/email\/lettering\?[^"]+"[^>]*alt="/);
     const withoutImages = email.html.replace(/<img\b[^>]*>/g, "");
     assert.match(withoutImages, /<h1/);
