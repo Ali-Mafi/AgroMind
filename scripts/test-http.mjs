@@ -171,6 +171,28 @@ try {
     console.log("PASS self-hosted Vazirmatn email font (WOFF2)");
   }
 
+  // Gmail iOS uses first-party transparent PNG lettering while all other
+  // email clients retain accessible live HTML text. Exercise actual PNG
+  // rendering with licensed Persian and serif font files, not just HTML URLs.
+  for (const fixture of [
+    { kind: "brand", text: "AgroMind", lang: "en" },
+    { kind: "title", text: "بازیابی رمز عبور", lang: "fa" },
+    { kind: "subtitle", text: "بازیابی دسترسی به حساب کاربری", lang: "fa" },
+    { kind: "social", text: "Instagram", lang: "en" },
+  ]) {
+    const q = new URLSearchParams(fixture);
+    const response = await fetch(base + "/email/lettering?" + q, { redirect: "manual" });
+    assert.equal(response.status, 200, JSON.stringify(fixture));
+    assert.match(response.headers.get("content-type"), /image\/png/);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.equal(bytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+    assert.ok(bytes.length > 500, "lettering should contain rendered pixels");
+    console.log("PASS transparent email lettering", fixture.kind, fixture.lang);
+  }
+  const blockedLettering = await fetch(base + "/email/lettering?kind=brand&text=unapproved&lang=en");
+  assert.equal(blockedLettering.status, 404);
+
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
