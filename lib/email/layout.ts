@@ -90,16 +90,10 @@ body,table,td,p,h1,h2,a{text-align:center}table{mso-table-lspace:0pt;mso-table-r
 <tr><td class="brand-header" background="${artwork}/landscape.jpg${imageRevision}" bgcolor="#102c20" ${centered}background-color:#102c20;background-image:url('${artwork}/landscape.jpg${imageRevision}');background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:13px 13px 0 0;">
 <!--[if mso]><v:rect fill="true" stroke="false" style="width:600px;"><v:fill type="frame" src="${artwork}/landscape.jpg${imageRevision}" color="#102c20" aspect="atleast"/><v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true;"><![endif]-->
 <table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-content" ${centered}padding:25px 36px 22px;">
-<!-- Forced dark-mode inversion can recolor live text while preserving a photo.
-     Pair header lettering with a dark solid-color fallback of known contrast. -->
-<table ${table} width="74%" style="width:74%;max-width:270px;table-layout:fixed;"><tr><td class="hero-brand-contrast" bgcolor="#102c20" ${centered}padding:12px 14px;background-color:#102c20;border-radius:12px;">
 ${brand()}
-</td></tr></table>
-<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:21px;">
-<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-contrast" bgcolor="#102c20" ${centered}padding:11px 12px 16px;background-color:#102c20;border:1px solid #b99a58;border-radius:12px;">
+<table ${table} width="100%" style="width:100%;table-layout:fixed;"><tr><td class="hero-title-pad" ${centered}padding-top:31px;">
 <h1 class="email-title" style="margin:0 0 8px;text-align:center;color:#f8f6f0;font-size:34px;font-weight:normal;line-height:1.55;">${title}</h1>
 ${message.subtitle ? paragraph(message.subtitle, "font-size:16px;color:#f8f6f0;margin-bottom:0;") : ""}
-</td></tr></table>
 </td></tr></table>
 </td></tr><tr><td class="content-surface" bgcolor="#f8f6f0" height="14" ${centered}height:14px;background-color:#f8f6f0;border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 <!--[if mso]></v:textbox></v:rect><![endif]-->
