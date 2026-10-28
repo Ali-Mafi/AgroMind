@@ -21,10 +21,10 @@ Approved Persian title, subtitle, greeting, paragraphs, CTA and one-use/ignore w
 
 ## Release gate
 
-Live Supabase project `gedwexwxaojpqyeiebwm` is ACTIVE_HEALTHY. Its connector does not expose Auth configuration. Direct access to the hosted Auth settings redirects to Supabase sign-in, so actual Production Email OTP Expiration remains **unverified**. Local `otp_expiry=3600` is not hosted evidence. No duration was invented and no live settings or credentials were changed.
+The project owner confirmed from Supabase Production Auth settings on 2026-10-28 that Email OTP Expiration is **3600 seconds (one hour)**. The connected API does not expose Auth settings, so this is an owner-reported dashboard value, not a direct API read. The local `otp_expiry=3600` agrees. The signup notice now correctly says one hour in Persian and English, rather than the reference image's incorrect 24 hours. No live authentication configuration, credentials or notification settings were changed.
 
-The visual comparison gate is complete as an explicitly centered, responsive email adaptation. **Keep PR #42 draft and unmerged until the hosted OTP expiration is read and the duration sentence completed accurately.** If it is 3600 seconds, state one hour, not 24 hours.
+Direct approved-reference visual comparison and the hosted-expiry accuracy requirement are complete. Final merge/release is contingent on fresh CI success and production verification.
 
 Production Vercel `dpl_DRk6QmUpYkZ9AgfajcV5NVFb8R6b` remains READY on `185f663e58a51f65e01a1b78d0436fb9b3290bb7`, with `agromind.ir`/`www.agromind.ir` attached. No production release occurred.
 
-Next action: read the actual hosted Email OTP Expiration through an authenticated Supabase settings session, complete the notice, rerun affected checks, merge the exact passing head, and verify production SHA plus public email assets.
+Next action: run affected checks, merge the exact passing head, and verify production SHA plus public email assets.
