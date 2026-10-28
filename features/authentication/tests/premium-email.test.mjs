@@ -48,7 +48,7 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     // without the boxed solid-color backplates rejected by design review.
     assert.doesNotMatch(email.html, /hero-brand-contrast|hero-title-contrast/);
     assert.match(email.html, /class="hero-content" align="center" style="text-align:center;/);
-    assert.match(email.html, /class="email-title"[^>]*color:#f8f6f0/);
+    assert.match(email.html, /class="email-title"[^>]*color:#ffffff/);
     assert.match(email.html, /max-width:480px/);
     const cta = [...email.html.matchAll(/<a\b[^>]*data-email-cta="primary"[^>]*>/g)];
     assert.equal(cta.length, 1);
