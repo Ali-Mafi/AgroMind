@@ -44,10 +44,10 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /<meta name="supported-color-schemes" content="light">/);
     assert.match(email.html, /:root\{color-scheme:light;supported-color-schemes:light\}/);
     assert.doesNotMatch(email.html, /@media\s*\(prefers-color-scheme:\s*dark\)/);
-    // Fallback solid forest-green panels keep live hero text readable when
-    // a client strips CSS background photos or modifies colors in dark mode.
-    assert.match(email.html, /class="hero-brand-contrast" bgcolor="#102c20" align="center" style="text-align:center;[^"]*background-color:#102c20/);
-    assert.match(email.html, /class="hero-title-contrast" bgcolor="#102c20" align="center" style="text-align:center;[^"]*background-color:#102c20/);
+    // The logo and title sit directly over the agricultural photo,
+    // without the boxed solid-color backplates rejected by design review.
+    assert.doesNotMatch(email.html, /hero-brand-contrast|hero-title-contrast/);
+    assert.match(email.html, /class="hero-content" align="center" style="text-align:center;/);
     assert.match(email.html, /class="email-title"[^>]*color:#f8f6f0/);
     assert.match(email.html, /max-width:480px/);
     const cta = [...email.html.matchAll(/<a\b[^>]*data-email-cta="primary"[^>]*>/g)];
