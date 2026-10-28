@@ -2,6 +2,13 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Signature Premium email candidate — 2026-10-28
+
+- Auth, farm invitations and all customer/staff support events now have one centered Persian/English shared email shell, real first-party photography and explicit plain-text/VML/image-blocked fallbacks on `feat/signature-premium-emails`.
+- 283 application tests, 23 PGlite tests and 216 Chromium viewport/environment checks pass; typecheck/localization/build/HTTP pass. Local native PostgreSQL is blocked by process credential switching; physical email clients/WebKit remain unverified.
+- **Candidate, not a production release:** reference image was unavailable and hosted Supabase OTP expiry could not be verified. No unverified 24-hour claim was inserted. Exact copy/reference checks must finish before merge. [Evidence and next action](progress/2026-10-28-email.md); [email architecture](EMAIL_SYSTEM.md).
+- Current Vercel production inspection found support credential/recipient/activation/cron and Auth-hook/Resend variable names present. Values and actual delivery were not checked or changed; older missing-configuration entries below describe their original inspection dates.
+
 ## Support ticket system — 2026-10-26
 
 - Continued from real main `098899aecf69ffda4ff7ae08bbeaf56b9c19912b`. Replaced the draft-only Help form with persisted tickets, personal lists/status filters, unread receipts, conversations/replies and resolved-ticket reopening. Added protected `/admin/support` search/filters, staff replies, internal notes, status/priority controls and fresh-MFA verification.

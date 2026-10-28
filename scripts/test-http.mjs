@@ -131,6 +131,14 @@ try {
     }
   }
 
+  for (const asset of ["wheat-field.jpg", "logo.png", "footer-curve.png", "instagram.png", "telegram.png", "shield.png", "highlight-1.png", "highlight-2.png", "highlight-3.png"]) {
+    const response = await fetch(base + "/email/signature-v1/" + asset, { redirect: "manual" });
+    assert.equal(response.status, 200, asset);
+    assert.match(response.headers.get("content-type"), asset.endsWith(".jpg") ? /image\/jpeg/ : /image\/png/);
+    assert.ok((await response.arrayBuffer()).byteLength < 150_000, asset);
+  }
+  console.log("PASS public email assets: no session/redirect required, JPEG/PNG within byte budgets");
+
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
     "crop-corn", "crop-wheat", "crop-rice", "crop-tomato", "crop-field",
