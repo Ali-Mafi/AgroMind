@@ -159,6 +159,17 @@ try {
     assert.match(response.headers.get("content-type"), /image\/(?:png|jpeg)/, path);
   }
   console.log("PASS email image cache-revision URLs resolve publicly");
+  {
+    const response = await fetch(base + "/email/fonts/vazirmatn-variable.woff2", {
+      redirect: "manual",
+    });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type"), /font\/woff2|application\/font-woff/);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.ok(bytes.length > 30_000 && bytes.length < 150_000);
+    assert.equal(bytes.subarray(0, 4).toString(), "wOF2");
+    console.log("PASS self-hosted Vazirmatn email font (WOFF2)");
+  }
 
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
