@@ -55,7 +55,24 @@ function lettering(kind: string, label: string, language: EmailLanguage, width: 
   url.searchParams.set("text", label);
   url.searchParams.set("lang", language);
   if (accent) url.searchParams.set("accent", accent);
-  return `<img src="${escapeEmailHtml(url.href)}" width="${width}" height="${height}" alt="${escapeEmailHtml(label.replaceAll("\n", " "))}" style="display:block;margin:0 auto;border:0;width:100%;max-width:${width}px;height:auto;">`;
+  // Default to selectable live text when remote images are blocked (Zoho,
+  // Outlook, etc). Gmail's own selector switches to PNG only for Gmail, where
+  // its dark-mode compositor otherwise inverts letters over photographic art.
+  const family = language === "fa" ? persianFont : font;
+  const fallback = accent && label.endsWith(accent)
+    ? escapeEmailHtml(label.slice(0, -accent.length)) + '<span style="color:#d2b16c;">' + escapeEmailHtml(accent) + '</span>'
+    : escapeEmailHtml(label).replaceAll("\n", "<br>");
+  const liveStyle = ({
+    brand: `display:inline-block;color:#ffffff;font-family:Georgia,'Times New Roman',serif;font-size:${width < 180 ? 25 : 29}px;line-height:1.25;`,
+    tagline: "display:inline-block;color:#ece5d1;font-family:Arial,Helvetica,sans-serif;font-size:8px;line-height:1.6;letter-spacing:2.5px;",
+    title: `display:inline;color:#ffffff;font-family:${family};`,
+    subtitle: `display:inline;color:#ffffff;font-family:${family};font-size:16px;line-height:1.95;`,
+    social: "display:block;color:#fff9e9;font-size:12px;line-height:1.9;",
+    handle: "display:block;color:#e1ce95;font-size:12px;line-height:1.9;",
+    website: "display:inline;color:#ffffff;font-size:12px;line-height:1.8;",
+    copyright: "display:inline;color:#d9d8bf;font-size:11px;line-height:1.8;",
+  } as Record<string, string>)[kind] ?? "display:inline;color:#ffffff;";
+  return `<span class="email-live-label" style="text-align:center;${liveStyle}">${fallback}</span><img class="email-gmail-label" src="${escapeEmailHtml(url.href)}" width="${width}" height="${height}" alt="${escapeEmailHtml(label.replaceAll("\n", " "))}" style="display:none;max-height:0;overflow:hidden;margin:0 auto;border:0;width:100%;max-width:${width}px;height:auto;">`;
 }
 function paragraph(value: string, style = "", family = font) {
   return `<p style="margin:0 0 12px;text-align:center;font-size:15px;line-height:1.95;font-family:${family};color:#30382f;overflow-wrap:anywhere;${style}">${escapeEmailHtml(value)}</p>`;
@@ -92,9 +109,12 @@ export function renderPremiumEmail(message: PremiumEmail) {
 <style>
 :root{color-scheme:light;supported-color-schemes:light}
 body,table,td,p,h1,h2,a{text-align:center}
-/* Gmail iOS: keep blend layers as real inline-block boxes. Gmail's
-   inline text-decoration / blend compositing can create overline/underline
-   seams when one of the nested layers is treated as a bare inline span. */
+/* Gmail iOS only: use transparent raster lettering on the photo and footer.
+   Zoho, Outlook, Apple Mail and clients that strip Gmail style blocks retain
+   live text, so blocking remote images cannot erase these labels. */
+u + .email-body .email-live-label{display:none!important;max-height:0!important;overflow:hidden!important;font-size:0!important}
+u + .email-body .email-gmail-label{display:block!important;max-height:none!important;overflow:visible!important;height:auto!important}
+/* All previous nested mix-blend-mode text layers are removed. */
 table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media screen and (max-width:480px){.outer-pad{padding:16px 10px!important}.content-pad{padding-left:22px!important;padding-right:22px!important}.email-title{font-size:27px!important}.highlight{display:block!important;width:100%!important;padding:12px 0!important;border:0!important}.hero-content{padding:24px 18px 20px!important}.hero-title-pad{padding-top:24px!important}}
 /* Signature Premium keeps its approved light reading surface in dark-mode inboxes.
