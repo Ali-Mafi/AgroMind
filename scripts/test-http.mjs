@@ -145,6 +145,20 @@ try {
     assert.ok((await response.arrayBuffer()).byteLength < 150_000, asset);
   }
   console.log("PASS integrated Signature artwork: public JPEG/PNG within byte budgets");
+  // Versioned image URLs must resolve, even when a receiving email client or
+  // image proxy has cached an earlier pre-release 404 under the unversioned URL.
+  for (const path of [
+    "/email/signature-v2/signature-leaf.png?v=20261028r2",
+    "/email/signature-v2/shield.png?v=20261028r2",
+    "/email/signature-v1/instagram.png?v=20261028r2",
+    "/email/signature-v1/telegram.png?v=20261028r2",
+    "/email/signature-v2/landscape.jpg?v=20261028r2",
+  ]) {
+    const response = await fetch(base + path, { redirect: "manual" });
+    assert.equal(response.status, 200, path);
+    assert.match(response.headers.get("content-type"), /image\/(?:png|jpeg)/, path);
+  }
+  console.log("PASS email image cache-revision URLs resolve publicly");
 
   for (const image of [
     "header-field-v2", "header-orchard-v2", "garden-tree-v2",
