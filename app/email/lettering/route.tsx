@@ -39,14 +39,19 @@ export async function GET(request: Request) {
     : undefined;
   const text = searchParams.get("text")?.normalize("NFC") ?? "";
   const language = searchParams.get("lang");
+  const accent = searchParams.get("accent");
   if (!variant || !["fa", "en"].includes(language ?? "") ||
       !text || text.length > 100 || !allowed.test(text) ||
       ((variantName === "brand" || variantName === "tagline" || variantName === "social" ||
         variantName === "handle" || variantName === "website" || variantName === "copyright") &&
-        !publicBrandLabels.has(text) && !(variantName === "copyright" && /^© 20\\d{2} AgroMind$/.test(text)))) {
+        !publicBrandLabels.has(text) && !(variantName === "copyright" && /^© 20\d{2} AgroMind$/.test(text)))) {
     return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
 
+  if (accent && (variantName !== "title" || !text.endsWith(accent) ||
+      accent.length > 24 || !allowed.test(accent))) {
+    return new Response("Not found", { status: 404 });
+  }
   // ImageResponse requires a static TTF/OTF/WOFF (not WOFF2). This is the
   // genuine OFL-licensed Vazirmatn font, independent of inbox font support.
   const font = await readFile(join(process.cwd(), "public/email/fonts/vazirmatn-regular.ttf"));
@@ -73,7 +78,12 @@ export async function GET(request: Request) {
       color: variant.color,
       padding: "0 12px",
     }}>
-      {text}
+      {accent
+        ? <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
+            <span>{text.slice(0, -accent.length)}</span>
+            <span style={{ color: "#d2b16c" }}>{accent}</span>
+          </div>
+        : text}
     </div>,
     {
       width: variant.width,
