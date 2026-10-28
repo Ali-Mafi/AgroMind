@@ -59,6 +59,12 @@ export async function GET(request: Request) {
   const size = text.length > 65 ? variant.size * 0.73
     : text.length > 38 ? variant.size * 0.86 : variant.size;
   const isFa = language === "fa";
+  // Satori's image text layout renders Arabic glyphs correctly but can keep
+  // multi-word strings in Latin visual order. Flip word order for the PNG
+  // raster, so Persian reads right-to-left after painting. The HTML alt and
+  // the live-text fallback always retain the original logical string.
+  const shown = isFa ? text.trim().split(/\\s+/).reverse().join(" ") : text;
+  const coloredAccent = accent && (isFa ? accent.trim().split(/\\s+/).reverse().join(" ") : accent);
   const png = new ImageResponse(
     <div style={{
       display: "flex",
@@ -78,12 +84,19 @@ export async function GET(request: Request) {
       color: variant.color,
       padding: "0 12px",
     }}>
-      {accent
+      {accent && coloredAccent
         ? <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
-            <span>{text.slice(0, -accent.length)}</span>
-            <span style={{ color: "#d2b16c" }}>{accent}</span>
+            {isFa
+              ? <>
+                  <span style={{ color: "#d2b16c" }}>{coloredAccent}</span>
+                  <span>{shown.slice(coloredAccent.length)}</span>
+                </>
+              : <>
+                  <span>{shown.slice(0, -coloredAccent.length)}</span>
+                  <span style={{ color: "#d2b16c" }}>{coloredAccent}</span>
+                </>}
           </div>
-        : text}
+        : shown}
     </div>,
     {
       width: variant.width,
