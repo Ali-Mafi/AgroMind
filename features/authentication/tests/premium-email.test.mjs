@@ -56,7 +56,7 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /<v:fill[^>]+landscape.jpg/);
     assert.match(email.html, /bgcolor="#102c20"/);
     for (const image of email.html.matchAll(/src="https:\/\/agromind.ir(\/email\/[^\"]+)"/g)) {
-      const url = new URL(image[1], "https://agromind.ir");
+      const url = new URL(image[1].replaceAll("&amp;", "&"), "https://agromind.ir");
       if (url.pathname === "/email/lettering") {
         assert.ok(["brand", "tagline", "title", "subtitle", "social", "handle", "website", "copyright", "cta"].includes(url.searchParams.get("kind")));
         assert.ok(["fa", "en"].includes(url.searchParams.get("lang")));
