@@ -10,14 +10,13 @@ All presentation tables/cells retain `align="center"` and inline text centering.
 
 Instagram: https://www.instagram.com/agromind.ir/ ; Telegram: https://t.me/agromindir ; website: https://agromind.ir . Both supplied social URLs returned HTTP 200 on 2026-10-28. Instagram can serve a login shell; HTTP success does not establish account ownership or access to posts.
 
-## Verification copy and release blockers
+## Verification copy and expiration accuracy
 
-The supplied Persian signup subject, title, subtitle, greeting, body, CTA, ignore notice and brand highlights are preserved verbatim. The security sentence currently says only `این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است.` **The duration is intentionally pending, not approved final copy.**
+The supplied Persian signup subject, title, subtitle, greeting, body, CTA, ignore notice and brand highlights are preserved verbatim. The duration in the approved reference was **24 hours**, but the project owner confirmed via the hosted Supabase Auth settings on 2026-10-28 that Production Email OTP Expiration is **3600 seconds (one hour)**. Therefore the security sentence accurately says `این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است و تا ۱ ساعت اعتبار دارد.` The English translation also states one hour. No hosted authentication settings were changed.
 
-- Local `supabase/config.toml` has `auth.email.otp_expiry = 3600` (1 hour), not 24 hours. This is not proof of the hosted setting.
-- The connected Supabase API does not expose hosted Auth settings; the dashboard requires sign-in. No live setting was changed or inferred from local defaults. Confirm hosted Email OTP Expiration for project `gedwexwxaojpqyeiebwm`, then finish the sentence with the actual verified duration. For 86400 seconds, use the exact approved `این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است و تا ۲۴ ساعت اعتبار دارد.`
+- Local `supabase/config.toml` independently specifies `auth.email.otp_expiry = 3600`, matching the user-reported hosted value. The connected API cannot independently inspect the hosted Auth configuration; this production value is based on the owner's explicit dashboard report.
 - The approved image was supplied in the final-polish session. Direct before/after Persian desktop/mobile comparison is complete. Integrated landscape/branding/title, gold leaf and serif wordmark, warm ivory, gold CTA border, compact notice, highlight details/order and curved gold-edged footer were corrected. Deliberate differences: all content is centered, mobile highlights stack, only supplied social accounts are linked, and typography uses client-installed fonts. This is an email-compatible adaptation, not a pixel-identical flattened image.
-- **Do not merge this candidate until the actual hosted expiry is verified and the notice is finished accurately.** This follows the requested release gates, not an additional approval requirement.
+- Both previously documented release gates (approved reference comparison and truthful OTP expiration wording) are now addressed. Release remains subject to final green CI, safe PR merge and Vercel production verification.
 
 ## Reproduce previews and checks
 
