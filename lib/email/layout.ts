@@ -49,7 +49,7 @@ const persianFont = "'Vazirmatn',Tahoma,Arial,Helvetica,sans-serif";
 // Gmail iOS inverts live text independently of the photo. These wrappers
 // only receive blend effects in Gmail, leaving the original artwork intact.
 function retainLightText(html: string) {
-  return '<span class="gmail-blend-screen" style="display:inline-block;max-width:100%;text-align:center;"><span class="gmail-blend-difference" style="display:inline-block;max-width:100%;text-align:center;">' + html + '</span></span>';
+  return '<span class="gmail-blend-screen" style="display:inline-block;max-width:100%;text-align:center;text-decoration:none;border:0;outline:0;box-shadow:none;"><span class="gmail-blend-difference" style="display:inline-block;max-width:100%;text-align:center;text-decoration:none;border:0;outline:0;box-shadow:none;">' + html + '</span></span>';
 }
 function paragraph(value: string, style = "", family = font, protect = false) {
   return `<p style="margin:0 0 12px;text-align:center;font-size:15px;line-height:1.95;font-family:${family};color:#30382f;overflow-wrap:anywhere;${style}">${protect ? retainLightText(escapeEmailHtml(value)) : escapeEmailHtml(value)}</p>`;
@@ -89,8 +89,11 @@ export function renderPremiumEmail(message: PremiumEmail) {
 <style>
 :root{color-scheme:light;supported-color-schemes:light}
 body,table,td,p,h1,h2,a{text-align:center}
-u + .email-body .gmail-blend-screen{background:#000;mix-blend-mode:screen}
-u + .email-body .gmail-blend-difference{background:#000;mix-blend-mode:difference}table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+/* Gmail iOS: keep blend layers as real inline-block boxes. Gmail's
+   inline text-decoration / blend compositing can create overline/underline
+   seams when one of the nested layers is treated as a bare inline span. */
+u + .email-body .gmail-blend-screen{background:#000;mix-blend-mode:screen;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important}
+u + .email-body .gmail-blend-difference{background:#000;mix-blend-mode:difference;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important}table{mso-table-lspace:0pt;mso-table-rspace:0pt}img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
 @media screen and (max-width:480px){.outer-pad{padding:16px 10px!important}.content-pad{padding-left:22px!important;padding-right:22px!important}.email-title{font-size:27px!important}.highlight{display:block!important;width:100%!important;padding:12px 0!important;border:0!important}.hero-content{padding:24px 18px 20px!important}.hero-title-pad{padding-top:24px!important}}
 /* Signature Premium keeps its approved light reading surface in dark-mode inboxes.
    Light-only metadata opts out of inversion in supported Gmail and Apple Mail. */

@@ -76,9 +76,20 @@ test("every section has explicit symmetric alignment, directions, assets and tex
       assert.doesNotMatch(email.html, /@font-face/);
     }
     assert.match(email.html, /<body class="email-body"/);
-    assert.match(email.html, /u \+ \.email-body \.gmail-blend-screen\{background:#000;mix-blend-mode:screen\}/);
-    assert.match(email.html, /u \+ \.email-body \.gmail-blend-difference\{background:#000;mix-blend-mode:difference\}/);
+    assert.match(email.html, /u \+ \.email-body \.gmail-blend-screen\{background:#000;mix-blend-mode:screen;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important\}/);
+    assert.match(email.html, /u \+ \.email-body \.gmail-blend-difference\{background:#000;mix-blend-mode:difference;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important\}/);
     assert.match(email.html, /class="email-title"[^>]*color:#ffffff[^>]*>.*gmail-blend-screen/);
+    // Every text blend layer is a stable inline-block with no decoration
+    // or border: Gmail iOS previously drew white over/underlines along
+    // these layers in the real user's dark-mode email screenshots.
+    const layers = [...email.html.matchAll(/<span class="gmail-blend-(?:screen|difference)"[^>]*>/g)];
+    assert.ok(layers.length >= 10);
+    for (const [layer] of layers) {
+      assert.match(layer, /display:inline-block;/);
+      assert.match(layer, /text-decoration:none;/);
+      assert.match(layer, /border:0;outline:0;box-shadow:none;/);
+    }
+    assert.doesNotMatch(email.html, /text-decoration:\s*(?:overline|underline)/);
     assert.match(email.html, /background-image:url\('[^']+footer-leaves\.png[^']*'\),linear-gradient\(#102c20,#102c20\)/);
     assert.match(email.html, /gmail-blend-difference[^>]*>AgroMind<\/span>/);
     for (const label of ["Instagram", "Telegram", "agromind.ir", "agromindir"]) {
