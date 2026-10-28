@@ -39,3 +39,7 @@ This work cannot guarantee absence of current/future bugs or regulatory complian
 - Google signup/signin begins without a pre-OAuth checkbox; Google accounts missing the latest policy acknowledgement are redirected to `/accept-terms` before onboarding and all private data snapshots.
 - Accepting writes a version/date to Supabase auth user metadata; declining signs out. Existing Google users with the matching version bypass the step.
 - **Limitation:** Supabase auth user_metadata is client-writable and is not a tamper-proof acceptance/audit ledger. Before relying on this for formal legal evidence, move acceptance to a server-controlled database audit record and verify RLS and retention.
+
+## Account security review candidate — 2026-10-28
+
+[Account sessions](ACCOUNT_SESSIONS.md) records the server metadata and Auth/session boundaries. The candidate stores coarse device/OS/browser and Vercel-observed public IP/approximate city/region/country for at most 30 days in primary app metadata; raw UA is discarded. Own-account immutable activity is kept for 90 days. Login alerts disclose these details to the account email through Resend. Retention also covers queued security payloads; provider logs, backups and delivered inbox copies have separate provider retention. No new analytics or fingerprint is introduced. Hosted release and provider-retention review remain pending.

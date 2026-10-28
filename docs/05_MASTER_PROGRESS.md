@@ -2,6 +2,12 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Advanced account security — review candidate, 2026-10-28
+
+- Implemented new-login emails through the existing durable outbox, real Auth session listings, fresh TOTP-only remote sign-out with one-time server authorization, session-aware access denial and immutable user-scoped recent activity.
+- Local evidence: 293 JS + 29 PGlite passes; lint/typecheck/localization/build/HTTP pass (one existing lint warning); 240 email + 20 security-layout Chromium checks. Native PostgreSQL subprocess is blocked locally by EINVAL and must pass on final-head CI.
+- Dedicated feature branch; **not merged or deployed**. Hosted Auth/timeout/scheduler acceptance, independent security review, physical iOS/inbox QA and provider-wide limitations remain release blockers. [Runbook](ACCOUNT_SESSIONS.md) · [evidence](progress/2026-10-28-security.md).
+
 ## Signature Premium email candidate — 2026-10-28
 
 - Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.

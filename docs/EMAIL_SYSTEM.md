@@ -38,3 +38,7 @@ QA checks narrow/desktop widths, both reading directions, light/dark, image bloc
 Classic Outlook uses a fixed 600px MSO wrapper, explicit widths, table centering and a VML rounded button. It may render card/information-panel corners square and ignore media queries/dark CSS. The raster footer wave works when images load and becomes a rectangular green footer when blocked. Gmail forced inversion, installed fonts and platform antialiasing can differ. Tahoma/Arial are reliable typography fallbacks; no pixel-perfect cross-client claim is made.
 
 Production environment-name inspection on 2026-10-28 confirmed the support worker credential, activation flag, recipient, cron secret, Resend key and signed Auth-hook secret names exist. Values were not read or changed; activation and inbox delivery are not inferred from names.
+
+## Account security candidate — 2026-10-28
+
+[Advanced sessions](ACCOUNT_SESSIONS.md) adds FA/EN login alerts through this same shell and durable support outbox. `SECURITY_EMAIL_ENABLED` gates security delivery independently of support. Retry payloads are frozen per job and share the existing lease/ack and Resend idempotency flow. The preview script now includes two login-security fixtures (20 total). The shared retry cron candidate is every ten minutes, subject to the deployment prerequisites in that document. No production activation was performed.

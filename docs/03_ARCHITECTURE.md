@@ -289,3 +289,7 @@ See [current progress](05_MASTER_PROGRESS.md) and [workflow rules](PROJECT_RULES
 ## Support service — 2026-10-26
 
 `features/support` owns schemas, server actions, user/staff presentation and the notification worker. Existing Account Help hosts creation/list entry points; thin routes serve ticket details and `/admin/support`. Authenticated SSR clients call invoker RPCs backed by private transactional implementations. Public ticket/message tables have read-only customer grants plus RLS; private registry, command receipts, audit, read receipts and email outbox are never exposed to customers. Role authority is independent of farm membership and requires AAL2; staff writes also require recent TOTP proof. Notification jobs are committed with mutations and drained separately through the existing Resend transport. See [Support Tickets](SUPPORT_TICKETS.md) for limits, bootstrap, recovery and unconfigured operations.
+
+## Account-session security candidate (2026-10-28)
+
+`features/account-security` owns server session observation, remote-revocation orchestration, security email content, types and the session/history panel. It extends the existing Auth services, account settings shell/MFA dialog and shared durable outbox. See [Account Sessions](ACCOUNT_SESSIONS.md) for trust boundaries, RLS enforcement and release gates.
