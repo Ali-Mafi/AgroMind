@@ -17,15 +17,17 @@ for(const [engine,browserType] of Object.entries({chromium,webkit}).filter(([nam
     const page=await browser.newPage({viewport:{width,height:1000},colorScheme:environment==="dark"?"dark":"light"});
     await page.route("**/*",async route=>{
       const url=new URL(route.request().url());
-      if(url.origin==="https://agromind.ir"&&url.pathname.startsWith("/email/")) {
+      if(url.origin==="https://email-preview.invalid"&&url.pathname.startsWith("/assets/")) {
         if(environment==="images-off") return route.abort();
-        const file=path.resolve("public",`.${url.pathname}`);
+        const file=path.join(destination,url.pathname.slice(1));
         return route.fulfill({body:readFileSync(file),contentType:file.endsWith(".jpg")?"image/jpeg":"image/png"});
       }
       return route.abort();
     });
     let html=readFileSync(path.join(destination,`${item.name}.html`),"utf8");
     if(environment==="css-stripped")html=html.replace(/<style>[\s\S]*?<\/style>/g,"");
+    // Resolve bundled assets through a controlled origin; no external requests.
+    html=html.replace("<head>",'<head><base href="https://email-preview.invalid/">');
     await page.setContent(html,{waitUntil:"load"});
     const geometry=await page.evaluate(()=>{
       const visible=(el)=>el.getBoundingClientRect().width&&el.getBoundingClientRect().height&&getComputedStyle(el).display!=="none";

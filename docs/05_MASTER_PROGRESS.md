@@ -5,7 +5,7 @@
 ## Signature Premium email candidate — 2026-10-28
 
 - Auth, farm invitations and all customer/staff support events now have one centered Persian/English shared email shell, real first-party photography and explicit plain-text/VML/image-blocked fallbacks on `feat/signature-premium-emails`.
-- 283 application tests, 23 PGlite tests and 216 Chromium viewport/environment checks pass; typecheck/localization/build/HTTP pass. Local native PostgreSQL is blocked by process credential switching; physical email clients/WebKit remain unverified.
+- 283 application tests, 23 PGlite tests and 216 Chromium viewport/environment checks pass; typecheck/localization/build/HTTP pass. Native PostgreSQL passes in GitHub Foundation checks [40672147392](https://github.com/Ali-Mafi/AgroMind/actions/runs/40672147392) (local process credential switching is blocked); physical email clients/WebKit remain unverified.
 - **Candidate, not a production release:** reference image was unavailable and hosted Supabase OTP expiry could not be verified. No unverified 24-hour claim was inserted. Exact copy/reference checks must finish before merge. [Evidence and next action](progress/2026-10-28-email.md); [email architecture](EMAIL_SYSTEM.md).
 - Current Vercel production inspection found support credential/recipient/activation/cron and Auth-hook/Resend variable names present. Values and actual delivery were not checked or changed; older missing-configuration entries below describe their original inspection dates.
 
