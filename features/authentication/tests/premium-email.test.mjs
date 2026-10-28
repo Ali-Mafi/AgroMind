@@ -57,8 +57,14 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /bgcolor="#102c20"/);
     for (const image of email.html.matchAll(/src="https:\/\/agromind.ir(\/email\/[^\"]+)"/g)) {
       const url = new URL(image[1], "https://agromind.ir");
-      assert.equal(url.searchParams.get("v"), "20261028r2");
-      assert.ok(existsSync(`public${url.pathname}`), url.pathname);
+      if (url.pathname === "/email/lettering") {
+        assert.ok(["brand", "tagline", "title", "subtitle", "social", "handle", "website", "copyright", "cta"].includes(url.searchParams.get("kind")));
+        assert.ok(["fa", "en"].includes(url.searchParams.get("lang")));
+        assert.ok(url.searchParams.get("text"));
+      } else {
+        assert.equal(url.searchParams.get("v"), "20261028r2");
+        assert.ok(existsSync(`public${url.pathname}`), url.pathname);
+      }
     }
     for (const required of ["signature-leaf.png", "instagram.png", "telegram.png", "shield.png", "footer-curve.png"]) assert.ok(email.html.includes(`${required}?v=20261028r2`), required);
     assert.match(email.html, /https:\/\/www.instagram.com\/agromind.ir\//);
@@ -76,25 +82,18 @@ test("every section has explicit symmetric alignment, directions, assets and tex
       assert.doesNotMatch(email.html, /@font-face/);
     }
     assert.match(email.html, /<body class="email-body"/);
-    assert.match(email.html, /u \+ \.email-body \.gmail-blend-screen\{background:#000;mix-blend-mode:screen;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important\}/);
-    assert.match(email.html, /u \+ \.email-body \.gmail-blend-difference\{background:#000;mix-blend-mode:difference;display:inline-block!important;text-decoration:none!important;border:0!important;outline:0!important;box-shadow:none!important\}/);
-    assert.match(email.html, /class="email-title"[^>]*color:#ffffff[^>]*>.*gmail-blend-screen/);
-    // Every text blend layer is a stable inline-block with no decoration
-    // or border: Gmail iOS previously drew white over/underlines along
-    // these layers in the real user's dark-mode email screenshots.
-    const layers = [...email.html.matchAll(/<span class="gmail-blend-(?:screen|difference)"[^>]*>/g)];
-    assert.ok(layers.length >= 10);
-    for (const [layer] of layers) {
-      assert.match(layer, /display:inline-block;/);
-      assert.match(layer, /text-decoration:none;/);
-      assert.match(layer, /border:0;outline:0;box-shadow:none;/);
-    }
-    assert.doesNotMatch(email.html, /text-decoration:\s*(?:overline|underline)/);
-    assert.match(email.html, /background-image:url\('[^']+footer-leaves\.png[^']*'\),linear-gradient\(#102c20,#102c20\)/);
-    assert.match(email.html, /gmail-blend-difference[^>]*>AgroMind<\/span>/);
-    for (const label of ["Instagram", "Telegram", "agromind.ir", "agromindir"]) {
-      assert.ok(email.html.includes(`>${label}</span>`), label);
-    }
+    // Real Gmail iOS rendered white horizontal rules around the previous blend
+    // wrappers; this HTML must never emit those elements or their CSS.
+    assert.doesNotMatch(email.html, /gmail-blend-screen|gmail-blend-difference|mix-blend-mode/);
+    assert.match(email.html, /<h1 class="email-title"[^>]*><img src="https:\/\/agromind\.ir\/email\/lettering\?/);
+    assert.match(email.html, /kind=brand/);
+    assert.match(email.html, /kind=tagline/);
+    assert.match(email.html, /kind=title/);
+    assert.match(email.html, /kind=cta/);
+    assert.match(email.html, /kind=copyright/);
+    assert.match(email.html, /kind=handle/);
+    assert.match(email.html, /alt="AgroMind"/);
+    assert.match(email.html, /src="https:\/\/agromind\.ir\/email\/lettering\?[^"]+"[^>]*alt="/);
     const withoutImages = email.html.replace(/<img\b[^>]*>/g, "");
     assert.match(withoutImages, /<h1/);
     assert.match(withoutImages, /data-email-cta="primary"/);
