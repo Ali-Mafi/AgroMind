@@ -56,15 +56,9 @@ test("every section has explicit symmetric alignment, directions, assets and tex
     assert.match(email.html, /<v:fill[^>]+landscape.jpg/);
     assert.match(email.html, /bgcolor="#102c20"/);
     for (const image of email.html.matchAll(/src="https:\/\/agromind.ir(\/email\/[^\"]+)"/g)) {
-      const url = new URL(image[1].replaceAll("&amp;", "&"), "https://agromind.ir");
-      if (url.pathname === "/email/lettering") {
-        assert.ok(["brand", "tagline", "title", "subtitle", "social", "handle", "website", "copyright", "cta"].includes(url.searchParams.get("kind")));
-        assert.ok(["fa", "en"].includes(url.searchParams.get("lang")));
-        assert.ok(url.searchParams.get("text"));
-      } else {
-        assert.equal(url.searchParams.get("v"), "20261028r2");
-        assert.ok(existsSync(`public${url.pathname}`), url.pathname);
-      }
+      const url = new URL(image[1], "https://agromind.ir");
+      assert.equal(url.searchParams.get("v"), "20261028r2");
+      assert.ok(existsSync(`public${url.pathname}`), url.pathname);
     }
     for (const required of ["signature-leaf.png", "instagram.png", "telegram.png", "shield.png", "footer-curve.png"]) assert.ok(email.html.includes(`${required}?v=20261028r2`), required);
     assert.match(email.html, /https:\/\/www.instagram.com\/agromind.ir\//);
@@ -82,24 +76,17 @@ test("every section has explicit symmetric alignment, directions, assets and tex
       assert.doesNotMatch(email.html, /@font-face/);
     }
     assert.match(email.html, /<body class="email-body"/);
-    // Real Gmail iOS rendered white horizontal rules around the previous blend
-    // wrappers; this HTML must never emit those elements or their CSS.
-    assert.doesNotMatch(email.html, /gmail-blend-screen|gmail-blend-difference|mix-blend-mode/);
-    assert.match(email.html, /<h1 class="email-title"[^>]*><span class="email-live-label"[^>]*>/);
-    assert.match(email.html, /<img class="email-gmail-label" src="https:\/\/agromind\.ir\/email\/lettering\?/);
-    assert.match(email.html, /u \+ \.email-body \.email-live-label\{display:none!important/);
-    assert.match(email.html, /u \+ \.email-body \.email-gmail-label\{display:block!important/);
-    assert.match(email.html, /kind=brand/);
-    assert.match(email.html, /kind=tagline/);
-    assert.match(email.html, /kind=title/);
-    assert.doesNotMatch(email.html, /kind=cta/);
-    assert.match(email.html, /data-email-cta="primary"[^>]*>[^<]+<\/a>/);
-    assert.match(email.html, /kind=copyright/);
-    assert.match(email.html, /kind=handle/);
-    assert.match(email.html, /alt="AgroMind"/);
-    assert.ok(existsSync("public/email/fonts/vazirmatn-regular.ttf"));
-    assert.ok(existsSync("public/email/fonts/instrument-serif-regular.ttf"));
-    assert.match(email.html, /src="https:\/\/agromind\.ir\/email\/lettering\?[^"]+"[^>]*alt="/);
+    // User rejected both Gmail's mix-blend workaround (white horizontal rules)
+    // and PNG-rendered headings. Every label must remain regular accessible HTML.
+    assert.doesNotMatch(email.html, /mix-blend-mode|gmail-blend|email-live-label|email-gmail-label|\/email\/lettering/);
+    assert.match(email.html, /<h1 class="email-title"[^>]*color:#ffffff[^>]*>/);
+    assert.match(email.html, /color:#ffffff[^>]*>AgroMind<\/span>/);
+    assert.match(email.html, /INTELLIGENT<br>FARMING TOGETHER/);
+    assert.match(email.html, /<a data-email-cta="primary"[^>]*>[^<]+<\/a>/);
+    assert.match(email.html, /background-image:url\('[^']+footer-leaves\.png[^']*'\),linear-gradient\(#102c20,#102c20\)/);
+    for (const label of ["Instagram", "Telegram", "agromind.ir", "agromindir"]) {
+      assert.ok(email.html.includes(`>${label}</span>`), label);
+    }
     const withoutImages = email.html.replace(/<img\b[^>]*>/g, "");
     assert.match(withoutImages, /<h1/);
     assert.match(withoutImages, /data-email-cta="primary"/);
