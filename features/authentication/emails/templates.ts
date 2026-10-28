@@ -16,9 +16,9 @@ export function renderAuthEmail(
   const t = translator(language);
   const fa = language === "fa";
   const signup = kind === "signup";
-  // Do not claim a hosted OTP lifetime from local config.toml. The repository
-  // config is 3600s, and hosted settings are not exposed by the connected API.
-  // Add a duration only after that project's current setting is verified.
+  // Production Email OTP Expiration was confirmed as 3600 seconds by the
+  // project owner in the Supabase Auth dashboard on 2026-10-28.
+  // Update this notice if the hosted authentication setting changes.
   const content = signup ? {
     subject: fa ? "تأیید نشانی ایمیل | AgroMind" : "Verify your email address | AgroMind",
     title: fa ? "تأیید نشانی ایمیل" : "Verify your email address",
@@ -31,7 +31,7 @@ export function renderAuthEmail(
       "To activate your account and complete registration, please click the button below to verify your email address.",
     ],
     cta: fa ? "تأیید نشانی ایمیل" : "Verify email address",
-    note: fa ? "این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است." : "For security reasons, this link can only be used once.",
+    note: fa ? "این لینک به دلایل امنیتی تنها یک‌بار قابل استفاده است و تا ۱ ساعت اعتبار دارد." : "For security reasons, this link can only be used once and is valid for one hour.",
     ignore: fa ? "اگر این درخواست از طرف شما نبوده است، نیازی به اقدامی نیست و می‌توانید این ایمیل را نادیده بگیرید." : "If you did not make this request, no action is needed and you can ignore this email.",
   } : {
     subject: t("Reset your AgroMind password"),
