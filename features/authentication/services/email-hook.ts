@@ -14,11 +14,15 @@ const payloadSchema = z.object({
       .passthrough()
       .optional(),
   }),
-  email_data: z.object({
-    token_hash: tokenHashSchema,
-    email_action_type: z.enum(["signup", "recovery", "reauthentication"]),
-    token: z.string().optional(),
-  }),
+  email_data: z.discriminatedUnion("email_action_type", [
+    z.object({ email_action_type: z.literal("signup"), token_hash: tokenHashSchema }),
+    z.object({ email_action_type: z.literal("recovery"), token_hash: tokenHashSchema }),
+    z.object({
+      email_action_type: z.literal("reauthentication"),
+      token_hash: tokenHashSchema,
+      token: z.string().regex(/^[0-9]{6,10}$/),
+    }),
+  ]),
 });
 function failure(status: number) {
   return Response.json(
@@ -82,7 +86,7 @@ export async function handleAuthEmail(request: Request) {
   try {
     const language = user.user_metadata?.language === "fa" ? "fa" : "en";
     const rendered = email.email_action_type === "reauthentication"
-      ? renderReauthenticationEmail(email.token ?? "", language)
+      ? renderReauthenticationEmail(email.token, language)
       : renderAuthEmail(email.email_action_type, email.token_hash, language);
     const idempotencyKey =
       "agromind-auth/" +
