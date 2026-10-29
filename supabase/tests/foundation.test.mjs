@@ -1686,3 +1686,23 @@ test("F06 failed preparation rolls back consumption and denial; F08 reauth is th
  assert.equal((await admin.query("select security_reserve_reauthentication($1,$2) as ok",[f.user,f.session])).rows[0].ok,true);
  await assert.rejects(admin.query("select security_reserve_reauthentication($1,$2)",[f.user,f.session]),/SECURITY_REAUTH_RATE_LIMIT/);
 });
+test("F06 unknown password outcomes survive pruning and remain visible to operators",async()=>{
+ const f=await securityFixture();
+ const g=await actionGrant(f,'password_change','test-password');
+ await authorizeGrant(g);
+ await admin.query("select security_prepare_password_change($1,$2,$3,$4,$5)",[g.id,g.user,g.session,g.operation,g.hash]);
+ await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+ await admin.query("select security_reconcile_revocations()");
+ await admin.query("update private.security_revocations set created_at=now()-interval '2 days' where id=$1",[g.id]);
+ await admin.query("select security_prune()");
+ const row=await admin.query("select state,password_result from private.security_revocations where id=$1",[g.id]);
+ assert.equal(row.rows.length,1);
+ assert.equal(row.rows[0].state,'completed');
+ assert.equal(row.rows[0].password_result,'pending');
+ const health=(await admin.query("select security_reconcile_revocations() as value")).rows[0].value;
+ assert.ok(health.passwordOutcomesPending>=1);
+ assert.ok(health.passwordOutcomesStale>=1);
+ await admin.query("select security_password_changed($1,$2,$3)",[g.id,g.user,g.session]);
+ await admin.query("select security_prune()");
+ assert.equal((await admin.query("select id from private.security_revocations where id=$1",[g.id])).rows.length,0);
+});
