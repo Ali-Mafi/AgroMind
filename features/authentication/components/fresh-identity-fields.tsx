@@ -114,6 +114,17 @@ export function FreshIdentityFields({ state, totpOnly = false }: { state: MfaSec
             </>
           )}
 
+          {/* Provider current-password policy is independent of fresh TOTP. */}
+          {totpOnly && (
+            <div className="space-y-2">
+              <label htmlFor={`${id}-provider-password`} className="block text-sm font-medium">
+                {t("Current password (if required by your account policy)")}
+              </label>
+              <input id={`${id}-provider-password`} name="current_password"
+                type="password" maxLength={128} autoComplete="current-password"
+                dir="ltr" className={inputClass} />
+            </div>
+          )}
           {!totpOnly && state.recoveryCodes.available && state.recoveryCodes.enabled && (
             <button
               type="button"
