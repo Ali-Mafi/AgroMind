@@ -1569,7 +1569,8 @@ test("F01 recovery requires an owned unexpired single-use ticket plus MFA where 
  await assert.rejects(admin.query("select security_issue_recovery($1,$2,$3)",[f.user,f.session,'b'.repeat(64)]),/duplicate key/);
  const plain=await securityFixture();await admin.query("delete from auth.mfa_factors where user_id=$1",[plain.user]);
  await admin.query("select security_issue_recovery($1,$2,$3)",[plain.user,plain.session,'c'.repeat(64)]);
- const pg=await actionGrant(plain,'password_recovery','test',{kind:'recovery_link',factor:null,recovery:'c'.repeat(64)});await authorizeGrant(pg);await consumeGrant(pg);
+ const pg=await actionGrant(plain,'password_recovery','test',{kind:'recovery_link',factor:null,recovery:'c'.repeat(64)});await authorizeGrant(pg);
+ await admin.query("select security_prepare_password_change($1,$2,$3,'password_recovery',$4)",[pg.id,pg.user,pg.session,pg.hash]);
  await admin.query("select security_password_changed($1,$2,$3)",[pg.id,pg.user,pg.session]);
  assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[plain.user])).rows[0].n,2);
  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='password_changed'",[plain.user])).rows[0].n,1);
