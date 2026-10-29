@@ -1,7 +1,7 @@
 "use server";
 
 import { observeLogin } from "@/features/account-security/services/login";
-import { recordSecurityEvent, securityContext } from "@/features/account-security/services/server";
+import { recordSecurityEvent, securityContext, securityWorker } from "@/features/account-security/services/server";
 import { authorizeCredentialAction, credentialPayloadHash, requireSecurityOrigin } from "@/features/account-security/services/action-proof";
 import { issueRecoveryAuthorization, recoveryAuthorization, clearRecoveryAuthorization } from "./recovery-authorization";
 import { redirect } from "next/navigation";
@@ -529,7 +529,7 @@ export async function requestPasswordReauthenticationAction(): Promise<{ error?:
     const supabase = await createClient();
     const context = await securityContext(supabase);
     // The quota is service-only and bound to the verified, currently active session.
-    const reserved = await (await import("@/features/account-security/services/server")).securityWorker()
+    const reserved = await securityWorker()
       .rpc("security_reserve_reauthentication", {
         p_user: context.userId, p_session: context.sessionId,
       });
@@ -566,7 +566,7 @@ export async function resetPasswordAction(
     const currentPassword = String(form.get("current_password") ?? "");
     const nonce = String(form.get("reauthentication_nonce") ?? "").trim();
     // Validate optional provider proofs before consuming an operation-specific grant.
-    if (currentPassword.length > 128 || (nonce && !/^\\d{6}$/.test(nonce)))
+    if (currentPassword.length > 128 || (nonce && !/^\d{6}$/.test(nonce)))
       return { error: "Enter a valid verification code and current password." };
     let grant;
     try {
