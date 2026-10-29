@@ -16,10 +16,14 @@ function credentialHarness(options={}) {
    grant={id:'grant',...args,state:'verifying'};return {data:'grant'};
   }
   if(name==='security_authorize_action'){grant.state=args.p_verified?'verified':'failed';return {};}
-  if(name==='security_consume_action'){
-   if(options.expired || grant.state!=='verified')return {error:{}};
-   grant.state='consumed';return {};
+  if(name==='security_prepare_password_change'){
+   if(options.expired || options.prepareError || grant.state!=='verified')return {error:{}};
+   grant.state='consumed';
+   if(options.prepareLost)throw Error('response lost after committed preparation');
+   return {data:true};
   }
+  if(name==='security_password_changed' && options.recordError)return {error:{}};
+  if(name==='security_reserve_reauthentication')return options.reauthLimited?{error:{}}:{data:true};
   if(name==='security_finish_revocation')return {data:!options.pending};
   if(name==='security_has_recovery')return {data:options.recovery===true};
   if(name==='security_issue_recovery'){frozen=args;return {};}
@@ -65,7 +69,7 @@ test('F01 original old-AAL2 request cannot change a password or globally sign ou
 test('F01 a newly verified TOTP is reserved and consumed before native password mutation',async()=>{
  const h=credentialHarness();await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated$/);
  const order=h.calls.map(c=>c[0]);
- for(const [a,b] of [['security_begin_action','challenge'],['challenge','verify'],['verify','security_authorize_action'],['security_consume_action','updateUser'],['updateUser','security_password_changed'],['security_password_changed','signOut']])assert.ok(order.indexOf(a)<order.indexOf(b));
+ for(const [a,b] of [['security_begin_action','challenge'],['challenge','verify'],['verify','security_authorize_action'],['security_prepare_password_change','updateUser'],['updateUser','security_password_changed'],['security_password_changed','signOut']])assert.ok(order.indexOf(a)<order.indexOf(b));
  assert.equal(h.getGrant().p_operation,'password_change');assert.equal(h.getGrant().p_session,'session-a');assert.equal(h.getGrant().state,'consumed');
  assert.equal(h.calls.find(c=>c[0]==='verify')[1].challengeId,'new-native-challenge');
  assert.ok(!JSON.stringify(h.getGrant()).includes('Synthetic#Password9'));
@@ -117,7 +121,49 @@ test('PKCE recovery rejects OAuth/password/old or mismatched claims and accepts 
 test('uncertain password/logout outcomes never return confirmed logout or restore consumed authorization',async()=>{
  const h=credentialHarness({pending:true});await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated-pending/);
  assert.equal(h.getGrant().state,'consumed');
- const failed=credentialHarness({updateError:true});assert.ok((await failed.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'}))).error);assert.equal(failed.getGrant().state,'consumed');assert.ok(!failed.calls.some(c=>c[0]==='signOut'));
+ const failed=credentialHarness({updateError:true});
+ await assert.rejects(failed.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-update-unknown/);
+ assert.equal(failed.getGrant().state,'consumed');
+ assert.ok(failed.calls.some(c=>c[0]==='signOut'));
+});
+test('F06 failed or uncertain preparation never calls native password mutation',async()=>{
+ for(const options of [{prepareError:true},{prepareLost:true}]){
+  const h=credentialHarness(options);
+  const result=await h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'}));
+  assert.match(result.error,/Password change was not attempted/);
+  assert.ok(!h.calls.some(c=>c[0]==='updateUser'));
+ }
+});
+test('F06 audit failure plus failed native logout never claims confirmed completion',async()=>{
+ const h=credentialHarness({recordError:true,pending:true});
+ await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated-pending/);
+ const names=h.calls.map(c=>c[0]);
+ assert.ok(names.indexOf('security_prepare_password_change')<names.indexOf('updateUser'));
+ assert.ok(names.indexOf('updateUser')<names.indexOf('security_password_changed'));
+ assert.ok(names.indexOf('security_password_changed')<names.indexOf('signOut'));
+ assert.equal(h.getGrant().state,'consumed');
+});
+test('F08 provider nonce and optional current password accompany fresh MFA only on change',async()=>{
+ const change=credentialHarness();
+ await assert.rejects(change.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:'123456',current_password:'current-test-password'})),/REDIRECT/);
+ const update=change.calls.find(c=>c[0]==='updateUser')[1];
+ assert.equal(update.nonce,'123456');assert.equal(update.current_password,'current-test-password');
+ const invalid=credentialHarness();
+ assert.ok((await invalid.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:'abc'}))).error);
+ assert.ok(!invalid.calls.some(c=>c[0]==='security_prepare_password_change'));
+ const recovery=credentialHarness({recovery:true});
+ await assert.rejects(recovery.actions.resetPasswordAction({},form({...validPassword,password_context:'recovery',proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:'123456',current_password:'unused'})),/REDIRECT/);
+ const native=recovery.calls.find(c=>c[0]==='updateUser')[1];
+ assert.equal(native.nonce,undefined);assert.equal(native.current_password,undefined);
+});
+test('F08 reauthentication uses the server-side quota and provider API',async()=>{
+ const h=credentialHarness();
+ assert.match((await h.actions.requestPasswordReauthenticationAction()).success,/Verification code sent/);
+ assert.ok(h.calls.some(c=>c[0]==='security_reserve_reauthentication'));
+ assert.ok(h.calls.some(c=>c[0]==='reauthenticate'));
+ const limited=credentialHarness({reauthLimited:true});
+ assert.match((await limited.actions.requestPasswordReauthenticationAction()).error,/wait/);
+ assert.ok(!limited.calls.some(c=>c[0]==='reauthenticate'));
 });
 test('proof digest preserves pre-upgrade revocation reservations across deployment',()=>{
  const h=credentialHarness();const oldHash=createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY).update(JSON.stringify(['session-revocation','u','f','123456'])).digest('hex');
