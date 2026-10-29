@@ -11,6 +11,7 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
   let globalScope = false;
   let operation: string | null = null;
   let userId: string | null = null;
+  let originSession: string | null = null;
   try {
     // Defense in depth over Next's POST/Origin checks, including missing Origin.
     const h = await headers();
@@ -25,6 +26,7 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
     const client = await createClient();
     const context = await securityContext(client);
     userId = context.userId;
+    originSession = context.sessionId;
     const factors = await client.auth.mfa.listFactors();
     if (factors.error) return { error: unavailable };
     const verified = factors.data.totp.filter(f => f.status === "verified");
@@ -58,10 +60,33 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
       return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
     return { success: "Other sessions have been signed out.", global: scope === "global" };
   } catch {
-    if (operation && userId) {
-      try { await securityWorker().rpc("security_finish_revocation", { p_id: operation, p_user: userId, p_success: false }); } catch { /* Fail closed: consumed access blocks remain. */ }
+    if (operation && userId && originSession) {
+      const worker = securityWorker();
+      // A lost consume RPC response may still have committed denial. Query
+      // authoritative state; never replay a consumed proof to guess its result.
+      try {
+        await worker.rpc("security_finish_revocation", {
+          p_id: operation, p_user: userId, p_success: false,
+        });
+      } catch { /* Keep existing denials; subsequent status read may still work. */ }
+      try {
+        const lookup = await worker.rpc("security_revocation_status", {
+          p_id: operation, p_user: userId, p_session: originSession,
+        });
+        const state = lookup.data as { state?: string; consumed?: boolean; scope?: string } | null;
+        if (!lookup.error && state?.consumed === true && state.scope === (globalScope ? "global" : "others")) {
+          if (state.state === "completed")
+            return { success: "Other sessions have been signed out.", global: globalScope };
+          if (state.state === "pending" || state.state === "executing")
+            return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
+        }
+        if (!lookup.error && (!state || !state.consumed))
+          return { error: unavailable };
+      } catch { /* Unknown state: do not invent confirmed denial. */ }
     }
-    if (consumedProof) return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
-    return { error: unavailable };
+    // Only a confirmed consume response permits an unconditional denial claim.
+    if (consumedProof)
+      return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
+    return { error: "Session revocation could not be verified. Your session may be restricted. Sign in again if access is unavailable." };
   }
 }
