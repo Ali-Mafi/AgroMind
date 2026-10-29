@@ -42,9 +42,39 @@ export async function AuthEntry({
           <T text="Password updated. Sign in with your new password." />
         </p>
       )}
-      {(status === "revocation-pending" || status === "password-updated-pending") && (
+      {status === "revocation-pending" && (
         <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
           <T text="Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out." />
+        </p>
+      )}
+      {status === "password-updated-pending" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Your password was updated and AgroMind sessions were blocked, but native provider sign-out is not yet confirmed. Sign in again with your new password to review security." />
+        </p>
+      )}
+      {status === "password-updated-audit-pending" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Your password was updated and native sessions were signed out, but the security activity confirmation could not be recorded. Sign in with your new password." />
+        </p>
+      )}
+      {status === "password-updated-checks-pending" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Your password was updated and AgroMind access was blocked. Neither native sign-out nor security activity confirmation could be verified. Sign in again and review your account security." />
+        </p>
+      )}
+      {status === "password-rejected" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="The provider rejected the new password. Previous AgroMind sessions were restricted and sign-out completed. Sign in again using your existing method; supply any required current password or email code on your next attempt." />
+        </p>
+      )}
+      {status === "password-rejected-signout-pending" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="The provider rejected the new password. AgroMind sessions were restricted, but native sign-out was not confirmed. Sign in with your existing method or use account recovery." />
+        </p>
+      )}
+      {status === "password-rejected-record-pending" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="The provider rejected the new password, and its security outcome could not be recorded. Previous AgroMind sessions were restricted. Sign in again or use verified account recovery." />
         </p>
       )}
       {status === "password-update-unknown" && (
