@@ -215,7 +215,7 @@ test("password recovery renders fresh proof inline and keeps the existing MFA re
   assert.match(entry, /readMfaSecurityState/);
   assert.match(form, /FreshIdentityFields/);
   assert.match(actions, /authorizeCredentialAction/);
-  assert.match(actions, /security_consume_action/);
+  assert.match(actions, /security_prepare_password_change/);
   assert.match(source("features/authentication/lib/redirects.ts"), /value === "\/reset-password"/);
 });
 
