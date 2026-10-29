@@ -523,60 +523,114 @@ export async function verifyEmailAction(
   redirect(type === "recovery" ? "/reset-password" : "/verify-email?status=success");
 }
 
+export async function requestPasswordReauthenticationAction(): Promise<{ error?: string; success?: string }> {
+  try {
+    await requireSecurityOrigin();
+    const supabase = await createClient();
+    const context = await securityContext(supabase);
+    // The quota is service-only and bound to the verified, currently active session.
+    const reserved = await (await import("@/features/account-security/services/server")).securityWorker()
+      .rpc("security_reserve_reauthentication", {
+        p_user: context.userId, p_session: context.sessionId,
+      });
+    if (reserved.error || reserved.data !== true)
+      return { error: "Please wait before requesting another verification email." };
+    const sent = await supabase.auth.reauthenticate();
+    if (sent.error) return unavailable;
+    return { success: "Verification code sent. Check your email and enter the code below." };
+  } catch {
+    return unavailable;
+  }
+}
+
 export async function resetPasswordAction(
   _state: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
-  let pending = false;
+  let status = "password-update-unknown";
   try {
     await requireSecurityOrigin();
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) return { error: "Your session has expired. Request a new password reset email." };
-    if (data.user.id !== form.get("expected_user_id")) return { error: "Your account changed. Reload before saving." };
+    if (data.user.id !== form.get("expected_user_id"))
+      return { error: "Your account changed. Reload before saving." };
     const recoveryHash = await recoveryAuthorization(supabase);
-    // The context selector is untrusted: recovery always requires the durable
-    // provider-issued ticket, never just a query parameter or an AAL2 claim.
     const recovery = form.get("password_context") === "recovery";
-    if (recovery && !recoveryHash) return { error: "This link has expired or was already used. Request a new email." };
+    if (recovery && !recoveryHash)
+      return { error: "This link has expired or was already used. Request a new email." };
     const operation = recovery ? "password_recovery" : "password_change";
     const payloadHash = credentialPayloadHash(operation, parsed.data.password);
+    const currentPassword = String(form.get("current_password") ?? "");
+    const nonce = String(form.get("reauthentication_nonce") ?? "").trim();
+    // Validate optional provider proofs before consuming an operation-specific grant.
+    if (currentPassword.length > 128 || (nonce && !/^\\d{6}$/.test(nonce)))
+      return { error: "Enter a valid verification code and current password." };
     let grant;
     try {
-      grant = await authorizeCredentialAction(supabase, data.user, form, operation, payloadHash, recovery ? recoveryHash : null);
+      grant = await authorizeCredentialAction(
+        supabase, data.user, form, operation, payloadHash, recovery ? recoveryHash : null,
+      );
     } catch {
       return { error: "Confirm your identity with a fresh code or your current password." };
     }
-    const consumed = await grant.worker.rpc("security_consume_action", {
-      p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
-      p_operation: operation, p_payload_hash: payloadHash,
-    });
-    if (consumed.error) return unavailable;
-    if (recovery) await clearRecoveryAuthorization();
-    // A failed/uncertain provider update never restores a consumed grant. Use a
-    // fresh proof or new recovery email. No password/OTP is logged or persisted.
-    const currentPassword = String(form.get("current_password") ?? "");
-    const updated = await supabase.auth.updateUser({ password: parsed.data.password,
+
+    // One transaction atomically consumes the fresh grant, snapshots all native
+    // sessions, writes an audit intent, and denies AgroMind protected data.
+    // An unconfirmed DB response never authorizes a native password mutation.
+    let prepared;
+    try {
+      prepared = await grant.worker.rpc("security_prepare_password_change", {
+        p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
+        p_operation: operation, p_payload_hash: payloadHash,
+      });
+    } catch {
+      return { error: "Password change was not attempted. Your session may have been restricted; sign in again or use account recovery." };
+    }
+    if (prepared.error || prepared.data !== true)
+      return { error: "Password change was not attempted. Your session may have been restricted; sign in again or use account recovery." };
+
+    if (recovery) await clearRecoveryAuthorization().catch(() => { /* SQL already consumed the ticket. */ });
+    // The native Auth endpoint has its own password/current-password/nonce
+    // policy. Fresh app TOTP cannot bypass that provider policy.
+    const updated = await supabase.auth.updateUser({
+      password: parsed.data.password,
       ...(!recovery && currentPassword ? { current_password: currentPassword } : {}),
-    });
-    if (updated.error) return { error: updated.error.code === "same_password"
-      ? "Choose a password different from your current password." : unavailable.error };
-    // Persist app denial/audit before native global logout. Recovery uses its
-    // separately authorized credential operation, not the remote-TOTP action.
-    const blocked = await grant.worker.rpc("security_password_changed", {
-      p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
-    });
-    if (blocked.error) console.error("[security] password_revocation_record_failed");
-    const signedOut = await supabase.auth.signOut({ scope: "global" });
+      ...(!recovery && nonce ? { nonce } : {}),
+    }).catch(() => ({ error: { code: "request_timeout" } }));
+    const confirmed = !updated.error;
+    let recorded = false;
+    if (confirmed) {
+      const result = await grant.worker.rpc("security_password_changed", {
+        p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
+      }).catch(() => ({ error: true }));
+      recorded = !result.error;
+    } else if (["same_password", "reauthentication_needed", "reauthentication_not_valid",
+      "weak_password", "validation_failed", "invalid_credentials"].includes(updated.error?.code ?? "")) {
+      // A definite provider rejection is distinct from a lost/ambiguous response.
+      await grant.worker.rpc("security_password_update_rejected", {
+        p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
+      }).catch(() => ({ error: true }));
+    }
+    // Always attempt native refresh-token revocation, even after a rejected
+    // or ambiguous password update; app denial and audit intent persist.
+    const signedOut = await supabase.auth.signOut({ scope: "global" })
+      .catch(() => ({ error: true }));
     const finished = await grant.worker.rpc("security_finish_revocation", {
       p_id: grant.id, p_user: data.user.id, p_success: !signedOut.error,
-    });
-    pending = Boolean(blocked.error || finished.error || finished.data !== true);
-  } catch { return unavailable; }
+    }).catch(() => ({ error: true, data: false }));
+    status = confirmed
+      ? (recorded && !finished.error && finished.data === true
+        ? "password-updated" : "password-updated-pending")
+      : "password-update-unknown";
+  } catch {
+    // No exception may turn an unknown or failed provider mutation into success.
+    return unavailable;
+  }
   revalidatePath("/", "layout");
-  redirect(pending ? "/sign-in?status=password-updated-pending" : "/sign-in?status=password-updated");
+  redirect(`/sign-in?status=${status}`);
 }
 
 export async function logoutAction(): Promise<{ error?: string }> {
