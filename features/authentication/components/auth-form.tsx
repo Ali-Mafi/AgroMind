@@ -2,7 +2,7 @@
 
 import { FreshIdentityFields } from "./fresh-identity-fields";
 import type { MfaSecurityState } from "../types/mfa";
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,11 +96,11 @@ export function AuthForm({
     null,
   );
   const [visible, setVisible] = useState(false);
-  const [reauthPending, startReauthentication] = useTransition();
-  const [reauthFeedback, setReauthFeedback] = useState<{ error?: string; success?: string }>({});
   const [showPasswordRequirements, setShowPasswordRequirements] =
     useState(false);
   const submitting = useRef(false);
+  const [reauthPending, setReauthPending] = useState(false);
+  const [reauthFeedback, setReauthFeedback] = useState<{ error?: string; success?: string }>({});
 
   useEffect(() => {
     if (!pending) submitting.current = false;
@@ -348,13 +348,16 @@ export function AuthForm({
               {t("Older sessions may require a separate email code from Supabase, in addition to your authenticator code. Request it before changing your password.")}
             </p>
             <Button type="button" variant="outline" disabled={reauthPending || pending}
-              onClick={() => startReauthentication(async () => {
+              onClick={async () => {
+                setReauthPending(true);
                 try {
                   setReauthFeedback(await requestPasswordReauthenticationAction());
                 } catch {
                   setReauthFeedback({ error: "Verification email could not be requested. Please try again." });
+                } finally {
+                  setReauthPending(false);
                 }
-              })}>
+              }}>
               {t(reauthPending ? "Please wait…" : "Send password verification email")}
             </Button>
             {(reauthFeedback.error || reauthFeedback.success) && (
