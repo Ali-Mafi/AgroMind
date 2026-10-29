@@ -1,0 +1,117 @@
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {PGlite} from '../AgroMind-audit/node_modules/@electric-sql/pglite/dist/index.js';
+import {loadTs} from '../AgroMind-audit/features/weather/tests/helpers/load-ts.mjs';
+const root='/workspace/scratch/e6257f9154cb/AgroMind-audit';
+const db=new PGlite(); await db.waitReady;
+let checks=0;
+async function check(name,fn){await fn();checks++;console.log(`PASS ${checks}: ${name}`);}
+const q=(sql,args=[])=>db.query(sql,args);
+await db.exec(`create role anon nologin; create role authenticated nologin; create role service_role nologin; create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb not null default '{}',email_confirmed_at timestamptz);
+create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz,refreshed_at timestamp);
+create table auth.mfa_factors(id uuid primary key,user_id uuid references auth.users(id),status text not null,factor_type text not null default 'totp');
+create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
+create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
+grant usage on schema auth to authenticated,anon; grant execute on function auth.uid(),auth.jwt() to authenticated,anon;`);
+const migrations=(await readdir(root+'/supabase/migrations')).filter(x=>x.endsWith('.sql')).sort();
+for(const file of migrations.slice(0,-1))await db.exec(await readFile(root+'/supabase/migrations/'+file,'utf8'));
+const u=randomUUID(),v=randomUUID(),uCurrent=randomUUID(),uRemote=randomUUID(),vCurrent=randomUUID(),factor=randomUUID(),vFactor=randomUUID();
+for(const [id,email] of [[u,'audit-owner@example.test'],[v,'audit-foreign@example.test']])await q('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[id,email]);
+await q('insert into auth.sessions(id,user_id,created_at) values($1,$2,now()-interval \'1 hour\'),($3,$2,now()),($4,$5,now())',[uCurrent,u,uRemote,vCurrent,v]);
+await q("insert into auth.mfa_factors(id,user_id,status) values($1,$2,'verified'),($3,$4,'verified')",[factor,u,vFactor,v]);
+await db.exec(await readFile(root+'/supabase/migrations/'+migrations.at(-1),'utf8'));
+async function as(role,user,session,sql,args=[],aal='aal2',amr=[]){return db.transaction(async tx=>{
+ await tx.exec(`set local role ${role}`);
+ await tx.query("select set_config('request.jwt.claim.sub',$1,true)",[user??'']);
+ await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:user,session_id:session,aal,amr})]);
+ return tx.query(sql,args);
+});}
+const own=(sql,args=[],aal='aal2')=>as('authenticated',u,uCurrent,sql,args,aal);
+const remote=(sql,args=[])=>as('authenticated',u,uRemote,sql,args);
+const foreign=(sql,args=[])=>as('authenticated',v,vCurrent,sql,args);
+const observe=(user,sid,aal)=>q("select public.security_observe_session($1,$2,'{\"device\":\"Mobile\"}','password',$3) queued",[user,sid,aal]);
+await check('real pre-migration session backfill suppresses rollout login mail',async()=>assert.equal((await observe(u,uCurrent,'aal2')).rows[0].queued,false));
+await check('AAL1 cannot list sessions; owner snapshot contains no foreign session',async()=>{
+ await assert.rejects(own('select security_snapshot()',[],'aal1'),/SECURITY_DENIED/);
+ const s=(await own('select security_snapshot() s')).rows[0].s;
+ assert.equal(s.sessions.length,2);assert.ok(s.sessions.every(x=>x.id!==vCurrent));assert.equal(s.sessions.filter(x=>x.current).length,1);
+});
+await check('all seven service-only public functions reject anon and authenticated',async()=>{
+ const sqls=["select security_observe_session(null,null,'{}',null,null)","select security_record_event(null,null,'logout','x')","select security_begin_revocation(null,null,null,'others',null)","select security_consume_revocation(null,null,null)","select security_finish_revocation(null,null,true)","select security_prune()","select transactional_email_jobs(true,true)"];
+ for(const role of ['anon','authenticated'])for(const sql of sqls)await assert.rejects(as(role,u,uCurrent,sql),/permission denied/);
+});
+await check('F03 reproduced: stale AAL2/no AMR can change username twice directly with no security audit event',async()=>{
+ assert.equal((await own("select change_username('audit_name_one') name")).rows[0].name,'audit_name_one');
+ assert.equal((await own("select change_username('audit_name_two') name")).rows[0].name,'audit_name_two');
+ assert.equal((await q("select count(*)::int n from private.security_events where user_id=$1 and kind='username_changed'",[u])).rows[0].n,0);
+});
+const account=(await q('select id from accounts where owner_user_id=$1',[u])).rows[0].id;
+await own('select create_farm($1::jsonb)',[JSON.stringify({id:'audit-farm',name:'Audit farm',location:'Synthetic',area:100,type:'farm'})]);
+await own("select save_shared_irrigation_schedule($1,'audit-farm',$2::jsonb)",[account,JSON.stringify({date:'2027-01-01',time:'08:30',duration:30})]);
+await own('select support_command($1::jsonb)',[JSON.stringify({action:'create',requestId:randomUUID(),subject:'Audit test ticket',category:'Account',body:'Synthetic audit fixture only. No real user data.',language:'en'})]);
+const begin=async (user,sid,fac,hash,scope='others')=>(await q('select security_begin_revocation($1,$2,$3,$4,$5) op',[user,sid,fac,scope,hash])).rows[0].op;
+let op;
+await check('foreign factor/session, repeated consume and cross-user operation IDs are denied',async()=>{
+ await assert.rejects(begin(u,uCurrent,vFactor,'a'.repeat(64)),/SECURITY_DENIED/);
+ await assert.rejects(begin(u,vCurrent,factor,'a'.repeat(64)),/SECURITY_DENIED/);
+ op=await begin(u,uCurrent,factor,'b'.repeat(64));
+ await assert.rejects(q('select security_consume_revocation($1,$2,$3)',[op,v,vCurrent]),/SECURITY_REPLAY/);
+ assert.equal((await q('select security_consume_revocation($1,$2,$3) r',[op,u,uCurrent])).rows[0].r.count,1);
+ await assert.rejects(q('select security_consume_revocation($1,$2,$3)',[op,u,uCurrent]),/SECURITY_REPLAY/);
+});
+await check('denied but still existing Auth session cannot read any guarded public resource',async()=>{
+ for(const table of ['profiles','accounts','subscriptions','plans','plan_entitlements','farms','irrigation_schedules','legacy_imports','farm_memberships','support_tickets','support_ticket_messages'])assert.equal((await remote(`select * from public.${table}`)).rows.length,0,table);
+ assert.equal((await remote('select get_current_session() s')).rows[0].s,null);
+ const snap=(await remote('select get_cloud_snapshot() s')).rows[0].s;assert.equal(snap.profile,null);assert.deepEqual(snap.farms,[]);
+ assert.ok((await own('select get_current_session() s')).rows[0].s);assert.ok((await foreign('select get_current_session() s')).rows[0].s);
+});
+await check('denied session cannot mutate farms/schedules or privileged account/team/support RPCs',async()=>{
+ assert.equal((await remote("update farms set data=data||'{\"name\":\"forged\"}' returning id")).rows.length,0);
+ assert.equal((await remote('delete from irrigation_schedules returning farm_id')).rows.length,0);
+ for(const sql of ["select change_username('blocked_name')","select complete_onboarding()","select get_team_overview()","select security_snapshot()","select support_read('{}')","select support_command('{}')","select accept_farm_invitation(repeat('a',64))"])
+ await assert.rejects(remote(sql),/AUTH_REQUIRED|MFA_REQUIRED|SECURITY_DENIED|SUPPORT_DENIED/);
+});
+await check('provider-uncertain completion is not success; expired/changed-session/OTP replay fails',async()=>{
+ assert.equal((await q('select security_finish_revocation($1,$2,true) done',[op,u])).rows[0].done,false);
+ await assert.rejects(begin(u,uCurrent,factor,'b'.repeat(64)),/SECURITY_REPLAY/);
+ const next=await begin(u,uCurrent,factor,'c'.repeat(64));
+ await q("update private.security_revocations set expires_at=now()-interval '1 second' where id=$1",[next]);
+ await assert.rejects(q('select security_consume_revocation($1,$2,$3)',[next,u,uCurrent]),/SECURITY_REPLAY/);
+});
+await check('removing native session and pruning tombstone never restores old-token data access',async()=>{
+ await q('delete from auth.sessions where id=$1',[uRemote]);await q('select security_prune()');
+ assert.equal((await q('select count(*)::int n from private.security_denied_sessions where session_id=$1',[uRemote])).rows[0].n,0);
+ assert.equal((await remote('select * from farms')).rows.length,0);
+});
+await check('MFA-deferral and repeated observations produce exactly one durable event/job',async()=>{
+ const sid=randomUUID();await q('insert into auth.sessions(id,user_id) values($1,$2)',[sid,u]);
+ assert.equal((await observe(u,sid,'aal1')).rows[0].queued,false);
+ assert.equal((await observe(u,sid,'aal2')).rows[0].queued,true);
+ for(let i=0;i<8;i++)assert.equal((await observe(u,sid,'aal2')).rows[0].queued,false);
+ assert.equal((await q("select count(*)::int n from private.security_events e join private.support_outbox o on o.security_event_id=e.id where e.session_id=$1",[sid])).rows[0].n,1);
+});
+await check('outbox lease fencing and 23-hour expiry hold in actual SQL',async()=>{
+ const jobs=(await q('select transactional_email_jobs(false,true) j')).rows[0].j;assert.equal(jobs.length,1);
+ assert.equal((await q('select transactional_email_jobs(false,true) j')).rows[0].j.length,0);
+ await q('select support_email_ack($1,$2,true)',[jobs[0].id,randomUUID()]);
+ assert.equal((await q('select sent_at from private.support_outbox where id=$1',[jobs[0].id])).rows[0].sent_at,null);
+ await q("update private.support_outbox set created_at=now()-interval '24 hours',lease_until=now()-interval '1 minute' where id=$1",[jobs[0].id]);
+ assert.equal((await q('select transactional_email_jobs(false,true) j')).rows[0].j.length,0);
+});
+await db.close();
+await check('F01 reproduced: reset action accepts existing AAL2, no recovery proof/code/password, calls updateUser then global signOut',async()=>{
+ const calls=[];
+ const client={auth:{getUser:async()=>({data:{user:{id:u,email:'audit@example.test',email_confirmed_at:'2026-10-01'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2',nextLevel:'aal2',currentAuthenticationMethods:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-3600}]}})},updateUser:async args=>{calls.push(['updateUser',Object.keys(args)]);return {};},signOut:async args=>{calls.push(['signOut',args]);return {};}},rpc:async()=>({data:{id:uCurrent,created_at:new Date(Date.now()-3600000).toISOString()}})};
+ const {resetPasswordAction}=loadTs('features/authentication/services/actions.ts',{'@/lib/supabase/server':{createClient:async()=>client},'@/features/account-security/services/server':{securityContext:async()=>({userId:u,sessionId:uCurrent}),recordSecurityEvent:async()=>{}},'next/navigation':{redirect:p=>{throw Error('REDIRECT:'+p)}},'next/cache':{revalidatePath:()=>{}}});
+ const form=new FormData();for(const [k,v] of Object.entries({password:'AuditOnly-Strong123!',confirmPassword:'AuditOnly-Strong123!',expected_user_id:u}))form.set(k,v);
+ await assert.rejects(resetPasswordAction({},form),/REDIRECT:\/sign-in\?status=password-updated/);
+ assert.deepEqual(calls,[['updateUser',['password']],['signOut',{scope:'global'}]]);console.log('  provider-boundary calls:',JSON.stringify(calls));
+});
+await check('F04 reproduced: frozen details yield different email payloads across UTC year rollover',async()=>{
+ const {loginSecurityEmail}=loadTs('features/account-security/lib/email.ts');
+ const RealDate=Date;const renderAt=instant=>{globalThis.Date=class extends RealDate{constructor(...args){super(...(args.length?args:[instant]));}static now(){return new RealDate(instant).getTime();}};return loginSecurityEmail({provider:'password',loginAt:'2026-12-31T23:50:00Z',metadata:{}},'en')};
+ try {const before=renderAt('2026-12-31T23:59:00Z'),after=renderAt('2027-01-01T00:01:00Z');assert.notEqual(before.html,after.html);assert.notEqual(before.text,after.text);console.log('  same queued payload; differing copyright years');}finally{globalThis.Date=RealDate;}
+});
+console.log(`COMPLETE: ${checks} independent probe groups. Provider calls mocked; SQL engine PGlite; no hosted Auth or native concurrent certification.`);

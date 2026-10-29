@@ -2,6 +2,14 @@
 -- Deletes this feature's metadata/history and security-email jobs. Do not execute
 -- while an application-blocked session still exists at the Auth provider.
 begin;
+-- Hardening is forward-only. Never restore the vulnerable mutation signatures or
+-- discard grants, audit history and pending denial state as a routine rollback.
+do $$ begin
+ if to_regclass('private.security_action_grants') is not null then
+  raise exception 'ROLLBACK_BLOCKED_REMEDIATION: retain schema and deploy a compatible forward fix';
+ end if;
+end $$;
+
 do $$ begin
  if exists(select 1 from private.security_denied_sessions d join auth.sessions s on s.id=d.session_id) then
   raise exception 'ROLLBACK_BLOCKED: pending provider sessions must be revoked through supported Auth APIs first';

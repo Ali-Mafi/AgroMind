@@ -1,3 +1,4 @@
+import { issuePkceRecoveryAuthorization } from "./recovery-authorization";
 import { observeLogin } from "@/features/account-security/services/login";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -133,7 +134,14 @@ export async function handleAuthCallback(request: NextRequest) {
       params.get("code")!,
     );
     if (error) destination.searchParams.set("status", "invalid");
-    else if (recovery) await observeLogin("recovery");
+    else if (recovery) {
+      try {
+        await issuePkceRecoveryAuthorization(supabase);
+        await observeLogin("recovery");
+      } catch {
+        destination.searchParams.set("status", "invalid");
+      }
+    }
     else if (!recovery) {
       await supabase.auth.signOut({ scope: "local" });
       destination.searchParams.set("status", "success");

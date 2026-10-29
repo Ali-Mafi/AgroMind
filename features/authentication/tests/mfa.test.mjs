@@ -207,22 +207,16 @@ test("security dialog renders only one footer container", () => {
 });
 
 
-test("password recovery routes MFA-enabled recovery sessions through the MFA challenge", () => {
-  const emailEntry = source("features/authentication/components/email-entry.tsx");
+test("password recovery renders fresh proof inline and keeps the existing MFA recovery route", () => {
+  const entry = source("features/authentication/components/email-entry.tsx");
   const actions = source("features/authentication/services/actions.ts");
-  const redirects = source("features/authentication/lib/redirects.ts");
-  const mfaPage = source("app/mfa/page.tsx");
-  const mfaActions = source("features/authentication/services/mfa-actions.ts");
-
-  assert.match(emailEntry, /needsSecondFactor\(\)/);
-  assert.match(emailEntry, /redirect\("\/mfa\?next=\/reset-password"\)/);
-  assert.match(actions, /getAuthenticatorAssuranceLevel/);
-  assert.match(actions, /mfaRequired/);
-  assert.match(actions, /redirect\("\/mfa\?next=\/reset-password"\)/);
-  assert.match(redirects, /safeMfaNextPath/);
-  assert.match(redirects, /value === "\/reset-password"/);
-  assert.match(mfaPage, /safeMfaNextPath/);
-  assert.match(mfaActions, /safeMfaNextPath/);
+  const form = source("features/authentication/components/auth-form.tsx");
+  assert.match(entry, /recoveryAuthorization/);
+  assert.match(entry, /readMfaSecurityState/);
+  assert.match(form, /FreshIdentityFields/);
+  assert.match(actions, /authorizeCredentialAction/);
+  assert.match(actions, /security_consume_action/);
+  assert.match(source("features/authentication/lib/redirects.ts"), /value === "\/reset-password"/);
 });
 
 

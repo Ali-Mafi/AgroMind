@@ -616,6 +616,7 @@ export async function signOutSessionsAction(
 ): Promise<MfaActionState> {
   const result = await revokeRemoteSessions(form);
   revalidatePath("/", "layout");
-  if (result.global) redirect("/sign-in");
+  if (result.global && result.pending) redirect("/sign-in?status=revocation-pending&next=/account/security");
+  if (result.global && !result.error) redirect("/sign-in");
   return result;
 }

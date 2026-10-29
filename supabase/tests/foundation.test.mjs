@@ -4,7 +4,7 @@ import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import EmbeddedPostgres from "embedded-postgres";
 import { PGlite } from "@electric-sql/pglite";
 const native = process.env.AGROMIND_TEST_DATABASE_ENGINE === "native";
@@ -49,6 +49,7 @@ function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
   };
 }
 let postgres, admin, directory;
+const upgradeUser = randomUUID();
 const users = Array.from({ length: 21 }, () => randomUUID());
 const farm = (id, extra = {}) => ({
   id,
@@ -128,7 +129,7 @@ before(
     create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz,refreshed_at timestamp);
     create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
     create trigger test_session after insert on auth.users for each row execute function auth.test_session();
-    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
+    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null, factor_type text not null default 'totp');
     create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
     create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
     grant usage on schema auth to authenticated,anon;
@@ -137,7 +138,13 @@ before(
   `);
     for (const file of (await readdir("supabase/migrations"))
       .filter((n) => n.endsWith(".sql"))
-      .sort())
+      .sort()) {
+      if (file.endsWith('_account_security_remediation.sql')) {
+        await admin.query("insert into auth.users(id,email,email_confirmed_at) values($1,'upgrade@example.test',now())", [upgradeUser]);
+        await admin.query("select security_observe_session($1,$1,'{}','password','aal1')", [upgradeUser]);
+        await admin.query("update private.support_outbox set attempts=1,first_attempt_at=now(),lease_until=now()+interval '5 minutes' where recipient_id=$1", [upgradeUser]);
+        await admin.query("insert into private.security_denied_sessions(session_id,user_id) values($1,$1)", [upgradeUser]);
+      }
       await (native
         ? admin.query(
             await readFile(path.join("supabase/migrations", file), "utf8"),
@@ -145,6 +152,7 @@ before(
         : embedded.exec(
             await readFile(path.join("supabase/migrations", file), "utf8"),
           ));
+    }
     for (const [index, id] of users.entries())
       await admin.query(
         "insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values($1,$2,$3,now())",
@@ -1256,18 +1264,18 @@ test("support staff registry, AAL2 freshness, internal-note privacy, transitions
  } finally { await staff.end();await stale.end();await low.end();await owner.end(); }
 });
 test("support notification leases recover failure and do not re-send acknowledged jobs", async () => {
- const jobs=(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs;
+ const jobs=(await admin.query("select transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs;
  assert.ok(jobs.length>0); const job=jobs[0];
  await admin.query("select support_email_ack($1,$2,false)",[job.id,job.lease]);
  assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
  await admin.query("update private.support_outbox set lease_until=now()-interval '1 second' where id=$1",[job.id]);
- const retried=(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs.find(j=>j.id===job.id);
+ const retried=(await admin.query("select transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs.find(j=>j.id===job.id);
  assert.ok(retried); assert.notEqual(retried.lease,job.lease);
  await admin.query("select support_email_ack($1,$2,true)",[job.id,job.lease]);
  assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
  await admin.query("select support_email_ack($1,$2,true)",[job.id,retried.lease]);
  assert.ok((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at);
- assert.ok(!(await admin.query("select support_email_jobs() as jobs")).rows[0].jobs.some(j=>j.id===job.id));
+ assert.ok(!(await admin.query("select transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs.some(j=>j.id===job.id));
 });
 test("support pagination, unread receipts and hourly reply limit",async()=>{
  const owner=await asUser(users[17]);
@@ -1310,19 +1318,19 @@ test("support notifications keep the ticket owner's language across staff replie
     await admin.query("update private.support_outbox set sent_at=now() where sent_at is null");
     const { id } = await supportCommand(owner, { ...newTicket(), language: "en" });
     assert.equal((await admin.query("select notification_language from public.support_tickets where id=$1", [id])).rows[0].notification_language, "en");
-    let jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    let jobs = (await admin.query("select public.transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
     assert.equal(jobs.find(j => j.audience === "user" && j.event === "created")?.language, "en");
     assert.equal(jobs.find(j => j.audience === "staff" && j.event === "created")?.language, "fa");
     for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
 
     await supportCommand(staff, { action:"reply",ticketId:id,requestId:randomUUID(),body:"Thank you for contacting our team.",internal:false });
-    jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    jobs = (await admin.query("select public.transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
     assert.equal(jobs.find(j => j.audience === "user" && j.event === "reply")?.language, "en");
     for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
 
     const ticket = await supportRead(staff, { ticketId:id, staff:true });
     await supportCommand(staff, { action:"update",ticketId:id,requestId:randomUUID(),version:ticket.ticket.version,status:"resolved",priority:"normal" });
-    jobs = (await admin.query("select public.support_email_jobs() as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
+    jobs = (await admin.query("select public.transactional_email_jobs_v2(true,false) as jobs")).rows[0].jobs.filter(j => j.ticketId === id);
     assert.equal(jobs.find(j => j.audience === "user" && j.event === "status")?.language, "en");
     for (const job of jobs) await admin.query("select public.support_email_ack($1,$2,true)", [job.id,job.lease]);
 
@@ -1383,7 +1391,7 @@ test("baseline sessions, missing metadata, ownership and immutable user-scoped s
   assert.equal((await owner.query("select security_snapshot() as s")).rows[0].s.events.length,1);
   assert.equal((await other.query("select security_snapshot() as s")).rows[0].s.events.length,0);
   await assert.rejects(low.query("select security_snapshot()"),/SECURITY_DENIED/);
-  for(const sql of ["select * from private.security_events","delete from private.security_events","select security_prune()","select security_observe_session(null,null,'{}',null,null)","select security_begin_revocation(null,null,null,'others',null)","select transactional_email_jobs(true,true)"])
+  for(const sql of ["select * from private.security_events","delete from private.security_events","select security_prune()","select security_observe_session(null,null,'{}',null,null)","select security_begin_revocation(null,null,null,'others',null)","select transactional_email_jobs_v2(true,true)"])
    await assert.rejects(owner.query(sql),/permission denied/);
  }finally{await owner.end();await other.end();await low.end();}
 });
@@ -1432,18 +1440,18 @@ test("security quota and replay apply across requests; global sign-out preserves
 });
 test("security emails share durable leases, immutable retry payloads and retention cleanup",async()=>{
  const f=await securityFixture();await observeSecurity(f.user,f.session);
- let jobs=(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs;
+ let jobs=(await admin.query("select transactional_email_jobs_v2(false,true) as jobs")).rows[0].jobs;
  const job=jobs.find(j=>j.securityDetails?.metadata?.ip==='203.0.113.9'&&j.to==='security@example.test');assert.ok(job);
  await admin.query("select support_email_ack($1,$2,false)",[job.id,job.lease]);
  await admin.query("update private.support_outbox set lease_until=now()-interval '1 second' where id=$1",[job.id]);
  await admin.query("update profiles set language='en' where id=$1",[f.user]);
  await admin.query("update auth.users set email='changed@example.test' where id=$1",[f.user]);
- const retried=(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs.find(j=>j.id===job.id);
+ const retried=(await admin.query("select transactional_email_jobs_v2(false,true) as jobs")).rows[0].jobs.find(j=>j.id===job.id);
  assert.ok(retried);assert.equal(retried.to,job.to);assert.equal(retried.language,job.language);assert.deepEqual(retried.securityDetails,job.securityDetails);
  await admin.query("select support_email_ack($1,$2,true)",[job.id,job.lease]);
  assert.equal((await admin.query("select sent_at from private.support_outbox where id=$1",[job.id])).rows[0].sent_at,null);
  await admin.query("select support_email_ack($1,$2,true)",[job.id,retried.lease]);
- assert.ok(!(await admin.query("select transactional_email_jobs(false,true) as jobs")).rows[0].jobs.some(j=>j.id===job.id));
+ assert.ok(!(await admin.query("select transactional_email_jobs_v2(false,true) as jobs")).rows[0].jobs.some(j=>j.id===job.id));
  await admin.query("update private.security_sessions set observed_at=now()-interval '31 days' where user_id=$1",[f.user]);
  await admin.query("update private.security_events set created_at=now()-interval '31 days' where user_id=$1",[f.user]);
  await admin.query("select security_prune()");
@@ -1465,20 +1473,188 @@ test("native concurrent login completion and revocation proof consumption have e
   assert.equal(consumed.filter(r=>r.status==='fulfilled').length,1);
  }finally{await a.end();await b.end();}
 });
-test("manual rollback refuses pending native sessions and restores the prior schema without weakening active denies",async()=>{
- const f=await securityFixture();const op=await beginSecurity(f,'9'.repeat(64));
+test("hardening prevents destructive legacy rollback and retains deny/audit records",async()=>{
+ const f=await securityFixture(); const op=await beginSecurity(f,'9'.repeat(64));
  await admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]);
  const script=await readFile('supabase/rollback/account_session_security.sql','utf8');
- const run=()=>native?admin.query(script):embedded.exec(script);
- await assert.rejects(run(),/ROLLBACK_BLOCKED/);await admin.query('rollback');
- // Simulate supported native sign-out completing in this test fixture only.
- await admin.query("delete from auth.sessions where id in(select session_id from private.security_denied_sessions)");
- await run();
+ await assert.rejects(native?admin.query(script):embedded.exec(script),/ROLLBACK_BLOCKED/);
+ await admin.query('rollback');
+ assert.ok((await admin.query("select to_regclass('private.security_events') as t")).rows[0].t);
+ assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[f.user])).rows[0].n,1);
+});
+
+// Remediation regressions: actual migration functions, role checks and transaction outcomes.
+const payloadHash = value => createHash('sha256').update(value).digest('hex');
+async function actionGrant(f, operation='username', payload='secure_name', overrides={}, client=admin) {
+ const args={user:f.user,session:f.session,operation,hash:payloadHash(payload),kind:'totp',factor:f.factor,proof:randomBytes(32).toString('hex'),recovery:null,...overrides};
+ const result=await client.query("select security_begin_action($1,$2,$3,$4,$5,$6,$7,$8) as id",Object.values(args));
+ return {id:result.rows[0].id,...args};
+}
+async function authorizeGrant(g, client=admin) {
+ await client.query("select security_authorize_action($1,$2,$3,true)",[g.id,g.user,g.session]);
+}
+async function consumeGrant(g, client=admin) {
+ return client.query("select security_consume_action($1,$2,$3,$4,$5)",[g.id,g.user,g.session,g.operation,g.hash]);
+}
+test("upgrade quarantines legacy unknown sends, retains denial, disables old workers and restricts new RPCs",async()=>{
+ const row=(await admin.query("select delivery_hold,last_error from private.support_outbox where recipient_id=$1",[upgradeUser])).rows[0];
+ assert.equal(row.delivery_hold,true); assert.equal(row.last_error,'LEGACY_PAYLOAD_UNKNOWN');
+ assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[upgradeUser])).rows[0].n,1);
+ assert.deepEqual((await admin.query("select transactional_email_jobs(true,true) as jobs")).rows[0].jobs,[]);
+ const f=await securityFixture(), c=await asUser(f.user,'aal2',f.session);
+ try {
+  for(const sql of ["select security_issue_recovery(null,null,null)","select security_has_recovery(null,null,null)","select security_begin_action(null,null,null,null,null,null,null,null)","select security_authorize_action(null,null,null,true)","select security_consume_action(null,null,null,null,null)","select security_password_changed(null,null,null)","select security_reconcile_revocations()","select security_freeze_email(null,null,'{}')","select security_email_health()","select * from private.security_action_grants","select * from private.security_recovery_tickets"])
+   await assert.rejects(c.query(sql),/permission denied/);
+ } finally { await c.end(); }
+});
+test("F03 old AAL2 direct username bypass is denied; new mutation consumes exact proof and audits atomically",async()=>{
+ const f=await securityFixture(), c=await asUser(f.user,'aal2',f.session), foreign=await securityFixture(), other=await asUser(foreign.user,'aal2',foreign.session);
+ try {
+  await assert.rejects(c.query("select change_username('old_aal2_bypass')"),/permission denied|SECURITY_FRESH_REQUIRED/);
+  const g=await actionGrant(f);
+  await assert.rejects(c.query("select security_change_username('secure_name',$1,$2)",[g.id,g.hash]),/SECURITY_REPLAY/);
+  await authorizeGrant(g);
+  await assert.rejects(other.query("select security_change_username('secure_name',$1,$2)",[g.id,g.hash]),/SECURITY_REPLAY/);
+  await assert.rejects(c.query("select security_change_username('other_value',$1,$2)",[g.id,g.hash]),/SECURITY_INVALID/);
+  await c.query("select security_change_username('secure_name',$1,$2)",[g.id,g.hash]);
+  await assert.rejects(c.query("select security_change_username('secure_name',$1,$2)",[g.id,g.hash]),/SECURITY_REPLAY/);
+  assert.equal((await admin.query("select username from profiles where id=$1",[f.user])).rows[0].username,'secure_name');
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='username_changed'",[f.user])).rows[0].n,1);
+ } finally {await c.end();await other.end();}
+});
+test("username audit failure rolls mutation and consumption back together",async()=>{
+ const f=await securityFixture(),g=await actionGrant(f,'username','atomic_name'); await authorizeGrant(g);
  const c=await asUser(f.user,'aal2',f.session);
- try{
-  const session=(await c.query('select get_current_session() as s')).rows[0].s;
-  assert.ok(session.created_at);assert.equal(session.id,undefined);
-  assert.equal((await admin.query("select to_regclass('private.security_events') as t")).rows[0].t,null);
-  assert.ok(Array.isArray((await admin.query('select support_email_jobs() as jobs')).rows[0].jobs));
- }finally{await c.end();}
+ await admin.query("insert into private.security_events(user_id,kind,event_key) values($1,'test','username-grant:'||$2)",[f.user,g.id]);
+ try {
+  await assert.rejects(c.query("select security_change_username('atomic_name',$1,$2)",[g.id,g.hash]),/duplicate key/);
+  assert.equal((await admin.query("select username from profiles where id=$1",[f.user])).rows[0].username,null);
+  assert.equal((await admin.query("select state from private.security_action_grants where id=$1",[g.id])).rows[0].state,'verified');
+ } finally {await c.end();}
+});
+test("action grants reject foreign factor/session, wrong operation/payload, expired and replayed proof, and late MFA enrollment",async()=>{
+ const f=await securityFixture(), other=await securityFixture();
+ await assert.rejects(actionGrant(f,'username','name',{factor:other.factor}),/SECURITY_DENIED/);
+ await assert.rejects(actionGrant(f,'username','name',{session:other.session}),/SECURITY_DENIED/);
+ const g=await actionGrant(f,'password_change','new password');await authorizeGrant(g);
+ await assert.rejects(consumeGrant({...g,session:f.user}),/SECURITY_REPLAY/);
+ await assert.rejects(consumeGrant({...g,operation:'username'}),/SECURITY_REPLAY/);
+ await assert.rejects(consumeGrant({...g,hash:payloadHash('other')}),/SECURITY_REPLAY/);
+ await admin.query("update private.security_action_grants set expires_at=now()-interval '1 second' where id=$1",[g.id]);
+ await assert.rejects(consumeGrant(g),/SECURITY_REPLAY/);
+ await assert.rejects(actionGrant(f,'password_change','new password',{proof:g.proof}),/SECURITY_REPLAY/);
+ await assert.rejects(beginSecurity(f,g.proof),/SECURITY_REPLAY/);
+ const plain=await securityFixture();await admin.query("delete from auth.mfa_factors where user_id=$1",[plain.user]);
+ const pg=await actionGrant(plain,'password_change','test',{kind:'password',factor:null});await authorizeGrant(pg);
+ await admin.query("insert into auth.mfa_factors(id,user_id,status) values($1,$2,'verified')",[plain.factor,plain.user]);
+ await assert.rejects(consumeGrant(pg),/SECURITY_DENIED/);
+});
+test("sensitive-operation quota counts failed attempts across action types and revocation",async()=>{
+ const f=await securityFixture();
+ for(let i=0;i<5;i++){
+  const g=await actionGrant(f,'password_change');
+  await admin.query("select security_authorize_action($1,$2,$3,false)",[g.id,g.user,g.session]);
+ }
+ await assert.rejects(actionGrant(f),/SECURITY_RATE/);
+ await assert.rejects(beginSecurity(f),/SECURITY_RATE/);
+});
+test("F01 recovery requires an owned unexpired single-use ticket plus MFA where enrolled",async()=>{
+ const f=await securityFixture(), ticket='a'.repeat(64);
+ await assert.rejects(actionGrant(f,'password_recovery','test',{recovery:ticket}),/SECURITY_RECOVERY_REQUIRED/);
+ await admin.query("select security_issue_recovery($1,$2,$3)",[f.user,f.session,ticket]);
+ await assert.rejects(actionGrant(f,'password_recovery','test',{kind:'recovery_link',factor:null,recovery:ticket}),/SECURITY_DENIED/);
+ const g=await actionGrant(f,'password_recovery','test',{recovery:ticket});await authorizeGrant(g);await consumeGrant(g);
+ assert.equal((await admin.query("select security_has_recovery($1,$2,$3) as ok",[f.user,f.session,ticket])).rows[0].ok,false);
+ await assert.rejects(consumeGrant(g),/SECURITY_REPLAY/);
+ await assert.rejects(admin.query("select security_issue_recovery($1,$2,$3)",[f.user,f.session,'b'.repeat(64)]),/duplicate key/);
+ const plain=await securityFixture();await admin.query("delete from auth.mfa_factors where user_id=$1",[plain.user]);
+ await admin.query("select security_issue_recovery($1,$2,$3)",[plain.user,plain.session,'c'.repeat(64)]);
+ const pg=await actionGrant(plain,'password_recovery','test',{kind:'recovery_link',factor:null,recovery:'c'.repeat(64)});await authorizeGrant(pg);await consumeGrant(pg);
+ await admin.query("select security_password_changed($1,$2,$3)",[pg.id,pg.user,pg.session]);
+ assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[plain.user])).rows[0].n,2);
+ assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='password_changed'",[plain.user])).rows[0].n,1);
+ await admin.query("select security_password_changed($1,$2,$3)",[pg.id,pg.user,pg.session]);
+});
+test("expired recovery tickets and tickets from a different user/session cannot authorize",async()=>{
+ const f=await securityFixture(),ticket=randomBytes(32).toString('hex');
+ await admin.query("select security_issue_recovery($1,$2,$3)",[f.user,f.session,ticket]);
+ assert.equal((await admin.query("select security_has_recovery($1,$2,$3) as ok",[f.user,f.user,ticket])).rows[0].ok,false);
+ await admin.query("update private.security_recovery_tickets set expires_at=now()-interval '1 second' where token_hash=$1",[ticket]);
+ await assert.rejects(actionGrant(f,'password_recovery','test',{recovery:ticket}),/SECURITY_RECOVERY_REQUIRED/);
+});
+test("F05 denied-session recovery uses a new login and new TOTP; reconciliation is idempotent and keeps history",async()=>{
+ const f=await securityFixture(),op=await beginSecurity(f,'1'.repeat(64),'global');
+ await admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]);
+ assert.equal((await admin.query("select security_finish_revocation($1,$2,false) as done",[op,f.user])).rows[0].done,false);
+ const denied=await asUser(f.user,'aal2',f.session);
+ try {
+  assert.equal((await denied.query("select get_current_session() as s")).rows[0].s,null);
+  assert.equal((await denied.query("select * from farms")).rowCount,0);
+ }finally{await denied.end();}
+ await assert.rejects(beginSecurity(f,'2'.repeat(64),'global'),/SECURITY_DENIED/);
+ await admin.query("update private.security_revocations set created_at=now()-interval '2 days' where id=$1",[op]);
+ await admin.query("select security_prune()");
+ assert.equal((await admin.query("select state from private.security_revocations where id=$1",[op])).rows[0].state,'pending');
+ const newSession=randomUUID();await admin.query("insert into auth.sessions(id,user_id) values($1,$2)",[newSession,f.user]);
+ const next=await beginSecurity({...f,session:newSession},'3'.repeat(64),'global');
+ await admin.query("select security_consume_revocation($1,$2,$3)",[next,f.user,newSession]);
+ await assert.rejects(admin.query("select security_consume_revocation($1,$2,$3)",[next,f.user,newSession]),/SECURITY_REPLAY/);
+ // Only the isolated fixture simulates supported provider logout completing.
+ await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+ // Model response loss: no successful finish callback, then cron reconciliation.
+ await admin.query("select security_reconcile_revocations()");await admin.query("select security_reconcile_revocations()");
+ assert.deepEqual((await admin.query("select state from private.security_revocations where user_id=$1 order by created_at",[f.user])).rows.map(r=>r.state),['completed','completed']);
+ assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='sessions_revoked'",[f.user])).rows[0].n,2);
+});
+test("F04 freeze is lease-fenced, write-once and preserves the complete send payload across retries",async()=>{
+ await admin.query("update private.support_outbox set sent_at=now() where sent_at is null and not delivery_hold");
+ const f=await securityFixture();await observeSecurity(f.user,f.session);
+ const job=(await admin.query("select transactional_email_jobs_v2(false,true) as jobs")).rows[0].jobs[0];assert.ok(job);
+ const original={to:'security@example.test',from:'AgroMind <accounts@agromind.ir>',subject:'Original',html:'<p>2026</p>',text:'2026',language:'fa',version:'signature-premium-v1'};
+ await assert.rejects(admin.query("select security_freeze_email($1,$2,$3)",[job.id,randomUUID(),original]),/EMAIL_LEASE_LOST/);
+ assert.deepEqual((await admin.query("select security_freeze_email($1,$2,$3) as p",[job.id,job.lease,original])).rows[0].p,original);
+ await admin.query("select support_email_ack($1,$2,false)",[job.id,job.lease]);
+ await admin.query("update private.support_outbox set lease_until=now()-interval '1 second' where id=$1",[job.id]);
+ const retry=(await admin.query("select transactional_email_jobs_v2(false,true) as jobs")).rows[0].jobs[0];
+ assert.deepEqual(retry.deliveryPayload,original);
+ const changed={...original,to:'other@example.test',subject:'New template',html:'<p>2027</p>',text:'2027',language:'en'};
+ assert.deepEqual((await admin.query("select security_freeze_email($1,$2,$3) as p",[job.id,retry.lease,changed])).rows[0].p,original);
+ await assert.rejects(admin.query("select security_freeze_email($1,$2,$3)",[job.id,job.lease,original]),/EMAIL_LEASE_LOST/);
+});
+test("native concurrent credential consumption and reconciliation have one mutation and one completion event",{skip:!native},async()=>{
+ const f=await securityFixture(),g=await actionGrant(f,'username','race_username');await authorizeGrant(g);
+ const a=await asUser(f.user,'aal2',f.session),b=await asUser(f.user,'aal2',f.session);
+ try {
+  const results=await Promise.allSettled([a.query("select security_change_username('race_username',$1,$2)",[g.id,g.hash]),b.query("select security_change_username('race_username',$1,$2)",[g.id,g.hash])]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='username_changed'",[f.user])).rows[0].n,1);
+ } finally {await a.end();await b.end();}
+ const op=await beginSecurity(f,'8'.repeat(64),'global');await admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]);
+ await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+ const x=postgres.getPgClient(),y=postgres.getPgClient();await x.connect();await y.connect();
+ try {
+  await Promise.all([x.query("select security_reconcile_revocations()"),y.query("select security_reconcile_revocations()")]);
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='sessions_revoked'",[f.user])).rows[0].n,1);
+ }finally{await x.end();await y.end();}
+});
+test("F02 native logout without app tombstones cannot restore sensitive-data access",async()=>{
+ const f=await securityFixture(), foreign=await securityFixture();
+ const current=await asUser(f.user,'aal2',f.session), remote=await asUser(f.user,'aal2',f.user), other=await asUser(foreign.user,'aal2',foreign.session);
+ try {
+  assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[f.user])).rows[0].n,0);
+  // Model supported native 'others' deletion, without any AgroMind authorization.
+  // Fixture SQL is not a hosted Auth request and never runs against production.
+  await admin.query("delete from auth.sessions where user_id=$1 and id<>$2",[f.user,f.session]);
+  assert.equal((await remote.query("select get_current_session() as s")).rows[0].s,null);
+  assert.equal((await remote.query("select * from profiles")).rowCount,0);
+  assert.equal((await remote.query("select * from farms")).rowCount,0);
+  await assert.rejects(create(remote,farm('native-revoked')),/AUTH_REQUIRED/);
+  await assert.rejects(remote.query("select security_snapshot()"),/SECURITY_DENIED/);
+  assert.ok((await current.query("select get_current_session() as s")).rows[0].s);
+  assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
+  await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+  assert.equal((await current.query("select get_current_session() as s")).rows[0].s,null);
+  await assert.rejects(current.query("select complete_onboarding()"),/AUTH_REQUIRED|MFA_REQUIRED/);
+  assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
+ } finally {await current.end();await remote.end();await other.end();}
 });

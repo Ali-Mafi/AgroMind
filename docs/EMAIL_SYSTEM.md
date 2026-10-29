@@ -42,3 +42,7 @@ Production environment-name inspection on 2026-10-28 confirmed the support worke
 ## Account security candidate — 2026-10-28
 
 [Advanced sessions](ACCOUNT_SESSIONS.md) adds FA/EN login alerts through this same shell and durable support outbox. `SECURITY_EMAIL_ENABLED` gates security delivery independently of support. Retry payloads are frozen per job and share the existing lease/ack and Resend idempotency flow. The preview script now includes two login-security fixtures (20 total). The shared retry cron candidate is every ten minutes, subject to the deployment prerequisites in that document. No production activation was performed.
+
+## Retry hardening (2026-10-29 candidate)
+
+The v2 worker saves complete recipient/sender/subject/HTML/text/locale/version before its first provider send and reuses those bytes on retries, including across deployments/year boundaries. Unknown prior legacy attempts are held for operator reconciliation. The existing Signature Premium renderer is unchanged. See [migration and delivery runbook](SECURITY_REMEDIATION_PR52.md). No production activation or real inbox acceptance is claimed.

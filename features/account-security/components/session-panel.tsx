@@ -66,6 +66,7 @@ export function SessionPanel({ snapshot, error, mfaEnabled, onRevoke, onEnroll }
         })}</div>}
       <p className="mt-4 text-xs leading-6 text-muted-foreground">{t("Last token refresh is provider activity, not the last time a person used the device. Individual remote session sign-out is unavailable; use sign out all other devices.")}</p>
       <p className="mt-2 text-xs leading-6 text-muted-foreground">{t("Revoked sessions cannot make new protected AgroMind data requests. Provider APIs and requests already in progress can retain access until their own checks or token expiry.")}</p>
+      <p className="mt-2 text-xs leading-6 text-muted-foreground">{t("Fresh codes protect sign-out initiated here. Direct Supabase Auth operations follow the provider's own authorization rules.")}</p>
       <div className="mt-4 flex flex-wrap gap-3">
         {mfaEnabled ? <>
           <Button variant="outline" disabled={!!error || refreshing} onClick={() => onRevoke("others")}>{t("Sign out all other devices")} ({settings.format.number(others)})</Button>

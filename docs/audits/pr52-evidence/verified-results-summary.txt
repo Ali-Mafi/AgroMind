@@ -1,0 +1,21 @@
+Independent audit execution summary, preserved from tool outputs.
+Reviewed repository HEAD: 8e2c776c69283a2f891532dca8118ac79851d56f
+npm test: 293 JavaScript tests passed; 29 SQL/PGlite tests passed; 3 native-only cases skipped.
+Native runner: blocked, EINVAL; direct unprivileged runner: cannot set groups, Operation not permitted.
+13 independent probe groups completed in independent-probes.mjs (full successful output observed in interactive tool result, not the earlier partial redirected log):
+1. Actual pre-migration session backfill suppresses rollout notification.
+2. AAL1 snapshot denied; owner snapshot excludes foreign session.
+3. All seven public service-only functions reject anon and authenticated.
+4. F03: stale AAL2/no AMR changes username twice through direct RPC; no username_changed security event.
+5. Foreign factor/session, cross-user operation and repeated consume rejected.
+6. Denied-but-existing Auth session cannot read 11 guarded public tables or private cloud snapshot data; current and foreign sessions preserved.
+7. Denied session cannot mutate farms/schedules or account/team/support/security RPCs tested.
+8. Unconfirmed native completion is not success; expiry and OTP-hash replay rejected.
+9. Native row deletion plus tombstone pruning does not restore stale-session data access.
+10. MFA deferral and eight repeated observations produce one event/outbox job.
+11. Queue lease exclusion, stale-lease ACK rejection and 23-hour expiry hold.
+12. F01: actual resetPasswordAction with mocked provider accepts one-hour-old AAL2, calls updateUser(password), then signOut(global), without recovery proof/current password/fresh TOTP.
+13. F04: actual email renderer produces different bodies for identical details across UTC year rollover.
+Supplemental pending-global-probe.mjs completed:
+14. F05: global consume + provider failure => current RPC null, same-session retry SECURITY_DENIED, two native fixture rows retained, state pending.
+All database mutations were in isolated PGlite fixtures. Auth boundary calls were mocked. No hosted auth exploit, native concurrency, physical-device, browser E2E or inbox delivery test was independently executed.

@@ -71,7 +71,7 @@ function harness({
       setSession: record("setSession", { data: { user }, error }),
       resetPasswordForEmail: record("forgot", { error }),
       resend: record("resend", { error }),
-      verifyOtp: record("verify", { data: { user }, error }),
+      verifyOtp: record("verify", { data: { user, session: {} }, error }),
       getUser: record("getUser", { data: { user }, error }),
       updateUser: record("update", { data: { user }, error }),
       signOut: record("signOut", { error }),
@@ -111,7 +111,21 @@ function harness({
     hashVerificationWatch: () => "b".repeat(64),
   };
 
+  const worker = { rpc: async (name, args) => { calls.push({name, args}); return {data:true,error:null}; } };
   const mocks = {
+    "./recovery-authorization": {
+      issueRecoveryAuthorization: record("issueRecovery", undefined),
+      recoveryAuthorization: async()=>null,
+      clearRecoveryAuthorization: record("clearRecovery", undefined),
+    },
+    "@/features/account-security/services/action-proof": {
+      requireSecurityOrigin: async()=>{},
+      credentialPayloadHash: ()=>"a".repeat(64),
+      authorizeCredentialAction: async(client,user,f)=>{
+        if (!f.get("current_password") && !f.get("fresh_code")) throw Error("fresh proof missing");
+        return {id:"grant",context:{userId:user.id,sessionId:"session-a"},worker};
+      },
+    },
     "@/lib/supabase/server": { createClient: async () => client },
     "../lib/pending-signup": pendingMocks,
     "next/navigation": {
@@ -122,6 +136,7 @@ function harness({
     "next/headers": {
       headers: async () =>
         new Headers({
+          origin: `${requestProto}://${requestHost}`,
           host: requestHost,
           "x-forwarded-host": requestHost,
           "x-forwarded-proto": requestProto,
@@ -627,11 +642,11 @@ test("password reset requires the current account, then globally signs out", asy
   await assert.rejects(
     h.actions.resetPasswordAction(
       {},
-      form({ ...signup, expected_user_id: "user-a" }),
+      form({ ...signup, expected_user_id: "user-a", current_password: "test-current-password" }),
     ),
     /REDIRECT:\/sign-in\?status=password-updated/,
   );
-  assert.deepEqual(h.calls.at(-1), {
+  assert.deepEqual(h.calls.find(c=>c.name === "signOut"), {
     name: "signOut",
     args: [{ scope: "global" }],
   });
@@ -642,20 +657,11 @@ test("password reset requires the current account, then globally signs out", asy
   );
 });
 
-test("password recovery requires MFA before changing a password on MFA-enabled accounts", async () => {
-  const h = harness({
-    assurance: { currentLevel: "aal1", nextLevel: "aal2" },
-  });
-
-  await assert.rejects(
-    h.actions.resetPasswordAction(
-      {},
-      form({ ...signup, expected_user_id: "user-a" }),
-    ),
-    /REDIRECT:\/mfa\?next=\/reset-password/,
-  );
-  assert.equal(h.calls.some((call) => call.name === "update"), false);
-  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
+test("password recovery refuses an ordinary session without a provider recovery ticket", async () => {
+  const h = harness({ assurance: { currentLevel: "aal2", nextLevel: "aal2" } });
+  const result = await h.actions.resetPasswordAction({}, form({ ...signup, expected_user_id:"user-a", password_context:"recovery" }));
+  assert.match(result.error, /expired or was already used/);
+  assert.equal(h.calls.some(call=>call.name === "updateUser" || call.name === "signOut"), false);
 });
 
 test("logout calls Supabase, reports failures safely, and does not pretend success", async () => {

@@ -4,6 +4,17 @@ import type { Json } from "./database.generated";
 export type { Json };
 type Rpc<Args, Returns> = { Args: Args; Returns: Returns };
 export type Database = GeneratedDatabase & { public: { Functions: {
+  security_issue_recovery: Rpc<{ p_user: string; p_session: string; p_hash: string }, undefined>;
+  security_has_recovery: Rpc<{ p_user: string; p_session: string; p_hash: string }, boolean>;
+  security_begin_action: Rpc<{ p_user: string; p_session: string; p_operation: string; p_payload_hash: string; p_kind: string; p_factor: string | null; p_proof_hash: string; p_recovery_hash: string | null }, string>;
+  security_authorize_action: Rpc<{ p_id: string; p_user: string; p_session: string; p_verified: boolean }, undefined>;
+  security_consume_action: Rpc<{ p_id: string; p_user: string; p_session: string; p_operation: string; p_payload_hash: string }, undefined>;
+  security_change_username: Rpc<{ p_username: string; p_grant: string; p_payload_hash: string }, string>;
+  security_password_changed: Rpc<{ p_id: string; p_user: string; p_session: string }, undefined>;
+  security_reconcile_revocations: Rpc<Record<string, never>, Json>;
+  security_email_health: Rpc<Record<string, never>, Json>;
+  security_freeze_email: Rpc<{ p_id: string; p_lease: string; p_payload: Json }, Json>;
+  transactional_email_jobs_v2: Rpc<{ p_support: boolean; p_security: boolean }, Json>;
   security_snapshot: Rpc<Record<string, never>, Json>;
   security_observe_session: Rpc<{ p_user: string; p_session: string; p_metadata: Json; p_provider: string | null; p_aal: string | null }, boolean>;
   security_record_event: Rpc<{ p_user: string; p_session: string; p_kind: string; p_key: string }, undefined>;

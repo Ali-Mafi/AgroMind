@@ -1,12 +1,14 @@
 import "server-only";
-import { createHmac } from "node:crypto";
+import { securityProofHash } from "./action-proof";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { securityContext, securityWorker } from "./server";
 
 const unavailable = "Account services are temporarily unavailable. Please try again.";
 const fresh = "Enter a fresh 6-digit authenticator code to sign out remote sessions.";
-export async function revokeRemoteSessions(form: FormData): Promise<{ error?: string; success?: string; global?: boolean }> {
+export async function revokeRemoteSessions(form: FormData): Promise<{ error?: string; success?: string; global?: boolean; pending?: boolean }> {
+  let consumedProof = false;
+  let globalScope = false;
   let operation: string | null = null;
   let userId: string | null = null;
   try {
@@ -16,6 +18,7 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
     if (!origin || new URL(origin).host !== h.get("host") || (process.env.NODE_ENV === "production" && new URL(origin).protocol !== "https:"))
       return { error: unavailable };
     const scope = form.get("scope");
+    globalScope = scope === "global";
     if (scope !== "others" && scope !== "global") return { error: unavailable };
     // No selective IDs are accepted by this operation.
     if (form.has("session_id") || form.has("target_session_id")) return { error: unavailable };
@@ -32,8 +35,7 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
     const worker = securityWorker();
     // A keyed digest prevents brute-forcing six-digit OTPs from a DB leak. This
     // secret never crosses the server boundary; codes are never stored or logged.
-    const proofHash = createHmac("sha256", process.env.SUPABASE_SERVICE_ROLE_KEY!)
-      .update(JSON.stringify(["session-revocation", userId, factorId, code])).digest("hex");
+    const proofHash = securityProofHash(userId, factorId, code);
     const begun = await worker.rpc("security_begin_revocation", { p_user: userId, p_session: context.sessionId, p_factor: factorId, p_scope: scope, p_proof_hash: proofHash });
     if (begun.error || typeof begun.data !== "string") return { error: "Too many or overlapping security attempts. Wait a few minutes and use a new code." };
     operation = begun.data;
@@ -47,17 +49,19 @@ export async function revokeRemoteSessions(form: FormData): Promise<{ error?: st
     }
     const consumed = await worker.rpc("security_consume_revocation", { p_id: operation, p_user: userId, p_session: context.sessionId });
     if (consumed.error || !consumed.data || typeof consumed.data !== "object" || Array.isArray(consumed.data) || consumed.data.scope !== scope) throw new Error("SECURITY_PROOF_EXPIRED");
+    consumedProof = true;
     // The atomic consume above blocks the owned snapshot in all existing RLS/RPC
     // guards. Native Auth then revokes refresh credentials using supported scopes.
     const result = await client.auth.signOut({ scope });
     const finished = await worker.rpc("security_finish_revocation", { p_id: operation, p_user: userId, p_success: !result.error });
-    if (result.error || finished.error || finished.data !== true)
-      return { error: "Session access is blocked, but provider sign-out could not be confirmed. Refresh and try again." };
+    if (finished.error || finished.data !== true)
+      return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
     return { success: "Other sessions have been signed out.", global: scope === "global" };
   } catch {
     if (operation && userId) {
       try { await securityWorker().rpc("security_finish_revocation", { p_id: operation, p_user: userId, p_success: false }); } catch { /* Fail closed: consumed access blocks remain. */ }
     }
+    if (consumedProof) return { error: "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.", pending: true, global: globalScope };
     return { error: unavailable };
   }
 }

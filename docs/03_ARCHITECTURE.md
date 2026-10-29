@@ -293,3 +293,7 @@ See [current progress](05_MASTER_PROGRESS.md) and [workflow rules](PROJECT_RULES
 ## Account-session security candidate (2026-10-28)
 
 `features/account-security` owns server session observation, remote-revocation orchestration, security email content, types and the session/history panel. It extends the existing Auth services, account settings shell/MFA dialog and shared durable outbox. See [Account Sessions](ACCOUNT_SESSIONS.md) for trust boundaries, RLS enforcement and release gates.
+
+## PR #52 remediation (2026-10-29)
+
+Credential grants now protect password changes/recovery and the database username mutation; username audit is atomic. Pending native revocation is reconciled without native writes, and a new login plus fresh TOTP is required for another logout attempt. The shared outbox freezes complete payloads before sending. See [remediation and unresolved provider boundary](SECURITY_REMEDIATION_PR52.md). Not released.

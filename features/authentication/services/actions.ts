@@ -2,6 +2,8 @@
 
 import { observeLogin } from "@/features/account-security/services/login";
 import { recordSecurityEvent, securityContext } from "@/features/account-security/services/server";
+import { authorizeCredentialAction, credentialPayloadHash, requireSecurityOrigin } from "@/features/account-security/services/action-proof";
+import { issueRecoveryAuthorization, recoveryAuthorization, clearRecoveryAuthorization } from "./recovery-authorization";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -500,30 +502,25 @@ export async function verifyEmailAction(
 ): Promise<AuthFormState> {
   const hash = tokenHashSchema.safeParse(form.get("token_hash"));
   const type = form.get("type") === "recovery" ? "recovery" : "signup";
-  if (!hash.success)
-    return { error: "This link is invalid. Request a new email." };
+  if (!hash.success) return { error: "This link is invalid. Request a new email." };
   try {
+    await requireSecurityOrigin();
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: hash.data,
-      type,
-    });
-    if (error)
-      return {
-        error:
-          error.code === "otp_expired"
-            ? "This link has expired or was already used. Request a new email."
-            : "This link is invalid. Request a new email.",
-      };
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: hash.data, type });
+    if (error) return { error: error.code === "otp_expired"
+      ? "This link has expired or was already used. Request a new email."
+      : "This link is invalid. Request a new email." };
     if (type === "signup") await supabase.auth.signOut({ scope: "local" });
-    else await observeLogin("recovery");
-  } catch {
-    return unavailable;
-  }
+    else {
+      if (!data.user || !data.session) return unavailable;
+      const context = await securityContext(supabase);
+      if (context.userId !== data.user.id) return unavailable;
+      await issueRecoveryAuthorization(supabase);
+      await observeLogin("recovery");
+    }
+  } catch { return unavailable; }
   revalidatePath("/", "layout");
-  redirect(
-    type === "recovery" ? "/reset-password" : "/verify-email?status=success",
-  );
+  redirect(type === "recovery" ? "/reset-password" : "/verify-email?status=success");
 }
 
 export async function resetPasswordAction(
@@ -532,62 +529,54 @@ export async function resetPasswordAction(
 ): Promise<AuthFormState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
-
-  let mfaRequired = false;
+  let pending = false;
   try {
+    await requireSecurityOrigin();
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
-      };
-
-    const active = await supabase.rpc("get_current_session");
-    if (active.error || !active.data)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
-      };
-
-    if (data.user.id !== form.get("expected_user_id"))
-      return { error: "Your account changed. Reload before saving." };
-
-    const assurance =
-      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assurance.error) return unavailable;
-
-    mfaRequired =
-      assurance.data.nextLevel === "aal2" &&
-      assurance.data.currentLevel !== "aal2";
-
-    if (!mfaRequired) {
-      const context = await securityContext(supabase);
-      const updated = await supabase.auth.updateUser({
-        password: parsed.data.password,
-      });
-      if (updated.error)
-        return {
-          error:
-            updated.error.code === "same_password"
-              ? "Choose a password different from your current password."
-              : unavailable.error,
-        };
-
-      await recordSecurityEvent(context, "password_changed", crypto.randomUUID());
-      const signedOut = await supabase.auth.signOut({ scope: "global" });
-      if (signedOut.error)
-        return {
-          success:
-            "Password updated. Sign out from your account before signing in again.",
-        };
+    if (error || !data.user) return { error: "Your session has expired. Request a new password reset email." };
+    if (data.user.id !== form.get("expected_user_id")) return { error: "Your account changed. Reload before saving." };
+    const recoveryHash = await recoveryAuthorization(supabase);
+    // The context selector is untrusted: recovery always requires the durable
+    // provider-issued ticket, never just a query parameter or an AAL2 claim.
+    const recovery = form.get("password_context") === "recovery";
+    if (recovery && !recoveryHash) return { error: "This link has expired or was already used. Request a new email." };
+    const operation = recovery ? "password_recovery" : "password_change";
+    const payloadHash = credentialPayloadHash(operation, parsed.data.password);
+    let grant;
+    try {
+      grant = await authorizeCredentialAction(supabase, data.user, form, operation, payloadHash, recovery ? recoveryHash : null);
+    } catch {
+      return { error: "Confirm your identity with a fresh code or your current password." };
     }
-  } catch {
-    return unavailable;
-  }
-
-  if (mfaRequired) redirect("/mfa?next=/reset-password");
-
+    const consumed = await grant.worker.rpc("security_consume_action", {
+      p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
+      p_operation: operation, p_payload_hash: payloadHash,
+    });
+    if (consumed.error) return unavailable;
+    if (recovery) await clearRecoveryAuthorization();
+    // A failed/uncertain provider update never restores a consumed grant. Use a
+    // fresh proof or new recovery email. No password/OTP is logged or persisted.
+    const currentPassword = String(form.get("current_password") ?? "");
+    const updated = await supabase.auth.updateUser({ password: parsed.data.password,
+      ...(!recovery && currentPassword ? { current_password: currentPassword } : {}),
+    });
+    if (updated.error) return { error: updated.error.code === "same_password"
+      ? "Choose a password different from your current password." : unavailable.error };
+    // Persist app denial/audit before native global logout. Recovery uses its
+    // separately authorized credential operation, not the remote-TOTP action.
+    const blocked = await grant.worker.rpc("security_password_changed", {
+      p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
+    });
+    if (blocked.error) console.error("[security] password_revocation_record_failed");
+    const signedOut = await supabase.auth.signOut({ scope: "global" });
+    const finished = await grant.worker.rpc("security_finish_revocation", {
+      p_id: grant.id, p_user: data.user.id, p_success: !signedOut.error,
+    });
+    pending = Boolean(blocked.error || finished.error || finished.data !== true);
+  } catch { return unavailable; }
   revalidatePath("/", "layout");
-  redirect("/sign-in?status=password-updated");
+  redirect(pending ? "/sign-in?status=password-updated-pending" : "/sign-in?status=password-updated");
 }
 
 export async function logoutAction(): Promise<{ error?: string }> {

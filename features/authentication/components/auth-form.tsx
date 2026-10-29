@@ -1,5 +1,7 @@
 "use client";
 
+import { FreshIdentityFields } from "./fresh-identity-fields";
+import type { MfaSecurityState } from "../types/mfa";
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
@@ -70,11 +72,15 @@ export function AuthForm({
   tokenHash,
   next,
   expectedUserId,
+  passwordContext,
+  security,
 }: {
   mode: Mode;
   tokenHash?: string;
   next?: string;
   expectedUserId?: string;
+  passwordContext?: "recovery" | "change";
+  security?: MfaSecurityState;
 }) {
   const t = useTranslation();
   const { language } = useSettings();
@@ -219,6 +225,7 @@ export function AuthForm({
         name="expected_user_id"
         value={expectedUserId ?? ""}
       />
+      <input type="hidden" name="password_context" value={passwordContext ?? "change"} />
       <input type="hidden" name="next" value={next ?? "/dashboard"} />
       {mode === "sign-up" && <input type="hidden" name="accepted_terms" value={termsAccepted ? "on" : ""} />}
       <input
@@ -323,6 +330,10 @@ export function AuthForm({
               {t(visible ? "Hide password" : "Show password")}
             </Button>
           </>
+        )}
+
+        {mode === "reset" && security && (passwordContext !== "recovery" || security.enabled) && (
+          <FreshIdentityFields state={security} totpOnly={passwordContext !== "recovery"} />
         )}
 
         {mode === "sign-in" && !values.identifier.includes("@") && (

@@ -2,6 +2,12 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## PR #52 targeted remediation — 2026-10-29
+
+- Preserved independent audit and original probes. Hardened credential/recovery grants, database username mutation/audit, email payload freezing and pending-revocation recovery without removing denial protections.
+- Existing local evidence: 305 JS and 38 PGlite passes, lint/typecheck/localization/build/HTTP pass. Native local EINVAL; new native concurrency acceptance is tracked in final-head PR CI. Physical device, hosted Auth and actual email acceptance remain unverified.
+- F02 remains unresolved under universal freshness; **production NO-GO**, Draft only, no merge/deployment/production changes. [Remediation handoff](SECURITY_REMEDIATION_PR52.md).
+
 ## Advanced account security — review candidate, 2026-10-28
 
 - Implemented new-login emails through the existing durable outbox, real Auth session listings, fresh TOTP-only remote sign-out with one-time server authorization, session-aware access denial and immutable user-scoped recent activity.

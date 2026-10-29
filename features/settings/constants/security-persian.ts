@@ -1,4 +1,8 @@
 export const SECURITY_PERSIAN: Record<string, string> = {
+  "Fresh codes protect sign-out initiated here. Direct Supabase Auth operations follow the provider's own authorization rules.":
+    "خروج از نشست‌ها در این بخش به کد تازه نیاز دارد. عملیات مستقیم Supabase Auth تابع قواعد مجوزدهی خود آن سرویس است.",
+  "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.":
+    "دسترسی نشست‌ها مسدود شده، اما خروج از سرویس احراز هویت تأیید نشده است. دوباره وارد شوید و با کد تازهٔ برنامهٔ احراز هویت، خروج را تکمیل کنید.",
   "Remove authenticator": "حذف برنامه احراز هویت",
   "Incomplete authenticator setup": "راه‌اندازی ناتمام برنامه احراز هویت",
   "Discard incomplete setup": "حذف راه‌اندازی ناتمام",

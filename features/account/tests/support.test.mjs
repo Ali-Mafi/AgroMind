@@ -151,7 +151,7 @@ test("notification failures acknowledge retry without throwing or losing a ticke
             calls.push({ name, args });
             return {
               data:
-                name === "transactional_email_jobs"
+                name === "transactional_email_jobs_v2"
                   ? [
                       {
                         id: "job",
@@ -163,7 +163,7 @@ test("notification failures acknowledge retry without throwing or losing a ticke
                         language: "en",
                       },
                     ]
-                  : null,
+                  : name === "security_freeze_email" ? args.p_payload : null,
               error: null,
             };
           },

@@ -42,6 +42,11 @@ export async function AuthEntry({
           <T text="Password updated. Sign in with your new password." />
         </p>
       )}
+      {(status === "revocation-pending" || status === "password-updated-pending") && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out." />
+        </p>
+      )}
       {status === "email-verified" && (
         <p role="status" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
           <T text="Email verified. Sign in to continue in AgroMind." />

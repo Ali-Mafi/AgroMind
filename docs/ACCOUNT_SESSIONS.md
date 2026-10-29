@@ -6,6 +6,8 @@ No production schema, Auth configuration, factors, sessions, secrets or accounts
 were changed. This is an application security change requiring hosted acceptance
 and independent security review before release, not a security certification.
 
+> **2026-10-29 remediation:** see [finding dispositions, provider threat model and forward-only runbook](SECURITY_REMEDIATION_PR52.md). F02 remains unresolved; production NO-GO. The original [independent audit](audits/2026-10-29-pr52-independent-audit.md) is preserved.
+
 ## Architecture and trust boundaries
 
 1. Existing password/username sign-in, Google PKCE callback and recovery callbacks
@@ -81,9 +83,10 @@ Both existing `others` and `global` controls use the strengthened server path:
   only that user's affected sessions and inserts application access-denial
   tombstones plus an audit request in one transaction.
 - Native `auth.signOut({scope:'others'|'global'})` revokes refresh credentials.
-  Success is reported only after native success **and** checking that targeted
-  provider rows are gone. Failure/uncertain completion is explicitly pending;
-  the access blocks remain and a new fresh verification is needed to retry.
+  Success requires confirming targeted provider rows are gone. Lost responses
+  reconcile through that check; provider success alone cannot declare completion.
+  Pending global logout requires a new login and fresh TOTP, never same-session
+  retry or removal of access blocks. A read-only-native worker reconciles outcomes.
 
 There is **no supported arbitrary-session-ID revocation method** in the reviewed
 SDK/API. Do not impersonate another session, delete managed tables, expose an
@@ -119,8 +122,8 @@ exclusion by one logout request.
 Recent history shows up to 50 own-account events in 90 days: login, successful
 local logout, TOTP enrollment/removal, password/username change, authorized
 revocation and confirmed/pending outcome. Stable event keys deduplicate login,
-logout, MFA factor and operation events. Password/username action invocations use
-unique server event IDs. Native API changes outside these application flows are
+logout, MFA factor and operation events. Username grant consumption, mutation and audit are one transaction. Password
+changes use grant-keyed events; provider update and app audit are separate transactions. Native API changes outside these application flows are
 not reconstructed as application events. Managed Auth has its own provider logs.
 Non-revocation native/account events are best-effort app audit writes with safe
 error monitoring; a DB outage after a native change can leave a history gap.
@@ -128,8 +131,9 @@ error monitoring; a DB outage after a native change can leave a history gap.
 Raw UA is not retained. App IP/location/device descriptions are redacted from
 session projections after 30 days and physically scrubbed by `security_prune`;
 login-email payloads are scrubbed too. History older than 90 days is removed.
-Operation/replay rows last at most one day (a new attempt prunes the ten-minute
-quota window). Access-denial tombstones are pruned **only after the matching Auth
+Completed/failed operation rows are pruned after one day; unresolved revocations
+remain until reconciled. Recovery tickets expire after ten minutes; sensitive action
+grants after two. Quotas count the ten-minute attempt window without deleting pending work. Access-denial tombstones are pruned **only after the matching Auth
 session is gone**; metadata/history retention must never restore a live JWT.
 Run retention even if email sending is disabled. These are app-primary-storage
 limits, not control over Supabase backups, Vercel infrastructure logs, Resend
@@ -138,7 +142,7 @@ retention or copies in recipients' inboxes. Review provider retention separately
 ## Delivery semantics and operational prerequisites
 
 An email failure never rejects authentication. Durable queue retries retain an
-immutable recipient/locale/content snapshot and use `support/<outbox UUID>` as
+complete recipient/from/subject/HTML/text/locale snapshot frozen before first send and use `support/<outbox UUID>` as
 the existing provider idempotency key. Leases use SKIP LOCKED, fencing IDs, five
 minutes per lease and ten-minute failure backoff. The 23-hour retry horizon stays
 inside Resend's 24-hour idempotency window; security jobs older than 23 hours are
@@ -156,10 +160,12 @@ Before any hosted release:
 
 1. All Foundation CI checks, including independent-connection PostgreSQL races,
    must pass on the final head; complete independent security review.
-2. Rehearse migration and the guarded down script on an isolated Supabase project.
+2. Rehearse migration and forward-only recovery on an isolated Supabase project.
    Verify actual Auth timeout settings and schema compatibility. No production
    migration or Auth setting change is authorized by this PR itself.
-3. Apply `20261028164556_account_session_security.sql` **before** the app. Retain
+3. Apply `20261028164556_account_session_security.sql`, then
+   `20261029034759_account_security_remediation.sql` before the compatible app.
+   Pause old workers/mutations during cutover; see the remediation runbook. Retain
    existing server-only `SUPABASE_SERVICE_ROLE_KEY`, Resend sender/key and
    `CRON_SECRET`. Enable `SECURITY_EMAIL_ENABLED=true` only in the reviewed target
    environment after sender/destination verification. Existing support flags and
@@ -204,19 +210,11 @@ mock provider boundaries; SQL tests run real migrations against isolated Postgre
 engines, not production Auth. Chromium checks validate actual component HTML plus
 production CSS and email layout, not a physical iPhone or live Auth integration.
 
-Preferred emergency application rollback keeps this additive migration and deny
-checks in place. Disable `SECURITY_EMAIL_ENABLED` if delivery is defective, retain
-cron pruning and audit data, revert the app to the reviewed baseline and verify
-cloud-data denial. An application rollback also restores the old remote-signout
-policy; do not represent it as retaining this new fresh-TOTP guarantee.
-
-Full schema rollback is `supabase/rollback/account_session_security.sql`. Export
-security audit data first and roll back the app before the schema. It refuses to
-run while any denied session still exists at Auth. Complete native revocation
-through supported APIs, verify the gate is clear, then run the down transaction.
-It restores the previous outbox/session RPC definitions and removes only new
-feature data/columns/functions/tables. Do not remove the gate, clear tombstones
-for a live session or write Auth tables to force rollback through.
+After the remediation migration, rollback is forward-only. Preserve deny/audit/grant
+and frozen delivery records. The historical down script refuses the hardened schema.
+Use a compatible reviewed app/worker or a forward fix; the audited baseline is not a
+security-preserving rollback target. Keep reconciliation and pruning active when
+pausing email. See the [cutover and recovery runbook](SECURITY_REMEDIATION_PR52.md).
 
 Primary references reviewed 2026-10-28:
 [Supabase sessions](https://supabase.com/docs/guides/auth/sessions),
