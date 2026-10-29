@@ -47,6 +47,11 @@ export async function AuthEntry({
           <T text="Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out." />
         </p>
       )}
+      {status === "password-update-unknown" && (
+        <p role="alert" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
+          <T text="Password change could not be confirmed. Previous AgroMind sessions were restricted. Sign in with the password you believe is current, or use verified account recovery." />
+        </p>
+      )}
       {status === "email-verified" && (
         <p role="status" className="mb-5 rounded-xl bg-primary/10 p-4 text-sm">
           <T text="Email verified. Sign in to continue in AgroMind." />
