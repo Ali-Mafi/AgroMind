@@ -612,7 +612,7 @@ export async function resetPasswordAction(
       // A definite provider rejection is distinct from a lost/ambiguous response.
       await Promise.resolve(grant.worker.rpc("security_password_update_rejected", {
         p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
-      }).catch(() => ({ error: true }));
+      })).catch(() => ({ error: true }));
     }
     // Always attempt native refresh-token revocation, even after a rejected
     // or ambiguous password update; app denial and audit intent persist.
