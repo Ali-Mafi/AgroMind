@@ -205,3 +205,15 @@ independent re-audit, not production approval.
 
 Upstream master is not proof of the hosted Auth build/configuration. The current
 changelog was reviewed; it did not establish a supported logout-freshness hook.
+
+## Follow-up after independent re-audit — F06/F07/F08
+
+A subsequent independent delta audit of `103d2c4` identified F06 (unrecorded password-update partial failure), F07 (lost consume response), and F08 (provider password policy compatibility). The follow-up implementation is on this same Draft PR and uses forward-only migration `20261029193000_account_security_followup.sql`.
+
+**F06:** `security_prepare_password_change` atomically consumes the fresh grant, records a native-session snapshot and durable revocation/audit intent, and inserts app denial tombstones *before* any native password update. No confirmed prepare means no native password mutation. `security_password_changed` now confirms only a previously prepared operation, and rejected provider outcomes are tracked separately. Password change, app denial, provider logout and database reconciliation are not a distributed atomic transaction: uncertain outcomes require reauthentication/recovery and operational alerting. Denials are never erased for convenience.
+
+**F07:** After an ambiguous revocation consume response, a server-only, user/session/operation-scoped `security_revocation_status` lookup determines whether the operation actually committed. A confirmed consumed operation gets pending/completed guidance; unknown status never replays proof or claims success.
+
+**F08:** The password UI can request an email nonce using the official `auth.reauthenticate()` API through a service-side per-user cooldown/quota. It accepts a separate nonce and optional current password for MFA-enabled password changes, without replacing fresh TOTP. Password recovery remains provider-verified and independently authorized. Hosted provider policy and OAuth-only first-password compatibility still require real integration tests.
+
+The code and migration are *not production approved*. The original independent audit artifacts remain unchanged. Coordinated migration/application cutover, real hosted signed-JWT/Auth/refresh testing, recovery checks, real email/PWA, monitoring, and separate delta re-audit are still required. **F01's native credential endpoint and F02's native logout guarantee remain unresolved under the original universal security requirements.** Keep PR Draft, never deploy or run migrations in production from this follow-up. A compatible forward repair is safer than reverting to prior vulnerable code.
