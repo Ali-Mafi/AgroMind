@@ -23,6 +23,7 @@ function credentialHarness(options={}) {
    return {data:true};
   }
   if(name==='security_password_changed' && options.recordError)return {error:{}};
+  if(name==='security_password_update_rejected' && options.rejectRecordError)return {error:{}};
   if(name==='security_reserve_reauthentication')return options.reauthLimited?{error:{}}:{data:true};
   if(name==='security_finish_revocation')return {data:!options.pending};
   if(name==='security_has_recovery')return {data:options.recovery===true};
@@ -32,7 +33,7 @@ function credentialHarness(options={}) {
  const client={auth:{
   getUser:async()=>({data:{user}}),
   getClaims:async()=>({data:{claims:{sub:options.claimUser??'user-a',session_id:options.claimSession??'session-a',amr:options.amr??[]}}}),
-  updateUser:async(args)=>{calls.push(['updateUser',args]);return {error:options.updateError?{code:'reauthentication_needed'}:null};},
+  updateUser:async(args)=>{calls.push(['updateUser',args]);return {error:options.updateError?{code:options.updateErrorCode??'reauthentication_needed'}:null};},
   reauthenticate:async()=>{calls.push(['reauthenticate']);return {error:options.reauthError?{}:null};},
   verifyOtp:async()=>{calls.push(['verifyOtp']);return options.badLink?{error:{code:'otp_expired'}}:{data:{user,session:{access_token:'synthetic'}}};},
   signOut:async(args)=>{calls.push(['signOut',args]);return {error:options.pending?{}:null};},
@@ -123,7 +124,7 @@ test('uncertain password/logout outcomes never return confirmed logout or restor
  const h=credentialHarness({pending:true});await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated-pending/);
  assert.equal(h.getGrant().state,'consumed');
  const failed=credentialHarness({updateError:true});
- await assert.rejects(failed.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-update-unknown/);
+ await assert.rejects(failed.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-rejected/);
  assert.equal(failed.getGrant().state,'consumed');
  assert.ok(failed.calls.some(c=>c[0]==='signOut'));
 });
@@ -137,7 +138,7 @@ test('F06 failed or uncertain preparation never calls native password mutation',
 });
 test('F06 audit failure plus failed native logout never claims confirmed completion',async()=>{
  const h=credentialHarness({recordError:true,pending:true});
- await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated-pending/);
+ await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-updated-checks-pending/);
  const names=h.calls.map(c=>c[0]);
  assert.ok(names.indexOf('security_prepare_password_change')<names.indexOf('updateUser'));
  assert.ok(names.indexOf('updateUser')<names.indexOf('security_password_changed'));
@@ -156,6 +157,85 @@ test('F08 provider nonce and optional current password accompany fresh MFA only 
  await assert.rejects(recovery.actions.resetPasswordAction({},form({...validPassword,password_context:'recovery',proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:'123456',current_password:'unused'})),/REDIRECT/);
  const native=recovery.calls.find(c=>c[0]==='updateUser')[1];
  assert.equal(native.nonce,undefined);assert.equal(native.current_password,undefined);
+});
+test('F06 confirmed provider errors are not mislabelled as unknown password outcomes',async()=>{
+ for(const code of ['reauthentication_needed','reauthentication_not_valid','current_password_required','current_password_invalid','same_password']){
+  const h=credentialHarness({updateError:true,updateErrorCode:code});
+  await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-rejected$/);
+  assert.ok(h.calls.some(c=>c[0]==='security_password_update_rejected'));
+  assert.ok(h.calls.some(c=>c[0]==='signOut'));
+ }
+ const unknown=credentialHarness({updateError:true,updateErrorCode:'request_timeout'});
+ await assert.rejects(unknown.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-update-unknown$/);
+ assert.ok(!unknown.calls.some(c=>c[0]==='security_password_update_rejected'));
+});
+test('F06 audit persistence and native sign-out have independent status reports',async()=>{
+ const cases=[
+  [{recordError:true},'password-updated-audit-pending'],
+  [{recordError:true,pending:true},'password-updated-checks-pending'],
+  [{updateError:true,pending:true},'password-rejected-signout-pending'],
+  [{updateError:true,rejectRecordError:true},'password-rejected-record-pending'],
+ ];
+ for(const [opts,status] of cases){
+  const h=credentialHarness(opts);
+  await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),
+    new RegExp('REDIRECT:/sign-in\\\\?status='+status+'
+ const h=credentialHarness();
+ assert.match((await h.actions.requestPasswordReauthenticationAction()).success,/Verification code sent/);
+ assert.ok(h.calls.some(c=>c[0]==='security_reserve_reauthentication'));
+ assert.ok(h.calls.some(c=>c[0]==='reauthenticate'));
+ const limited=credentialHarness({reauthLimited:true});
+ assert.match((await limited.actions.requestPasswordReauthenticationAction()).error,/wait/);
+ assert.ok(!limited.calls.some(c=>c[0]==='reauthenticate'));
+});
+test('proof digest preserves pre-upgrade revocation reservations across deployment',()=>{
+ const h=credentialHarness();const oldHash=createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY).update(JSON.stringify(['session-revocation','u','f','123456'])).digest('hex');
+ assert.equal(h.proof.securityProofHash('u','f','123456'),oldHash);
+});
+test('F04 actual worker reuses frozen payload over year/template/locale changes and provider failure',async()=>{
+ const before={...process.env};Object.assign(process.env,{SECURITY_EMAIL_ENABLED:'true',NEXT_PUBLIC_SUPABASE_URL:'https://example.test',RESEND_API_KEY:'test'});
+ let frozen=null,year='2026',version='old',renders=0,fail=true;const sent=[],acks=[],order=[];
+ const {drainSupportEmails}=loadTs('features/support/services/notifications.ts',{
+  '@supabase/supabase-js':{createClient:()=>({rpc:async(name,args)=>{
+   order.push(name);
+   if(name==='transactional_email_jobs_v2')return {data:[{id:'job',lease:'lease',audience:'security',to:'first@example.test',language:version==='old'?'fa':'en',deliveryPayload:frozen}]};
+   if(name==='security_freeze_email'){frozen??=args.p_payload;return {data:frozen};}
+   if(name==='support_email_ack')acks.push(args);
+   return {data:{}};
+  }})},
+  '@/features/account-security/lib/email':{loginSecurityEmail:()=>{renders++;return {subject:version,html:`<p>${year}</p>`,text:year};}},
+  '@/features/authentication/services/resend-auth':{sendAuthEmail:async payload=>{order.push('providerSend');sent.push(payload);if(fail)throw Error('provider timeout');}},
+ });
+ try {
+  await drainSupportEmails();year='2027';version='deployed-template';fail=false;await drainSupportEmails();
+  assert.equal(renders,1);assert.deepEqual(sent[0],sent[1]);assert.equal(sent[0].idempotencyKey,'support/job');assert.equal(acks[0].p_sent,false);assert.equal(acks[1].p_sent,true);assert.ok(order.indexOf('security_freeze_email')<order.indexOf('providerSend'));
+ }finally{for(const key of Object.keys(process.env))if(!(key in before))delete process.env[key];Object.assign(process.env,before);}
+});
+test('F04 lost freeze response never sends an unpersisted or speculative payload',async()=>{
+ const prior={...process.env};Object.assign(process.env,{SECURITY_EMAIL_ENABLED:'true',NEXT_PUBLIC_SUPABASE_URL:'https://example.test',RESEND_API_KEY:'test'});let sends=0;
+ const {drainSupportEmails}=loadTs('features/support/services/notifications.ts',{
+  '@supabase/supabase-js':{createClient:()=>({rpc:async(name)=>name==='transactional_email_jobs_v2'?{data:[{id:'job',lease:'lease',audience:'security',to:'test@example.test',language:'fa'}]}:name==='security_freeze_email'?{error:{}}:{data:{}}})},
+  '@/features/authentication/services/resend-auth':{sendAuthEmail:async()=>{sends++;}},
+ });
+ try {await drainSupportEmails();assert.equal(sends,0);}finally{for(const key of Object.keys(process.env))if(!(key in prior))delete process.env[key];Object.assign(process.env,prior);}
+});
+));
+  assert.equal(h.getGrant().state,'consumed');
+ }
+});
+test('F08 accepts supported 6-10 digit email nonces without changing TOTP verification length',async()=>{
+ for(const nonce of ['123456','12345678','1234567890']){
+  const h=credentialHarness();
+  await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:nonce})),/REDIRECT/);
+  assert.equal(h.calls.find(c=>c[0]==='updateUser')[1].nonce,nonce);
+ }
+ for(const nonce of ['12345','12345678901','aaaaaa']){
+  const h=credentialHarness();
+  const result=await h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:nonce}));
+  assert.ok(result.error);assert.ok(!h.calls.some(c=>c[0]==='security_prepare_password_change'));
+ }
+ const invalidTotp=credentialHarness();
+ assert.ok((await invalidTotp.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'12345678',reauthentication_nonce:'12345678'}))).error);
 });
 test('F08 reauthentication uses the server-side quota and provider API',async()=>{
  const h=credentialHarness();
