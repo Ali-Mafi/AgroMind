@@ -179,7 +179,26 @@ test('F06 audit persistence and native sign-out have independent status reports'
  for(const [opts,status] of cases){
   const h=credentialHarness(opts);
   await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),
-    new RegExp('REDIRECT:/sign-in\\\\?status='+status+'
+   error=>error.message==='REDIRECT:/sign-in?status='+status);
+  assert.equal(h.getGrant().state,'consumed');
+ }
+});
+test('F08 accepts 6-10 digit provider email nonces without weakening the TOTP check',async()=>{
+ for(const nonce of ['123456','12345678','1234567890']){
+  const h=credentialHarness();
+  await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:nonce})),/REDIRECT/);
+  assert.equal(h.calls.find(c=>c[0]==='updateUser')[1].nonce,nonce);
+ }
+ for(const nonce of ['12345','12345678901','abcdef']){
+  const h=credentialHarness();
+  const state=await h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456',reauthentication_nonce:nonce}));
+  assert.ok(state.error);
+  assert.ok(!h.calls.some(c=>c[0]==='security_prepare_password_change'));
+ }
+ const invalidTotp=credentialHarness();
+ assert.ok((await invalidTotp.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'12345678',reauthentication_nonce:'12345678'}))).error);
+});
+test('F08 reauthentication uses the server-side quota and provider API',async()=>{
  const h=credentialHarness();
  assert.match((await h.actions.requestPasswordReauthenticationAction()).success,/Verification code sent/);
  assert.ok(h.calls.some(c=>c[0]==='security_reserve_reauthentication'));
