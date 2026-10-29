@@ -2,7 +2,7 @@
 
 import { FreshIdentityFields } from "./fresh-identity-fields";
 import type { MfaSecurityState } from "../types/mfa";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import {
   requestPasswordResetAction,
+  requestPasswordReauthenticationAction,
   resendVerificationAction,
   resetPasswordAction,
   signInAction,
@@ -95,6 +96,8 @@ export function AuthForm({
     null,
   );
   const [visible, setVisible] = useState(false);
+  const [reauthPending, startReauthentication] = useTransition();
+  const [reauthFeedback, setReauthFeedback] = useState<{ error?: string; success?: string }>({});
   const [showPasswordRequirements, setShowPasswordRequirements] =
     useState(false);
   const submitting = useRef(false);
@@ -330,6 +333,36 @@ export function AuthForm({
               {t(visible ? "Hide password" : "Show password")}
             </Button>
           </>
+        )}
+
+        {mode === "reset" && passwordContext !== "recovery" && (
+          <div className="space-y-3 rounded-2xl border bg-background/55 p-4 sm:p-5">
+            <label htmlFor="password-reauthentication-nonce" className="block text-sm font-medium">
+              {t("Email verification code (when required)")}
+            </label>
+            <input id="password-reauthentication-nonce" name="reauthentication_nonce"
+              type="text" inputMode="numeric" autoComplete="one-time-code"
+              pattern="[0-9]{6}" maxLength={6} dir="ltr"
+              className={accountInputClass} />
+            <p className="text-xs text-muted-foreground">
+              {t("Older sessions may require a separate email code from Supabase, in addition to your authenticator code. Request it before changing your password.")}
+            </p>
+            <Button type="button" variant="outline" disabled={reauthPending || pending}
+              onClick={() => startReauthentication(async () => {
+                try {
+                  setReauthFeedback(await requestPasswordReauthenticationAction());
+                } catch {
+                  setReauthFeedback({ error: "Verification email could not be requested. Please try again." });
+                }
+              })}>
+              {t(reauthPending ? "Please wait…" : "Send password verification email")}
+            </Button>
+            {(reauthFeedback.error || reauthFeedback.success) && (
+              <p role={reauthFeedback.error ? "alert" : "status"} className="text-xs">
+                {t(reauthFeedback.error ?? reauthFeedback.success ?? "")}
+              </p>
+            )}
+          </div>
         )}
 
         {mode === "reset" && security && (passwordContext !== "recovery" || security.enabled) && (
