@@ -1706,3 +1706,106 @@ test("F06 unknown password outcomes survive pruning and remain visible to operat
  await admin.query("select security_prune()");
  assert.equal((await admin.query("select id from private.security_revocations where id=$1",[g.id])).rows.length,0);
 });
+
+
+test("F06 reservation-time cleanup retains completed but password-pending outcomes",async()=>{
+  const f=await securityFixture();
+  const g=await actionGrant(f,'password_change','unconfirmed-native-result');
+  await authorizeGrant(g);
+  await admin.query(
+    "select security_prepare_password_change($1,$2,$3,$4,$5)",
+    [g.id,g.user,g.session,g.operation,g.hash],
+  );
+
+  // Native sessions can disappear while the native password result is still
+  // unknown. That makes the revocation 'completed' but not the password change.
+  await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+  await admin.query("select security_reconcile_revocations()");
+  assert.equal(
+    (await admin.query(
+      "select state,password_result from private.security_revocations where id=$1",
+      [g.id],
+    )).rows[0].state,
+    "completed",
+  );
+  await admin.query(
+    "update private.security_revocations set created_at=now()-interval '11 minutes' where id=$1",
+    [g.id],
+  );
+
+  const newSession=randomUUID();
+  await admin.query(
+    "insert into auth.sessions(id,user_id) values($1,$2)",
+    [newSession,f.user],
+  );
+  const newProof=randomBytes(32).toString('hex');
+  const newOp=await beginSecurity({...f,session:newSession},newProof,'others');
+  assert.ok(newOp);
+
+  const retained=(await admin.query(
+    "select state,password_result from private.security_revocations where id=$1",
+    [g.id],
+  )).rows[0];
+  assert.deepEqual(retained,{state:'completed',password_result:'pending'});
+  assert.equal(
+    (await admin.query(
+      "select state from private.security_revocations where id=$1",
+      [newOp],
+    )).rows[0].state,
+    'verifying',
+  );
+  const health=(await admin.query(
+    "select security_reconcile_revocations() as value",
+  )).rows[0].value;
+  assert.ok(health.passwordOutcomesPending>=1);
+  assert.ok(health.passwordOutcomesStale>=1);
+});
+
+test("F06 native concurrent revocation reservation, reconciliation and pruning preserve unknown outcomes",{skip:!native},async()=>{
+  const f=await securityFixture();
+  const g=await actionGrant(f,'password_change','native-unconfirmed-result');
+  await authorizeGrant(g);
+  await admin.query(
+    "select security_prepare_password_change($1,$2,$3,$4,$5)",
+    [g.id,g.user,g.session,g.operation,g.hash],
+  );
+  await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+  await admin.query("select security_reconcile_revocations()");
+  await admin.query(
+    "update private.security_revocations set created_at=now()-interval '2 days' where id=$1",
+    [g.id],
+  );
+  const newSession=randomUUID();
+  await admin.query(
+    "insert into auth.sessions(id,user_id) values($1,$2)",
+    [newSession,f.user],
+  );
+
+  const a=postgres.getPgClient();
+  const b=postgres.getPgClient();
+  const c=postgres.getPgClient();
+  await Promise.all([a.connect(),b.connect(),c.connect()]);
+  try {
+    const results=await Promise.all([
+      a.query(
+        "select security_begin_revocation($1,$2,$3,'others',$4) as id",
+        [f.user,newSession,f.factor,randomBytes(32).toString('hex')],
+      ),
+      b.query("select security_reconcile_revocations()"),
+      c.query("select security_prune()"),
+    ]);
+    assert.ok(results[0].rows[0].id);
+    const surviving=(await admin.query(
+      "select state,password_result from private.security_revocations where id=$1",
+      [g.id],
+    )).rows[0];
+    assert.deepEqual(surviving,{state:'completed',password_result:'pending'});
+    const counters=(await admin.query(
+      "select security_reconcile_revocations() as result",
+    )).rows[0].result;
+    assert.ok(counters.passwordOutcomesPending>=1);
+    assert.ok(counters.passwordOutcomesStale>=1);
+  } finally {
+    await Promise.all([a.end(),b.end(),c.end()]);
+  }
+});
