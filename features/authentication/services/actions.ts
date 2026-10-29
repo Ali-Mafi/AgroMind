@@ -603,14 +603,14 @@ export async function resetPasswordAction(
     const confirmed = !updated.error;
     let recorded = false;
     if (confirmed) {
-      const result = await grant.worker.rpc("security_password_changed", {
+      const result = await Promise.resolve(grant.worker.rpc("security_password_changed", {
         p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
-      }).catch(() => ({ error: true }));
+      })).catch(() => ({ error: true }));
       recorded = !result.error;
     } else if (["same_password", "reauthentication_needed", "reauthentication_not_valid",
       "weak_password", "validation_failed", "invalid_credentials"].includes(updated.error?.code ?? "")) {
       // A definite provider rejection is distinct from a lost/ambiguous response.
-      await grant.worker.rpc("security_password_update_rejected", {
+      await Promise.resolve(grant.worker.rpc("security_password_update_rejected", {
         p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
       }).catch(() => ({ error: true }));
     }
@@ -618,9 +618,9 @@ export async function resetPasswordAction(
     // or ambiguous password update; app denial and audit intent persist.
     const signedOut = await supabase.auth.signOut({ scope: "global" })
       .catch(() => ({ error: true }));
-    const finished = await grant.worker.rpc("security_finish_revocation", {
+    const finished = await Promise.resolve(grant.worker.rpc("security_finish_revocation", {
       p_id: grant.id, p_user: data.user.id, p_success: !signedOut.error,
-    }).catch(() => ({ error: true, data: false }));
+    })).catch(() => ({ error: true, data: false }));
     status = confirmed
       ? (recorded && !finished.error && finished.data === true
         ? "password-updated" : "password-updated-pending")
