@@ -31,7 +31,15 @@ export async function drainSupportEmails() {
   try {
     const reconciled = await client.rpc("security_reconcile_revocations");
     if (reconciled.error) console.error("[security] revocation_reconciliation_failed");
-    else if (reconciled.data?.pending) console.error("[security] revocations_pending", { pending: reconciled.data.pending, stale: reconciled.data.stale });
+    else {
+      if (reconciled.data?.pending)
+        console.error("[security] revocations_pending", { pending: reconciled.data.pending, stale: reconciled.data.stale });
+      if (reconciled.data?.passwordOutcomesPending)
+        console.error("[security] password_outcomes_pending", {
+          pending: reconciled.data.passwordOutcomesPending,
+          stale: reconciled.data.passwordOutcomesStale,
+        });
+    }
     const health = await client.rpc("security_email_health");
     if (health.error) console.error("[email] queue_health_failed");
     else if (health.data?.held || health.data?.overdue) console.error("[email] queue_attention_required", { held: health.data.held, overdue: health.data.overdue });
