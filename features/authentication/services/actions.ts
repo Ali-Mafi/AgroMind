@@ -31,6 +31,12 @@ import {
 const unavailable = {
   error: "Account services are temporarily unavailable. Please try again.",
 };
+const definitivePasswordRejections = new Set([
+  "same_password", "reauthentication_needed", "reauthentication_not_valid",
+  "current_password_required", "current_password_invalid",
+  "weak_password", "validation_failed", "invalid_credentials",
+]);
+
 const genericEmail = {
   success:
     "If an account matches this email, a message will arrive shortly. Check your inbox and spam folder.",
@@ -566,7 +572,7 @@ export async function resetPasswordAction(
     const currentPassword = String(form.get("current_password") ?? "");
     const nonce = String(form.get("reauthentication_nonce") ?? "").trim();
     // Validate optional provider proofs before consuming an operation-specific grant.
-    if (currentPassword.length > 128 || (nonce && !/^\d{6}$/.test(nonce)))
+    if (currentPassword.length > 128 || (nonce && !/^\d{6,10}$/.test(nonce)))
       return { error: "Enter a valid verification code and current password." };
     let grant;
     try {
@@ -601,30 +607,42 @@ export async function resetPasswordAction(
       ...(!recovery && nonce ? { nonce } : {}),
     }).catch(() => ({ error: { code: "request_timeout" } }));
     const confirmed = !updated.error;
+    const rejected = Boolean(updated.error && definitivePasswordRejections.has(updated.error.code ?? ""));
     let recorded = false;
     if (confirmed) {
       const result = await Promise.resolve(grant.worker.rpc("security_password_changed", {
         p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
       })).catch(() => ({ error: true }));
       recorded = !result.error;
-    } else if (["same_password", "reauthentication_needed", "reauthentication_not_valid",
-      "weak_password", "validation_failed", "invalid_credentials"].includes(updated.error?.code ?? "")) {
-      // A definite provider rejection is distinct from a lost/ambiguous response.
-      await Promise.resolve(grant.worker.rpc("security_password_update_rejected", {
+    } else if (rejected) {
+      // A recognized native API rejection is not an ambiguous transport outcome.
+      // Record its safe classification without saving passwords or OTPs.
+      const result = await Promise.resolve(grant.worker.rpc("security_password_update_rejected", {
         p_id: grant.id, p_user: data.user.id, p_session: grant.context.sessionId,
       })).catch(() => ({ error: true }));
+      recorded = !result.error;
     }
-    // Always attempt native refresh-token revocation, even after a rejected
-    // or ambiguous password update; app denial and audit intent persist.
+    // Even after provider rejection, app denials have committed. Do not remove
+    // them; attempt native revocation and give the user a new-login path.
     const signedOut = await supabase.auth.signOut({ scope: "global" })
       .catch(() => ({ error: true }));
     const finished = await Promise.resolve(grant.worker.rpc("security_finish_revocation", {
       p_id: grant.id, p_user: data.user.id, p_success: !signedOut.error,
     })).catch(() => ({ error: true, data: false }));
-    status = confirmed
-      ? (recorded && !finished.error && finished.data === true
-        ? "password-updated" : "password-updated-pending")
-      : "password-update-unknown";
+    const logoutConfirmed = !finished.error && finished.data === true;
+    // Password outcome, audit persistence, and native session disappearance
+    // are independent facts; never collapse them into one 'pending' claim.
+    if (confirmed) {
+      status = !recorded
+        ? (logoutConfirmed ? "password-updated-audit-pending" : "password-updated-checks-pending")
+        : (logoutConfirmed ? "password-updated" : "password-updated-pending");
+    } else if (rejected) {
+      status = !recorded
+        ? "password-rejected-record-pending"
+        : (logoutConfirmed ? "password-rejected" : "password-rejected-signout-pending");
+    } else {
+      status = "password-update-unknown";
+    }
   } catch {
     // No exception may turn an unknown or failed provider mutation into success.
     return unavailable;
