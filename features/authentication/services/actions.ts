@@ -630,6 +630,14 @@ export async function resetPasswordAction(
       p_id: grant.id, p_user: data.user.id, p_success: !signedOut.error,
     })).catch(() => ({ error: true, data: false }));
     const logoutConfirmed = !finished.error && finished.data === true;
+    // These are operational signals only: never log password, OTP, nonce, bearer
+    // tokens, or provider response bodies. The durable database state is authoritative.
+    if (!recorded && (confirmed || rejected))
+      console.error("[security] password_outcome_record_unconfirmed");
+    if (!logoutConfirmed)
+      console.error("[security] password_native_signout_unconfirmed");
+    if (!confirmed && !rejected)
+      console.error("[security] password_provider_outcome_unknown");
     // Password outcome, audit persistence, and native session disappearance
     // are independent facts; never collapse them into one 'pending' claim.
     if (confirmed) {
