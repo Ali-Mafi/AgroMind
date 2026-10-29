@@ -11,6 +11,10 @@ export type Database = GeneratedDatabase & { public: { Functions: {
   security_consume_action: Rpc<{ p_id: string; p_user: string; p_session: string; p_operation: string; p_payload_hash: string }, undefined>;
   security_change_username: Rpc<{ p_username: string; p_grant: string; p_payload_hash: string }, string>;
   security_password_changed: Rpc<{ p_id: string; p_user: string; p_session: string }, undefined>;
+  security_prepare_password_change: Rpc<{ p_id: string; p_user: string; p_session: string; p_operation: string; p_payload_hash: string }, boolean>;
+  security_password_update_rejected: Rpc<{ p_id: string; p_user: string; p_session: string }, undefined>;
+  security_revocation_status: Rpc<{ p_id: string; p_user: string; p_session: string }, Json>;
+  security_reserve_reauthentication: Rpc<{ p_user: string; p_session: string }, boolean>;
   security_reconcile_revocations: Rpc<Record<string, never>, Json>;
   security_email_health: Rpc<Record<string, never>, Json>;
   security_freeze_email: Rpc<{ p_id: string; p_lease: string; p_payload: Json }, Json>;
