@@ -32,7 +32,8 @@ function credentialHarness(options={}) {
  const client={auth:{
   getUser:async()=>({data:{user}}),
   getClaims:async()=>({data:{claims:{sub:options.claimUser??'user-a',session_id:options.claimSession??'session-a',amr:options.amr??[]}}}),
-  updateUser:async(args)=>{calls.push(['updateUser',args]);return {error:options.updateError?{}:null};},
+  updateUser:async(args)=>{calls.push(['updateUser',args]);return {error:options.updateError?{code:'reauthentication_needed'}:null};},
+  reauthenticate:async()=>{calls.push(['reauthenticate']);return {error:options.reauthError?{}:null};},
   verifyOtp:async()=>{calls.push(['verifyOtp']);return options.badLink?{error:{code:'otp_expired'}}:{data:{user,session:{access_token:'synthetic'}}};},
   signOut:async(args)=>{calls.push(['signOut',args]);return {error:options.pending?{}:null};},
   mfa:{
