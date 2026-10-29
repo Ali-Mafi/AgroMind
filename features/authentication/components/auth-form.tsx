@@ -342,7 +342,7 @@ export function AuthForm({
             </label>
             <input id="password-reauthentication-nonce" name="reauthentication_nonce"
               type="text" inputMode="numeric" autoComplete="one-time-code"
-              pattern="[0-9]{6}" maxLength={6} dir="ltr"
+              pattern="[0-9]{6,10}" minLength={6} maxLength={10} dir="ltr"
               className={accountInputClass} />
             <p className="text-xs text-muted-foreground">
               {t("Older sessions may require a separate email code from Supabase, in addition to your authenticator code. Request it before changing your password.")}
