@@ -1,4 +1,15 @@
 export const SECURITY_PERSIAN: Record<string, string> = {
+  "Current password (if required by your account policy)": "رمز عبور فعلی (اگر سیاست امنیتی حساب شما آن را لازم می‌داند)",
+  "Email verification code (when required)": "کد تأیید ایمیلی (در صورت نیاز)",
+  "Older sessions may require a separate email code from Supabase, in addition to your authenticator code. Request it before changing your password.": "برای نشست‌های قدیمی ممکن است علاوه بر کد برنامه احراز هویت، کد جداگانه‌ای از ایمیل لازم باشد. پیش از تغییر رمز آن را درخواست کنید.",
+  "Send password verification email": "ارسال ایمیل تأیید تغییر رمز",
+  "Verification code sent. Check your email and enter the code below.": "کد تأیید ارسال شد. ایمیل خود را بررسی کنید و کد را در کادر وارد کنید.",
+  "Please wait before requesting another verification email.": "پیش از درخواست ایمیل تأیید دیگر، کمی صبر کنید.",
+  "Verification email could not be requested. Please try again.": "درخواست ایمیل تأیید انجام نشد. دوباره تلاش کنید.",
+  "Password change could not be confirmed. Previous AgroMind sessions were restricted. Sign in with the password you believe is current, or use verified account recovery.": "نتیجهٔ تغییر رمز تأیید نشد. دسترسی نشست‌های قبلی آگرومایند محدود شده است. با رمزی که فکر می‌کنید فعال است وارد شوید یا از بازیابی تأییدشده حساب استفاده کنید.",
+  "Password change was not attempted. Your session may have been restricted; sign in again or use account recovery.": "تغییر رمز آغاز نشد. ممکن است دسترسی نشست محدود شده باشد؛ دوباره وارد شوید یا حساب را بازیابی کنید.",
+  "Enter a valid verification code and current password.": "کد تأیید و رمز فعلی معتبر وارد کنید.",
+  "Session revocation could not be verified. Your session may be restricted. Sign in again if access is unavailable.": "وضعیت لغو نشست تأیید نشد. ممکن است دسترسی نشست محدود شده باشد. اگر دسترسی ندارید، دوباره وارد شوید.",
   "Fresh codes protect sign-out initiated here. Direct Supabase Auth operations follow the provider's own authorization rules.":
     "خروج از نشست‌ها در این بخش به کد تازه نیاز دارد. عملیات مستقیم Supabase Auth تابع قواعد مجوزدهی خود آن سرویس است.",
   "Session access is blocked, but provider sign-out could not be confirmed. Sign in again and use a new authenticator code to complete sign-out.":
