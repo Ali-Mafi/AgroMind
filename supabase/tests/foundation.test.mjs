@@ -1659,3 +1659,30 @@ test("F02 native logout without app tombstones cannot restore sensitive-data acc
   assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
  } finally {await current.end();await remote.end();await other.end();}
 });
+
+test("F06 prepared credential mutation denies native snapshots before provider work",async()=>{
+ const f=await securityFixture();
+ const g=await actionGrant(f,'password_change','synthetic-password');
+ await authorizeGrant(g);
+ assert.equal((await admin.query("select security_prepare_password_change($1,$2,$3,$4,$5) as ok",[g.id,g.user,g.session,g.operation,g.hash])).rows[0].ok,true);
+ assert.equal((await admin.query("select state from private.security_action_grants where id=$1",[g.id])).rows[0].state,'consumed');
+ assert.equal((await admin.query("select password_result from private.security_revocations where id=$1",[g.id])).rows[0].password_result,'pending');
+ const denied=await asUser(f.user,'aal2',f.session);
+ try{assert.equal((await denied.query("select get_current_session() as s")).rows[0].s,null);}
+ finally{await denied.end();}
+ await assert.rejects(consumeGrant(g),/SECURITY_REPLAY/);
+ await admin.query("select security_password_changed($1,$2,$3)",[g.id,g.user,g.session]);
+ await admin.query("select security_password_changed($1,$2,$3)",[g.id,g.user,g.session]);
+ assert.equal((await admin.query("select count(*)::int as n from private.security_events where user_id=$1 and kind='password_changed'",[f.user])).rows[0].n,1);
+ const state=(await admin.query("select security_revocation_status($1,$2,$3) as v",[g.id,g.user,g.session])).rows[0].v;
+ assert.equal(state.consumed,true);assert.equal(state.scope,'global');
+});
+test("F06 failed preparation rolls back consumption and denial; F08 reauth is throttled",async()=>{
+ const f=await securityFixture(),g=await actionGrant(f,'password_change','synthetic-password');
+ await authorizeGrant(g);
+ await assert.rejects(admin.query("select security_prepare_password_change($1,$2,$3,$4,$5)",[g.id,g.user,g.session,g.operation,payloadHash('different')]),/SECURITY_REPLAY/);
+ assert.equal((await admin.query("select state from private.security_action_grants where id=$1",[g.id])).rows[0].state,'verified');
+ assert.equal((await admin.query("select count(*)::int as n from private.security_denied_sessions where user_id=$1",[f.user])).rows[0].n,0);
+ assert.equal((await admin.query("select security_reserve_reauthentication($1,$2) as ok",[f.user,f.session])).rows[0].ok,true);
+ await assert.rejects(admin.query("select security_reserve_reauthentication($1,$2)",[f.user,f.session]),/SECURITY_REAUTH_RATE_LIMIT/);
+});
