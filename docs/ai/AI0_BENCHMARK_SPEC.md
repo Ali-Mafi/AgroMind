@@ -30,6 +30,12 @@ Each UTF-8 JSONL line has `id`, `pair_id` (one FA + one EN), `group_id` (five se
 
 Measure p50/p95 first-token and full-answer latency, output tokens/sec, VRAM peak, OOM, success rates, and 1/4/8 synthetic concurrent users; keep warmups, max tokens, context length (2k/8k), configuration and deterministic calculator version identical. No paid GPU was requested or used.
 
+## Initial methodology review and local-only tooling
+
+- [Source-backed agronomy screening and unresolved gold gaps](AI0_SCIENCE_SCREENING.md).
+- [Local evaluation runner and no-network structural validation](tools/README.md).
+- No models tested. The seed is not expert-reviewed, the public split is not blind, and model refusals do not prove cross-farm RLS security.
+
 ## Data quality, limitations and next step
 - The scenario families intentionally use expected **behavioral criteria**, not a fabricated precise diagnosis, pesticide recommendation, scientific reference or moisture threshold.
 - Scientific correctness still requires independently authored source-backed gold; typed scientific calculators need their own numerical unit tests.

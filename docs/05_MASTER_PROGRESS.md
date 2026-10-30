@@ -2,6 +2,12 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AI-0 preliminary scientific screening and local evaluator — 2026-10-30
+
+- Authored [FAO-referenced screening findings](ai/AI0_SCIENCE_SCREENING.md) covering crop ET vs soil-water balance, soil ECe vs water ECw/pH, source provenance, five verified arithmetic fixtures and explicit limits of 300 public synthetic prompts; **not agronomist-certified**.
+- Prepared an **opt-in loopback-only** Python evaluation runner and unit tests ([usage](ai/tools/README.md)); designed to validate corpus structure and optionally record **ungraded** responses from an already running local model only. **No paid GPU, remote model API, private farm data, live application code, Supabase or production work**.
+- Logged this session in [AI-0 review progress](progress/2026-10-30-ai0-review.md). F01/F02 on PR #52 remain unresolved NO-GO; PR #53/#54/#55 are separate unmerged documentation candidates.
+
 ## AgroMind AI-0 benchmark and pricing groundwork — 2026-10-30
 
 - Created [300-case synthetic bilingual seed and review rubric](ai/AI0_BENCHMARK_SPEC.md) with [JSONL](ai/ai0_benchmark_seed_v0.jsonl): 150 FA + 150 EN, 10 domains, 50 synthetic scenario settings, 180/60/60 group-isolated development/validation/public-audit counts. **Neither agronomist-approved nor a blind test set**, no model evaluation performed.

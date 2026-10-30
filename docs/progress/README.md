@@ -38,3 +38,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-30 — AgroMind AI architecture and model strategy](2026-10-30-ai-strategy.md)
 
 - [2026-10-30 — AI-0 bilingual synthetic corpus and GPU cost research](2026-10-30-ai0.md)
+
+- [2026-10-30 — AI-0 agronomy screening and local evaluation harness](2026-10-30-ai0-review.md)
