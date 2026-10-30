@@ -1,6 +1,14 @@
 # AgroMind Master Progress
 
-> **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
+> **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
+
+## Roadmap decision and security release gate — 2026-10-30
+
+- **Source inspected:** `main` at [`42a8eb2b54fd`](https://github.com/Ali-Mafi/AgroMind/commit/42a8eb2b54fd5852f11a2cc31e09dd7b598e4dc0) on 2026-10-30; documentation status only. The older audited-baseline and feature entries below remain dated evidence; they are not an assertion that their SHAs or provider acceptance represent today's production.
+- **Security candidate:** [Draft PR #52](https://github.com/Ali-Mafi/AgroMind/pull/52) at observed HEAD `565db25a72df30ba70dd54cfd1aa3bfa65ec8689` is open, unmerged and **NO-GO**. **F01** native-credential authorization boundary and **F02** native-provider logout freshness boundary remain unresolved for release. Independent re-audit, explicit residual-risk decision, hosted acceptance and migration preparation are not completed by this documentation update. Do not merge/deploy or apply production migrations.
+- **Approved product direction:** all seven phases recorded in [Roadmap](ROADMAP.md): **0 Security & Stability; 1 Weather Intelligence 2.0; 2 Smart Irrigation 2.0; 3 Farm-aware AI; 4 Premium & Billing; 5 Satellite & Farm Intelligence; 6 AgroMind IoT**. These are *planned capabilities*, not shipped features, fixed dates or implementation authorization. Existing foundations are preserved.
+- **Progress discipline:** created a dated docs-only entry ([2026-10-30](progress/2026-10-30.md)) and updated the [daily index](progress/README.md). Future entries must describe actual work and evidence, not automatic invented daily status.
+- **No software change:** no feature code, Supabase provider settings, accounts, production database, remote security, payment setup, merge or deployment is modified in this documentation pass. Docs commit/PR and CI status must be reported separately.
 
 ## Signature Premium email candidate — 2026-10-28
 
@@ -17,7 +25,7 @@
 - Transactional email outbox, localized templates, Resend idempotency, leasing and retries implemented. **Email activation/delivery is not verified:** server worker credential, confirmed support recipient, cron secret and scheduler are not configured. Staff bootstrap is manual; no arbitrary account was promoted.
 - [Setup and operations](SUPPORT_TICKETS.md); [session evidence](progress/2026-10-26-support.md). This entry records local/schema evidence; matching code commit CI and production release are checked separately after push. Authenticated browser/mobile and real inbox acceptance remain outstanding.
 
-## Current baseline
+## Audited baseline — historical 2026-10-05 (not the present main HEAD)
 
 - Repository: [Ali-Mafi/AgroMind](https://github.com/Ali-Mafi/AgroMind), branch `main`.
 - Audited source commit: [`3d3eadcff8b738b9e9f2c065621d19fc30a91233`](https://github.com/Ali-Mafi/AgroMind/commit/3d3eadcff8b738b9e9f2c065621d19fc30a91233), dated 2026-10-05.
@@ -93,9 +101,11 @@
 - **Device/integration:** authenticated iPhone PWA launch/safe area/performance, offline cache upgrades, live email/OAuth, role invitations and eNAMAD rendering still need explicit testing.
 - **Brand:** application branding remains AgroMind in source; business/company naming is a separate decision.
 
-## Active next steps
+## Prior next steps — historical planning at 2026-10-25
 
-1. Maintain coherent evidence-based progress and workflow documentation (this docs-only pass).
+These were the earlier priorities and have been superseded by the 2026-10-30 security release gate and seven-phase [Roadmap](ROADMAP.md). Separate implementation authorization is still required.
+
+1. Maintain coherent evidence-based progress and workflow documentation.
 2. Validate live account/device/weather/invite flows and record reproducible issues.
 3. Design and implement the actual farm-aware AI assistant in an authorized task.
 4. Verify payment, entitlements, and trust flows before commercial launch.
