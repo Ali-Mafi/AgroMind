@@ -51,6 +51,8 @@ The audited project already has Next.js 16 / React 19 / TypeScript, Supabase SSR
 
 ### Phase 3 — Farm-aware AgroMind AI Assistant
 
+- **Model and architecture discovery proposal:** [AgroMind AI — Architecture & Model Strategy](AGROMIND_AI_ARCHITECTURE_MODEL_STRATEGY.md); this is not implementation authorization, a chosen model or production approval.
+
 - Replace the currently **draft-only, send-disabled** Assistant with a gated authenticated service: least-privilege/RLS-protected farm context, clear data-use boundaries, model/provider fail-safe behavior, usage quotas and billing-aware cost controls.
 - Provide localized conversational recommendations grounded in farm/weather/irrigation provenance; show uncertainty, sources, missing data and escalation for consequential advice.
 - Do not let a language model independently issue financial, account-security or physical equipment commands.

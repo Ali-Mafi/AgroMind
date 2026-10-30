@@ -34,3 +34,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-28 — Signature Premium reference polish](2026-10-28-email-polish.md)
 
 - [2026-10-30 — Seven-phase roadmap and PR #52 release-gate documentation](2026-10-30.md)
+
+- [2026-10-30 — AgroMind AI architecture and model strategy](2026-10-30-ai-strategy.md)

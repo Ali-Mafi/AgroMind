@@ -2,6 +2,11 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AgroMind AI strategy proposal — 2026-10-30
+
+- Drafted [AgroMind AI — Architecture & Model Strategy](AGROMIND_AI_ARCHITECTURE_MODEL_STRATEGY.md) covering independent open-weight inference, Qwen3.5/gpt-oss/Gemma comparison, RAG and agricultural calculations, secure farm data boundaries, realistic GPU costs, Persian/English evaluations and staged deployment gates.
+- **Documentation only:** no selected/deployed model, fine-tuning, GPU purchase, database migration, active AI chat, private-user-data access or acceptance of PR #52 F01/F02. This work is based on **unmerged PR #53** and reported in [AI strategy daily progress](progress/2026-10-30-ai-strategy.md).
+
 ## Roadmap decision and security release gate — 2026-10-30
 
 - **Source inspected:** `main` at [`42a8eb2b54fd`](https://github.com/Ali-Mafi/AgroMind/commit/42a8eb2b54fd5852f11a2cc31e09dd7b598e4dc0) on 2026-10-30; documentation status only. The older audited-baseline and feature entries below remain dated evidence; they are not an assertion that their SHAs or provider acceptance represent today's production.
