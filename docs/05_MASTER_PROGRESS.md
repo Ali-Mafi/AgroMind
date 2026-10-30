@@ -2,6 +2,12 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AI-0 expert-review preparation and model-trial readiness — 2026-10-31
+
+- Created [150 paired bilingual reviewer cards](ai/ai0_reviewer_cards_v1.jsonl) covering all 300 synthetic public prompts, with 30 question-variant-specific **engineering criteria**, 50 base situations and explicit `PENDING_INDEPENDENT_REVIEW` fields. No certified scientific gold or model evaluation is claimed; see [review guide](ai/AI0_REVIEWER_GUIDE.md).
+- Prepared [sealed holdout governance](ai/AI0_PRIVATE_HOLDOUT_PROTOCOL.md) (**no hidden cases generated/published**) and [GPU/model no-spend gate](ai/AI0_MODEL_TRIAL_GATE.md). No model, GPU or real user data touched.
+- Working changes are stacked on the unmerged AI-0 [PR #56](https://github.com/Ali-Mafi/AgroMind/pull/56); `main`, repository visibility and security [PR #52](https://github.com/Ali-Mafi/AgroMind/pull/52) remain unchanged, with F01/F02 release NO-GO. [Dated evidence](progress/2026-10-31-ai0-review-prep.md).
+
 ## AgroMind AI-0 scientific desk screen and offline runner — 2026-10-30
 
 - [Scientific/safety desk screen](ai/AI0_SCIENTIFIC_SCREEN.md) completed: checked five unique dimensional-analysis examples, screened all ten domain types, identified dataset correlation, unreviewed gold, fictional REF citations, tenant-auth integration gaps and missing agronomic field evidence. **Not a qualified agronomist sign-off or a tested model.**

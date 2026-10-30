@@ -40,3 +40,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-30 — AI-0 bilingual synthetic corpus and GPU cost research](2026-10-30-ai0.md)
 
 - [2026-10-30 — AI-0 scientific desk screen and local-only benchmark runner](2026-10-30-ai0-validation.md)
+
+- [2026-10-31 — AI-0 expert review preparation and model-trial gates](2026-10-31-ai0-review-prep.md)
