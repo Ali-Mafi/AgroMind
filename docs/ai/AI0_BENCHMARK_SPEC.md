@@ -30,6 +30,11 @@ Each UTF-8 JSONL line has `id`, `pair_id` (one FA + one EN), `group_id` (five se
 
 Measure p50/p95 first-token and full-answer latency, output tokens/sec, VRAM peak, OOM, success rates, and 1/4/8 synthetic concurrent users; keep warmups, max tokens, context length (2k/8k), configuration and deterministic calculator version identical. No paid GPU was requested or used.
 
+## Next-step evidence: scientific screen and runnable local pilot
+
+- [Scientific/safety desk screen](AI0_SCIENTIFIC_SCREEN.md) checks **five math fixture groups**, flags specific limitations in the 10-domain seed and references FAO methods. This is **not** expert agronomy approval.
+- [Local-only experiment runner and runbook](AI0_LOCAL_PILOT_RUNBOOK.md) includes an actual standard-library Python JSONL validator, a bounded **base-only** local inference adapter and isolated tests. No model has been executed. A separate secured blind holdout, agronomic reference review and tool/RAG implementations are still required.
+
 ## Data quality, limitations and next step
 - The scenario families intentionally use expected **behavioral criteria**, not a fabricated precise diagnosis, pesticide recommendation, scientific reference or moisture threshold.
 - Scientific correctness still requires independently authored source-backed gold; typed scientific calculators need their own numerical unit tests.

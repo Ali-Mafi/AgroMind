@@ -32,6 +32,10 @@ Rates below were observed from [Runpod pricing](https://www.runpod.io/pricing) (
 
 [Vast.ai](https://vast.ai/pricing) uses dynamic marketplace offers; no fixed market-wide rate is invented here. Compare actual dated region/tier offers instead, with interruption and privacy implications documented.
 
+## Owned-hardware comparison
+
+See [Owned GPU vs rented GPU TCO and energy assumptions](AI0_GPU_OWN_VS_RENT.md). RTX A5000/3090 24 GB VRAM does **not** guarantee a specific model capacity or safe production availability; comparison includes full server costs and observed workload, not just rented hours.
+
 ## Decision and safety gate
 1. Confirm the exact model revision, license/usage policy, quantization and runtime compatibility.
 2. Confirm GPU provider access, acceptable region, data residency, disk/egress billing, security and exact rate *at time of rental*.
