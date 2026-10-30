@@ -2,6 +2,13 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AgroMind AI-0 scientific desk screen and offline runner — 2026-10-30
+
+- [Scientific/safety desk screen](ai/AI0_SCIENTIFIC_SCREEN.md) completed: checked five unique dimensional-analysis examples, screened all ten domain types, identified dataset correlation, unreviewed gold, fictional REF citations, tenant-auth integration gaps and missing agronomic field evidence. **Not a qualified agronomist sign-off or a tested model.**
+- Added [local-only pilot runbook](ai/AI0_LOCAL_PILOT_RUNBOOK.md) and [Python validator/trial adapter](ai/tools/ai0_eval.py) plus [unit tests](ai/tools/test_ai0_eval.py). Local Python 3.13 syntax/8 isolated tests passed; actual GitHub JSONL separately checked for 300 records, 150 bilingual pairs, 50 groups and five numeric fixtures. **No real GPU inference, remote data use, code integration or scientific scoring.**
+- Added [Owned vs rented GPU decision framework](ai/AI0_GPU_OWN_VS_RENT.md), accounting for infrastructure, energy, duty cycle, outage, cost and capacity. **No GPU purchased/rented or budget approved.** Security PR #52 F01/F02 remains NO-GO; PRs #52–#55 and main unchanged.
+- [Daily session details](progress/2026-10-30-ai0-validation.md).
+
 ## AgroMind AI-0 benchmark and pricing groundwork — 2026-10-30
 
 - Created [300-case synthetic bilingual seed and review rubric](ai/AI0_BENCHMARK_SPEC.md) with [JSONL](ai/ai0_benchmark_seed_v0.jsonl): 150 FA + 150 EN, 10 domains, 50 synthetic scenario settings, 180/60/60 group-isolated development/validation/public-audit counts. **Neither agronomist-approved nor a blind test set**, no model evaluation performed.
