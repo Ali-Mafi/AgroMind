@@ -195,6 +195,12 @@ Successful model fine-tuning is not a substitute for RLS, scientific calculators
 
 **Sequence constraint:** AI-0 to AI-3 research can use **public/synthetic** inputs while PR #52 is unresolved; AI-4 onwards touching real private farm data requires closure/accepted disposition of security release gates with actual hosted verification. This plan **does not request merge/deployment** of PR #52 or #53.
 
+## AI-0 benchmark research assets — 2026-10-30
+
+- [300-case bilingual synthetic seed & evaluation protocol](ai/AI0_BENCHMARK_SPEC.md), with [machine-readable JSONL](ai/ai0_benchmark_seed_v0.jsonl): **150 FA / 150 EN**; 10 domains; 50 underlying synthetic settings; 180 development / 60 validation / 60 public audit examples.
+- [Dated official GPU list-price and model sizing hypotheses](ai/AI0_GPU_COST_MATRIX.md) with [CSV snapshot](ai/ai0_gpu_prices_2026-10-30.csv). Prices are not a booked quote, runtime measurements or total cost.
+- **Limitations:** initial seeds are **not expert-gold**, the publicly committed validation/audit splits are **not blind**, and **no candidate model was downloaded, trained or benchmarked**. A truly private, independent holdout must be created before claiming an unbiased model winner. No GPU rental or budget authorization.
+
 ## 10. Open decisions and immediate next task
 
 - [ ] Confirm whether the public product name will be **AgroMind AI**, **AgroAI**, or another; conduct actual brand/trademark clearance before claiming exclusivity.

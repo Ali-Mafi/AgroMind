@@ -1,0 +1,10 @@
+provider,tier,gpu,vram_gb,usd_per_hour,usd_20h,usd_80h,usd_160h,usd_730h,checked_date,source_url
+Runpod,displayed Pod tier,RTX A5000,24,0.27,5.40,21.60,43.20,197.10,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,RTX 4090,24,0.89,17.80,71.20,142.40,649.70,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,L4,24,0.59,11.80,47.20,94.40,430.70,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,L40S,48,1.09,21.80,87.20,174.40,795.70,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,RTX 6000 Ada,48,0.99,19.80,79.20,158.40,722.70,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,A100 PCIe,80,1.79,35.80,143.20,286.40,1306.70,2026-10-30,https://www.runpod.io/pricing
+Runpod,displayed Pod tier,H100 PCIe,80,2.89,57.80,231.20,462.40,2109.70,2026-10-30,https://www.runpod.io/pricing
+Lambda,on demand single GPU,A6000,48,1.09,21.80,87.20,174.40,795.70,2026-10-30,https://lambda.ai/instances
+Lambda,on demand single GPU,H100 PCIe,80,3.29,65.80,263.20,526.40,2401.70,2026-10-30,https://lambda.ai/instances

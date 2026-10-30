@@ -2,6 +2,12 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AgroMind AI-0 benchmark and pricing groundwork — 2026-10-30
+
+- Created [300-case synthetic bilingual seed and review rubric](ai/AI0_BENCHMARK_SPEC.md) with [JSONL](ai/ai0_benchmark_seed_v0.jsonl): 150 FA + 150 EN, 10 domains, 50 synthetic scenario settings, 180/60/60 group-isolated development/validation/public-audit counts. **Neither agronomist-approved nor a blind test set**, no model evaluation performed.
+- Recorded [model-to-GPU hypotheses and price matrix](ai/AI0_GPU_COST_MATRIX.md) plus [9-row machine-readable price snapshot](ai/ai0_gpu_prices_2026-10-30.csv) from dated Runpod and Lambda public rate listings. Availability, all-in operating cost and accuracy are not verified; **no GPU account, rental or spend**.
+- Research-only [daily entry](progress/2026-10-30-ai0.md). PR #52 remains **Draft / NO-GO** pending F01/F02; PR #53/#54 remain unmerged. This AI-0 branch does not modify existing PR branches, code, database, production or credentials.
+
 ## AgroMind AI strategy proposal — 2026-10-30
 
 - Drafted [AgroMind AI — Architecture & Model Strategy](AGROMIND_AI_ARCHITECTURE_MODEL_STRATEGY.md) covering independent open-weight inference, Qwen3.5/gpt-oss/Gemma comparison, RAG and agricultural calculations, secure farm data boundaries, realistic GPU costs, Persian/English evaluations and staged deployment gates.
