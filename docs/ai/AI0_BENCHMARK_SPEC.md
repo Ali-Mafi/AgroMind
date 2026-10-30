@@ -35,6 +35,13 @@ Measure p50/p95 first-token and full-answer latency, output tokens/sec, VRAM pea
 - [Scientific/safety desk screen](AI0_SCIENTIFIC_SCREEN.md) checks **five math fixture groups**, flags specific limitations in the 10-domain seed and references FAO methods. This is **not** expert agronomy approval.
 - [Local-only experiment runner and runbook](AI0_LOCAL_PILOT_RUNBOOK.md) includes an actual standard-library Python JSONL validator, a bounded **base-only** local inference adapter and isolated tests. No model has been executed. A separate secured blind holdout, agronomic reference review and tool/RAG implementations are still required.
 
+## AI-0 independent review preparation (2026-10-31)
+
+- [150 bilingual reviewer cards](ai0_reviewer_cards_v1.jsonl) now map all 300 prompts to **question-variant-specific engineering anchors** with explicit **PENDING** expert gold; see [review protocol](AI0_REVIEWER_GUIDE.md).
+- [Sealed holdout governance](AI0_PRIVATE_HOLDOUT_PROTOCOL.md): **no blind holdout has been authored or uploaded**; expert ownership, independent novel scenarios and access control required.
+- [Model/GPU no-spend preflight](AI0_MODEL_TRIAL_GATE.md): no candidate winner, no paid GPU, no production integration.
+- The reviewer cards are **public** and may not be reused as a blind final test or automatic training ground truth.
+
 ## Data quality, limitations and next step
 - The scenario families intentionally use expected **behavioral criteria**, not a fabricated precise diagnosis, pesticide recommendation, scientific reference or moisture threshold.
 - Scientific correctness still requires independently authored source-backed gold; typed scientific calculators need their own numerical unit tests.
