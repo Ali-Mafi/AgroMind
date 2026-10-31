@@ -151,7 +151,7 @@ test("notification failures acknowledge retry without throwing or losing a ticke
             calls.push({ name, args });
             return {
               data:
-                name === "support_email_jobs"
+                name === "transactional_email_jobs_v2"
                   ? [
                       {
                         id: "job",
@@ -163,7 +163,7 @@ test("notification failures acknowledge retry without throwing or losing a ticke
                         language: "en",
                       },
                     ]
-                  : null,
+                  : name === "security_freeze_email" ? args.p_payload : null,
               error: null,
             };
           },
@@ -178,8 +178,8 @@ test("notification failures acknowledge retry without throwing or losing a ticke
   );
   try {
     await drainSupportEmails();
-    assert.equal(calls[1].args.p_sent, false);
-    assert.equal(calls[1].args.p_id, "job");
+    assert.equal(calls.find(c => c.name === "support_email_ack").args.p_sent, false);
+    assert.equal(calls.find(c => c.name === "support_email_ack").args.p_id, "job");
   } finally {
     for (const n of names) {
       if (before[n] === undefined) delete process.env[n];

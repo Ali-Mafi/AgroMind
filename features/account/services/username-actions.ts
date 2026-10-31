@@ -1,9 +1,9 @@
 "use server";
 
+import { authorizeCredentialAction, credentialPayloadHash, requireSecurityOrigin } from "@/features/account-security/services/action-proof";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { usernameSchema } from "@/features/authentication/lib/validation";
-import { verifyFreshIdentity } from "@/features/authentication/services/fresh-auth";
 import { currentUser } from "@/features/authentication/services/session";
 
 export type UsernameActionState = {
@@ -35,6 +35,7 @@ export async function updateUsernameAction(
   }
 
   try {
+    await requireSecurityOrigin();
     const user = await currentUser();
     if (!user?.email_confirmed_at) {
       return { error: "Sign in again before changing your username." };
@@ -73,18 +74,16 @@ export async function updateUsernameAction(
       };
     }
 
-    const proofError = await verifyFreshIdentity(supabase, user, form);
-    if (proofError) {
-      return {
-        error:
-          "Enter a fresh code from your authenticator to change your username.",
-      };
+    const payloadHash = credentialPayloadHash("username", parsed.data);
+    let grant;
+    try {
+      grant = await authorizeCredentialAction(supabase, user, form, "username", payloadHash);
+    } catch {
+      return { error: "Enter a fresh code from your authenticator to change your username." };
     }
-
-    const changed = await supabase.rpc(
-      "change_username" as never,
-      { p_username: parsed.data } as never,
-    );
+    const changed = await supabase.rpc("security_change_username", {
+      p_username: parsed.data, p_grant: grant.id, p_payload_hash: payloadHash,
+    });
     if (changed.error) {
       if (usernameTaken(changed.error)) {
         return {

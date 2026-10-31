@@ -6,6 +6,7 @@ const destination = path.resolve(process.argv[2] ?? "/tmp/agromind-email-preview
 mkdirSync(destination, {recursive:true});
 const {renderAuthEmail}=loadTs("features/authentication/emails/templates.ts");
 const {renderFarmInvitationEmail}=loadTs("features/collaboration/emails/templates.ts");
+const {loginSecurityEmail}=loadTs("features/account-security/lib/email.ts");
 const {supportEmail}=loadTs("features/support/lib/email.ts");
 const assetDestination=path.join(destination,"assets");
 mkdirSync(assetDestination,{recursive:true});
@@ -15,6 +16,7 @@ for(const version of ["signature-v1", "signature-v2"]) {
 }
 const cases=[];
 for(const language of ["fa","en"]) {
+  cases.push({name:`security-login-${language}`,language,...loginSecurityEmail({metadata:{device:"Mobile",os:"iOS",browser:"Safari",ip:"203.0.113.42",city:"Example City",country:"IR"},provider:"google",loginAt:"2026-10-28T12:00:00Z"},language)});
   for(const kind of ["signup","recovery"]) cases.push({name:`${kind}-${language}`,language,...renderAuthEmail(kind,"b".repeat(64),language)});
   cases.push({name:`invitation-${language}`,language,...renderFarmInvitationEmail({href:"https://agromind.ir/invite/preview-disabled",farmName:language==="fa"?"مزرعه نمونه":"Example Farm",role:"manager",language})});
   for(const audience of ["user","staff"]) for(const event of ["created","reply","status"]) cases.push({name:`support-${audience}-${event}-${language}`,language,...supportEmail("AM-00000042",event,language,`https://agromind.ir/${audience==="staff"?"admin/support":"account/help"}`,audience)});

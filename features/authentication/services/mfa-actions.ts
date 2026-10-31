@@ -1,5 +1,8 @@
 "use server";
 
+import { observeLogin } from "@/features/account-security/services/login";
+import { revokeRemoteSessions } from "@/features/account-security/services/revoke";
+import { recordSecurityEvent, securityContext } from "@/features/account-security/services/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -246,6 +249,7 @@ export async function verifyTotpEnrollmentAction(
     return { error: "Sign in again to manage two-step verification." };
 
   try {
+    const auditContext = await securityContext(context.supabase).catch(() => null);
     const factors = await context.supabase.auth.mfa.listFactors();
     if (
       factors.error ||
@@ -282,6 +286,7 @@ export async function verifyTotpEnrollmentAction(
       };
     }
 
+    if (auditContext) await recordSecurityEvent(auditContext, "mfa_enrolled", factorId);
     revalidatePath("/account/security");
     revalidatePath("/", "layout");
     return { success: "Two-step verification is enabled." };
@@ -403,6 +408,7 @@ export async function disableTotpAction(
     return { error: "Sign in again to manage two-step verification." };
 
   try {
+    const auditContext = await securityContext(context.supabase).catch(() => null);
     const [factors, assurance] = await Promise.all([
       context.supabase.auth.mfa.listFactors(),
       context.supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
@@ -478,6 +484,7 @@ export async function disableTotpAction(
             "Two-step verification could not be disabled. Please try again.",
         };
       }
+      if (auditContext) await recordSecurityEvent(auditContext, "mfa_removed", target.id);
     }
 
     await context.supabase.auth.refreshSession();
@@ -536,6 +543,7 @@ export async function verifyMfaChallengeAction(
     return { error: unavailable };
   }
 
+  await observeLogin();
   revalidatePath("/", "layout");
   redirect(destination);
 }
@@ -575,6 +583,7 @@ export async function verifyRecoveryCodeAction(
     return { error: "Backup-code sign-in is not available right now." };
   }
 
+  await observeLogin();
   revalidatePath("/", "layout");
   redirect(destination);
 }
@@ -605,23 +614,9 @@ export async function signOutSessionsAction(
   _state: MfaActionState,
   form: FormData,
 ): Promise<MfaActionState> {
-  const scope = form.get("scope");
-  if (scope !== "global" && scope !== "others") return { error: unavailable };
-  const context = await signedInClient();
-  if (!context) return { error: unavailable };
-  try {
-    const proofError = await verifyFreshIdentity(
-      context.supabase,
-      context.user,
-      form,
-    );
-    if (proofError) return { error: proofError };
-    const result = await context.supabase.auth.signOut({ scope });
-    if (result.error) return { error: unavailable };
-  } catch {
-    return { error: unavailable };
-  }
+  const result = await revokeRemoteSessions(form);
   revalidatePath("/", "layout");
-  if (scope === "global") redirect("/sign-in");
-  return { success: "Other sessions have been signed out." };
+  if (result.global && result.pending) redirect("/sign-in?status=revocation-pending&next=/account/security");
+  if (result.global && !result.error) redirect("/sign-in");
+  return result;
 }

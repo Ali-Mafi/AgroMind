@@ -1,3 +1,7 @@
+> 2026-10-29: [PR #52 remediation](SECURITY_REMEDIATION_PR52.md) supersedes candidate password/username and failure-retry descriptions below. Native provider freshness remains unresolved; historical live test claims below do not certify this new candidate.
+
+> Review candidate (2026-10-28): [Advanced sessions](ACCOUNT_SESSIONS.md) strengthens remote sign-out to fresh TOTP only, adds authentic session listings, login email and activity history. The password fallback described below applies to the earlier baseline, not the candidate remote-signout path. No candidate production release is claimed.
+
 # Phase 2.1 — Account security hardening
 
 Baseline: main `52d763a`. Existing Supabase Auth, TOTP/AAL2, ownership RLS and

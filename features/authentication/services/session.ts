@@ -1,4 +1,5 @@
 import "server-only";
+import { observeLogin } from "@/features/account-security/services/login";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,7 @@ export const requireUser = cache(async () => {
   if (!user.email_confirmed_at) redirect("/verify-email");
   if (await needsSecondFactor()) redirect("/mfa");
   if (needsGoogleTerms(user)) redirect("/accept-terms");
+  await observeLogin();
   return user;
 });
 

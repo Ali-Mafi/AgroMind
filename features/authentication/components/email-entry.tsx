@@ -1,8 +1,10 @@
+import { createClient } from "@/lib/supabase/server";
+import { recoveryAuthorization } from "../services/recovery-authorization";
+import { readMfaSecurityState } from "../services/mfa-actions";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { T } from "@/features/settings/components/translated-text";
-import { currentUser, needsSecondFactor } from "../services/session";
+import { currentUser } from "../services/session";
 import { readPendingSignup } from "../lib/pending-signup";
 import { tokenHashSchema } from "../lib/validation";
 import { AuthShell } from "./auth-shell";
@@ -56,12 +58,15 @@ export async function EmailEntry({
     );
 
   if (kind === "reset" && user && !hash && !status) {
-    if (await needsSecondFactor()) {
-      redirect("/mfa?next=/reset-password");
-    }
+    const client = await createClient();
+    const recovery = Boolean(await recoveryAuthorization(client));
+    const security = await readMfaSecurityState();
     return (
       <AuthShell title="Choose a new password" description="Use a unique password to keep your farms secure.">
-        <AuthForm mode="reset" expectedUserId={user.id} />
+        <AuthForm mode="reset" expectedUserId={user.id} passwordContext={recovery ? "recovery" : "change"} security={security} />
+        <Link className="mt-5 inline-flex min-h-11 items-center text-sm text-primary" href="/forgot-password">
+          <T text="Request a new email" />
+        </Link>
       </AuthShell>
     );
   }

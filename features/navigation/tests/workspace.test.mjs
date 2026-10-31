@@ -40,7 +40,7 @@ for (const language of ["en", "fa"]) {
     assert.match(html, /Backup/);
     assert.match(
       html,
-      language === "fa" ? /نشست‌های دیگر/ : /Sign out other sessions/,
+      language === "fa" ? /دستگاه‌های دیگر/ : /Sign out all other devices/,
     );
     assert.match(
       html,

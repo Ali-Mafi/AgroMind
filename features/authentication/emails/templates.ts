@@ -51,3 +51,45 @@ export function renderAuthEmail(
     afterInformation: [content.ignore],
   });
 }
+
+
+/**
+ * A provider-issued email reauthentication OTP is NOT a callback link.
+ * Render it as visible text only, without copying it into URLs, subjects, or logs.
+ */
+export function renderReauthenticationEmail(
+  nonce: string,
+  language: "en" | "fa" = "en",
+) {
+  if (!/^[0-9]{6,10}$/.test(nonce)) throw new Error("INVALID_REAUTH_NONCE");
+  const fa = language === "fa";
+  return renderPremiumEmail({
+    language,
+    subject: fa ? "کد تأیید تغییر رمز عبور | AgroMind" : "Password change verification | AgroMind",
+    eyebrow: fa ? "امنیت حساب" : "ACCOUNT SECURITY",
+    title: fa ? "تأیید تغییر رمز عبور" : "Confirm your password change",
+    subtitle: fa ? "تأیید هویت برای تغییر رمز عبور" : "Identity confirmation for a password change",
+    greeting: fa ? "کاربر گرامی،" : "Dear user,",
+    paragraphs: fa
+      ? ["برای تأیید درخواست تغییر رمز عبور، کد زیر را در صفحه آگرومایند وارد کنید. این کد با کد برنامه احراز هویت دو مرحله‌ای متفاوت است."]
+      : ["Enter the code below on the AgroMind password-change screen. This email code is separate from your authenticator app code."],
+    metadata: [{ label: fa ? "کد تأیید ایمیلی" : "Email verification code", value: nonce }],
+    action: {
+      label: fa ? "بازگشت به آگرومایند" : "Return to AgroMind",
+      href: new URL("/reset-password", siteOrigin()).toString(),
+    },
+    information: {
+      title: fa ? "اطلاع‌رسانی امنیتی" : "Security information",
+      paragraphs: [
+        fa
+          ? "این کد را با هیچ‌کس به اشتراک نگذارید. اعتبار آن توسط سرویس احراز هویت تعیین می‌شود."
+          : "Never share this code. Its validity is controlled by the authentication provider.",
+      ],
+    },
+    afterInformation: [
+      fa
+        ? "اگر این درخواست را انجام نداده‌اید، کد را نادیده بگیرید و امنیت حساب خود را بررسی کنید."
+        : "If you did not request this change, ignore the code and review your account security.",
+    ],
+  });
+}

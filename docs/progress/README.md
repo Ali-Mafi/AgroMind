@@ -32,3 +32,9 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-28 — Signature Premium email candidate](2026-10-28-email.md)
 
 - [2026-10-28 — Signature Premium reference polish](2026-10-28-email-polish.md)
+
+- [2026-10-28 — Advanced account security review candidate](2026-10-28-security.md)
+
+- [2026-10-29 — PR #52 security remediation](2026-10-29.md)
+
+- [2026-10-31 — PR #52 F01/F02 provider boundary](2026-10-31-pr52-provider-boundary.md)

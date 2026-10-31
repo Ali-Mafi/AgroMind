@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {PGlite} from '../AgroMind-audit/node_modules/@electric-sql/pglite/dist/index.js';
+import {loadTs} from '../AgroMind-audit/features/weather/tests/helpers/load-ts.mjs';
+const root='/workspace/scratch/e6257f9154cb/AgroMind-audit';
+const db=new PGlite(); await db.waitReady;
+let checks=0;
+async function check(name,fn){await fn();checks++;console.log(`PASS ${checks}: ${name}`);}
+const q=(sql,args=[])=>db.query(sql,args);
+await db.exec(`create role anon nologin; create role authenticated nologin; create role service_role nologin; create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb not null default '{}',email_confirmed_at timestamptz);
+create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz,refreshed_at timestamp);
+create table auth.mfa_factors(id uuid primary key,user_id uuid references auth.users(id),status text not null,factor_type text not null default 'totp');
+create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
+create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
+grant usage on schema auth to authenticated,anon; grant execute on function auth.uid(),auth.jwt() to authenticated,anon;`);
+const migrations=(await readdir(root+'/supabase/migrations')).filter(x=>x.endsWith('.sql')).sort();
+for(const file of migrations.slice(0,-1))await db.exec(await readFile(root+'/supabase/migrations/'+file,'utf8'));
+const u=randomUUID(),v=randomUUID(),uCurrent=randomUUID(),uRemote=randomUUID(),vCurrent=randomUUID(),factor=randomUUID(),vFactor=randomUUID();
+for(const [id,email] of [[u,'audit-owner@example.test'],[v,'audit-foreign@example.test']])await q('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[id,email]);
+await q('insert into auth.sessions(id,user_id,created_at) values($1,$2,now()-interval \'1 hour\'),($3,$2,now()),($4,$5,now())',[uCurrent,u,uRemote,vCurrent,v]);
+await q("insert into auth.mfa_factors(id,user_id,status) values($1,$2,'verified'),($3,$4,'verified')",[factor,u,vFactor,v]);
+await db.exec(await readFile(root+'/supabase/migrations/'+migrations.at(-1),'utf8'));
+async function as(role,user,session,sql,args=[],aal='aal2',amr=[]){return db.transaction(async tx=>{
+ await tx.exec(`set local role ${role}`);
+ await tx.query("select set_config('request.jwt.claim.sub',$1,true)",[user??'']);
+ await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:user,session_id:session,aal,amr})]);
+ return tx.query(sql,args);
+});}
+const own=(sql,args=[],aal='aal2')=>as('authenticated',u,uCurrent,sql,args,aal);
+const remote=(sql,args=[])=>as('authenticated',u,uRemote,sql,args);
+const foreign=(sql,args=[])=>as('authenticated',v,vCurrent,sql,args);
+const observe=(user,sid,aal)=>q("select public.security_observe_session($1,$2,'{\"device\":\"Mobile\"}','password',$3) queued",[user,sid,aal]);
+
+await check('F05: global provider failure denies the initiating session and prevents same-session retry',async()=>{
+ const op=(await q('select security_begin_revocation($1,$2,$3,\'global\',$4) id',[u,uCurrent,factor,'f'.repeat(64)])).rows[0].id;
+ await q('select security_consume_revocation($1,$2,$3)',[op,u,uCurrent]);
+ assert.equal((await q('select security_finish_revocation($1,$2,false) done',[op,u])).rows[0].done,false);
+ assert.equal((await own('select get_current_session() s')).rows[0].s,null);
+ await assert.rejects(q('select security_begin_revocation($1,$2,$3,\'global\',$4)',[u,uCurrent,factor,'e'.repeat(64)]),/SECURITY_DENIED/);
+ assert.equal((await q('select count(*)::int n from auth.sessions where user_id=$1',[u])).rows[0].n,2);
+ assert.equal((await q('select state from private.security_revocations where id=$1',[op])).rows[0].state,'pending');
+ console.log('  current RPC = null; retry = SECURITY_DENIED; native rows retained = 2; operation = pending');
+});
+await db.close();console.log('COMPLETE: one supplemental SQL probe; no hosted Auth calls.');

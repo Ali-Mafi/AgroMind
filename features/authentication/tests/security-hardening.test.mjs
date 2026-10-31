@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://isolated.example.test";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "isolated-security-hardening-test-key";
 import { loadTs } from "../../weather/tests/helpers/load-ts.mjs";
 const form = (values = {}) => {
   const f = new FormData();
@@ -32,8 +34,9 @@ function harness({ level = "aal2", two = true } = {}) {
   ];
   const calls = [];
   const client = {
-    rpc: async () => ({ data: { created_at: "2026-09-16" }, error: null }),
+    rpc: async () => ({ data: { id:"session-a", created_at: "2026-09-16" }, error: null }),
     auth: {
+      getUser: async () => ({data:{user}}),
       refreshSession: async () => ({ error: null }),
       signOut: async ({ scope }) => {
         calls.push(["signOut", scope]);
@@ -65,6 +68,11 @@ function harness({ level = "aal2", two = true } = {}) {
             return { error: { code: "invalid" } };
           level = "aal2";
           return { error: null, data: {} };
+        },
+        challenge: async ({ factorId }) => ({ data: { id: factorId } }),
+        verify: async ({ factorId, code }) => {
+          calls.push(["challenge",factorId]);
+          return code === (factorId === "backup" ? "222222" : "111111") ? {data:{}} : {error:{}};
         },
         unenroll: async ({ factorId }) => {
           calls.push(["remove", factorId]);
@@ -101,7 +109,15 @@ function harness({ level = "aal2", two = true } = {}) {
       },
     },
   };
+  let selectedScope;
+  const worker = { rpc: async (name, args) => {
+    if (name === "security_begin_revocation") { selectedScope=args.p_scope; return {data:"op"}; }
+    if (name === "security_consume_revocation") return {data:{scope:selectedScope}};
+    return {data:true};
+  } };
   const actions = loadTs("features/authentication/services/mfa-actions.ts", {
+    "next/headers": { headers: async () => new Headers({host:"agromind.ir", origin:"https://agromind.ir"}) },
+    "@supabase/supabase-js": {createClient: () => worker},
     "@/lib/supabase/server": { createClient: async () => client },
     "./session": { currentUser: async () => user },
     "next/cache": { revalidatePath: () => {} },

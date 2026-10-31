@@ -2,6 +2,25 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## PR #52 F01/F02 provider boundary — 2026-10-31
+
+- Continued from real Draft HEAD `565db25a72df30ba70dd54cfd1aa3bfa65ec8689`, clean checkout. Both F01 High and F02 Medium remain **UNRESOLVED / NO-GO** under universal fresh authorization; no owner risk acceptance or production changes.
+- Added expected-user confirmation for native password responses, real installed-SDK wire/error tests, and strengthened partial-logout/data-denial regressions. Existing migrations and F03–F08 protections are preserved.
+- Local checks: 326 JS, 44 PGlite passes (5 native-only skips), lint/typecheck/localization/build and 66 HTTP passes; one existing lint warning. Local native PostgreSQL remains blocked by EINVAL; final-head Foundation CI is tracked in PR #52. No isolated hosted test branch is available; native hosted Auth/JWT/refresh checks remain NOT VERIFIED.
+- [Provider findings, alternatives and reproducible hosted matrix](SECURITY_PROVIDER_BOUNDARY_PR52.md) · [dated evidence](progress/2026-10-31-pr52-provider-boundary.md). Next: independent Astra delta review and explicit owner/security boundary decision.
+
+## PR #52 targeted remediation — 2026-10-29
+
+- Preserved independent audit and original probes. Hardened credential/recovery grants, database username mutation/audit, email payload freezing and pending-revocation recovery without removing denial protections.
+- Existing local evidence: 305 JS and 38 PGlite passes, lint/typecheck/localization/build/HTTP pass. Native local EINVAL; new native concurrency acceptance is tracked in final-head PR CI. Physical device, hosted Auth and actual email acceptance remain unverified.
+- F02 remains unresolved under universal freshness; **production NO-GO**, Draft only, no merge/deployment/production changes. [Remediation handoff](SECURITY_REMEDIATION_PR52.md).
+
+## Advanced account security — review candidate, 2026-10-28
+
+- Implemented new-login emails through the existing durable outbox, real Auth session listings, fresh TOTP-only remote sign-out with one-time server authorization, session-aware access denial and immutable user-scoped recent activity.
+- Local evidence: 293 JS + 29 PGlite passes; lint/typecheck/localization/build/HTTP pass (one existing lint warning); 240 email + 20 security-layout Chromium checks. Native PostgreSQL subprocess is blocked locally by EINVAL and must pass on final-head CI.
+- Dedicated feature branch; **not merged or deployed**. Hosted Auth/timeout/scheduler acceptance, independent security review, physical iOS/inbox QA and provider-wide limitations remain release blockers. [Runbook](ACCOUNT_SESSIONS.md) · [evidence](progress/2026-10-28-security.md).
+
 ## Signature Premium email candidate — 2026-10-28
 
 - Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.

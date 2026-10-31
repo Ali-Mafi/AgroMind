@@ -1,6 +1,7 @@
 import "server-only";
 type AuthEmail = {
   to: string;
+  from?: string;
   subject: string;
   html: string;
   text: string;
@@ -23,7 +24,7 @@ export async function sendAuthEmail(message: AuthEmail) {
     },
     body: JSON.stringify({
       ...content,
-      from: "AgroMind <accounts@agromind.ir>",
+      from: content.from ?? "AgroMind <accounts@agromind.ir>",
       to: [content.to],
     }),
   });

@@ -6,7 +6,12 @@
   "crons": [
     {
       "path": "/api/support/notifications",
-      "schedule": "0 8 * * *"
+      "schedule": "*/10 * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "feat/account-sessions-security-20261028": false
+    }
+  }
 }

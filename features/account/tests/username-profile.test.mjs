@@ -27,7 +27,7 @@ test("username mutation requires fresh MFA and preserves database uniqueness", (
     "supabase/migrations/20260923173735_stronger_signup_credentials.sql",
   );
   assert.match(action, /username_available/);
-  assert.match(action, /verifyFreshIdentity/);
+  assert.match(action, /authorizeCredentialAction/);
   assert.match(action, /change_username/);
   assert.match(action, /This username is already taken/);
   assert.match(migration, /auth\.mfa_factors/);

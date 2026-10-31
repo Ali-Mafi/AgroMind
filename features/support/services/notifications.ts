@@ -1,7 +1,10 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { sendAuthEmail } from "@/features/authentication/services/resend-auth";
+import { loginSecurityEmail } from "@/features/account-security/lib/email";
+import type { SessionMetadata } from "@/features/account-security/types/security";
 import { supportEmail } from "../lib/email";
+type DeliveryPayload = { to: string; from: string; subject: string; html: string; text: string; language: string; version: string };
 type Job = {
   id: string;
   lease: string;
@@ -11,52 +14,78 @@ type Job = {
   audience: string;
   to: string | null;
   language: string;
+  deliveryPayload?: DeliveryPayload | null;
+  securityDetails?: { metadata?: SessionMetadata; provider?: string; loginAt?: string };
 };
 export async function drainSupportEmails() {
   // Explicit activation only after sender/recipient verification. Never acquire secrets from the browser.
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const mailbox = process.env.SUPPORT_NOTIFICATION_EMAIL;
-  if (
-    process.env.SUPPORT_EMAIL_ENABLED !== "true" ||
-    !key ||
-    !url ||
-    !process.env.RESEND_API_KEY ||
-    !mailbox ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mailbox)
-  )
-    return;
+  const supportEnabled = process.env.SUPPORT_EMAIL_ENABLED === "true" && Boolean(mailbox && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mailbox));
+  const securityEnabled = process.env.SECURITY_EMAIL_ENABLED === "true";
+  if (!key || !url) return;
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   try {
-    const { data, error } = await client.rpc("support_email_jobs");
-    if (error) return;
+    const reconciled = await client.rpc("security_reconcile_revocations");
+    if (reconciled.error) console.error("[security] revocation_reconciliation_failed");
+    else {
+      if (reconciled.data?.pending)
+        console.error("[security] revocations_pending", { pending: reconciled.data.pending, stale: reconciled.data.stale });
+      if (reconciled.data?.passwordOutcomesPending)
+        console.error("[security] password_outcomes_pending", {
+          pending: reconciled.data.passwordOutcomesPending,
+          stale: reconciled.data.passwordOutcomesStale,
+        });
+    }
+    const health = await client.rpc("security_email_health");
+    if (health.error) console.error("[email] queue_health_failed");
+    else if (health.data?.held || health.data?.overdue) console.error("[email] queue_attention_required", { held: health.data.held, overdue: health.data.overdue });
+    const pruned = await client.rpc("security_prune");
+    if (pruned.error) console.error("[email] security_retention_failed");
+    if ((!supportEnabled && !securityEnabled) || !process.env.RESEND_API_KEY) return;
+    const { data, error } = await client.rpc("transactional_email_jobs_v2", { p_support: supportEnabled, p_security: securityEnabled });
+    if (error) { console.error("[email] queue_lease_failed"); return; }
     for (const job of (data ?? []) as Job[]) {
       let sent = false;
       try {
-        const to = job.audience === "staff" ? mailbox : job.to;
-        if (!to) throw new Error("RECIPIENT_UNAVAILABLE");
-        const href =
-          job.audience === "staff"
+        let payload = job.deliveryPayload;
+        if (!payload) {
+          const to = job.audience === "staff" ? mailbox : job.to;
+          if (!to) throw new Error("RECIPIENT_UNAVAILABLE");
+          const href = job.audience === "staff"
             ? `https://agromind.ir/admin/support?ticket=${job.ticketId}`
             : `https://agromind.ir/account/help/tickets/${job.ticketId}`;
+          const candidate: DeliveryPayload = {
+            ...(job.audience === "security"
+              ? loginSecurityEmail(job.securityDetails ?? {}, job.language)
+              : supportEmail(job.number, job.event, job.language, href, job.audience === "staff" ? "staff" : "user")),
+            to, from: "AgroMind <accounts@agromind.ir>", language: job.language, version: "signature-premium-v1",
+          };
+          // Persist BEFORE the first network send. A lost write response cannot
+          // cause an unpersisted body to be sent. CAS returns the winning payload.
+          const frozen = await client.rpc("security_freeze_email", { p_id: job.id, p_lease: job.lease, p_payload: candidate });
+          if (frozen.error || !frozen.data) throw new Error("EMAIL_FREEZE_FAILED");
+          payload = frozen.data as DeliveryPayload;
+        }
         await sendAuthEmail({
-          ...supportEmail(job.number, job.event, job.language, href, job.audience === "staff" ? "staff" : "user"),
-          to,
+          to: payload.to, from: payload.from, subject: payload.subject, html: payload.html, text: payload.text,
           idempotencyKey: `support/${job.id}`,
         });
         sent = true;
       } catch {
-        /* Persist retry state without PII or provider payloads. */
+        console.error("[email] delivery_failed", { audience: job.audience });
       }
-      await client.rpc("support_email_ack", {
+      const ack = await client.rpc("support_email_ack", {
         p_id: job.id,
         p_lease: job.lease,
         p_sent: sent,
       });
+      if (ack.error) console.error("[email] queue_ack_failed");
     }
   } catch {
-    /* The durable outbox is retried by the scheduled endpoint. */
+    console.error("[email] queue_worker_failed");
   }
 }

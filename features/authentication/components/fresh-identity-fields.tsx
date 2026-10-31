@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { useTranslation } from "@/features/settings/hooks/use-translation";
 import type { MfaSecurityState } from "../types/mfa";
 
-export function FreshIdentityFields({ state }: { state: MfaSecurityState }) {
+export function FreshIdentityFields({ state, totpOnly = false }: { state: MfaSecurityState; totpOnly?: boolean }) {
   const t = useTranslation();
   const id = useId();
   const [recovery, setRecovery] = useState(false);
@@ -114,7 +114,18 @@ export function FreshIdentityFields({ state }: { state: MfaSecurityState }) {
             </>
           )}
 
-          {state.recoveryCodes.available && state.recoveryCodes.enabled && (
+          {/* Provider current-password policy is independent of fresh TOTP. */}
+          {totpOnly && (
+            <div className="space-y-2">
+              <label htmlFor={`${id}-provider-password`} className="block text-sm font-medium">
+                {t("Current password (if required by your account policy)")}
+              </label>
+              <input id={`${id}-provider-password`} name="current_password"
+                type="password" maxLength={128} autoComplete="current-password"
+                dir="ltr" className={inputClass} />
+            </div>
+          )}
+          {!totpOnly && state.recoveryCodes.available && state.recoveryCodes.enabled && (
             <button
               type="button"
               className="inline-flex min-h-10 items-center rounded-lg px-2 text-sm font-medium text-primary transition hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"

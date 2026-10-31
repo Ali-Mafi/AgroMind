@@ -1,3 +1,5 @@
+import { issuePkceRecoveryAuthorization } from "./recovery-authorization";
+import { observeLogin } from "@/features/account-security/services/login";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { siteOrigin, safeNextPath } from "../lib/redirects";
@@ -84,6 +86,7 @@ async function handleOAuthCallback(
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) return securedRedirect(failure, true);
 
+    await observeLogin("google");
     await clearPendingSignup();
     const destination = await authenticatedDestination(intent?.next);
     if (!destination) {
@@ -131,6 +134,14 @@ export async function handleAuthCallback(request: NextRequest) {
       params.get("code")!,
     );
     if (error) destination.searchParams.set("status", "invalid");
+    else if (recovery) {
+      try {
+        await issuePkceRecoveryAuthorization(supabase);
+        await observeLogin("recovery");
+      } catch {
+        destination.searchParams.set("status", "invalid");
+      }
+    }
     else if (!recovery) {
       await supabase.auth.signOut({ scope: "local" });
       destination.searchParams.set("status", "success");
