@@ -13,11 +13,14 @@ function revocationHarness(options = {}) {
     listFactors: async () => ({ data: { totp: options.noFactor ? [] : [{ id:"factor-a", status:"verified" }] } }),
     challenge: async (args) => { calls.push(["challenge",args]); return { data:{ id:"native-challenge" } }; },
     verify: async (args) => { calls.push(["verify",args]); return options.invalid ? { error:{} } : { data:{} }; },
-  }, signOut: async args => { calls.push(["signOut",args]); return options.providerFailure ? { error:{} } : {}; } } };
+  }, signOut: async args => { calls.push(["signOut",args]); if(options.providerThrows)throw Error("response lost"); return options.providerFailure ? { error:{} } : {}; } } };
   const worker = { rpc: async (name,args) => {
     calls.push([name,args]);
     if (name === "security_begin_revocation") return options.limited ? { error:{} } : { data:"operation" };
     if (name === "security_consume_revocation") return options.expired ? { error:{} } : { data:{ scope:args.p_scope ?? options.scope ?? "others", count:2 } };
+    if (name === "security_finish_revocation" && options.finishError) return {data:true,error:{}};
+    if (name === "security_finish_revocation" && options.nativeSurvives) return {data:false};
+    if (name === "security_revocation_status" && options.providerThrows) return {data:{consumed:true,state:"pending",scope:options.scope??"others"}};
     return { data: !options.providerFailure };
   } };
   const { revokeRemoteSessions } = loadTs("features/account-security/services/revoke.ts", {
@@ -50,6 +53,19 @@ test("provider failure never reports revoked and global scope is bound to its pr
   const failure=revocationHarness({providerFailure:true}); assert.match((await failure.run()).error,/could not be confirmed/);
   const global=revocationHarness({scope:"global"}); assert.equal((await global.run()).global,true);
   assert.equal(global.calls.find(c=>c[0]==="signOut")[1].scope,"global");
+});
+test("F02 absent native completion, failed finish and lost provider responses never report successful logout",async()=>{
+  for(const scope of ["others","global"]){
+    for(const options of [{nativeSurvives:true},{finishError:true},{providerThrows:true}]){
+      const h=revocationHarness({scope,...options});
+      const result=await h.run();
+      assert.equal(result.success,undefined);
+      assert.equal(result.pending,true);
+      assert.equal(result.global,scope==="global");
+      assert.ok(h.calls.some(c=>c[0]==="security_consume_revocation"));
+      assert.equal(h.calls.filter(c=>c[0]==="signOut").length,1);
+    }
+  }
 });
 test("metadata ignores spoofed forwarded values outside Vercel and handles missing/malformed geolocation", () => {
   const headers=new Headers({"x-real-ip":"203.0.113.7","x-vercel-ip-city":"Qazvin","user-agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) Version/18.0 Mobile/15 Safari/604.1"});

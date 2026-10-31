@@ -33,7 +33,11 @@ function credentialHarness(options={}) {
  const client={auth:{
   getUser:async()=>({data:{user}}),
   getClaims:async()=>({data:{claims:{sub:options.claimUser??'user-a',session_id:options.claimSession??'session-a',amr:options.amr??[]}}}),
-  updateUser:async(args)=>{calls.push(['updateUser',args]);return {error:options.updateError?{code:options.updateErrorCode??'reauthentication_needed'}:null};},
+  updateUser:async(args)=>{
+   calls.push(['updateUser',args]);
+   if(options.updateThrows)throw Error('provider response lost');
+   return {data:{user:options.missingUpdatedUser?null:options.foreignUpdatedUser?{id:'foreign-user'}:user},error:options.updateError?{code:options.updateErrorCode??'reauthentication_needed'}:null};
+  },
   reauthenticate:async()=>{calls.push(['reauthenticate']);return {error:options.reauthError?{}:null};},
   verifyOtp:async()=>{calls.push(['verifyOtp']);return options.badLink?{error:{code:'otp_expired'}}:{data:{user,session:{access_token:'synthetic'}}};},
   signOut:async(args)=>{calls.push(['signOut',args]);return {error:options.pending?{}:null};},
@@ -134,6 +138,15 @@ test('F06 failed or uncertain preparation never calls native password mutation',
   const result=await h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'}));
   assert.match(result.error,/Password change was not attempted/);
   assert.ok(!h.calls.some(c=>c[0]==='updateUser'));
+ }
+});
+test('F01 unconfirmed or mismatched native user responses retain unknown outcome and consumed proof',async()=>{
+ for(const options of [{missingUpdatedUser:true},{foreignUpdatedUser:true},{updateThrows:true}]){
+  const h=credentialHarness(options);
+  await assert.rejects(h.actions.resetPasswordAction({},form({...validPassword,proof_factor_id:'factor-a',fresh_code:'123456'})),/REDIRECT:\/sign-in\?status=password-update-unknown$/);
+  assert.equal(h.getGrant().state,'consumed');
+  assert.ok(!h.calls.some(c=>c[0]==='security_password_changed'||c[0]==='security_password_update_rejected'));
+  assert.ok(h.calls.some(c=>c[0]==='signOut'&&c[1].scope==='global'));
  }
 });
 test('F06 audit failure plus failed native logout never claims confirmed completion',async()=>{

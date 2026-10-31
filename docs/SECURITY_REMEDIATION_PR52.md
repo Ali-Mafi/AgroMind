@@ -1,5 +1,10 @@
 # PR #52 — security remediation and re-audit handoff
 
+> **Current disposition, 2026-10-31:** F01 High and F02 Medium are both
+> **UNRESOLVED / production NO-GO under the original universal requirements**.
+> Earlier application-boundary passes below do not close provider-native access.
+> See [the pinned provider review, alternatives and hosted test plan](SECURITY_PROVIDER_BOUNDARY_PR52.md).
+
 Starting HEAD: `8e2c776c69283a2f891532dca8118ac79851d56f`; branch
 `feat/account-sessions-security-20261028`. Date: 2026-10-29 (Asia/Tehran).
 The remote HEAD was unchanged when remediation resumed. Existing work was preserved.
@@ -16,7 +21,7 @@ mean hosted GoTrue/PostgREST, actual email delivery or physical-device certifica
 
 | Finding | Disposition | Change and evidence |
 | --- | --- | --- |
-| F01 High | FIXED AND VERIFIED at the AgroMind application boundary | `actions.ts` now requires a reserved, verified, consumed credential grant. Ordinary MFA accounts need a newly challenged TOTP, never old AAL2. Non-MFA accounts need their current password through the existing isolated provider proof. Recovery needs a separate provider-verified ticket, bound to user/session, ten-minute expiry and atomic one-use consumption. Tests reject the original old-AAL2 request, forged recovery context, missing ticket, bad Origin, foreign factor, old/foreign PKCE claims, expiry, OTP failure and changed session. |
+| F01 High | UNRESOLVED universally; hardened at the AgroMind application boundary | `actions.ts` requires a reserved, verified, consumed credential grant. Ordinary MFA accounts need a newly challenged TOTP, never old AAL2. Non-MFA accounts need their current password through the existing isolated provider proof. Recovery needs a separate provider-verified ticket, bound to user/session, ten-minute expiry and atomic one-use consumption. These controls do not intercept native Auth credential endpoints. The 2026-10-31 delta also requires the expected user in the native password-update response before reporting success. |
 | F02 Medium | UNRESOLVED under universal freshness requirement | Native Auth retains provider bearer/AAL semantics. The application gate, RLS guards, documentation and UI do not claim otherwise. The isolated native-deletion regression confirms no separate data-access bypass through the tested guards; hosted API behavior still needs validation. |
 | F03 Medium | FIXED AND VERIFIED at the database mutation boundary | Historical `change_username(text)` is revoked and replaced by a rejecting stub. New `security_change_username` derives caller/user/session from JWT, checks the exact normalized username digest and atomically consumes a verified operation grant, mutates and audits. Direct old-AAL2 calls, wrong user/session/payload, replay and audit failure are tested. Native concurrency tests require one winning mutation and one audit event. |
 | F04 Low | FIXED AND VERIFIED for queued sends | Full recipient/from/subject/HTML/text/locale/template identifier is frozen by lease-fenced write-once RPC before the first provider send. Retries send stored bytes; renderers are not called again. Actual worker tests vary year/template/locale and inject provider failure and lost freeze responses. SQL tests check payload immutability and stale leases. Unknown legacy attempts are held, never silently resent. |

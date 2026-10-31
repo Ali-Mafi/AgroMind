@@ -1537,6 +1537,7 @@ test("action grants reject foreign factor/session, wrong operation/payload, expi
  await assert.rejects(actionGrant(f,'username','name',{factor:other.factor}),/SECURITY_DENIED/);
  await assert.rejects(actionGrant(f,'username','name',{session:other.session}),/SECURITY_DENIED/);
  const g=await actionGrant(f,'password_change','new password');await authorizeGrant(g);
+ await assert.rejects(consumeGrant({...g,user:other.user}),/SECURITY_REPLAY/);
  await assert.rejects(consumeGrant({...g,session:f.user}),/SECURITY_REPLAY/);
  await assert.rejects(consumeGrant({...g,operation:'username'}),/SECURITY_REPLAY/);
  await assert.rejects(consumeGrant({...g,hash:payloadHash('other')}),/SECURITY_REPLAY/);
@@ -1642,6 +1643,9 @@ test("F02 native logout without app tombstones cannot restore sensitive-data acc
  const f=await securityFixture(), foreign=await securityFixture();
  const current=await asUser(f.user,'aal2',f.session), remote=await asUser(f.user,'aal2',f.user), other=await asUser(foreign.user,'aal2',foreign.session);
  try {
+  await create(current,farm('native-logout-owned-farm'));
+  assert.ok((await remote.query("select * from profiles")).rowCount>0);
+  assert.ok((await remote.query("select * from farms")).rowCount>0);
   assert.equal((await admin.query("select count(*)::int n from private.security_denied_sessions where user_id=$1",[f.user])).rows[0].n,0);
   // Model supported native 'others' deletion, without any AgroMind authorization.
   // Fixture SQL is not a hosted Auth request and never runs against production.
@@ -1652,12 +1656,37 @@ test("F02 native logout without app tombstones cannot restore sensitive-data acc
   await assert.rejects(create(remote,farm('native-revoked')),/AUTH_REQUIRED/);
   await assert.rejects(remote.query("select security_snapshot()"),/SECURITY_DENIED/);
   assert.ok((await current.query("select get_current_session() as s")).rows[0].s);
+  assert.ok((await current.query("select * from farms")).rowCount>0);
   assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
   await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
   assert.equal((await current.query("select get_current_session() as s")).rows[0].s,null);
+  assert.equal((await current.query("select * from farms")).rowCount,0);
   await assert.rejects(current.query("select complete_onboarding()"),/AUTH_REQUIRED|MFA_REQUIRED/);
   assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
  } finally {await current.end();await remote.end();await other.end();}
+});
+
+test("F02 an SDK-success hint cannot complete revocation while native sessions survive",async()=>{
+ const f=await securityFixture(),foreign=await securityFixture();
+ const op=await beginSecurity(f,randomBytes(32).toString('hex'),'global');
+ await admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]);
+ // auth-js suppresses native 401/403/404. Even an error-free SDK response is
+ // only a hint; completion must consult the authoritative target snapshot.
+ assert.equal((await admin.query("select security_finish_revocation($1,$2,true) as done",[op,f.user])).rows[0].done,false);
+ assert.equal((await admin.query("select state from private.security_revocations where id=$1",[op])).rows[0].state,'pending');
+ const stale=await asUser(f.user,'aal2',f.session),other=await asUser(foreign.user,'aal2',foreign.session);
+ try {
+  assert.equal((await stale.query("select get_current_session() as s")).rows[0].s,null);
+  assert.equal((await stale.query("select * from profiles")).rowCount,0);
+  assert.ok((await other.query("select get_current_session() as s")).rows[0].s);
+  await assert.rejects(admin.query("select security_consume_revocation($1,$2,$3)",[op,f.user,f.session]),/SECURITY_REPLAY/);
+  await admin.query("delete from auth.sessions where id=$1",[f.session]);
+  assert.equal((await admin.query("select security_finish_revocation($1,$2,true) as done",[op,f.user])).rows[0].done,false);
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='sessions_revoked'",[f.user])).rows[0].n,0);
+  await admin.query("delete from auth.sessions where user_id=$1",[f.user]);
+  assert.equal((await admin.query("select security_finish_revocation($1,$2,false) as done",[op,f.user])).rows[0].done,true);
+  assert.equal((await admin.query("select count(*)::int n from private.security_events where user_id=$1 and kind='sessions_revoked'",[f.user])).rows[0].n,1);
+ }finally{await stale.end();await other.end();}
 });
 
 test("F06 prepared credential mutation denies native snapshots before provider work",async()=>{

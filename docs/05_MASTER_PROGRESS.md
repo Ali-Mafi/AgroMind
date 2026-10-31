@@ -2,6 +2,13 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## PR #52 F01/F02 provider boundary — 2026-10-31
+
+- Continued from real Draft HEAD `565db25a72df30ba70dd54cfd1aa3bfa65ec8689`, clean checkout. Both F01 High and F02 Medium remain **UNRESOLVED / NO-GO** under universal fresh authorization; no owner risk acceptance or production changes.
+- Added expected-user confirmation for native password responses, real installed-SDK wire/error tests, and strengthened partial-logout/data-denial regressions. Existing migrations and F03–F08 protections are preserved.
+- Local checks: 326 JS, 44 PGlite passes (5 native-only skips), lint/typecheck/localization/build and 66 HTTP passes; one existing lint warning. Local native PostgreSQL remains blocked by EINVAL; final-head Foundation CI is tracked in PR #52. No isolated hosted test branch is available; native hosted Auth/JWT/refresh checks remain NOT VERIFIED.
+- [Provider findings, alternatives and reproducible hosted matrix](SECURITY_PROVIDER_BOUNDARY_PR52.md) · [dated evidence](progress/2026-10-31-pr52-provider-boundary.md). Next: independent Astra delta review and explicit owner/security boundary decision.
+
 ## PR #52 targeted remediation — 2026-10-29
 
 - Preserved independent audit and original probes. Hardened credential/recovery grants, database username mutation/audit, email payload freezing and pending-revocation recovery without removing denial protections.

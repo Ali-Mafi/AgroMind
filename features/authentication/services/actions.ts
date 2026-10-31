@@ -605,8 +605,11 @@ export async function resetPasswordAction(
       password: parsed.data.password,
       ...(!recovery && currentPassword ? { current_password: currentPassword } : {}),
       ...(!recovery && nonce ? { nonce } : {}),
-    }).catch(() => ({ error: { code: "request_timeout" } }));
-    const confirmed = !updated.error;
+    }).catch(() => ({ data: { user: null }, error: { code: "request_timeout" } }));
+    // The SDK can return error:null for an empty/malformed HTTP 200 body.
+    // Confirm only the expected user; every uncertain response keeps the
+    // precommitted denial and unresolved password outcome for reconciliation.
+    const confirmed = !updated.error && updated.data?.user?.id === data.user.id;
     const rejected = Boolean(updated.error && definitivePasswordRejections.has(updated.error.code ?? ""));
     let recorded = false;
     if (confirmed) {
