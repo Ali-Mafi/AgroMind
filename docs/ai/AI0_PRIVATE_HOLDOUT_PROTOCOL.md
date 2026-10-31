@@ -2,6 +2,8 @@
 
 **Status: NO independently blinded, expert-approved final holdout exists.** 2026-10-31. A **provisional 40-scenario bilingual candidate** has been encrypted **outside the public GitHub repo**; it has not been approved by an independent reviewer, custodian or contamination audit. See [safe handoff](AI0_ENCRYPTED_HOLDOUT_HANDOFF.md). The public starter seed and [review cards](AI0_REVIEWER_GUIDE.md) are *not* a blind holdout.
 
+> **ON HOLD — NO CURRENT BUDGET (2026-10-31).** Independent expert validation, professional custody and final blind-holdout certification are suspended; the privately delivered encrypted candidate remains provisional only. [Resume criteria](AI0_BUDGET_PAUSE.md).
+
 ## Purpose
 Measure model generalization to genuinely **unseen** agricultural situations after the scoring rubric, prompts and model shortlist are frozen; avoid training/evaluation leakage and fabricated “blind accuracy.”
 
