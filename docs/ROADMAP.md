@@ -51,6 +51,7 @@ The audited project already has Next.js 16 / React 19 / TypeScript, Supabase SSR
 
 ### Phase 3 — Farm-aware AgroMind AI Assistant
 
+- **AI-0 expert-validation status (2026-10-31): ON HOLD — NO BUDGET.** Specialist recruitment, scientific case-gold approval and final independent blind holdout are paused by owner decision. Preserve public synthetic research; no approval for paid GPU, model integration or production. [Restart gates](ai/AI0_BUDGET_PAUSE.md).
 - **Model and architecture discovery proposal:** [AgroMind AI — Architecture & Model Strategy](AGROMIND_AI_ARCHITECTURE_MODEL_STRATEGY.md); this is not implementation authorization, a chosen model or production approval.
 
 - Replace the currently **draft-only, send-disabled** Assistant with a gated authenticated service: least-privilege/RLS-protected farm context, clear data-use boundaries, model/provider fail-safe behavior, usage quotas and billing-aware cost controls.
