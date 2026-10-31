@@ -2,6 +2,12 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AI-0 independent specialist validation — ON HOLD / UNFUNDED — 2026-10-31
+
+- **Owner decision:** Independent agronomy/security reviewer recruitment, scientific gold certification and final blind-holdout sign-off are **ON HOLD because no budget is currently available**. No reviewer contracted, funding amount or restart date specified; [explicit restart gates](ai/AI0_BUDGET_PAUSE.md).
+- Preserve the existing 300 public synthetic questions, 150 bilingual review cards, draft scientific screening and outside-GitHub encrypted 40-scenario candidate; all remain **unreviewed or provisional**, not measured model quality. **No GPU spend** or production AI use authorized.
+- This status change does not merge any PR or alter `main`, repo privacy, Vercel, user data, or the separate PR #52 **F01/F02 NO-GO**.
+
 ## AI-0 provisional encrypted holdout candidate — 2026-10-31
 
 - Prepared an **outside-public-GitHub**, locally AES-256-GCM-encrypted synthetic candidate: **40 new scenarios, 80 FA/EN questions** covering 10 domains. Encrypted package + decryption helper delivered privately to the user; **no plaintext, key, individual questions or model responses are in this repo**. Only [public content-free manifest](ai/AI0_PROVISIONAL_HOLDOUT_PUBLIC_MANIFEST.json) and [handoff/custody limitations](ai/AI0_ENCRYPTED_HOLDOUT_HANDOFF.md) are tracked.
