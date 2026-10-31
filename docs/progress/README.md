@@ -44,3 +44,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-31 — AI-0 expert review preparation and model-trial gates](2026-10-31-ai0-review-prep.md)
 
 - [2026-10-31 — AI-0 encrypted provisional holdout candidate (metadata only)](2026-10-31-ai0-private-candidate.md)
+
+- [2026-10-31 — AI-0 independent scientific validation ON HOLD (no budget)](2026-10-31-ai0-budget-pause.md)
