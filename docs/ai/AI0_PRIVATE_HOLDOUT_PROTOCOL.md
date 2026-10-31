@@ -1,12 +1,14 @@
 # AgroMind AI-0 — Sealed Holdout Governance (Design Only)
 
-**Status: NO blind holdout has been generated, approved or stored.** 2026-10-31. The public starter seed and [review cards](AI0_REVIEWER_GUIDE.md) are *not* a blind holdout.
+**Status: NO independently blinded, expert-approved final holdout exists.** 2026-10-31. A **provisional 40-scenario bilingual candidate** has been encrypted **outside the public GitHub repo**; it has not been approved by an independent reviewer, custodian or contamination audit. See [safe handoff](AI0_ENCRYPTED_HOLDOUT_HANDOFF.md). The public starter seed and [review cards](AI0_REVIEWER_GUIDE.md) are *not* a blind holdout.
+
+> **ON HOLD — NO CURRENT BUDGET (2026-10-31).** Independent expert validation, professional custody and final blind-holdout certification are suspended; the privately delivered encrypted candidate remains provisional only. [Resume criteria](AI0_BUDGET_PAUSE.md).
 
 ## Purpose
 Measure model generalization to genuinely **unseen** agricultural situations after the scoring rubric, prompts and model shortlist are frozen; avoid training/evaluation leakage and fabricated “blind accuracy.”
 
 ## Proposal and ownership
-- Commission **40 new underlying scenario settings**, minimum four per each of ten domains, with 1–3 realistic question variants and FA/EN where appropriate. This is a **design target only**, not completed data.
+- **Provisional sample created:** 40 new synthetic situation groups, four per each of ten domains, one bilingual FA/EN question pair per group (**80 questions**), privately delivered in AES-256-GCM encrypted form. This is **assistant-authored only** and must be independently reviewed/rewritten if required; not a model-blind certified holdout.
 - A qualified independent reviewer authors and seals the holdout **after** inspecting contamination risks; no rewordings/translation of the 50 public settings. Real farm/user private data are not permitted for the first pilot.
 - Assign a dataset custodian **separate from the person tuning prompts/fine-tunes**. Only the custodian can see the full holdout before a frozen candidate run.
 - Version the sealed data, hash the encrypted artifact, record custody/date/license/consent (for any external materials), region/crop context, and expiry/update policy in an **access-restricted workspace**. Do not publish contents, raw prompt examples, answer keys or identifying metadata in GitHub/PRs/chat transcripts.

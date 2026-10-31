@@ -2,6 +2,8 @@
 
 **Status:** engineering-authored reviewer preparation, **NOT independent agronomist/security approval**. Prepared 2026-10-31 from the **unchanged** public 300-question AI-0 seed on PR #55/56. No model or GPU has been evaluated.
 
+> **ON HOLD — NO CURRENT BUDGET (2026-10-31).** The reviewer packet is preserved but no external specialist review or scientific sign-off is scheduled or claimed. Resume only following [owner authorization and budget criteria](AI0_BUDGET_PAUSE.md).
+
 ## Delivered review inventory
 
 - [150 paired review cards (JSONL)](ai0_reviewer_cards_v1.jsonl) cover **all 300 seed prompts** (one card per FA+EN question pair).

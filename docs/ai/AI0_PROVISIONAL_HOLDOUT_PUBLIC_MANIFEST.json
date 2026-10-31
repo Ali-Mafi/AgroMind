@@ -1,0 +1,28 @@
+{
+  "artifact_id": "AGROMIND_AI0_ENCRYPTED_PROVISIONAL_HOLDOUT_CANDIDATE_2026-10-31",
+  "status": "CANDIDATE_ONLY_NOT_CERTIFIED_BLIND_OR_EXPERT_REVIEWED",
+  "origin": "synthetic_from_assistant_new_case_authorship",
+  "date": "2026-10-31",
+  "storage": "outside_public_git_repository_user_handoff_only",
+  "public_content_included": false,
+  "key_in_repository": false,
+  "cipher": "AES-256-GCM",
+  "encrypted_artifact_sha256": "8800dea3da8c2d1a6925f20e487bdf547453294192769e33f7f530710bbb4faf",
+  "scenarios": 40,
+  "prompt_records": 80,
+  "language_records": {
+    "fa": 40,
+    "en": 40
+  },
+  "domains": 10,
+  "review": "PENDING_INDEPENDENT_AGRONOMY_AND_SECURITY_REVIEW",
+  "model_eval": "NOT_RUN",
+  "formal_blind_status": "NOT_ESTABLISHED",
+  "custodian": "NOT_APPOINTED",
+  "notes": [
+    "Question text, answers, plaintext, encryption key and individual scenario metadata are NOT committed.",
+    "User-accessible encrypted artifact and separate key are research handoff, not a professional secure vault.",
+    "Independent expert review, similarity/translation overlap check and separate custody required before official blind testing.",
+    "Public starter 300 questions remain separate; models have not run."
+  ]
+}

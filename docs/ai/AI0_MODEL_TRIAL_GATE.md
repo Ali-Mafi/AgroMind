@@ -2,6 +2,8 @@
 
 **Status:** research-stage preflight specification, NOT a GPU experiment. **Reviewed:** 2026-10-31. See [AI model strategy](../AGROMIND_AI_ARCHITECTURE_MODEL_STRATEGY.md), [existing local pilot](AI0_LOCAL_PILOT_RUNBOOK.md), [pricing snapshot](AI0_GPU_COST_MATRIX.md), and [owned-vs-rented TCO](AI0_GPU_OWN_VS_RENT.md).
 
+> **Budget hold (2026-10-31):** Qualified external expert review, scientific gold, and final sealed blind-holdout acceptance are **SUSPENDED — UNFUNDED**. Existing research artifacts remain. No paid GPU or model inference is authorized; resume only at explicit owner request. [Budget pause and restart](AI0_BUDGET_PAUSE.md).
+
 ## Candidate comparison scope (no winner yet)
 
 | Candidate | First check | Potential blocker |
@@ -20,9 +22,9 @@
 | --- | --- | --- |
 | Public 300-case seed, bilingual pair mapping | **READY FOR RESEARCH** | JSONL/150 review cards and immutable version |
 | Five arithmetic reference fixtures | **VERIFIED AS MATH** | Exact conversion equations with units |
-| Qualified expert case-by-case scientific gold | **BLOCKED** | Signed agronomic and security review cards |
+| Qualified expert case-by-case scientific gold | **ON HOLD — UNFUNDED** | Signed agronomic and security review cards |
 | Licensed, citable RAG source corpus | **BLOCKED** | Permission/license/provenance and test passage IDs |
-| New *sealed* blind holdout | **BLOCKED** | Custodian, independent scenarios, hash and leakage checks |
+| New *sealed* blind holdout | **ON HOLD — NOT CERTIFIED BLIND** (provisional encrypted candidate only) | [40-scenario outside-repo candidate](AI0_ENCRYPTED_HOLDOUT_HANDOFF.md) exists; independent custodian, qualified source review, leakage checks and final approval still missing |
 | Pinned model revision/serving compatibility | **PENDING** | Exact card+hash+terms, local dry-run |
 | Approved max spend and hosting region | **NOT AUTHORIZED** | Explicit owner dollar cap, GPU hours and provider terms |
 | Actual trial baseline | **NOT STARTED** | Measured tokens, TTFT, total latency, VRAM/OOM/energy and errors |
