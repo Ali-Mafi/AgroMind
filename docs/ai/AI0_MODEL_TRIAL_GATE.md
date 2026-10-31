@@ -22,7 +22,7 @@
 | Five arithmetic reference fixtures | **VERIFIED AS MATH** | Exact conversion equations with units |
 | Qualified expert case-by-case scientific gold | **BLOCKED** | Signed agronomic and security review cards |
 | Licensed, citable RAG source corpus | **BLOCKED** | Permission/license/provenance and test passage IDs |
-| New *sealed* blind holdout | **BLOCKED** | Custodian, independent scenarios, hash and leakage checks |
+| New *sealed* blind holdout | **PROVISIONAL ENCRYPTED CANDIDATE ONLY; BLIND NOT ESTABLISHED** | [40-scenario outside-repo candidate](AI0_ENCRYPTED_HOLDOUT_HANDOFF.md) exists; independent custodian, qualified source review, leakage checks and final approval still missing |
 | Pinned model revision/serving compatibility | **PENDING** | Exact card+hash+terms, local dry-run |
 | Approved max spend and hosting region | **NOT AUTHORIZED** | Explicit owner dollar cap, GPU hours and provider terms |
 | Actual trial baseline | **NOT STARTED** | Measured tokens, TTFT, total latency, VRAM/OOM/energy and errors |

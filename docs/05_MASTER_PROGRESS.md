@@ -2,6 +2,12 @@
 
 > **Active planning/status update — 2026-10-30.** The most recent source inspection for this docs-only update is GitHub `main`; do not treat older audit/deployment snapshots or dated sections below as current release certification. Confirm production SHA and external provider behavior separately.
 
+## AI-0 provisional encrypted holdout candidate — 2026-10-31
+
+- Prepared an **outside-public-GitHub**, locally AES-256-GCM-encrypted synthetic candidate: **40 new scenarios, 80 FA/EN questions** covering 10 domains. Encrypted package + decryption helper delivered privately to the user; **no plaintext, key, individual questions or model responses are in this repo**. Only [public content-free manifest](ai/AI0_PROVISIONAL_HOLDOUT_PUBLIC_MANIFEST.json) and [handoff/custody limitations](ai/AI0_ENCRYPTED_HOLDOUT_HANDOFF.md) are tracked.
+- **Not an independently blind, specialist-certified holdout.** Assistant-authored; expert gold, independent custodian and semantic contamination checks still missing. Local AES-GCM decryption and 80-record structural verification **passed**; no model run or GPU spending.
+- `main`, repo visibility and [Draft PR #52](https://github.com/Ali-Mafi/AgroMind/pull/52) remained unchanged; F01/F02 still production NO-GO. [Progress log](progress/2026-10-31-ai0-private-candidate.md).
+
 ## AI-0 expert-review preparation and model-trial readiness — 2026-10-31
 
 - Created [150 paired bilingual reviewer cards](ai/ai0_reviewer_cards_v1.jsonl) covering all 300 synthetic public prompts, with 30 question-variant-specific **engineering criteria**, 50 base situations and explicit `PENDING_INDEPENDENT_REVIEW` fields. No certified scientific gold or model evaluation is claimed; see [review guide](ai/AI0_REVIEWER_GUIDE.md).
