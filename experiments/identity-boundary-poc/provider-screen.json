@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-05",
+  "environment": "READ_ONLY_NO_DEPLOYMENT",
+  "prior_poc": "PR #61 (synthetic policy only)",
+  "baseline_security": "PR #52 F01/F02 UNRESOLVED / NO-GO",
+  "candidates": [
+    {
+      "id": "ory-kratos-published-source",
+      "provider_type": "open-source-IdP",
+      "source_revision": "b86338da04a040247a07f46100a86dcfb3875909",
+      "source_urls": [
+        "https://github.com/ory/kratos/blob/b86338da04a040247a07f46100a86dcfb3875909/session/handler.go",
+        "https://github.com/ory/kratos/blob/b86338da04a040247a07f46100a86dcfb3875909/selfservice/flow/settings/handler.go"
+      ],
+      "public_sensitive_routes": [
+        {
+          "method": "DELETE",
+          "path": "/sessions",
+          "operation": "REMOTE_LOGOUT",
+          "enforcement": "BEARER_ONLY",
+          "basis": "Published handler fetches active session, then revokes other sessions; no per-operation TOTP check visible on this path. This is source inspection, not hosted proof."
+        }
+      ],
+      "gates": {
+        "credential_stepup": "UNKNOWN",
+        "remote_logout_stepup": "FAIL",
+        "native_origin_isolation": "UNKNOWN",
+        "recovery_safety": "UNKNOWN",
+        "trusted_oidc": "UNKNOWN",
+        "legacy_auth_cutover": "UNKNOWN",
+        "rls_session_proof": "UNKNOWN",
+        "hosted_negative_tests": "UNKNOWN"
+      },
+      "production_mfa_paid": false,
+      "evidence": {
+        "hosted_negative_tests": "NOT_RUN",
+        "rls_session_proof": "NOT_RUN",
+        "independent_security_review": "NOT_RUN"
+      }
+    },
+    {
+      "id": "supertokens-private-core",
+      "provider_type": "conditional-private-core-research",
+      "source_revision": "UNPINNED_DOCUMENTATION_ONLY",
+      "source_urls": [
+        "https://supertokens.com/docs/deployment/self-host-supertokens",
+        "https://supertokens.com/docs/additional-verification/mfa/introduction",
+        "https://supertokens.com/docs/references/fdi",
+        "https://supertokens.com/docs/references/cdi"
+      ],
+      "public_sensitive_routes": [],
+      "gates": {
+        "credential_stepup": "UNKNOWN",
+        "remote_logout_stepup": "UNKNOWN",
+        "native_origin_isolation": "UNKNOWN",
+        "recovery_safety": "UNKNOWN",
+        "trusted_oidc": "UNKNOWN",
+        "legacy_auth_cutover": "UNKNOWN",
+        "rls_session_proof": "UNKNOWN",
+        "hosted_negative_tests": "UNKNOWN"
+      },
+      "production_mfa_paid": true,
+      "evidence": {
+        "hosted_negative_tests": "NOT_RUN",
+        "rls_session_proof": "NOT_RUN",
+        "independent_security_review": "NOT_RUN"
+      }
+    }
+  ]
+}
