@@ -1,5 +1,12 @@
 # AgroMind Master Progress
 
+## Real identity-provider F01/F02 research screen — 2026-11-05 (READ-ONLY)
+
+- Inspected **Ory Kratos** pinned upstream direct `DELETE /sessions`: the published public handler accepts an active session and revokes the user's other sessions without a shown fresh, operation-bound TOTP gate. **Reject as-is** for universal F02 (source evidence, no hosted test). **SuperTokens** has a potentially isolatable private Core but its official production MFA/step-up is **paid**, and real OIDC/provider/RLS compatibility is **not established**.
+- Added [source-backed provider decision report](SECURITY_REAL_IDP_PROVIDER_SCREEN.md) and **18 offline fail-closed screening tests**, bringing the experimental suite to **39/39 local tests**. The new tests validate research gate logic, **not provider-native HTTP behavior**. No external identity environment or paid resources created; [daily evidence](progress/2026-11-05-identity-provider-screen.md).
+- Existing Supabase Auth cannot be disabled simply by adding an external issuer, and `auth.users`/`auth.sessions`-dependent RLS requires isolated migration acceptance. **Security PR #52 F01/F02 remains UNRESOLVED / NO-GO**; no merge, app change or production operation.
+
+
 ## Isolated identity authority policy PoC — 2026-11-04 (NOT PRODUCTION)
 
 - A **self-contained local Node 22 synthetic experiment** now demonstrates an operation-bound TOTP policy for password/email changes and remote/global sign-out with **21/21 local negative-path and HTTP tests passed**. [Code/runbook](../experiments/identity-boundary-poc/README.md) · [technical limits and architecture decision](SECURITY_IDENTITY_BOUNDARY_POC.md).
