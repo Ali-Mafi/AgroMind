@@ -1,5 +1,12 @@
 # AgroMind Master Progress
 
+## Identity policy authority PoC — 2026-11-04
+
+- Added a **standalone, zero-dependency, synthetic local PoC** under [experiments/identity-boundary-poc](../experiments/identity-boundary-poc/README.md): operation-bound new TOTP challenge, one-use grant, credential/email mutation, other/global session revocation, local loopback endpoint negatives, test recovery fixture, and RS256 test JWT. **21/21 local Node tests passed**, now included in root `npm test`; final-head CI must be checked separately.
+- [Architecture/acceptance record](SECURITY_IDENTITY_BOUNDARY_POC.md) identifies native `auth.users` foreign keys, `auth.sessions` RLS guard, MFA `auth.mfa_factors`, server SSR and legacy GoTrue routes as migration blockers. No independent IdP or real Supabase project tested or configured; no secrets, users, paid resources or production deploys involved.
+- **Security PR #52 remains Draft / F01-F02 UNRESOLVED / NO-GO.** PoC demonstrates a local policy idea only, not a real provider enforcement fix. [Dated progress](progress/2026-11-04-identity-boundary-poc.md).
+
+
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
 ## Signature Premium email candidate — 2026-10-28
