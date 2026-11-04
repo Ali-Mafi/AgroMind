@@ -15,7 +15,7 @@ function wasmResult(result) {
     rowCount: result.rows.length || result.affectedRows || 0,
   };
 }
-function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
+function wasmClient(user, level = "aal1", sessionId = user, fresh = false, issuer = null) {
   return {
     connect: async () => {},
     end: async () => {},
@@ -41,7 +41,7 @@ function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
             user,
           ]);
         await tx.query("select set_config('request.jwt.claims',$1,true)", [
-          JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+          JSON.stringify({ sub: user, aal: level, ...(issuer ? { iss: issuer } : {}), session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
         ]);
         return wasmResult(await tx.query(sql, values));
       });
@@ -75,8 +75,8 @@ async function port() {
   await new Promise((resolve) => server.close(resolve));
   return value;
 }
-async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
-  if (!native) return wasmClient(user, level, sessionId, fresh);
+async function asUser(user, level = "aal1", sessionId = user, fresh = false, issuer = null) {
+  if (!native) return wasmClient(user, level, sessionId, fresh, issuer);
   const client = postgres.getPgClient();
   await client.connect();
   await client.query("set role authenticated");
@@ -84,7 +84,7 @@ async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
     user,
   ]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+    JSON.stringify({ sub: user, aal: level, ...(issuer ? { iss: issuer } : {}), session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
   ]);
   return client;
 }
@@ -1167,6 +1167,127 @@ test("revoked, expired, missing and cross-user session claims fail closed", asyn
   } finally {
     await admin.query("insert into auth.sessions(id,user_id) values($1,$1) on conflict(id) do update set not_after=null",[user]);
     for(const c of [valid,other,missing,malformed])await c.end();
+  }
+});
+
+test("external issuer/sub migration gate: native-session RLS and legacy issuer collision", async () => {
+  // This is a native Postgres/PGlite CLAIMS simulation, not an issued or provider-verified JWT.
+  // For a real external identity sub, existing auth.users/auth.sessions are NOT populated automatically.
+  const subject = randomUUID();
+  const issuer = "https://issuer.example.test";
+  const externalOnly = randomUUID();
+  const farmId = "issuer-compat-" + subject.slice(0, 8);
+  await admin.query(
+    "insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values($1,$2,$3,now())",
+    [subject, "issuer-compat-" + subject + "@example.test", { full_name: "Fixture only", language: "fa" }],
+  );
+  const nativeClient = await asUser(subject);
+  const noNativeSession = await asUser(subject, "aal1", externalOnly, false, issuer);
+  const collidingIssuer = await asUser(subject, "aal1", subject, false, issuer);
+  const externalUnmapped = await asUser(externalOnly, "aal1", externalOnly, false, issuer);
+  const foreignClient = await asUser(users[1]);
+  try {
+    await create(nativeClient, farm(farmId));
+    assert.equal((await noNativeSession.query("select id from profiles where id=$1", [subject])).rowCount, 0);
+    assert.equal((await noNativeSession.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+    assert.equal((await externalUnmapped.query("select id from profiles")).rowCount, 0);
+    assert.equal((await collidingIssuer.query("select id from profiles where id=$1", [subject])).rowCount, 1);
+    assert.equal((await collidingIssuer.query("select id from farms where id=$1", [farmId])).rowCount, 1);
+    assert.equal((await foreignClient.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+    // Structural proof: external identity UUID without a corresponding auth.users row
+    // cannot simply be linked to existing accounts. No production Auth data is changed.
+    await assert.rejects(
+      admin.query("insert into public.accounts(owner_user_id) values($1)", [externalOnly]),
+      /foreign key|violates foreign key|is not present/i,
+    );
+    // RLS currently does not check 'iss'; an incoming token *already trusted* by
+    // the API and bearing a real native session_id can pass existing SQL guards.
+    // This is NOT proof an attacker can guess such an ID or forge a signed JWT.
+    await admin.query("delete from auth.sessions where id=$1", [subject]);
+    assert.equal((await collidingIssuer.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+  } finally {
+    for (const c of [nativeClient, noNativeSession, collidingIssuer, externalUnmapped, foreignClient]) await c.end();
+    await admin.query("delete from auth.users where id=$1", [subject]);
+  }
+});
+
+test("single-PostgreSQL pilot: issuer-bound private identity sessions enforce synthetic farm RLS", async () => {
+  // Additional purely isolated SQL experiment. The API signature verification
+  // normally done by PostgREST is NOT simulated or replaced by this policy.
+  const schema = `
+    create schema identity_lab;
+    create table identity_lab.subjects (
+      issuer text not null, principal text not null,
+      native_user_id uuid not null references auth.users(id),
+      primary key (issuer, principal)
+    );
+    create table identity_lab.sessions (
+      session_id uuid primary key, issuer text not null, principal text not null,
+      revoked boolean not null default false,
+      expires_at timestamptz not null,
+      foreign key (issuer, principal) references identity_lab.subjects(issuer, principal)
+    );
+    create function identity_lab.native_subject_for_current_session() returns uuid
+    language sql stable security definer set search_path = '' as $$
+      select i.native_user_id
+      from identity_lab.subjects i join identity_lab.sessions s
+        on s.issuer = i.issuer and s.principal = i.principal
+      where i.issuer = auth.jwt()->>'iss'
+        and i.principal = auth.jwt()->>'sub'
+        and s.session_id::text = auth.jwt()->>'session_id'
+        and not s.revoked and s.expires_at > now()
+      limit 1
+    $$;
+    revoke all on schema identity_lab from public, anon, authenticated;
+    grant usage on schema identity_lab to authenticated;
+    revoke all on all tables in schema identity_lab from public, anon, authenticated;
+    revoke all on function identity_lab.native_subject_for_current_session() from public, anon;
+    grant execute on function identity_lab.native_subject_for_current_session() to authenticated;
+    create table public.identity_lab_farms (
+      asset text primary key, owner_user_id uuid not null references auth.users(id)
+    );
+    alter table public.identity_lab_farms enable row level security;
+    revoke all on public.identity_lab_farms from public, anon, authenticated;
+    grant select on public.identity_lab_farms to authenticated;
+    create policy identity_lab_allow_authenticated on public.identity_lab_farms
+      as permissive for select to authenticated using (true);
+    create policy identity_lab_restrict_bound_subject on public.identity_lab_farms
+      as restrictive for select to authenticated
+      using (owner_user_id = (select identity_lab.native_subject_for_current_session()));
+  `;
+  await (native ? admin.query(schema) : embedded.exec(schema));
+  const issuerA = "https://issuer-a.example.test", issuerB = "https://issuer-b.example.test";
+  const sub = "shared-external-sub";
+  const sessionA = randomUUID(), sessionB = randomUUID();
+  const clients = [];
+  try {
+    await admin.query(
+      "insert into identity_lab.subjects(issuer,principal,native_user_id) values($1,$2,$3),($4,$5,$6)",
+      [issuerA, sub, users[16], issuerB, sub, users[17]],
+    );
+    await admin.query(
+      "insert into identity_lab.sessions(session_id,issuer,principal,expires_at) values($1,$2,$3,now()+interval '1 hour'),($4,$5,$6,now()+interval '1 hour')",
+      [sessionA, issuerA, sub, sessionB, issuerB, sub],
+    );
+    await admin.query("insert into public.identity_lab_farms(asset,owner_user_id) values('orchard-a',$1),('orchard-b',$2)",[users[16],users[17]]);
+    const alice = await asUser(sub, "aal1", sessionA, false, issuerA);
+    const bob = await asUser(sub, "aal1", sessionB, false, issuerB);
+    const wrongIssuer = await asUser(sub, "aal1", sessionA, false, issuerB);
+    const missing = await asUser(sub, "aal1", randomUUID(), false, issuerA);
+    clients.push(alice,bob,wrongIssuer,missing);
+    assert.deepEqual((await alice.query("select asset from public.identity_lab_farms order by asset")).rows.map(r=>r.asset),["orchard-a"]);
+    assert.deepEqual((await bob.query("select asset from public.identity_lab_farms order by asset")).rows.map(r=>r.asset),["orchard-b"]);
+    assert.equal((await wrongIssuer.query("select asset from public.identity_lab_farms")).rowCount,0);
+    assert.equal((await missing.query("select asset from public.identity_lab_farms")).rowCount,0);
+    await assert.rejects(alice.query("select * from identity_lab.sessions"),/permission denied/i);
+    await admin.query("update identity_lab.sessions set revoked=true where session_id=$1",[sessionA]);
+    assert.equal((await alice.query("select asset from public.identity_lab_farms")).rowCount,0);
+    await admin.query("update identity_lab.sessions set expires_at=now()-interval '1 second' where session_id=$1",[sessionB]);
+    assert.equal((await bob.query("select asset from public.identity_lab_farms")).rowCount,0);
+  } finally {
+    for (const client of clients) await client.end();
+    await admin.query("drop table if exists public.identity_lab_farms cascade");
+    await admin.query("drop schema if exists identity_lab cascade");
   }
 });
 

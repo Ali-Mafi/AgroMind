@@ -1,5 +1,12 @@
 # AgroMind Master Progress
 
+## Single-PostgreSQL identity migration compatibility — 2026-11-05 (ISOLATED)
+
+- Two **disposable database** regression tests in the existing Supabase foundation suite simulates external OIDC issuer and subject claims against **actual current AgroMind RLS/migrations**. It checks whether missing native sessions deny access, whether native-session/issuer collision is currently possible at the policy layer, whether farm tenant isolation holds, whether unknown external subjects violate existing `auth.users` foreign keys, and whether native revocation denies reads. A second isolated single-Postgres fixture proves that a separate **private identity/session schema** and issuer+subject+live-session-bound restrictive RLS can isolate two synthetic issuers even when their subject strings collide, and deny revoked/expired sessions.
+- **No real IdP/OIDC, hosted Supabase integration or production database executed.** This is an SQL claim-fixture, not a valid signed third-party JWT. [Read the limits](SECURITY_SINGLE_DB_IDENTITY_BRIDGE_LAB.md), [daily note](progress/2026-11-05-identity-db-compatibility.md). Final PR-head Foundation CI is required for native PostgreSQL / PGlite test evidence.
+- Supabase PostgreSQL may remain the **sole agricultural data store**, but IdP's own user/session storage and migration compatibility are separate requirements; it might use a different schema in one cluster depending on supported deployment. PR #52 stays Draft, F01/F02 UNRESOLVED/NO-GO. No Auth provider, migrations, production, paid resource or repo privacy change.
+
+
 ## Real identity-provider F01/F02 research screen — 2026-11-05 (READ-ONLY)
 
 - Inspected **Ory Kratos** pinned upstream direct `DELETE /sessions`: the published public handler accepts an active session and revokes the user's other sessions without a shown fresh, operation-bound TOTP gate. **Reject as-is** for universal F02 (source evidence, no hosted test). **SuperTokens** has a potentially isolatable private Core but its official production MFA/step-up is **paid**, and real OIDC/provider/RLS compatibility is **not established**.
