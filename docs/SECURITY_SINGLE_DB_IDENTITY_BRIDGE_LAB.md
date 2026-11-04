@@ -20,6 +20,14 @@ A new test in `supabase/tests/foundation.test.mjs` runs against disposable PGlit
 
 **Do not interpret the issuer collision case as a working real-world exploit:** the SQL fixture can set arbitrary claims. A real external token requires an independently configured trusted issuer, a valid asymmetric signature and matching session ID. No claim that an attacker could guess session IDs or forge JWTs is made.
 
+## Additional experimental one-PostgreSQL identity store
+
+A second **test-only** fixture creates a private `identity_lab` schema **inside the same disposable PostgreSQL database** with issuer+subject-qualified identity mappings and a separate revocable session ledger. Its security-definer lookup joins that store to the `iss`, `sub` and `session_id` claims. A throwaway `public.identity_lab_farms` table has **both a permissive SELECT policy and a restrictive identity/session-bound policy**; only `authenticated` can SELECT. The private identity tables are not granted to `authenticated` and cannot be queried directly.
+
+The test independently exercises **two issuers with the same external subject string mapped to different AgroMind users**, subject isolation, mismatched issuer/session denial, direct private-table denial, revoked-session denial and expired-session denial. This is materially stronger than testing JWT shape alone, but **does not run a real identity provider, prove JWT signature validation, solve legacy native Auth credential/logout endpoints or constitute a safe deployable migration**.
+
+The test schema is created and dropped inside each isolated test database. There is **no file under `supabase/migrations/`** and no connection to hosted Supabase.
+
 ## Single-DB design boundary
 
 PostgreSQL can continue to hold farms, schedules, plans, support and collaboration. Identity itself requires durable credential, MFA and session state. Depending on the IdP's actual supported setup, its private data can reside in a restricted separate schema, a logical database on the same cluster, or a completely different system. **No second agricultural database is mandated.** However, using Supabase-managed `auth.users` and `auth.sessions` as unsupported manual identity tables is not an acceptable shortcut.

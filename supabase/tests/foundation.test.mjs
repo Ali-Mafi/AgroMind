@@ -1211,6 +1211,86 @@ test("external issuer/sub migration gate: native-session RLS and legacy issuer c
   }
 });
 
+test("single-PostgreSQL pilot: issuer-bound private identity sessions enforce synthetic farm RLS", async () => {
+  // Additional purely isolated SQL experiment. The API signature verification
+  // normally done by PostgREST is NOT simulated or replaced by this policy.
+  const schema = `
+    create schema identity_lab;
+    create table identity_lab.subjects (
+      issuer text not null, principal text not null,
+      native_user_id uuid not null references auth.users(id),
+      primary key (issuer, principal)
+    );
+    create table identity_lab.sessions (
+      session_id uuid primary key, issuer text not null, principal text not null,
+      revoked boolean not null default false,
+      expires_at timestamptz not null,
+      foreign key (issuer, principal) references identity_lab.subjects(issuer, principal)
+    );
+    create function identity_lab.native_subject_for_current_session() returns uuid
+    language sql stable security definer set search_path = '' as $
+      select i.native_user_id
+      from identity_lab.subjects i join identity_lab.sessions s
+        on s.issuer = i.issuer and s.principal = i.principal
+      where i.issuer = auth.jwt()->>'iss'
+        and i.principal = auth.jwt()->>'sub'
+        and s.session_id::text = auth.jwt()->>'session_id'
+        and not s.revoked and s.expires_at > now()
+      limit 1
+    $;
+    revoke all on schema identity_lab from public, anon, authenticated;
+    grant usage on schema identity_lab to authenticated;
+    revoke all on all tables in schema identity_lab from public, anon, authenticated;
+    revoke all on function identity_lab.native_subject_for_current_session() from public, anon;
+    grant execute on function identity_lab.native_subject_for_current_session() to authenticated;
+    create table public.identity_lab_farms (
+      asset text primary key, owner_user_id uuid not null references auth.users(id)
+    );
+    alter table public.identity_lab_farms enable row level security;
+    revoke all on public.identity_lab_farms from public, anon, authenticated;
+    grant select on public.identity_lab_farms to authenticated;
+    create policy identity_lab_allow_authenticated on public.identity_lab_farms
+      as permissive for select to authenticated using (true);
+    create policy identity_lab_restrict_bound_subject on public.identity_lab_farms
+      as restrictive for select to authenticated
+      using (owner_user_id = (select identity_lab.native_subject_for_current_session()));
+  `;
+  await (native ? admin.query(schema) : embedded.exec(schema));
+  const issuerA = "https://issuer-a.example.test", issuerB = "https://issuer-b.example.test";
+  const sub = "shared-external-sub";
+  const sessionA = randomUUID(), sessionB = randomUUID();
+  const clients = [];
+  try {
+    await admin.query(
+      "insert into identity_lab.subjects(issuer,principal,native_user_id) values($1,$2,$3),($4,$5,$6)",
+      [issuerA, sub, users[16], issuerB, sub, users[17]],
+    );
+    await admin.query(
+      "insert into identity_lab.sessions(session_id,issuer,principal,expires_at) values($1,$2,$3,now()+interval '1 hour'),($4,$5,$6,now()+interval '1 hour')",
+      [sessionA, issuerA, sub, sessionB, issuerB, sub],
+    );
+    await admin.query("insert into public.identity_lab_farms(asset,owner_user_id) values('orchard-a',$1),('orchard-b',$2)",[users[16],users[17]]);
+    const alice = await asUser(sub, "aal1", sessionA, false, issuerA);
+    const bob = await asUser(sub, "aal1", sessionB, false, issuerB);
+    const wrongIssuer = await asUser(sub, "aal1", sessionA, false, issuerB);
+    const missing = await asUser(sub, "aal1", randomUUID(), false, issuerA);
+    clients.push(alice,bob,wrongIssuer,missing);
+    assert.deepEqual((await alice.query("select asset from public.identity_lab_farms order by asset")).rows.map(r=>r.asset),["orchard-a"]);
+    assert.deepEqual((await bob.query("select asset from public.identity_lab_farms order by asset")).rows.map(r=>r.asset),["orchard-b"]);
+    assert.equal((await wrongIssuer.query("select asset from public.identity_lab_farms")).rowCount,0);
+    assert.equal((await missing.query("select asset from public.identity_lab_farms")).rowCount,0);
+    await assert.rejects(alice.query("select * from identity_lab.sessions"),/permission denied/i);
+    await admin.query("update identity_lab.sessions set revoked=true where session_id=$1",[sessionA]);
+    assert.equal((await alice.query("select asset from public.identity_lab_farms")).rowCount,0);
+    await admin.query("update identity_lab.sessions set expires_at=now()-interval '1 second' where session_id=$1",[sessionB]);
+    assert.equal((await bob.query("select asset from public.identity_lab_farms")).rowCount,0);
+  } finally {
+    for (const client of clients) await client.end();
+    await admin.query("drop table if exists public.identity_lab_farms cascade");
+    await admin.query("drop schema if exists identity_lab cascade");
+  }
+});
+
 test("missing MFA infrastructure denies opted-out users too", async()=>{
   const c=await asUser(users[0]);
   try {
