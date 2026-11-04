@@ -1228,7 +1228,7 @@ test("single-PostgreSQL pilot: issuer-bound private identity sessions enforce sy
       foreign key (issuer, principal) references identity_lab.subjects(issuer, principal)
     );
     create function identity_lab.native_subject_for_current_session() returns uuid
-    language sql stable security definer set search_path = '' as $
+    language sql stable security definer set search_path = '' as $$
       select i.native_user_id
       from identity_lab.subjects i join identity_lab.sessions s
         on s.issuer = i.issuer and s.principal = i.principal
@@ -1237,7 +1237,7 @@ test("single-PostgreSQL pilot: issuer-bound private identity sessions enforce sy
         and s.session_id::text = auth.jwt()->>'session_id'
         and not s.revoked and s.expires_at > now()
       limit 1
-    $;
+    $$;
     revoke all on schema identity_lab from public, anon, authenticated;
     grant usage on schema identity_lab to authenticated;
     revoke all on all tables in schema identity_lab from public, anon, authenticated;
