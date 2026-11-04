@@ -1,5 +1,12 @@
 # AgroMind Master Progress
 
+## Isolated identity authority policy PoC — 2026-11-04 (NOT PRODUCTION)
+
+- A **self-contained local Node 22 synthetic experiment** now demonstrates an operation-bound TOTP policy for password/email changes and remote/global sign-out with **21/21 local negative-path and HTTP tests passed**. [Code/runbook](../experiments/identity-boundary-poc/README.md) · [technical limits and architecture decision](SECURITY_IDENTITY_BOUNDARY_POC.md).
+- **This is not an external IdP or Supabase integration.** It does not enforce the policy on currently public native GoTrue endpoints. Existing `auth.users` FKs, native `auth.sessions`-dependent RLS, MFA verification and SSR remain migration blockers. No hosted Supabase provider test or real account recovery was performed.
+- **Security PR #52 remains Draft/NO-GO; F01/F02 remain UNRESOLVED.** No app Auth changes, database migrations, production deployment, repo privacy change or paid services authorized. This is a separate experimental PR based on `main`. [Dated evidence](progress/2026-11-04-identity-boundary-poc.md).
+
+
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
 ## Signature Premium email candidate — 2026-10-28
