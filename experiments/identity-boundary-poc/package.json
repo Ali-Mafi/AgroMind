@@ -1,0 +1,9 @@
+{
+  "name": "agromind-identity-boundary-poc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-only, synthetic identity policy boundary experiment — NEVER production",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}
