@@ -36,3 +36,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-11-04 — F01/F02 local identity policy PoC (research only)](2026-11-04-identity-boundary-poc.md)
 
 - [2026-11-05 — Read-only real IdP provider source screen](2026-11-05-identity-provider-screen.md)
+
+- [2026-11-05 — Isolated SQL identity and single-PostgreSQL feasibility](2026-11-05-identity-db-compatibility.md)

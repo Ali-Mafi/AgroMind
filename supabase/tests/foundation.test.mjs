@@ -15,7 +15,7 @@ function wasmResult(result) {
     rowCount: result.rows.length || result.affectedRows || 0,
   };
 }
-function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
+function wasmClient(user, level = "aal1", sessionId = user, fresh = false, issuer = null) {
   return {
     connect: async () => {},
     end: async () => {},
@@ -41,7 +41,7 @@ function wasmClient(user, level = "aal1", sessionId = user, fresh = false) {
             user,
           ]);
         await tx.query("select set_config('request.jwt.claims',$1,true)", [
-          JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+          JSON.stringify({ sub: user, aal: level, ...(issuer ? { iss: issuer } : {}), session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
         ]);
         return wasmResult(await tx.query(sql, values));
       });
@@ -75,8 +75,8 @@ async function port() {
   await new Promise((resolve) => server.close(resolve));
   return value;
 }
-async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
-  if (!native) return wasmClient(user, level, sessionId, fresh);
+async function asUser(user, level = "aal1", sessionId = user, fresh = false, issuer = null) {
+  if (!native) return wasmClient(user, level, sessionId, fresh, issuer);
   const client = postgres.getPgClient();
   await client.connect();
   await client.query("set role authenticated");
@@ -84,7 +84,7 @@ async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
     user,
   ]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+    JSON.stringify({ sub: user, aal: level, ...(issuer ? { iss: issuer } : {}), session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
   ]);
   return client;
 }
@@ -1167,6 +1167,47 @@ test("revoked, expired, missing and cross-user session claims fail closed", asyn
   } finally {
     await admin.query("insert into auth.sessions(id,user_id) values($1,$1) on conflict(id) do update set not_after=null",[user]);
     for(const c of [valid,other,missing,malformed])await c.end();
+  }
+});
+
+test("external issuer/sub migration gate: native-session RLS and legacy issuer collision", async () => {
+  // This is a native Postgres/PGlite CLAIMS simulation, not an issued or provider-verified JWT.
+  // For a real external identity sub, existing auth.users/auth.sessions are NOT populated automatically.
+  const subject = randomUUID();
+  const issuer = "https://issuer.example.test";
+  const externalOnly = randomUUID();
+  const farmId = "issuer-compat-" + subject.slice(0, 8);
+  await admin.query(
+    "insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values($1,$2,$3,now())",
+    [subject, "issuer-compat-" + subject + "@example.test", { full_name: "Fixture only", language: "fa" }],
+  );
+  const nativeClient = await asUser(subject);
+  const noNativeSession = await asUser(subject, "aal1", externalOnly, false, issuer);
+  const collidingIssuer = await asUser(subject, "aal1", subject, false, issuer);
+  const externalUnmapped = await asUser(externalOnly, "aal1", externalOnly, false, issuer);
+  const foreignClient = await asUser(users[1]);
+  try {
+    await create(nativeClient, farm(farmId));
+    assert.equal((await noNativeSession.query("select id from profiles where id=$1", [subject])).rowCount, 0);
+    assert.equal((await noNativeSession.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+    assert.equal((await externalUnmapped.query("select id from profiles")).rowCount, 0);
+    assert.equal((await collidingIssuer.query("select id from profiles where id=$1", [subject])).rowCount, 1);
+    assert.equal((await collidingIssuer.query("select id from farms where id=$1", [farmId])).rowCount, 1);
+    assert.equal((await foreignClient.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+    // Structural proof: external identity UUID without a corresponding auth.users row
+    // cannot simply be linked to existing accounts. No production Auth data is changed.
+    await assert.rejects(
+      admin.query("insert into public.accounts(owner_user_id) values($1)", [externalOnly]),
+      /foreign key|violates foreign key|is not present/i,
+    );
+    // RLS currently does not check 'iss'; an incoming token *already trusted* by
+    // the API and bearing a real native session_id can pass existing SQL guards.
+    // This is NOT proof an attacker can guess such an ID or forge a signed JWT.
+    await admin.query("delete from auth.sessions where id=$1", [subject]);
+    assert.equal((await collidingIssuer.query("select id from farms where id=$1", [farmId])).rowCount, 0);
+  } finally {
+    for (const c of [nativeClient, noNativeSession, collidingIssuer, externalUnmapped, foreignClient]) await c.end();
+    await admin.query("delete from auth.users where id=$1", [subject]);
   }
 });
 
