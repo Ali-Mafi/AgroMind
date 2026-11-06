@@ -21,6 +21,10 @@ jobs:
           node experiments/identity-boundary-poc/keycloak/lab.mjs --prepare
       - name: Start real Keycloak (ephemeral localhost Docker / H2)
         run: |
+          # Keycloak's container UID (1000) must read the generated import folder.
+          # Keep secrets outside this read-only mount; change ownership only in CI.
+          chmod 755 "$RUNNER_TEMP/agromind-keycloak-lab"
+          sudo chown -R 1000:0 "$RUNNER_TEMP/agromind-keycloak-lab/import"
           docker run -d --name agromind-idp-poc --memory=2g \
             -p 127.0.0.1:18080:8080 \
             -v "$RUNNER_TEMP/agromind-keycloak-lab/import:/opt/keycloak/data/import:ro" \
