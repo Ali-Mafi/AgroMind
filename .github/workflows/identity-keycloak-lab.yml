@@ -21,7 +21,7 @@ jobs:
           node experiments/identity-boundary-poc/keycloak/lab.mjs --prepare
       - name: Start real Keycloak (ephemeral localhost Docker / H2)
         run: |
-          docker run -d --rm --name agromind-idp-poc --memory=2g \
+          docker run -d --name agromind-idp-poc --memory=2g \
             -p 127.0.0.1:18080:8080 \
             -v "$RUNNER_TEMP/agromind-keycloak-lab/import:/opt/keycloak/data/import:ro" \
             -e KC_BOOTSTRAP_ADMIN_USERNAME=poc-admin \
@@ -36,11 +36,13 @@ jobs:
             fi
             if ! docker inspect --format='{{.State.Running}}' agromind-idp-poc 2>/dev/null | grep -q true; then
               echo "Disposable Keycloak container stopped before ready" >&2
+              docker logs --tail 120 agromind-idp-poc >&2 || true
               exit 1
             fi
             sleep 2
           done
           echo "Isolated Keycloak never became ready" >&2
+          docker logs --tail 120 agromind-idp-poc >&2 || true
           exit 1
       - name: Run live provider HTTP negative tests (no production resources)
         run: node experiments/identity-boundary-poc/keycloak/lab.mjs --test
