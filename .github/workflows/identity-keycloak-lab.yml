@@ -56,4 +56,4 @@ jobs:
           docker image inspect quay.io/keycloak/keycloak:26.8.1 \
             --format '{{range .RepoDigests}}{{println .}}{{end}}' || true
           docker rm -f agromind-idp-poc || true
-          rm -rf "$RUNNER_TEMP/agromind-keycloak-lab" || true
+          sudo rm -rf "$RUNNER_TEMP/agromind-keycloak-lab" || true

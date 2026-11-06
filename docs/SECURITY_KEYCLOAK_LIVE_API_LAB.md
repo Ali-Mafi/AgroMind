@@ -10,6 +10,30 @@ Keycloak provides an actual OIDC issuer, JWKS and MFA and supports free, local o
 
 **Source-based concern:** At version `26.8.1`, [`SessionResource.java`](https://github.com/keycloak/keycloak/blob/26.8.1/services/src/main/java/org/keycloak/services/resources/account/SessionResource.java) implements `DELETE /realms/{realm}/account/sessions?current=false` by requiring `MANAGE_ACCOUNT` and revoking other sessions; no newly supplied operation-bound TOTP proof is checked inside the handler. This requires **live confirmation**, not an automatic vulnerability assertion or proof of remote exploitability. [AccountCredentialResource.java](https://github.com/keycloak/keycloak/blob/26.8.1/services/src/main/java/org/keycloak/services/resources/account/AccountCredentialResource.java) has a deprecated credential-removal handler; its availability is probed, not assumed.
 
+## Verified real-provider execution — 2026-11-06
+
+**Executed on [GitHub Actions run 42196411433](https://github.com/Ali-Mafi/AgroMind/actions/runs/42196411433), commit `9ea3a80483d4b85c230d63bbefb49b47c3fb2f8d`.** `real-provider-http` completed successfully **after** correcting CI-only directory ownership, required Keycloak profile fields and imported OTP `secretEncoding: BASE32`.
+
+**Actual unmodified image:** `quay.io/keycloak/keycloak@sha256:3f3c5f8e03c614774b4bd9173b88391fefa4153bfc010d8012d59ad825377332` (tag `26.8.1`).
+
+| Real HTTP/crypto probe | Result |
+| --- | --- |
+| Real OIDC discovery + provider JWKS RSA signature check | **PASS** |
+| Issuer, expiry, UUID subject, explicit `role: authenticated` claim | **PASS (JWT-level only)** |
+| Synthetic Alice login without TOTP | **DENIED** |
+| Two actual MFA-backed sessions for Alice | **CONFIRMED** |
+| Anonymous account session listing | **DENIED** |
+| Direct native `DELETE /realms/agromind-idp-lab/account/sessions?current=false` with an established bearer but **NO new TOTP/proof** | **ACCEPTED, other session genuinely revoked — F02 BYPASS REPRODUCED** |
+| Target session refresh after revocation | **DENIED** |
+| Current and foreign user's refresh after revocation | **BOTH PRESERVED** |
+| JWT signature still cryptographically verifies after session revocation | **CONFIRMED**; do not equate signature validity with authorization |
+| Native credential/factor deletion with no fresh TOTP | **NOT VERIFIED** (`FACTOR_NOT_LISTED` via account API) |
+| Hosted Supabase Custom OIDC/RLS, password reset and Google OAuth | **NOT TESTED** |
+
+**Security conclusion:** **UNMODIFIED KEYCLOAK 26.8.1 IS NOT AN ACCEPTABLE DROP-IN F02 FIX** for AgroMind's strict *new TOTP per remote/global revocation operation* policy, even where the user logged in with TOTP initially. The verified logout behavior is account-contained: the foreign user's token was not revoked. This should **not** be described as a cross-user exploit. F01 credential mutation was **not** independently proved in this run; no universal F01 fix is claimed.
+
+**Workflow green means the experiment exposed the native policy gap successfully, NOT that Keycloak is production-approved.** The account API might be isolated, replaced or restricted in a different architecture, but this would need an **unavoidable network/authz boundary and new independent negative testing** before becoming a viable candidate.
+
 ## Real-HTTP lab design
 
 Source: [`keycloak/lab.mjs`](../experiments/identity-boundary-poc/keycloak/lab.mjs) and [isolated workflow](../.github/workflows/identity-keycloak-lab.yml). A synthetic realm is generated **only inside the disposable runner** with two users, one with an actual imported TOTP credential. Secrets are randomly generated per run, saved with mode 0600 outside the import directory and removed during cleanup; no tokens/passwords are printed or uploaded as artifacts.
