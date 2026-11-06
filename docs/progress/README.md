@@ -38,3 +38,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-11-05 — Read-only real IdP provider source screen](2026-11-05-identity-provider-screen.md)
 
 - [2026-11-05 — Isolated SQL identity and single-PostgreSQL feasibility](2026-11-05-identity-db-compatibility.md)
+
+- [2026-11-06 — Real Keycloak native HTTP + OIDC lab](2026-11-06-identity-keycloak-http.md)
