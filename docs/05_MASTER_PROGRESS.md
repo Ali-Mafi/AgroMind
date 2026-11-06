@@ -1,5 +1,12 @@
 # AgroMind Master Progress
 
+## Real Keycloak OIDC/direct Auth endpoint experiment — 2026-11-06 (DISPOSABLE)
+
+- Added an opt-in, PR-scoped [real Keycloak 26.8.1 GitHub Actions lab](../experiments/identity-boundary-poc/keycloak/README.md) using a disposable localhost-only Docker container/H2 test store, synthetic TOTP user sessions, native account-management HTTP endpoints and actual OIDC/JWKS signature verification. **Not an external hosted Supabase or production test**. [Technical scope](SECURITY_KEYCLOAK_LIVE_API_LAB.md), [dated record](progress/2026-11-06-identity-keycloak-http.md).
+- The pinned Keycloak account sessions native source checks `MANAGE_ACCOUNT` for other-session logout without a demonstrated **new operation-bound TOTP**. The lab must independently check whether this is observable over native HTTP with real sessions and refresh-token postconditions, rather than assuming source inspection proves an exploit.
+- Regardless of test result, **PR #52 F01/F02 remain UNRESOLVED / NO-GO**. The new lab is research only, not an identity-provider endorsement, deployment or a requirement to introduce a second AgroMind database.
+
+
 ## Single-PostgreSQL identity migration compatibility — 2026-11-05 (ISOLATED)
 
 - Two **disposable database** regression tests in the existing Supabase foundation suite simulates external OIDC issuer and subject claims against **actual current AgroMind RLS/migrations**. It checks whether missing native sessions deny access, whether native-session/issuer collision is currently possible at the policy layer, whether farm tenant isolation holds, whether unknown external subjects violate existing `auth.users` foreign keys, and whether native revocation denies reads. A second isolated single-Postgres fixture proves that a separate **private identity/session schema** and issuer+subject+live-session-bound restrictive RLS can isolate two synthetic issuers even when their subject strings collide, and deny revoked/expired sessions.

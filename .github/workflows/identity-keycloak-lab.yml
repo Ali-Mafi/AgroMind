@@ -1,0 +1,53 @@
+name: Identity Keycloak direct-API lab (isolated)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/identity-keycloak-lab.yml"
+      - "experiments/identity-boundary-poc/keycloak/**"
+permissions:
+  contents: read
+jobs:
+  real-provider-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static syntax and disposable synthetic realm
+        run: |
+          node --check experiments/identity-boundary-poc/keycloak/lab.mjs
+          node experiments/identity-boundary-poc/keycloak/lab.mjs --prepare
+      - name: Start real Keycloak (ephemeral localhost Docker / H2)
+        run: |
+          docker run -d --rm --name agromind-idp-poc --memory=2g \
+            -p 127.0.0.1:18080:8080 \
+            -v "$RUNNER_TEMP/agromind-keycloak-lab/import:/opt/keycloak/data/import:ro" \
+            -e KC_BOOTSTRAP_ADMIN_USERNAME=poc-admin \
+            -e "KC_BOOTSTRAP_ADMIN_PASSWORD=$(openssl rand -hex 24)" \
+            quay.io/keycloak/keycloak:26.8.1 start-dev --import-realm
+          for i in $(seq 1 100); do
+            if curl --fail --silent --show-error --max-time 2 \
+              http://127.0.0.1:18080/realms/agromind-idp-lab/.well-known/openid-configuration \
+              >/dev/null 2>&1; then
+              echo "Isolated Keycloak OIDC discovery is healthy"
+              exit 0
+            fi
+            if ! docker inspect --format='{{.State.Running}}' agromind-idp-poc 2>/dev/null | grep -q true; then
+              echo "Disposable Keycloak container stopped before ready" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Isolated Keycloak never became ready" >&2
+          exit 1
+      - name: Run live provider HTTP negative tests (no production resources)
+        run: node experiments/identity-boundary-poc/keycloak/lab.mjs --test
+      - name: Record immutable image reference and cleanup
+        if: always()
+        run: |
+          docker image inspect quay.io/keycloak/keycloak:26.8.1 \
+            --format '{{range .RepoDigests}}{{println .}}{{end}}' || true
+          docker rm -f agromind-idp-poc || true
+          rm -rf "$RUNNER_TEMP/agromind-keycloak-lab" || true
