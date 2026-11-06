@@ -54,7 +54,8 @@ function prepare() {
   const passwordA = randomText(), passwordB = randomText();
   const seed = b32(randomBytes(20));
   const user = (username, email, password, totp = false) => ({
-    username, email, enabled: true, emailVerified: true,
+    username, email, firstName: 'Synthetic', lastName: 'Tester',
+    requiredActions: [], enabled: true, emailVerified: true,
     clientRoles: { account: ['manage-account', 'view-profile'] },
     totp,
     credentials: [
