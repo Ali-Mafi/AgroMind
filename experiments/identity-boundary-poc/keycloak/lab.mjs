@@ -125,6 +125,11 @@ async function testProvider() {
     assert.match(payload.sub, /^[0-9a-f-]{36}$/i);
     return payload;
   }
+  const bobPreflight = await exchange({
+    grant_type: 'password', username: 'synthetic-bob', password: state.passwordB,
+  });
+  assert.equal(bobPreflight.status, 200, 'password-only foreign control login failed HTTP ' + bobPreflight.status +
+    ' / ' + String(bobPreflight.data?.error_description || 'unspecified'));
   const withoutTotp = await exchange({
     grant_type: 'password', username: 'synthetic-alice', password: state.passwordA,
   });
@@ -137,14 +142,12 @@ async function testProvider() {
   }
   const a1 = await loginAlice();
   assert.equal(a1.status, 200,
-    'first MFA login failed HTTP ' + a1.status + ' / ' + String(a1.data?.error || 'unknown'));
+    'first MFA login failed HTTP ' + a1.status + ' / ' + String(a1.data?.error || 'unknown') + ': ' + String(a1.data?.error_description || 'unspecified'));
   await delay(30000 - (Date.now() % 30000) + 1200);
   const a2 = await loginAlice();
   assert.equal(a2.status, 200,
-    'second MFA login failed HTTP ' + a2.status + ' / ' + String(a2.data?.error || 'unknown'));
-  const b1 = await exchange({
-    grant_type: 'password', username: 'synthetic-bob', password: state.passwordB,
-  });
+    'second MFA login failed HTTP ' + a2.status + ' / ' + String(a2.data?.error || 'unknown') + ': ' + String(a2.data?.error_description || 'unspecified'));
+  const b1 = bobPreflight;
   assert.equal(b1.status, 200, 'foreign user login failed HTTP ' + b1.status);
   const a = verifyJwt(a1.data.access_token);
   const aOther = verifyJwt(a2.data.access_token);
