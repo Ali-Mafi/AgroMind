@@ -64,7 +64,7 @@ function prepare() {
         type: 'otp', userLabel: 'Lab authenticator',
         secretData: JSON.stringify({ value: seed }),
         credentialData: JSON.stringify({
-          digits: 6, counter: 0, period: 30, algorithm: 'HmacSHA1', subType: 'totp',
+          digits: 6, counter: 0, period: 30, algorithm: 'HmacSHA1', subType: 'totp', secretEncoding: 'BASE32',
         }),
       }] : []),
     ],
