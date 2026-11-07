@@ -37,7 +37,7 @@ export async function authorizeUsername(client: Client, form: FormData, username
   if (reserved.error || typeof reserved.data !== "string") throw new Error("AUTH_UNAVAILABLE");
   // Each request challenges/verifies the owned factor here, independent of old AAL2.
   const verified = await client.auth.mfa.challengeAndVerify({ factorId: factor, code });
-  if (verified.error || verified.data?.user?.id !== before.userId || !verified.data.access_token) throw new Error("MFA_CHALLENGE_REQUIRED");
+  if (verified.error || verified.data?.user?.id !== before.userId || typeof verified.data.access_token !== "string" || !verified.data.access_token) throw new Error("MFA_CHALLENGE_REQUIRED");
   const after = await context(client);
   if (after.userId !== before.userId || after.sessionId !== before.sessionId) throw new Error("AUTH_REQUIRED");
   const proof = createHmac("sha256", key).update(JSON.stringify([before.userId,factor,code])).digest("hex");
