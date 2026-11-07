@@ -140,7 +140,7 @@ export function UsernameForm({
             )}
           </div>
 
-          <FreshIdentityFields state={securityState} />
+          <FreshIdentityFields state={{ ...securityState, recoveryCodes: { ...securityState.recoveryCodes, available: false, enabled: false } }} />
 
           {state.error && (
             <p
