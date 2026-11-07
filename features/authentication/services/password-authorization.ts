@@ -106,7 +106,7 @@ export async function authorizePassword(client: Client, form: FormData, password
           throw new Error("PASSWORD_AUTH_REQUIRED");
         verified = await client.auth.mfa.challengeAndVerify({ factorId: factor!, code });
       }
-      if (verified.error || verified.data?.user?.id !== context.user.id || !verified.data.access_token)
+      if (verified.error || verified.data?.user?.id !== context.user.id || typeof verified.data.access_token !== "string" || !verified.data.access_token)
         throw new Error("PASSWORD_AUTH_REQUIRED");
     } else if (await verifyFreshIdentity(client, context.user, form)) throw new Error("PASSWORD_AUTH_REQUIRED");
     proof = passwordProofHash(context.user.id, method, factor ?? "",

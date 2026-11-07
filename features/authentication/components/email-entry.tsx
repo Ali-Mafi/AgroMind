@@ -63,6 +63,10 @@ export async function EmailEntry({
     return (
       <AuthShell title="Choose a new password" description="Use a unique password to keep your farms secure.">
         <AuthForm mode="reset" expectedUserId={user.id} passwordContext={recovery ? "recovery" : "change"} securityState={securityState} />
+        <Link className="mt-4 inline-flex min-h-11 items-center text-sm text-primary" href="/forgot-password">
+          <T text="Request a new email" />
+        </Link>
+        <SignInLink />
       </AuthShell>
     );
   }
