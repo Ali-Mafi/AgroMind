@@ -24,6 +24,8 @@ import {
   rememberPendingSignup,
 } from "../lib/pending-signup";
 
+import { authorizePassword, issuePasswordRecovery, passwordContext, passwordWorker } from "./password-authorization";
+
 const unavailable = {
   error: "Account services are temporarily unavailable. Please try again.",
 };
@@ -500,7 +502,7 @@ export async function verifyEmailAction(
     return { error: "This link is invalid. Request a new email." };
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({
+    const { error, data: verified } = await supabase.auth.verifyOtp({
       token_hash: hash.data,
       type,
     });
@@ -512,6 +514,12 @@ export async function verifyEmailAction(
             : "This link is invalid. Request a new email.",
       };
     if (type === "signup") await supabase.auth.signOut({ scope: "local" });
+    else {
+      if (!verified.user?.id) return unavailable;
+      const context = await passwordContext(supabase);
+      if (context.user.id !== verified.user.id) return unavailable;
+      await issuePasswordRecovery(supabase);
+    }
   } catch {
     return unavailable;
   }
@@ -528,59 +536,53 @@ export async function resetPasswordAction(
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
 
-  let mfaRequired = false;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
-      };
-
-    const active = await supabase.rpc("get_current_session");
-    if (active.error || !active.data)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
-      };
-
-    if (data.user.id !== form.get("expected_user_id"))
-      return { error: "Your account changed. Reload before saving." };
-
-    const assurance =
-      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assurance.error) return unavailable;
-
-    mfaRequired =
-      assurance.data.nextLevel === "aal2" &&
-      assurance.data.currentLevel !== "aal2";
-
-    if (!mfaRequired) {
-      const updated = await supabase.auth.updateUser({
-        password: parsed.data.password,
-      });
-      if (updated.error)
-        return {
-          error:
-            updated.error.code === "same_password"
-              ? "Choose a password different from your current password."
-              : unavailable.error,
-        };
-
-      const signedOut = await supabase.auth.signOut({ scope: "global" });
-      if (signedOut.error)
-        return {
-          success:
-            "Password updated. Sign out from your account before signing in again.",
-        };
+    const currentPassword = String(form.get("current_password") ?? "");
+    const nonce = String(form.get("reauthentication_nonce") ?? "").trim();
+    if (currentPassword.length > 128 || (nonce && !/^[0-9]{6,10}$/.test(nonce))) return unavailable;
+    let authorization;
+    try {
+      authorization = await authorizePassword(supabase, form, parsed.data.password);
+    } catch {
+      return { error: "Confirm your identity with a fresh code or your current password. For recovery, open a new reset email." };
     }
+    // Consumption commits BEFORE this external call, including on timeout. Never
+    // roll proof back or automatically retry an uncertain provider mutation.
+    const updated = await supabase.auth.updateUser({
+      password: parsed.data.password,
+      ...(!authorization.recovery && currentPassword ? { current_password: currentPassword } : {}),
+      ...(!authorization.recovery && nonce ? { nonce } : {}),
+    }).catch(() => ({ data: { user: null }, error: { code: "request_timeout" } }));
+    if (updated.error || updated.data?.user?.id !== authorization.userId) {
+      const rejected = ["same_password", "weak_password", "reauthentication_needed", "reauthentication_not_valid", "invalid_credentials", "validation_failed"].includes(updated.error?.code ?? "");
+      return { error: rejected
+        ? "Password change was rejected. Verify your current password or email code, then confirm your identity again."
+        : "Password change could not be confirmed. Try signing in or request a new reset email before retrying." };
+    }
+    // auth-js can suppress native logout errors. A null error is NOT evidence
+    // that every session disappeared; do not claim global logout succeeded.
+    await supabase.auth.signOut({ scope: "global" }).catch(() => ({ error: true }));
+    revalidatePath("/", "layout");
+    return { success: "Password updated. Sign in with your new password. Sign-out of other sessions could not be confirmed." };
   } catch {
     return unavailable;
   }
+}
 
-  if (mfaRequired) redirect("/mfa?next=/reset-password");
-
-  revalidatePath("/", "layout");
-  redirect("/sign-in?status=password-updated");
+export async function requestPasswordReauthenticationAction(): Promise<AuthFormState> {
+  try {
+    const client = await createClient();
+    const context = await passwordContext(client);
+    const reserved = await passwordWorker().rpc("password_reserve", {
+      p_user: context.user.id, p_session: context.sessionId, p_operation: "password_reauthentication",
+      p_payload_hash: "0".repeat(64), p_recovery_hash: null,
+    });
+    if (reserved.error || !reserved.data) return unavailable;
+    const sent = await client.auth.reauthenticate();
+    if (sent.error) return unavailable;
+    return { success: "Verification code sent. Check your email and enter the code below." };
+  } catch { return unavailable; }
 }
 
 export async function logoutAction(): Promise<{ error?: string }> {

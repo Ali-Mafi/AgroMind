@@ -1,0 +1,40 @@
+# Password reset authorization hotfix — Astra handoff (2026-11-07)
+
+Status: developer implementation; independent Astra audit and isolated hosted acceptance required. No production change, merge or migration authorized. Universal provider-native F01/F02 remain unresolved; PR #52 stays Draft/NO-GO.
+
+## Verified starting state
+
+Both actual main and READY production agromind.ir: `42a8eb2b54fd5852f11a2cc31e09dd7b598e4dc0`. Main Foundation CI run [40724005147](https://github.com/Ali-Mafi/AgroMind/actions/runs/40724005147) succeeded. PR #52 actual head `2cd65a5dbf7730a6bdd2a1824912cde52564794f`; research #61–#64 open, Draft, unmerged. Production migration inventory ends at `20261027134742`; no PR #52 migrations present. Fresh main checkout was clean. Final head and its CI run are recorded in this Draft PR's description.
+
+## Original failure and correction
+
+Executed actual baseline `resetPasswordAction` from git with intercepted provider dependencies: ordinary authenticated synthetic user, `currentLevel=nextLevel=aal2`, no new proof -> `password_update`, `global_logout`, redirect `password-updated`. This reproduces application authorization bypass; it does **not** establish hosted Supabase acceptance of a real mutation.
+
+Ordinary changes now verify a fresh owned authenticator (or the existing explicitly enabled provider backup-code policy); non-MFA accounts verify their current password using the existing isolated provider client. Recovery is a distinct operation requiring a provider-verified email token or a successful PKCE exchange plus signature-verified fresh recovery AMR. URL/form flags cannot issue a recovery ticket. A random HttpOnly recovery capability is hash-stored, user/session bound, ten-minute and single-use. MFA is still required during recovery when enrolled. Google-only first-password users must use verified email recovery; they cannot fabricate a current password. No legitimate recovery route is deliberately disabled.
+
+A two-minute server-only grant binds user, actual native session, operation and keyed password payload digest. Reserve precedes verification; identity/session are checked again afterward. SQL rechecks native session ownership/expiry, verified email and factor state. Consumption commits before the external password request. Recovery consumption is in that same transaction; provider rejection/timeout never restores proof. HMAC fingerprints prevent repeated MFA proof use within two minutes across distinct password grants; concurrent consumption serializes per user. Five reservations/user/minute also bound reauthentication email requests. Consumed receipts retained one day; per-user pruning runs on later requests (inactive accounts' expired metadata is not globally scheduled for deletion).
+
+No plaintext password, TOTP, nonce, bearer or recovery secret is stored. Privileged key stays server-side; keyed hashes use it as HMAC material. Key rotation invalidates outstanding payload/proof matching safely. The browser receives MFA DTOs only.
+
+## Evidence and limits
+
+- Focused application tests execute actual authorization/action code with synthetic/intercepted provider dependencies, including negative stale AAL2/missing/wrong/replayed proof, wrong account/session/claims, expired/reused recovery, non-MFA current password, verified recovery with/without MFA, operation hashes, provider rejection/timeout/empty/foreign responses, PKCE AMR freshness and EN/FA form rendering.
+- Real isolated migration SQL tests cover ordinary-role ACL denial for every new RPC/table, scope/payload/identity/session mismatch, null method/operation, expiry, consumption, MFA factor ownership/state change, proof replay and recovery single use. Native CI exercises simultaneous consumes on separate connections.
+- Local full suite: 292 JS passed; final focused suite includes UI, malformed provider MFA response and backup-code gate cases; 26 PGlite passed, three native-only skips. Final counts/CI are in the PR description. Lint (one pre-existing hook warning), typecheck, localization, production build and HTTP checks passed. Native local launcher fails `EINVAL`; CI must supply actual native concurrency evidence.
+- Email hook change is limited to signed `reauthentication` OTP events, using the existing transport/premium shell; 6–10 digit nonce validation. Tests verify nonces appear only in email content, not subject/URLs. Real hosted delivery not tested.
+- Only the expected provider user ID with no error confirms password success. Recognized provider policy rejections are distinct from uncertain responses. No automatic uncertain retry, no unsafe rollback. Global logout is attempted after confirmed password change; SDK null error is not proof of all-session deletion, so UI explicitly says logout could not be confirmed. This hotfix adds no session-denial/reconciliation architecture.
+- Provider settings, real JWT/refresh, actual native password/current-password/nonce policy, provider MFA/backup replay semantics, Google OAuth first-password, recovery inbox, physical devices and browser end-to-end are **unverified**. Mocked provider success is not hosted testing. Unsupported provider modes fail closed.
+
+## Boundaries / migrations / deployment recovery
+
+Single forward migration: `20261107161451_password_reset_authorization.sql`. Two private RLS tables, private session checker; four public service-role-only RPCs with PUBLIC/anon/authenticated execute revoked. No auth.* writes, changes to shared RLS/session helper, new email worker or PR #52 migration dependency. Application attestation is trusted only after verified getUser + signature-verified getClaims + JWT-backed get_current_session; SQL independently checks native rows. This does not constrain native provider APIs.
+
+After independent acceptance and separate owner release authorization: rehearse on isolated hosted project with synthetic accounts/inbox and actual configured policies; apply this migration first, then deploy the matching application/email hook. Existing app is schema-compatible while awaiting deploy but retains the old vulnerability. New app without migration fails closed. No new environment variable beyond existing Supabase URL, publishable/service keys and Auth email delivery configuration; backup codes retain their existing opt-in gate. Branch Vercel deployments are explicitly disabled in vercel.json.
+
+Prefer keeping additive schema on app recovery; never restore the vulnerable reset action. Roll forward a correction or retain this authorization guard while rolling back unrelated app assets. Do not delete consumed receipts/restore an old snapshot that could reopen a recovery capability. A destructive down migration is intentionally absent. Export evidence before any separately approved cleanup. Recovery tickets expire and a fresh email remains available if the provider request outcome is unknown.
+
+PR #52 integration would conflict in actions/callback/form/email hook and progress/tests. Its older-dated migrations may sort ahead of this hotfix, and its own authorization tables are separate. Do not blindly cherry-pick/replay that chain on a hotfix-deployed database: consolidate competing password authorization paths and test forward migration histories on actual main. Abandoning PR #52 has no runtime dependency impact on this isolated fix. The sibling username fix has distinct objects and does not depend on this PR; combine vercel.json/progress/test additions when merging both.
+
+## Astra audit focus
+
+Reproduce baseline without provider claims; review all password mutation callers, recovery bootstrap trust, callback replay/account switch, backup-code policy, HMAC/expiry/single-use boundaries and per-user concurrency. Attempt direct RPC/table access under anon/authenticated; test wrong identity/session/payload/operation/nulls. Independently inspect provider rejection and uncertain-result wording. Verify final-head native CI, then run isolated hosted recovery/MFA/current-password/nonce/OAuth acceptance. Review-ready does not mean production-approved.

@@ -2,6 +2,11 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Password authorization hotfix candidate — 2026-11-07
+
+- Separate Draft candidate from verified main/production `42a8eb2`; expiring operation-bound grants, verified recovery separation, fresh MFA/current-password, honest provider outcomes. No production change. PR #52 and provider-native F01/F02 remain NO-GO.
+- See [focused handoff](SECURITY_PASSWORD_RESET_HOTFIX.md) and [execution evidence](progress/2026-11-07-password-authorization.md). Final-head CI and independent Astra audit remain distinct gates.
+
 ## Signature Premium email candidate — 2026-10-28
 
 - Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.

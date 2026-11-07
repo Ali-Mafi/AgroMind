@@ -115,3 +115,15 @@ test("signed email hooks validate timestamp and body, send only supported events
   const huge = request({ ...payload, extra: "x".repeat(70000) });
   assert.equal((await handleAuthEmail(huge)).status, 401);
 });
+
+test('signed reauthentication hook sends a visible provider OTP without placing it in a URL or subject', async t=>{
+ const saved=[process.env.SUPABASE_AUTH_EMAIL_HOOK_SECRET,process.env.RESEND_API_KEY];
+ process.env.SUPABASE_AUTH_EMAIL_HOOK_SECRET='v1,whsec_'+testSecret;process.env.RESEND_API_KEY='fixture';
+ t.after(()=>{for(const [i,k]of ['SUPABASE_AUTH_EMAIL_HOOK_SECRET','RESEND_API_KEY'].entries())if(saved[i]===undefined)delete process.env[k];else process.env[k]=saved[i];});
+ const emails=[];const {handleAuthEmail}=loadTs('features/authentication/services/email-hook.ts',{'./resend-auth':{sendAuthEmail:async x=>emails.push(x)}});
+ for(const token of ['123456','12345678','1234567890']){
+  assert.equal((await handleAuthEmail(request({...payload,email_data:{token_hash:'a'.repeat(64),email_action_type:'reauthentication',token}}))).status,200);
+  const e=emails.at(-1);assert.match(e.text,new RegExp(token));assert.doesNotMatch(e.subject,new RegExp(token));assert.doesNotMatch(e.html,new RegExp('href="[^"]*'+token));
+ }
+ for(const token of ['12345','12345678901','<script>'])assert.equal((await handleAuthEmail(request({...payload,email_data:{token_hash:'a'.repeat(64),email_action_type:'reauthentication',token}}))).status,400);
+});
