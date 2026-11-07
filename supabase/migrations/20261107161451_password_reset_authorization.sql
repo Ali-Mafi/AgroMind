@@ -1,3 +1,4 @@
+begin;
 -- Isolated reset authorization. No PR #52/session/email migration dependency.
 create table private.password_recovery_tickets (
   token_hash text primary key check (token_hash ~ '^[a-f0-9]{64}$'),
@@ -110,3 +111,5 @@ revoke all on function public.password_issue_recovery(uuid,uuid,text), public.pa
 grant execute on function public.password_issue_recovery(uuid,uuid,text), public.password_has_recovery(uuid,uuid,text),
   public.password_reserve(uuid,uuid,text,text,text), public.password_consume(uuid,uuid,uuid,text,text,text,uuid,text)
   to service_role;
+
+commit;

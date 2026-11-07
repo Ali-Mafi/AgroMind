@@ -4,11 +4,12 @@ import { loadTs } from '../../weather/tests/helpers/load-ts.mjs';
 process.env.SUPABASE_SERVICE_ROLE_KEY='synthetic-test-key-not-a-provider-credential';
 process.env.NEXT_PUBLIC_SUPABASE_URL='https://test.invalid';
 const user={id:'user-a',email:'test@example.test',email_confirmed_at:'2026-01-01'};
-const form=(extra={})=>{const f=new FormData();for(const[k,v]of Object.entries({password:'NewPassword!123',confirmPassword:'NewPassword!123',expected_user_id:user.id,...extra}))f.set(k,v);return f;};
-function harness({mfa=true,recovery=false,proofError=null,consumeError=null,update={data:{user},error:null},afterSession='session-a',claimsUser=user.id}={}){
+const form=(extra={})=>{const f=new FormData();for(const[k,v]of Object.entries({password:'NewPassword!123',confirmPassword:'NewPassword!123',expected_user_id:user.id,proof_factor_id:'owned-factor',...extra}))f.set(k,v);return f;};
+function harness({mfa=true,recovery=false,proofError=null,proofData={user,access_token:"synthetic-token"},consumeError=null,update={data:{user},error:null},afterSession='session-a',claimsUser=user.id}={}){
  const calls=[],jar=new Map();let contextReads=0;
  const client={rpc:async()=>({data:{created_at:'2026-01-01'},error:null}),auth:{
   getUser:async()=>({data:{user},error:null}),
+  mfa:{listFactors:async()=>({data:{totp:[{id:'owned-factor',status:'verified'}]},error:null}),challengeAndVerify:async({code})=>{calls.push(['proof']);return{data:proofData,error:proofError||(code==='123456'?null:{code:'invalid'})};},recoveryCodes:{verify:async({code})=>({data:proofData,error:code==='backup-secret'?null:{code:'invalid'}})}},
   getClaims:async()=>({data:{claims:{sub:claimsUser,session_id:++contextReads>1?afterSession:'session-a',amr:[]}},error:null}),
   updateUser:async(payload)=>{calls.push(['update',payload]);if(update instanceof Error)throw update;return update;},
   signOut:async()=>{calls.push(['logout']);return{error:{status:500}};},
@@ -91,4 +92,16 @@ test('EN/FA reset UI preserves recovery without current password and renders fre
   const ordinary=ui.renderToStaticMarkup(React.createElement(AuthForm,{mode:'reset',passwordContext:'change',securityState:state,expectedUserId:user.id}));
   assert.match(ordinary,/name="current_password"/);assert.match(ordinary,/name="reauthentication_nonce"/);
  }
+});
+
+test('password: malformed or foreign provider MFA response cannot consume proof',async()=>{
+ for(const proofData of [{},{user:{id:'other'},access_token:'synthetic'},{user}]){const h=harness({proofData});assert.ok((await h.actions.resetPasswordAction({},form({fresh_code:'123456'}))).error);assert.equal(h.calls.some(c=>c[0]==='password_consume'),false);}
+});
+
+test('password: backup recovery codes retain their explicit feature gate and provider verification',async t=>{
+ const previous=process.env.SUPABASE_RECOVERY_CODES_ENABLED;t.after(()=>{if(previous===undefined)delete process.env.SUPABASE_RECOVERY_CODES_ENABLED;else process.env.SUPABASE_RECOVERY_CODES_ENABLED=previous;});
+ const input={password_context:'recovery',proof_method:'recovery',fresh_recovery_code:'backup-secret'};
+ delete process.env.SUPABASE_RECOVERY_CODES_ENABLED;const disabled=harness({recovery:true});assert.ok((await disabled.actions.resetPasswordAction({},form(input))).error);
+ process.env.SUPABASE_RECOVERY_CODES_ENABLED='true';const enabled=harness({recovery:true});assert.match((await enabled.actions.resetPasswordAction({},form(input))).success,/Password updated/);
+ const bad=harness({recovery:true});assert.ok((await bad.actions.resetPasswordAction({},form({...input,fresh_recovery_code:'wrong-secret'}))).error);
 });

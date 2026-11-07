@@ -91,8 +91,24 @@ export async function authorizePassword(client: Client, form: FormData, password
   if (grant.requires_mfa || !recovery) {
     method = grant.requires_mfa ? (form.get("proof_method") === "recovery" ? "backup" : "totp") : "password";
     factor = method === "totp" ? String(form.get("proof_factor_id") ?? "") : null;
-    // This is a new provider verification inside this specific operation.
-    if (await verifyFreshIdentity(client, context.user, form)) throw new Error("PASSWORD_AUTH_REQUIRED");
+    if (grant.requires_mfa) {
+      const listed = await client.auth.mfa.listFactors();
+      if (listed.error) throw new Error("PASSWORD_AUTH_REQUIRED");
+      let verified;
+      if (method === "backup") {
+        const code = String(form.get("fresh_recovery_code") ?? "").trim();
+        if (process.env.SUPABASE_RECOVERY_CODES_ENABLED !== "true" || code.length < 8 || code.length > 128)
+          throw new Error("PASSWORD_AUTH_REQUIRED");
+        verified = await client.auth.mfa.recoveryCodes.verify({ code });
+      } else {
+        const code = String(form.get("fresh_code") ?? "").trim();
+        if (!/^\d{6}$/.test(code) || !listed.data.totp.some(f => f.id === factor && f.status === "verified"))
+          throw new Error("PASSWORD_AUTH_REQUIRED");
+        verified = await client.auth.mfa.challengeAndVerify({ factorId: factor!, code });
+      }
+      if (verified.error || verified.data?.user?.id !== context.user.id || !verified.data.access_token)
+        throw new Error("PASSWORD_AUTH_REQUIRED");
+    } else if (await verifyFreshIdentity(client, context.user, form)) throw new Error("PASSWORD_AUTH_REQUIRED");
     proof = passwordProofHash(context.user.id, method, factor ?? "",
       String(form.get(method === "backup" ? "fresh_recovery_code" : method === "totp" ? "fresh_code" : "current_password") ?? "").trim());
   }
