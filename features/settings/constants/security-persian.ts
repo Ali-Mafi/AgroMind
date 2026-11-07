@@ -1,4 +1,12 @@
 export const SECURITY_PERSIAN: Record<string, string> = {
+  "Current password (if required by your provider)": "رمز عبور فعلی (اگر سرویس احراز هویت درخواست کند)",
+  "Email verification code (if required)": "کد تأیید ایمیلی (در صورت نیاز)",
+  "Send verification code": "ارسال کد تأیید",
+  "Verification code sent. Check your email and enter the code below.": "کد تأیید ارسال شد. ایمیل خود را بررسی کنید و کد را در پایین وارد کنید.",
+  "Confirm your identity with a fresh code or your current password. For recovery, open a new reset email.": "هویت خود را با کد تازه یا رمز عبور فعلی تأیید کنید. برای بازیابی، ایمیل بازنشانی جدیدی باز کنید.",
+  "Password change was rejected. Verify your current password or email code, then confirm your identity again.": "تغییر رمز عبور رد شد. رمز عبور فعلی یا کد ایمیلی را بررسی کنید و دوباره هویت خود را تأیید کنید.",
+  "Password change could not be confirmed. Try signing in or request a new reset email before retrying.": "تغییر رمز عبور تأیید نشد. پیش از تلاش دوباره، ورود را امتحان کنید یا ایمیل بازنشانی جدید بخواهید.",
+  "Password updated. Sign in with your new password. Sign-out of other sessions could not be confirmed.": "رمز عبور تغییر کرد. با رمز جدید وارد شوید. خروج نشست‌های دیگر تأیید نشد.",
   "Remove authenticator": "حذف برنامه احراز هویت",
   "Incomplete authenticator setup": "راه‌اندازی ناتمام برنامه احراز هویت",
   "Discard incomplete setup": "حذف راه‌اندازی ناتمام",

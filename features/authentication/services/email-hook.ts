@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { Webhook } from "standardwebhooks";
 import { z } from "zod";
 import { emailSchema, tokenHashSchema } from "../lib/validation";
-import { renderAuthEmail } from "../emails/templates";
+import { renderAuthEmail, renderReauthenticationEmail } from "../emails/templates";
 import { sendAuthEmail } from "./resend-auth";
 
 const payloadSchema = z.object({
@@ -14,10 +14,15 @@ const payloadSchema = z.object({
       .passthrough()
       .optional(),
   }),
-  email_data: z.object({
-    token_hash: tokenHashSchema,
-    email_action_type: z.enum(["signup", "recovery"]),
-  }),
+  email_data: z.discriminatedUnion("email_action_type", [
+    z.object({ email_action_type: z.literal("signup"), token_hash: tokenHashSchema }),
+    z.object({ email_action_type: z.literal("recovery"), token_hash: tokenHashSchema }),
+    z.object({
+      email_action_type: z.literal("reauthentication"),
+      token_hash: tokenHashSchema,
+      token: z.string().regex(/^[0-9]{6,10}$/),
+    }),
+  ]),
 });
 function failure(status: number) {
   return Response.json(
@@ -79,11 +84,10 @@ export async function handleAuthEmail(request: Request) {
   if (!payload.success) return failure(400);
   const { user, email_data: email } = payload.data;
   try {
-    const rendered = renderAuthEmail(
-      email.email_action_type,
-      email.token_hash,
-      user.user_metadata?.language === "fa" ? "fa" : "en",
-    );
+    const language = user.user_metadata?.language === "fa" ? "fa" : "en";
+    const rendered = email.email_action_type === "reauthentication"
+      ? renderReauthenticationEmail(email.token, language)
+      : renderAuthEmail(email.email_action_type, email.token_hash, language);
     const idempotencyKey =
       "agromind-auth/" +
       createHash("sha256")

@@ -8,5 +8,10 @@
       "path": "/api/support/notifications",
       "schedule": "0 8 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "fix/password-reset-authorization-20261107": false
+    }
+  }
 }
