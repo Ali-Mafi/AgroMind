@@ -79,12 +79,11 @@ async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
   if (!native) return wasmClient(user, level, sessionId, fresh);
   const client = postgres.getPgClient();
   await client.connect();
-  await client.query("set role authenticated");
-  await client.query("select set_config('request.jwt.claim.sub',$1,false)", [
-    user,
-  ]);
+  await client.query(user === "anon" ? "set role anon" : "set role authenticated");
+  if (user !== "anon") await client.query("select set_config('request.jwt.claim.sub',$1,false)", [user]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+    user === "anon" ? JSON.stringify({ role: "anon" }) :
+      JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
   ]);
   return client;
 }
