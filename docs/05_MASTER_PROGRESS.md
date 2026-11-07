@@ -2,6 +2,11 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## F03 username hotfix candidate — 2026-11-07
+
+- Separate Draft candidate from verified main/production `42a8eb2`; legacy RPC denial, fresh owned-TOTP grant, atomic username mutation/consumption/audit. No production change; PR #52 and universal F01/F02 remain NO-GO.
+- See [focused handoff](SECURITY_USERNAME_F03_HOTFIX.md) and [execution evidence](progress/2026-11-07-username-authorization.md). Independent Astra audit and hosted acceptance remain required.
+
 ## Signature Premium email candidate — 2026-10-28
 
 - Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.

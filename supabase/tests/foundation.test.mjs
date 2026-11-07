@@ -128,23 +128,36 @@ before(
     create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz);
     create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
     create trigger test_session after insert on auth.users for each row execute function auth.test_session();
-    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
+    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null, factor_type text default 'totp');
     create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
     create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
     grant usage on schema auth to authenticated,anon;
     grant execute on function auth.uid() to authenticated,anon;
     grant execute on function auth.jwt() to authenticated,anon;
   `);
-    for (const file of (await readdir("supabase/migrations"))
-      .filter((n) => n.endsWith(".sql"))
-      .sort())
-      await (native
-        ? admin.query(
-            await readFile(path.join("supabase/migrations", file), "utf8"),
-          )
-        : embedded.exec(
-            await readFile(path.join("supabase/migrations", file), "utf8"),
-          ));
+    for (const file of (await readdir("supabase/migrations")).filter(n=>n.endsWith(".sql")).sort()) {
+      let fixture;
+      if (file.endsWith("_username_single_use_authorization.sql")) {
+        fixture=randomUUID();const factor=randomUUID();
+        await admin.query("insert into auth.users(id,email,email_confirmed_at) values($1,'baseline@example.test',now())",[fixture]);
+        await admin.query("insert into auth.mfa_factors(id,user_id,status,factor_type) values($1,$2,'verified','totp')",[factor,fixture]);
+        const stale=await asUser(fixture,"aal2");
+        try { assert.equal((await stale.query("select change_username('baseline_probe') as name")).rows[0].name,"baseline_probe"); }
+        finally { await stale.end(); }
+        console.log("F03 baseline reproduced: actual legacy RPC accepted stale AAL2 without operation proof (isolated SQL Auth fixture).");
+      }
+      const sql=await readFile(path.join("supabase/migrations",file),"utf8");
+      await (native?admin.query(sql):embedded.exec(sql));
+      if (fixture) {
+        assert.equal((await admin.query("select username from profiles where id=$1",[fixture])).rows[0].username,"baseline_probe");
+        const stale=await asUser(fixture,"aal2");
+        try { await assert.rejects(stale.query("select change_username('bypass_again')"),/permission denied/); }
+        finally { await stale.end(); }
+        await admin.query("delete from auth.sessions where user_id=$1",[fixture]);
+        await admin.query("delete from auth.mfa_factors where user_id=$1",[fixture]);
+        await admin.query("delete from auth.users where id=$1",[fixture]);
+      }
+    }
     for (const [index, id] of users.entries())
       await admin.query(
         "insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values($1,$2,$3,now())",
@@ -166,7 +179,7 @@ after(async () => {
 test("MFA guards privileged RPCs, table access and writes until AAL2", async () => {
   const user = users[10];
   const factor = randomUUID();
-  await admin.query("insert into auth.mfa_factors values($1,$2,'verified')", [factor, user]);
+  await admin.query("insert into auth.mfa_factors(id,user_id,status) values($1,$2,'verified')", [factor, user]);
   const low = await asUser(user), high = await asUser(user, "aal2");
   const snapshot = { farms: [farm("mfa-import")], schedules: { "mfa-import": schedule } };
   const ids = '["mfa-import"]';
@@ -226,7 +239,7 @@ test("new usernames reject short handles while valid handles stay available", as
 
 test("unverified MFA enrollment does not lock a password-only account", async () => {
   const user = users[11];
-  await admin.query("insert into auth.mfa_factors values($1,$2,'unverified')", [randomUUID(), user]);
+  await admin.query("insert into auth.mfa_factors(id,user_id,status) values($1,$2,'unverified')", [randomUUID(), user]);
   const c = await asUser(user);
   try {
     await create(c, farm("unverified-factor"));
@@ -1339,4 +1352,82 @@ test("support notifications keep the ticket owner's language across staff replie
     await owner.end();
     await admin.query("delete from private.support_staff where user_id=$1", [staffId]);
   }
+});
+
+async function usernameGrant(user,target='fresh_name',factor=null,{proof='a'.repeat(64),verify=true}={}){
+ if(!factor){factor=randomUUID();await admin.query("insert into auth.mfa_factors(id,user_id,status,factor_type) values($1,$2,'verified','totp')",[factor,user]);}
+ const id=(await admin.query('select public.username_reserve_grant($1,$1,$2,$3) as id',[user,factor,target])).rows[0].id;
+ if(verify)await admin.query('select public.username_verify_grant($1,$2,$2,$3,$4)',[id,user,factor,proof]);
+ return{id,factor};
+}
+const changeUsername=(c,g,target='fresh_name')=>c.query('select public.change_username_authorized($1,$2) as name',[g.id,target]);
+test('F03: stale AAL2 cannot invoke legacy mutation or mint/attest grants; profile DML is denied',async()=>{
+ const u=users[0],c=await asUser(u,'aal2');
+ try{
+ for(const sql of ["select change_username('bypass_name')","select username_reserve_grant(null,null,null,null)","select username_verify_grant(null,null,null,null,null)","select * from private.username_change_grants","select * from private.username_change_audit","update public.profiles set username='bypass_name'"])
+  await assert.rejects(c.query(sql),/permission denied/);
+ await assert.rejects(changeUsername(c,{id:randomUUID()}),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ const anon=await asUser('anon');try{await assert.rejects(changeUsername(anon,{id:randomUUID()}),/permission denied/);}finally{await anon.end();}
+ }finally{await c.end();}
+});
+test('F03: valid bound fresh grant normalizes target, consumes once and audits atomically',async()=>{
+ const u=users[1],g=await usernameGrant(u,'  Fresh_Name  '),c=await asUser(u,'aal2');
+ try{
+ assert.equal((await changeUsername(c,g,' FRESH_NAME ')).rows[0].name,'fresh_name');
+ await assert.rejects(changeUsername(c,g),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ const audit=(await admin.query('select * from private.username_change_audit where grant_id=$1',[g.id])).rows[0];
+ assert.equal(audit.user_id,u);assert.equal(audit.session_id,u);assert.equal(audit.factor_id,g.factor);assert.equal(audit.target_username,'fresh_name');
+ assert.equal((await admin.query('select consumed_at is not null as used from private.username_change_grants where id=$1',[g.id])).rows[0].used,true);
+ }finally{await c.end();}
+});
+test('F03: wrong target/user/session, AAL1, unverified grant, expired grant and foreign factor are denied',async()=>{
+ const u=users[2],g=await usernameGrant(u,'target_name'),owner=await asUser(u,'aal2'),foreign=await asUser(users[3],'aal2'),low=await asUser(u,'aal1');
+ const otherSession=randomUUID();await admin.query('insert into auth.sessions(id,user_id) values($1,$2)',[otherSession,u]);const switched=await asUser(u,'aal2',otherSession);
+ try{
+ await assert.rejects(changeUsername(owner,g,'other_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ await assert.rejects(changeUsername(foreign,g,'target_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ await assert.rejects(changeUsername(switched,g,'target_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ await assert.rejects(changeUsername(low,g,'target_name'),/MFA_CHALLENGE_REQUIRED/);
+ await assert.rejects(admin.query('select username_reserve_grant($1,$1,$2,$3)',[users[3],g.factor,'target_name']),/AUTH_REQUIRED/);
+ await admin.query("update private.username_change_grants set expires_at=now()-interval '1 second' where id=$1",[g.id]);
+ await assert.rejects(changeUsername(owner,g,'target_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ const pending=await usernameGrant(u,'target_name',g.factor,{verify:false});await assert.rejects(changeUsername(owner,pending,'target_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ }finally{await Promise.all([owner.end(),foreign.end(),low.end(),switched.end()]);}
+});
+test('F03: proof replay and altered service attestation scope fail; revoked factor/session fails closed',async()=>{
+ const u=users[4],g=await usernameGrant(u,'first_name'),c=await asUser(u,'aal2');
+ try{
+ const second=await usernameGrant(u,'second_name',g.factor,{verify:false});
+ await assert.rejects(admin.query('select username_verify_grant($1,$2,$2,$3,$4)',[second.id,u,g.factor,'a'.repeat(64)]),/PROOF_REPLAY/);
+ await assert.rejects(admin.query('select username_verify_grant($1,$2,$2,$3,$4)',[second.id,users[5],g.factor,'b'.repeat(64)]),/AUTHORIZATION_REQUIRED/);
+ await admin.query("update auth.mfa_factors set status='unverified' where id=$1",[g.factor]);await assert.rejects(changeUsername(c,g,'first_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ await admin.query("update auth.mfa_factors set status='verified' where id=$1",[g.factor]);
+ await admin.query("update auth.sessions set not_after=now()-interval '1 second' where id=$1",[u]);await assert.rejects(changeUsername(c,g,'first_name'),/AUTH_REQUIRED/);
+ }finally{await c.end();}
+});
+test('F03: duplicate target and audit failure roll back mutation, consumption and audit together',async()=>{
+ const u=users[5],g=await usernameGrant(u,'atomic_name'),c=await asUser(u,'aal2');
+ const before=(await admin.query('select username from profiles where id=$1',[u])).rows[0].username;
+ await admin.query(`create function private.reject_username_test_audit() returns trigger language plpgsql as $$begin raise exception 'SYNTHETIC_AUDIT_FAILURE'; end$$;`);
+ await admin.query('create trigger test_audit_failure before insert on private.username_change_audit for each row execute function private.reject_username_test_audit()');
+ try{
+ await assert.rejects(changeUsername(c,g,'atomic_name'),/SYNTHETIC_AUDIT_FAILURE/);
+ assert.equal((await admin.query('select username from profiles where id=$1',[u])).rows[0].username,before);
+ assert.equal((await admin.query('select consumed_at from private.username_change_grants where id=$1',[g.id])).rows[0].consumed_at,null);
+ assert.equal((await admin.query('select * from private.username_change_audit where grant_id=$1',[g.id])).rowCount,0);
+ }finally{await admin.query('drop trigger test_audit_failure on private.username_change_audit');await admin.query('drop function private.reject_username_test_audit()');}
+ try{
+ assert.equal((await changeUsername(c,g,'atomic_name')).rows[0].name,'atomic_name');
+ const other=users[6],collision=await usernameGrant(other,'atomic_name'),oc=await asUser(other,'aal2');
+ try{await assert.rejects(changeUsername(oc,collision,'atomic_name'),/USERNAME_TAKEN/);assert.equal((await admin.query('select consumed_at from private.username_change_grants where id=$1',[collision.id])).rows[0].consumed_at,null);}finally{await oc.end();}
+ // Retaining the additive schema during app recovery cannot revive consumed proof.
+ await assert.rejects(c.query("select change_username('old_app')"),/permission denied/);await assert.rejects(changeUsername(c,g,'atomic_name'),/FRESH_USERNAME_AUTHORIZATION_REQUIRED/);
+ }finally{await c.end();}
+});
+test('F03: native concurrent consumes produce exactly one mutation and one audit',{skip:!native},async()=>{
+ const u=users[7],g=await usernameGrant(u,'concurrent_name'),a=await asUser(u,'aal2'),b=await asUser(u,'aal2');
+ try{
+ const result=await Promise.allSettled([changeUsername(a,g,'concurrent_name'),changeUsername(b,g,'concurrent_name')]);assert.equal(result.filter(x=>x.status==='fulfilled').length,1);
+ assert.equal((await admin.query('select * from private.username_change_audit where grant_id=$1',[g.id])).rowCount,1);
+ }finally{await a.end();await b.end();}
 });
