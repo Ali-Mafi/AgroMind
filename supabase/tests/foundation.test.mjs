@@ -79,12 +79,11 @@ async function asUser(user, level = "aal1", sessionId = user, fresh = false) {
   if (!native) return wasmClient(user, level, sessionId, fresh);
   const client = postgres.getPgClient();
   await client.connect();
-  await client.query("set role authenticated");
-  await client.query("select set_config('request.jwt.claim.sub',$1,false)", [
-    user,
-  ]);
+  await client.query(user === "anon" ? "set role anon" : "set role authenticated");
+  if (user !== "anon") await client.query("select set_config('request.jwt.claim.sub',$1,false)", [user]);
   await client.query("select set_config('request.jwt.claims',$1,false)", [
-    JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
+    user === "anon" ? JSON.stringify({ role: "anon" }) :
+      JSON.stringify({ sub: user, aal: level, session_id: sessionId, amr: fresh ? [{ method: "totp", timestamp: Math.floor(Date.now()/1000) }] : [] }),
   ]);
   return client;
 }
@@ -1339,4 +1338,56 @@ test("support notifications keep the ticket owner's language across staff replie
     await owner.end();
     await admin.query("delete from private.support_staff where user_id=$1", [staffId]);
   }
+});
+
+// Service RPC tests exercise real SQL with synthetic Auth rows, never hosted Auth.
+async function passwordReserve(user, op='password_change', payload='a'.repeat(64), recovery=null) {
+ return (await admin.query('select public.password_reserve($1,$2,$3,$4,$5) as g',[user,user,op,payload,recovery])).rows[0].g;
+}
+async function passwordConsume(g,user,{session=user,op='password_change',payload='a'.repeat(64),method='password',factor=null,proof='b'.repeat(64)}={}) {
+ return admin.query('select public.password_consume($1,$2,$3,$4,$5,$6,$7,$8) as ok',[g.id,user,session,op,payload,method,factor,proof]);
+}
+test('password grants reject direct clients, wrong identity/session/operation/payload, expiry and replay',async()=>{
+ const u=users[0],g=await passwordReserve(u);
+ for(const fields of [{session:users[1]},{op:'password_recovery'},{op:null},{payload:'c'.repeat(64)},{method:null},{method:'email'}]) await assert.rejects(passwordConsume(g,u,fields));
+ await assert.rejects(passwordConsume(g,users[1]));
+ for(const role of ['anon','authenticated']){
+  const c=await asUser(role==='anon'?'anon':u,'aal2');
+  try{
+   for(const sql of ["select public.password_issue_recovery(null,null,null)","select public.password_has_recovery(null,null,null)","select public.password_reserve(null,null,null,null,null)","select public.password_consume(null,null,null,null,null,null,null,null)","select * from private.password_action_grants"])
+    await assert.rejects(c.query(sql),/permission denied/);
+  }finally{await c.end();}
+ }
+ assert.equal((await passwordConsume(g,u)).rows[0].ok,true);await assert.rejects(passwordConsume(g,u),/AUTHORIZATION_REQUIRED/);
+ const expired=await passwordReserve(u);await admin.query("update private.password_action_grants set expires_at=now()-interval '1 second' where id=$1",[expired.id]);await assert.rejects(passwordConsume(expired,u),/AUTHORIZATION_REQUIRED/);
+});
+test('password recovery is bound, expiring and consumed with the password grant',async()=>{
+ const u=users[1],h='d'.repeat(64);
+ await admin.query('select public.password_issue_recovery($1,$1,$2)',[u,h]);
+ await assert.rejects(passwordReserve(users[2],'password_recovery','a'.repeat(64),h),/RECOVERY_REQUIRED/);
+ await assert.rejects(passwordReserve(u,'password_recovery','a'.repeat(64),'e'.repeat(64)),/RECOVERY_REQUIRED/);
+ const g=await passwordReserve(u,'password_recovery','a'.repeat(64),h);
+ assert.equal((await passwordConsume(g,u,{op:'password_recovery',method:'email'})).rows[0].ok,true);
+ await assert.rejects(passwordReserve(u,'password_recovery','a'.repeat(64),h),/RECOVERY_REQUIRED/);
+ const v=users[2];await admin.query('select public.password_issue_recovery($1,$1,$2)',[v,'f'.repeat(64)]);
+ await admin.query("update private.password_recovery_tickets set expires_at=now()-interval '1 second' where user_id=$1",[v]);
+ await assert.rejects(passwordReserve(v,'password_recovery','a'.repeat(64),'f'.repeat(64)),/RECOVERY_REQUIRED/);
+});
+test('MFA password grants require an owned factor and reject replay across different payload grants',async()=>{
+ await admin.query("alter table auth.mfa_factors add column if not exists factor_type text default 'totp'");
+ const u=users[3],factor=randomUUID();await admin.query("insert into auth.mfa_factors(id,user_id,status,factor_type) values($1,$2,'verified','totp')",[factor,u]);
+ const g=await passwordReserve(u);assert.equal(g.requires_mfa,true);
+ await assert.rejects(passwordConsume(g,u),/MFA_REQUIRED/);await assert.rejects(passwordConsume(g,u,{method:'totp',factor:randomUUID()}),/FACTOR_REQUIRED/);
+ assert.equal((await passwordConsume(g,u,{method:'totp',factor})).rows[0].ok,true);
+ const g2=await passwordReserve(u,'password_change','c'.repeat(64));
+ await assert.rejects(passwordConsume(g2,u,{payload:'c'.repeat(64),method:'totp',factor}),/PROOF_REPLAY/);
+ await admin.query('delete from auth.mfa_factors where id=$1',[factor]);await assert.rejects(passwordConsume(g2,u,{payload:'c'.repeat(64),proof:'e'.repeat(64)}),/FACTOR_STATE_CHANGED/);
+});
+test('native concurrent password grant consumes exactly once',{skip:!native},async()=>{
+ const u=users[4],g=await passwordReserve(u),a=postgres.getPgClient(),b=postgres.getPgClient();await a.connect();await b.connect();
+ try{
+ const args=[g.id,u,u,'password_change','a'.repeat(64),'password',null,'b'.repeat(64)];
+ const results=await Promise.allSettled([a.query('select password_consume($1,$2,$3,$4,$5,$6,$7,$8)',args),b.query('select password_consume($1,$2,$3,$4,$5,$6,$7,$8)',args)]);
+ assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+ }finally{await a.end();await b.end();}
 });

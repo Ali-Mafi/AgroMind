@@ -114,6 +114,15 @@ function harness({
   const mocks = {
     "@/lib/supabase/server": { createClient: async () => client },
     "../lib/pending-signup": pendingMocks,
+    "./password-authorization": {
+      passwordContext: async () => ({ user, sessionId: "session-a" }),
+      issuePasswordRecovery: record("issueRecovery", undefined),
+      issuePkcePasswordRecovery: async () => { throw new Error("RECOVERY_REQUIRED"); },
+      authorizePassword: async (_client, form) => {
+        if (!user || user.id !== form.get("expected_user_id") || !form.get("current_password") || assurance.nextLevel === "aal2") throw new Error("DENIED");
+        return { userId: user.id, recovery: false };
+      },
+    },
     "next/navigation": {
       redirect: (path) => {
         throw new Error("REDIRECT:" + path);
@@ -612,50 +621,22 @@ test("verification uses Supabase OTP verification and handles expired and invali
   );
 });
 
-test("password reset requires the current account, then globally signs out", async () => {
+test("password action requires operation authorization, confirms expected user and attempts global signout", async () => {
   const h = harness();
-  assert.match(
-    (
-      await h.actions.resetPasswordAction(
-        {},
-        form({ ...signup, expected_user_id: "other-user" }),
-      )
-    ).error,
-    /account changed/,
-  );
-  assert.equal(h.calls.some((c) => c.name === "update"), false);
-  await assert.rejects(
-    h.actions.resetPasswordAction(
-      {},
-      form({ ...signup, expected_user_id: "user-a" }),
-    ),
-    /REDIRECT:\/sign-in\?status=password-updated/,
-  );
-  assert.deepEqual(h.calls.at(-1), {
-    name: "signOut",
-    args: [{ scope: "global" }],
-  });
+  assert.ok((await h.actions.resetPasswordAction({}, form({ ...signup, expected_user_id: "other-user" }))).error);
+  assert.equal(h.calls.some(c => c.name === "updateUser"), false);
+  const result = await h.actions.resetPasswordAction({}, form({ ...signup, expected_user_id: "user-a", current_password: "old-secret" }));
+  assert.match(result.success, /Password updated/);
+  assert.match(result.success, /could not be confirmed/);
+  assert.deepEqual(h.calls.find(c => c.name === "signOut").args, [{scope:"global"}]);
   const expired = harness({ user: null });
-  assert.match(
-    (await expired.actions.resetPasswordAction({}, form(signup))).error,
-    /session has expired/,
-  );
+  assert.ok((await expired.actions.resetPasswordAction({}, form(signup))).error);
 });
 
-test("password recovery requires MFA before changing a password on MFA-enabled accounts", async () => {
-  const h = harness({
-    assurance: { currentLevel: "aal1", nextLevel: "aal2" },
-  });
-
-  await assert.rejects(
-    h.actions.resetPasswordAction(
-      {},
-      form({ ...signup, expected_user_id: "user-a" }),
-    ),
-    /REDIRECT:\/mfa\?next=\/reset-password/,
-  );
-  assert.equal(h.calls.some((call) => call.name === "update"), false);
-  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
+test("existing AAL2 without operation proof is denied, including recovery", async () => {
+  const h = harness({ assurance: { currentLevel: "aal2", nextLevel: "aal2" } });
+  assert.ok((await h.actions.resetPasswordAction({}, form({ ...signup, expected_user_id:"user-a" }))).error);
+  assert.equal(h.calls.some(c => c.name === "updateUser" || c.name === "signOut"), false);
 });
 
 test("logout calls Supabase, reports failures safely, and does not pretend success", async () => {

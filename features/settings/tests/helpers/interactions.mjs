@@ -17,6 +17,7 @@ export function interactionHooks() {
     react: {
       ...localRequire("react"),
       useState,
+      useId: () => useState(() => `test-id-${cursor}`)[0],
       useRef: (initial) => useState(() => ({ current: initial }))[0],
       useEffect: (effect, dependencies) => {
         const index = cursor++;

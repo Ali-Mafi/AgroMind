@@ -5,6 +5,8 @@ import { tokenHashSchema } from "../lib/validation";
 import { clearPendingSignup } from "../lib/pending-signup";
 import { authenticatedDestination } from "./session";
 
+import { issuePkcePasswordRecovery } from "./password-authorization";
+
 const OAUTH_INTENT_COOKIE = "agromind_oauth_intent";
 
 function securedRedirect(destination: URL, clearOauthIntent = false) {
@@ -131,7 +133,10 @@ export async function handleAuthCallback(request: NextRequest) {
       params.get("code")!,
     );
     if (error) destination.searchParams.set("status", "invalid");
-    else if (!recovery) {
+    else if (recovery) {
+      try { await issuePkcePasswordRecovery(supabase); }
+      catch { destination.searchParams.set("status", "invalid"); }
+    } else {
       await supabase.auth.signOut({ scope: "local" });
       destination.searchParams.set("status", "success");
     }
