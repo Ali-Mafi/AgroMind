@@ -215,7 +215,8 @@ export function AuthForm({
       action={action}
       noValidate
       onSubmit={(event) => {
-        if ((event.nativeEvent as SubmitEvent | undefined)?.submitter?.getAttribute("name") === "request_nonce") return;
+        // React reserves the submitter name for function-valued formAction.
+        if ((event.nativeEvent as SubmitEvent | undefined)?.submitter?.getAttribute("data-password-action") === "request-nonce") return;
         if (submitting.current || pending) event.preventDefault();
         else {
           submitting.current = true;
@@ -345,7 +346,7 @@ export function AuthForm({
             <label className="block text-sm">{t("Email verification code (if required)")}
               <input name="reauthentication_nonce" inputMode="numeric" maxLength={10} autoComplete="one-time-code" dir="ltr" className={accountInputClass} />
             </label>
-            <button name="request_nonce" formAction={nonceAction} disabled={noncePending} className="min-h-11 text-sm font-semibold text-primary">{t("Send verification code")}</button>
+            <button data-password-action="request-nonce" formAction={nonceAction} disabled={noncePending} className="min-h-11 text-sm font-semibold text-primary">{t("Send verification code")}</button>
             {nonceState.error && <p role="alert">{t(nonceState.error)}</p>}
             {nonceState.success && <p role="status">{t(nonceState.success)}</p>}
           </div>

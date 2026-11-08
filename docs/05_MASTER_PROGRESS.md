@@ -2,6 +2,11 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Password form regression correction — 2026-11-08
+
+- PR #65 follow-up from `6233dd8`: independently reproduced Astra A65-01, replaced the React-reserved submitter name check with a stable data attribute, retained primary duplicate-submit protection, corrected two provider error classifications and the OAuth-only handoff claim. Authorization/MFA/recovery/migrations unchanged; no production change.
+- Local evidence: 10 hydrated interaction tests (original source: 8 failed / 2 passed), 14 Chromium scenario groups, 306 full JavaScript tests, 26 PGlite tests, lint/typecheck/localization/build and 66 HTTP checks passed. Local native launcher still blocked by EINVAL; final-head Actions is required. [Evidence and remaining hosted gates](progress/2026-11-08-password-form-regression.md). Next: narrow Astra delta re-audit, then isolated hosted acceptance; PR #66 and #52 remain unchanged Drafts and universal provider-native F01/F02 unresolved.
+
 ## Password authorization hotfix candidate — 2026-11-07
 
 - Separate Draft candidate from verified main/production `42a8eb2`; expiring operation-bound grants, verified recovery separation, fresh MFA/current-password, honest provider outcomes. No production change. PR #52 and provider-native F01/F02 remain NO-GO.

@@ -44,7 +44,7 @@ test('fresh MFA consumption precedes password update and preserves provider curr
  assert.ok(h.calls.findIndex(c=>c[0]==='password_consume')<h.calls.findIndex(c=>c[0]==='update'));
  assert.deepEqual(h.calls.find(c=>c[0]==='update')[1],{password:'NewPassword!123',current_password:'old-password',nonce:'12345678'});
 });
-test('non-MFA ordinary changes require current-password verification; Google first password uses recovery',async()=>{
+test('non-MFA ordinary changes require current-password verification; verified recovery needs no current password',async()=>{
  const h=harness({mfa:false});assert.ok((await h.actions.resetPasswordAction({},form())).error);
  assert.match((await h.actions.resetPasswordAction({},form({current_password:'old-password'}))).success,/Password updated/);
  const r=harness({mfa:false,recovery:true});assert.match((await r.actions.resetPasswordAction({},form({password_context:'recovery'}))).success,/Password updated/);
@@ -66,6 +66,17 @@ test('provider rejection, empty or foreign response, timeout and transport ambig
  for(const update of [{error:{code:'same_password'},data:{user:null}},{error:{code:'reauthentication_needed'},data:{user:null}},{error:null,data:{}},{error:null,data:{user:{id:'other'}}},new Error('timeout'),{error:{code:'unexpected_failure'},data:{user:null}}]){
   const h=harness({update});const result=await h.actions.resetPasswordAction({},form({fresh_code:'123456'}));assert.ok(result.error);assert.equal(result.success,undefined);
   assert.equal(h.calls.filter(c=>c[0]==='password_consume').length,1);
+ }
+});
+test('known current-password policy rejections are definite and never restore consumed proof',async()=>{
+ for(const code of ['current_password_required','current_password_mismatch']){
+  const h=harness({update:{error:{code},data:{user:null}}});
+  const result=await h.actions.resetPasswordAction({},form({fresh_code:'123456'}));
+  assert.match(result.error,/Password change was rejected/);
+  assert.doesNotMatch(result.error,/could not be confirmed/);
+  assert.equal(result.success,undefined);
+  assert.equal(h.calls.filter(c=>c[0]==='password_consume').length,1);
+  assert.equal(h.calls.some(c=>c[0]==='logout'),false);
  }
 });
 test('PKCE query/local state cannot manufacture recovery; signature-verified fresh recovery AMR is required',async()=>{

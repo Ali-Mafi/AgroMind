@@ -555,7 +555,7 @@ export async function resetPasswordAction(
       ...(!authorization.recovery && nonce ? { nonce } : {}),
     }).catch(() => ({ data: { user: null }, error: { code: "request_timeout" } }));
     if (updated.error || updated.data?.user?.id !== authorization.userId) {
-      const rejected = ["same_password", "weak_password", "reauthentication_needed", "reauthentication_not_valid", "invalid_credentials", "validation_failed"].includes(updated.error?.code ?? "");
+      const rejected = ["same_password", "weak_password", "reauthentication_needed", "reauthentication_not_valid", "current_password_required", "current_password_mismatch", "invalid_credentials", "validation_failed"].includes(updated.error?.code ?? "");
       return { error: rejected
         ? "Password change was rejected. Verify your current password or email code, then confirm your identity again."
         : "Password change could not be confirmed. Try signing in or request a new reset email before retrying." };

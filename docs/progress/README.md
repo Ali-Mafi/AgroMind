@@ -2,6 +2,7 @@
 
 Dated entries are historical evidence from the day written, not living release status. Current references: [Master Progress](../05_MASTER_PROGRESS.md), [Roadmap](../ROADMAP.md), [Project Rules](../PROJECT_RULES.md).
 
+- [2026-11-08 password form regression correction](2026-11-08-password-form-regression.md)
 - [2026-11-07 password authorization](2026-11-07-password-authorization.md)
 
 ## Recorded dates
