@@ -14,13 +14,19 @@ for (const language of ['en', 'fa']) for (const mfa of [false, true]) {
   test(`hydrated ${language}, MFA=${mfa}: nonce action then exactly one password action`, async t => {
     const ui = await hydratedAuthForm({ language, mfa });
     t.after(() => ui.close());
-    // React owns this DOM name after SSR/hydration; it is not our discriminator.
-    assert.equal(ui.button('Send verification code').name, '$ACTION_ID_nonce');
+    const primaryForm = ui.input('password').form;
+    assert.notEqual(ui.button('Send verification code').form, primaryForm);
+    assert.equal(ui.button('Update password').form, primaryForm);
+    assert.equal(primaryForm.querySelector('form'), null, 'forms must not nest');
+    assert.equal(new FormData(ui.button('Send verification code').form).has('password'), false);
+    await fillPassword(ui, mfa);
     await ui.click('Send verification code');
     assert.equal(ui.count('nonce'), 1);
     assert.equal(ui.count('reset'), 0);
     assert.ok(ui.container.querySelector('[role="status"]'));
-    await fillPassword(ui, mfa);
+    assert.equal(ui.input('current_password').value, 'OldPassword!123');
+    assert.equal(ui.input('reauthentication_nonce').value, '12345678');
+    if (mfa) assert.equal(ui.input('fresh_code').value, '123456');
     await ui.click('Update password');
     assert.equal(ui.count('reset'), 1);
     assert.equal(ui.count('nonce'), 1);
@@ -44,12 +50,15 @@ for (const language of ['en', 'fa']) for (const mfa of [false, true]) {
 test('nonce provider error, retry and repeated success never lock the password action', async t => {
   const ui = await hydratedAuthForm({ nonceResults: [{ error: 'Service temporarily unavailable. Please try again.' }] });
   t.after(() => ui.close());
+  await fillPassword(ui);
   await ui.click('Send verification code');
   assert.match(ui.container.querySelector('[role="alert"]').textContent, /unavailable/);
   for (let attempt = 0; attempt < 2; attempt++) await ui.click('Send verification code');
   assert.equal(ui.count('nonce'), 3);
   assert.equal(ui.count('reset'), 0);
   assert.equal(ui.container.querySelector('[role="alert"]'), null);
+  assert.equal(ui.input('current_password').value, 'OldPassword!123');
+  assert.equal(ui.input('reauthentication_nonce').value, '12345678');
   await fillPassword(ui);
   await ui.click('Update password');
   assert.equal(ui.count('reset'), 1);

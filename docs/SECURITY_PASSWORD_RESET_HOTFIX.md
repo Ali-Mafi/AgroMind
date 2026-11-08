@@ -2,6 +2,12 @@
 
 Status: developer implementation; independent Astra audit and isolated hosted acceptance required. No production change, merge or migration authorized. Universal provider-native F01/F02 remain unresolved; PR #52 stays Draft/NO-GO.
 
+## A65-04 keyboard correction — 2026-11-09
+
+Starting from independently audited `258848242223eb53d3a4f08bc97075c08f81d1d4`, reproduced input-Enter selecting nonce in Chromium for EN/FA × MFA off/on. The nonce button now has a distinct native form owner: a sibling hidden form with its own `action={nonceAction}`, associated through a hydration-stable `useId` and the button's `form` attribute. The primary password form owns only its primary submit button, so implicit Enter selects Update password. There are no nested forms or key-event workarounds. Nonce completion resets its own form, preserving the password form's entered proof. The previous data-attribute discriminator is superseded; nonce submission cannot reach the primary `onSubmit` lock at all. Primary duplicate protection and both `useActionState` flows remain intact.
+
+The A65-01/02/03 fixes remain preserved; all server actions, authorization/recovery/MFA services, migrations, provider policies and deployment exclusions are unchanged by this correction. Local evidence: 68 Chromium scenarios, 10 hydrated React tests, 306 full JavaScript tests, 26 PGlite tests (3 native-only skips), lint/typecheck/localization/build and 66 HTTP checks pass. Local native launcher remains blocked by EINVAL; final-head Foundation supplies native evidence and now runs the committed Chromium suite as well. See [A65-04 evidence and reproduction](progress/2026-11-09-password-keyboard.md). Final SHA/CI are recorded on PR #65. Narrow Astra keyboard verification and isolated hosted Supabase acceptance remain release gates.
+
 ## Astra correction follow-up — 2026-11-08
 
 Reviewed original head `6233dd8922e9e57e25e85654b40efa9bd5318398` and Astra's independent A65-01/02/03 findings. A65-01 is corrected by identifying the nonce submitter with `data-password-action="request-nonce"`, removing the React-reserved explicit button name. Both `useActionState` flows and the primary synchronous duplicate-submit guard remain intact. The nonce state never owns the password lock. No authorization, recovery, MFA, migration or provider-setting changes.

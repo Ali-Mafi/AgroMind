@@ -2,6 +2,11 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Password keyboard routing correction — 2026-11-09
+
+- PR #65 A65-04 from `2588482`: nonce uses an independent native form owner; input Enter submits only the primary password action, while nonce activation preserves proof. Primary duplicate guard and all audited server controls remain unchanged.
+- Local: 4 original Chromium reproductions; 68 corrected Chromium scenarios, 10 hydrated React interactions, 306 JavaScript tests, 26 PGlite tests, lint/typecheck/localization/build and 66 HTTP checks pass. Foundation now runs the committed Chromium suite; final-head CI/native evidence recorded on PR #65. [Evidence and limits](progress/2026-11-09-password-keyboard.md). Next: focused Astra keyboard check, then isolated hosted acceptance; no release/production change.
+
 ## Password form regression correction — 2026-11-08
 
 - PR #65 follow-up from `6233dd8`: independently reproduced Astra A65-01, replaced the React-reserved submitter name check with a stable data attribute, retained primary duplicate-submit protection, corrected two provider error classifications and the OAuth-only handoff claim. Authorization/MFA/recovery/migrations unchanged; no production change.

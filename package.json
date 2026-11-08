@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-database.mjs",
     "test:db:native": "node scripts/test-database.mjs --native",
+    "test:auth-form:browser": "node scripts/test-password-form-browser.mjs",
     "test:http": "node scripts/test-http.mjs"
   },
   "dependencies": {
@@ -45,9 +46,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "embedded-postgres": "17.10.0-beta.17",
+    "esbuild": "0.25.12",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "jsdom": "26.1.0",
+    "playwright": "1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,6 +85,7 @@ export function AuthForm({
   securityState?: MfaSecurityState;
 }) {
   const t = useTranslation();
+  const nonceFormId = useId();
   const [nonceState, nonceAction, noncePending] = useActionState(requestPasswordReauthenticationAction, {});
   const { language } = useSettings();
   const consent = useSignupConsent();
@@ -211,12 +212,11 @@ export function AuthForm({
   };
 
   return (
+    <>
     <form
       action={action}
       noValidate
       onSubmit={(event) => {
-        // React reserves the submitter name for function-valued formAction.
-        if ((event.nativeEvent as SubmitEvent | undefined)?.submitter?.getAttribute("data-password-action") === "request-nonce") return;
         if (submitting.current || pending) event.preventDefault();
         else {
           submitting.current = true;
@@ -346,7 +346,7 @@ export function AuthForm({
             <label className="block text-sm">{t("Email verification code (if required)")}
               <input name="reauthentication_nonce" inputMode="numeric" maxLength={10} autoComplete="one-time-code" dir="ltr" className={accountInputClass} />
             </label>
-            <button data-password-action="request-nonce" formAction={nonceAction} disabled={noncePending} className="min-h-11 text-sm font-semibold text-primary">{t("Send verification code")}</button>
+            <button form={nonceFormId} disabled={noncePending} className="min-h-11 text-sm font-semibold text-primary">{t("Send verification code")}</button>
             {nonceState.error && <p role="alert">{t(nonceState.error)}</p>}
             {nonceState.success && <p role="status">{t(nonceState.success)}</p>}
           </div>
@@ -394,5 +394,10 @@ export function AuthForm({
         </Button>
       </fieldset>
     </form>
+    {/* A separate form owner keeps implicit Enter and nonce resets independent. */}
+    {mode === "reset" && passwordContext === "change" && (
+      <form id={nonceFormId} action={nonceAction} hidden />
+    )}
+    </>
   );
 }
