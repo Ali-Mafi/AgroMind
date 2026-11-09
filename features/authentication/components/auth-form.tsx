@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useTranslation } from "@/features/settings/hooks/use-translation";
 import { useSettings } from "@/features/settings/context/settings-context";
 import {
   requestPasswordResetAction,
+  requestPasswordReauthenticationAction,
   resendVerificationAction,
   resetPasswordAction,
   signInAction,
@@ -24,6 +25,9 @@ import { LoginCaptcha } from "./login-captcha";
 import { useSignupConsent } from "@/features/legal/components/signup-consent";
 import { LEGAL_SIGNUP_AGREEMENT } from "@/features/legal/content";
 import { LegalSignupNotice } from "@/features/legal/components/legal-signup-notice";
+
+import { FreshIdentityFields } from "./fresh-identity-fields";
+import type { MfaSecurityState } from "../types/mfa";
 
 export const accountInputClass =
   "min-h-12 w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25 aria-invalid:border-destructive";
@@ -70,13 +74,19 @@ export function AuthForm({
   tokenHash,
   next,
   expectedUserId,
+  passwordContext = "change",
+  securityState,
 }: {
   mode: Mode;
   tokenHash?: string;
   next?: string;
   expectedUserId?: string;
+  passwordContext?: "change" | "recovery";
+  securityState?: MfaSecurityState;
 }) {
   const t = useTranslation();
+  const nonceFormId = useId();
+  const [nonceState, nonceAction, noncePending] = useActionState(requestPasswordReauthenticationAction, {});
   const { language } = useSettings();
   const consent = useSignupConsent();
   const termsAccepted = mode === "sign-up" && consent?.accepted === true;
@@ -202,6 +212,7 @@ export function AuthForm({
   };
 
   return (
+    <>
     <form
       action={action}
       noValidate
@@ -219,6 +230,7 @@ export function AuthForm({
         name="expected_user_id"
         value={expectedUserId ?? ""}
       />
+      <input type="hidden" name="password_context" value={passwordContext} />
       <input type="hidden" name="next" value={next ?? "/dashboard"} />
       {mode === "sign-up" && <input type="hidden" name="accepted_terms" value={termsAccepted ? "on" : ""} />}
       <input
@@ -325,6 +337,20 @@ export function AuthForm({
           </>
         )}
 
+        {mode === "reset" && securityState && (securityState.enabled || passwordContext === "change") && <FreshIdentityFields state={securityState} />}
+        {mode === "reset" && passwordContext === "change" && (
+          <div className="space-y-3">
+            {securityState?.enabled && <label className="block text-sm">{t("Current password (if required by your provider)")}
+              <input name="current_password" type="password" maxLength={128} autoComplete="current-password" dir="ltr" className={accountInputClass} />
+            </label>}
+            <label className="block text-sm">{t("Email verification code (if required)")}
+              <input name="reauthentication_nonce" inputMode="numeric" maxLength={10} autoComplete="one-time-code" dir="ltr" className={accountInputClass} />
+            </label>
+            <button form={nonceFormId} disabled={noncePending} className="min-h-11 text-sm font-semibold text-primary">{t("Send verification code")}</button>
+            {nonceState.error && <p role="alert">{t(nonceState.error)}</p>}
+            {nonceState.success && <p role="status">{t(nonceState.success)}</p>}
+          </div>
+        )}
         {mode === "sign-in" && !values.identifier.includes("@") && (
           <LoginCaptcha attempt={state} />
         )}
@@ -368,5 +394,10 @@ export function AuthForm({
         </Button>
       </fieldset>
     </form>
+    {/* A separate form owner keeps implicit Enter and nonce resets independent. */}
+    {mode === "reset" && passwordContext === "change" && (
+      <form id={nonceFormId} action={nonceAction} hidden />
+    )}
+    </>
   );
 }

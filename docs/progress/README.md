@@ -2,6 +2,14 @@
 
 Dated entries are historical evidence from the day written, not living release status. Current references: [Master Progress](../05_MASTER_PROGRESS.md), [Roadmap](../ROADMAP.md), [Project Rules](../PROJECT_RULES.md).
 
+- [2026-11-09 integration/hosted acceptance gate](../SECURITY_HOTFIX_INTEGRATION_ACCEPTANCE.md)
+
+- [2026-11-09 password keyboard correction](2026-11-09-password-keyboard.md)
+- [2026-11-08 password form regression correction](2026-11-08-password-form-regression.md)
+- [2026-11-07 password authorization](2026-11-07-password-authorization.md)
+
+- [2026-11-07 username authorization](2026-11-07-username-authorization.md)
+
 ## Recorded dates
 
 - [2026-08-26](2026-08-26.md)

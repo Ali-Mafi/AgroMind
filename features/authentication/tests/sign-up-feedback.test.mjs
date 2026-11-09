@@ -84,7 +84,7 @@ function formHarness(mode = "sign-up") {
     "../services/actions": {},
     "@/features/legal/components/signup-consent": { useSignupConsent: () => ({ accepted: true }) },
   });
-  const render = () => hooks.render(AuthForm, { mode });
+  const render = () => elements(hooks.render(AuthForm, { mode })).find(node => node.type === "form");
   return {
     render,
     result: (next) => { result = next; },

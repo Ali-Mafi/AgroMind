@@ -2,6 +2,31 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Separate security-hotfix integration rehearsal — 2026-11-09
+
+- Separate integration branch combines exact #65 `e0a407c` and #66 `8852ac8`, retaining both audited runtime/migration trees and both test groups. Original Draft PRs remain untouched. Both SQL migration orders preserve seeded records; additive-schema recovery retains grant receipts and legacy denial.
+- Local: 312 JS, 34 PGlite (4 native-only skips), 68 Chromium and lint/typecheck/localization/build/66 HTTP checks pass; native launcher blocked locally by EINVAL, final combined CI in its separate Draft PR. Hosted matrix: all 38 groups BLOCKED, no staging project or approved sender/inbox. [Evidence, exact proposed configuration, blockers and NO-GO decisions](SECURITY_HOTFIX_INTEGRATION_ACCEPTANCE.md). No production change; provider-native F01/F02 unresolved.
+
+## Password keyboard routing correction — 2026-11-09
+
+- PR #65 A65-04 from `2588482`: nonce uses an independent native form owner; input Enter submits only the primary password action, while nonce activation preserves proof. Primary duplicate guard and all audited server controls remain unchanged.
+- Local: 4 original Chromium reproductions; 68 corrected Chromium scenarios, 10 hydrated React interactions, 306 JavaScript tests, 26 PGlite tests, lint/typecheck/localization/build and 66 HTTP checks pass. Foundation now runs the committed Chromium suite; final-head CI/native evidence recorded on PR #65. [Evidence and limits](progress/2026-11-09-password-keyboard.md). Next: focused Astra keyboard check, then isolated hosted acceptance; no release/production change.
+
+## Password form regression correction — 2026-11-08
+
+- PR #65 follow-up from `6233dd8`: independently reproduced Astra A65-01, replaced the React-reserved submitter name check with a stable data attribute, retained primary duplicate-submit protection, corrected two provider error classifications and the OAuth-only handoff claim. Authorization/MFA/recovery/migrations unchanged; no production change.
+- Local evidence: 10 hydrated interaction tests (original source: 8 failed / 2 passed), 14 Chromium scenario groups, 306 full JavaScript tests, 26 PGlite tests, lint/typecheck/localization/build and 66 HTTP checks passed. Local native launcher still blocked by EINVAL; final-head Actions is required. [Evidence and remaining hosted gates](progress/2026-11-08-password-form-regression.md). Next: narrow Astra delta re-audit, then isolated hosted acceptance; PR #66 and #52 remain unchanged Drafts and universal provider-native F01/F02 unresolved.
+
+## Password authorization hotfix candidate — 2026-11-07
+
+- Separate Draft candidate from verified main/production `42a8eb2`; expiring operation-bound grants, verified recovery separation, fresh MFA/current-password, honest provider outcomes. No production change. PR #52 and provider-native F01/F02 remain NO-GO.
+- See [focused handoff](SECURITY_PASSWORD_RESET_HOTFIX.md) and [execution evidence](progress/2026-11-07-password-authorization.md). Final-head CI and independent Astra audit remain distinct gates.
+
+## F03 username hotfix candidate — 2026-11-07
+
+- Separate Draft candidate from verified main/production `42a8eb2`; legacy RPC denial, fresh owned-TOTP grant, atomic username mutation/consumption/audit. No production change; PR #52 and universal F01/F02 remain NO-GO.
+- See [focused handoff](SECURITY_USERNAME_F03_HOTFIX.md) and [execution evidence](progress/2026-11-07-username-authorization.md). Independent Astra audit and hosted acceptance remain required.
+
 ## Signature Premium email candidate — 2026-10-28
 
 - Existing shared auth, invitation and customer/staff support email shell polished directly against the supplied reference: integrated landscape/branding/title, gold leaf and serif wordmark, ivory body, gold-edged CTA, compact panel, complete highlights and asymmetric curved footer. Both locales remain centered, including image/table geometry.
