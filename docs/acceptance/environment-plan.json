@@ -1,0 +1,67 @@
+{
+  "status": "PROPOSED_NOT_PROVISIONED",
+  "name": "agromind-hotfix-acceptance-20261109",
+  "organization": {
+    "proposed_name": "AgroMind",
+    "proposed_id": "blezpaevjeyarvmayddg",
+    "selection_confirmed": false,
+    "observed_plan": "free",
+    "create_permission_verified": false
+  },
+  "region": "eu-central-1",
+  "spend_ceiling_usd": 0,
+  "quoted_cost": null,
+  "upgrade_allowed": false,
+  "production_ref_denylist": [
+    "gedwexwxaojpqyeiebwm"
+  ],
+  "isolated_project_ref": null,
+  "copy_production_data": false,
+  "copy_production_credentials": false,
+  "synthetic_users_only": true,
+  "baseline_sha": "42a8eb2b54fd5852f11a2cc31e09dd7b598e4dc0",
+  "password_sha": "e0a407c2dfdcf51a0e0c7758495f30debbf1eb4a",
+  "username_sha": "8852ac8483974974b806b644ecd05d58252c5338",
+  "site_origin": null,
+  "public_auth_hook_endpoint": null,
+  "allowed_test_recipient_domain": null,
+  "test_sender": null,
+  "test_inbox": null,
+  "google_test_oauth_client": null,
+  "fresh_secret_names": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_AUTH_EMAIL_HOOK_SECRET",
+    "RESEND_API_KEY",
+    "CRON_SECRET"
+  ],
+  "non_secret_settings": {
+    "NEXT_PUBLIC_SITE_URL": "<isolated HTTPS app origin; never agromind.ir>",
+    "SUPABASE_RECOVERY_CODES_ENABLED": "false until provider support and isolated acceptance verified",
+    "SUPPORT_EMAIL_ENABLED": "false until sender/inbox isolation verified",
+    "SUPPORT_NOTIFICATION_EMAIL": "<controlled synthetic staff inbox>"
+  },
+  "auth_scenarios": {
+    "email_confirmation": true,
+    "password_min_length": 8,
+    "current_password_policy": [
+      false,
+      true
+    ],
+    "secure_password_change": [
+      false,
+      true
+    ],
+    "totp": [
+      "off",
+      "owned verified native factor"
+    ],
+    "recovery": [
+      "token_hash",
+      "pkce"
+    ],
+    "site_redirects": "exact isolated app origin + /auth/callback only; no Production redirects"
+  },
+  "cleanup": "retain sanitized evidence; delete/retire only the explicitly identified disposable environment after separate cleanup decision"
+}

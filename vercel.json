@@ -11,7 +11,9 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "fix/password-reset-authorization-20261107": false
+      "fix/password-reset-authorization-20261107": false,
+      "fix/username-single-use-authorization-20261107": false,
+      "test/security-hotfix-integration-20261109": false
     }
   }
 }

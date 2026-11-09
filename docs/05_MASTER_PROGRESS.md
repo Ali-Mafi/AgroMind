@@ -2,6 +2,11 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Separate security-hotfix integration rehearsal — 2026-11-09
+
+- Separate integration branch combines exact #65 `e0a407c` and #66 `8852ac8`, retaining both audited runtime/migration trees and both test groups. Original Draft PRs remain untouched. Both SQL migration orders preserve seeded records; additive-schema recovery retains grant receipts and legacy denial.
+- Local: 312 JS, 34 PGlite (4 native-only skips), 68 Chromium and lint/typecheck/localization/build/66 HTTP checks pass; native launcher blocked locally by EINVAL, final combined CI in its separate Draft PR. Hosted matrix: all 38 groups BLOCKED, no staging project or approved sender/inbox. [Evidence, exact proposed configuration, blockers and NO-GO decisions](SECURITY_HOTFIX_INTEGRATION_ACCEPTANCE.md). No production change; provider-native F01/F02 unresolved.
+
 ## Password keyboard routing correction — 2026-11-09
 
 - PR #65 A65-04 from `2588482`: nonce uses an independent native form owner; input Enter submits only the primary password action, while nonce activation preserves proof. Primary duplicate guard and all audited server controls remain unchanged.
@@ -16,6 +21,11 @@
 
 - Separate Draft candidate from verified main/production `42a8eb2`; expiring operation-bound grants, verified recovery separation, fresh MFA/current-password, honest provider outcomes. No production change. PR #52 and provider-native F01/F02 remain NO-GO.
 - See [focused handoff](SECURITY_PASSWORD_RESET_HOTFIX.md) and [execution evidence](progress/2026-11-07-password-authorization.md). Final-head CI and independent Astra audit remain distinct gates.
+
+## F03 username hotfix candidate — 2026-11-07
+
+- Separate Draft candidate from verified main/production `42a8eb2`; legacy RPC denial, fresh owned-TOTP grant, atomic username mutation/consumption/audit. No production change; PR #52 and universal F01/F02 remain NO-GO.
+- See [focused handoff](SECURITY_USERNAME_F03_HOTFIX.md) and [execution evidence](progress/2026-11-07-username-authorization.md). Independent Astra audit and hosted acceptance remain required.
 
 ## Signature Premium email candidate — 2026-10-28
 

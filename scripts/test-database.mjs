@@ -16,7 +16,7 @@ const credentials =
     : {};
 const result = spawnSync(
   process.execPath,
-  ["--test", "supabase/tests/foundation.test.mjs"],
+  ["--test", "supabase/tests/foundation.test.mjs", "supabase/tests/hotfix-integration.test.mjs"],
   { stdio: "inherit", env: process.env, ...credentials },
 );
 if (result.error) {

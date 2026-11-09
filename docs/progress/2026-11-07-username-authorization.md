@@ -1,0 +1,3 @@
+# F03 username authorization — 2026-11-07
+
+Separate clean branch from actual main `42a8eb2b54fd5852f11a2cc31e09dd7b598e4dc0`, identical to production. Implemented isolated forward migration and username-only adapter; no password/session/email dependencies. See [audit handoff](../SECURITY_USERNAME_F03_HOTFIX.md) for original reproduction, tests, ACLs, atomicity and forward recovery constraints. Changed-file inventory is the exact Draft PR diff; final SHA/CI run/counts are in the PR description. No merge/deploy/production migration. Next: independent Astra audit and isolated hosted acceptance before owner release decision.
