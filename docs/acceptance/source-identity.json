@@ -1,0 +1,147 @@
+[
+  {
+    "path": "features/account/services/username-authorization.ts",
+    "sha256": "75a2c79ef84a92f4c35682606ab7c5f7c50632d61265a79d3c6cf308a3b64901",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "features/authentication/services/password-authorization.ts",
+    "sha256": "f06ff50843518697474390a89904631c325d27e5de6ffa9dcb3d51ae3ea74fef",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "features/authentication/services/fresh-auth.ts",
+    "sha256": "7edf52427e776a8bdedf65ad40171ca4f907ca74d0f7899287fd8edcf9059c12",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "lib/supabase/config.ts",
+    "sha256": "50af2ed9577a33bb8c7e53124e03be23bb62070e354ab7fc9435e5f66043d58c",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260913185754_auth_cloud_foundation.sql",
+    "sha256": "c72f371f4e85e8bc513fff927e98d7a0555af92c7c763ef2a37dde3e9398aaa7",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260913185809_mutation_rpcs.sql",
+    "sha256": "20892eeaf855db4e38219916952143e41fcecef439b6c93d2c248355176ebe7b",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260913185824_harden_entitlement_reads.sql",
+    "sha256": "288170fb8672af14031b11a824a386b01ccdad1552e6641b90ea44629c4d7d61",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914122557_auth_identity_stabilization.sql",
+    "sha256": "eba5df095241626ca7c482d390f80a42ee41c734c48489e00fbf2baacb0fc557",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914123138_verification_watch_status.sql",
+    "sha256": "9a15741e963b64d07f89abf7716849ea27bdb8b57e78c5cf292b4a955ffefcb1",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914123636_reset_incomplete_onboarding_flow_v2.sql",
+    "sha256": "a8f8721b55d365d4f1f6713b15b468a3c68abc18f8b8ea660887343ec41b0a9a",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914142940_fast_cloud_snapshot.sql",
+    "sha256": "8d10f0dfbeb4d0698314eb438d495ac88dffa121770744409e86b4fa74312511",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914153301_mfa_aal_gate.sql",
+    "sha256": "971532ff206ece466a8a11d32f604b9182d2cdb2db5552b54a81d1f49ca1cf72",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914153706_mfa_aal_gate_runtime_compat.sql",
+    "sha256": "371b19ad473ee8ca0e8ccbf9a7316a8acf0533bd96a0ec05a8460769c3da95e7",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260914234617_enforce_mfa_in_account_rpcs.sql",
+    "sha256": "58c5ebf9a65afa3d365523bfdf0b44d4a3810fb69a19062f18fdf94509dbab9e",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260917112635_account_security_hardening.sql",
+    "sha256": "cb70dd39300c8fb2ea3a4f11a10e72c60b97d1278b7bc02e2d23f4d89c3c7b74",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923120017_secure_username_change.sql",
+    "sha256": "2339830bc8692d859e96eb4637830527494f309203fae37f8ed0323e3f01ab8e",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923165250_profile_person_names.sql",
+    "sha256": "191312c2e45cd2ec99cd2c430347f49e39089539a09edd7bbc29f8bbe50992d6",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923171354_profile_name_update_grants.sql",
+    "sha256": "d24357ab565ad3f2b80efc5a9bd134ff06dde9f403b4ef8eaf27128b9b954eac",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923171356_onboarding_name_step.sql",
+    "sha256": "ef713cd4c8ddfa7dd8615e2092a032efd5f21459353604249cf80084dbb5fe68",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923173735_stronger_signup_credentials.sql",
+    "sha256": "cb34ae66229580ce4ab3ad8d57e9f3fb4989ffda9d257be9f872b09c7067a653",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260923185414_pending_signup_email_edit.sql",
+    "sha256": "59962cfcc515d64517e1b5e939d5cedbb20d0167e73220ab95c1e6c77524ca11",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260925233720_farm_collaboration_foundation.sql",
+    "sha256": "97c6b3bdd9a01eb837062bb5fe50974df59fc73128a6240fe8c1055bf85798d1",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260925233723_shared_farm_snapshot.sql",
+    "sha256": "6aa2832f43ddf27f862c05fec346ad6fa2310415e858ffd1621a8836247d32cf",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260925234059_collaboration_policy_consolidation.sql",
+    "sha256": "228739c61513dcbf530f4e26f63d143e1b6842911fddd3151129a6dff4fa9fca",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20260926041815_team_invitations.sql",
+    "sha256": "a10a2547fb87eee9ba4e3b824a340fbd8797cfd52e29c5ed1090447955bc09c0",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20261026065610_support_tickets.sql",
+    "sha256": "367a7dc9e8e3bdd0ba54fdd5ad1e68fc24c3142dee9ee284e14c147da43cfd6f",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20261027134742_support_ticket_notification_language.sql",
+    "sha256": "b7437e46dc147a623cbf1f12853c96feb244843e8558e8fa4ff286e7b7ec8ea6",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20261107161451_password_reset_authorization.sql",
+    "sha256": "7ba19394bf31730fe562059e2173b152e913fa78e6f081860c78309e1928c07b",
+    "identical_to_candidate": true
+  },
+  {
+    "path": "supabase/migrations/20261107162535_username_single_use_authorization.sql",
+    "sha256": "283ea271d649288757fea6a12aa2350b047d7a97e662afda13a9b1890b912130",
+    "identical_to_candidate": true
+  }
+]

@@ -1,0 +1,575 @@
+{
+  "run": "35e8016b",
+  "results": [
+    {
+      "id": "runner.signed",
+      "status": "NOT VERIFIED",
+      "detail": "Signed controller; exact project guard; native staging server credential present",
+      "at": "2026-11-10T09:50:45.673Z",
+      "original_status": "FAIL",
+      "superseded": true,
+      "reason": "Harness setup failure before users were created"
+    },
+    {
+      "id": "runner.signed",
+      "status": "NOT VERIFIED",
+      "detail": "Signed controller; exact project guard; native staging server credential present",
+      "at": "2026-11-10T09:51:11.588Z",
+      "original_status": "FAIL",
+      "superseded": true,
+      "reason": "Harness setup failure before users were created"
+    },
+    {
+      "id": "runner.signed",
+      "status": "PASS",
+      "detail": "Signed controller; exact project guard; native staging server credential present",
+      "at": "2026-11-10T09:52:27.808Z"
+    },
+    {
+      "id": "native.jwt.a",
+      "status": "PASS",
+      "detail": "Actual provider token verified by SDK getClaims; expected synthetic subject and session ID",
+      "at": "2026-11-10T09:52:29.953Z"
+    },
+    {
+      "id": "native.mfa.a",
+      "status": "PASS",
+      "detail": "Native provider factor enrollment/challenge/verify; signed AAL2 token",
+      "at": "2026-11-10T09:52:30.914Z"
+    },
+    {
+      "id": "native.jwt.b",
+      "status": "PASS",
+      "detail": "Actual provider token verified by SDK getClaims; expected synthetic subject and session ID",
+      "at": "2026-11-10T09:52:31.456Z"
+    },
+    {
+      "id": "native.mfa.b",
+      "status": "PASS",
+      "detail": "Native provider factor enrollment/challenge/verify; signed AAL2 token",
+      "at": "2026-11-10T09:52:32.230Z"
+    },
+    {
+      "id": "native.jwt.c",
+      "status": "PASS",
+      "detail": "Actual provider token verified by SDK getClaims; expected synthetic subject and session ID",
+      "at": "2026-11-10T09:52:33.110Z"
+    },
+    {
+      "id": "native.mfa.c",
+      "status": "PASS",
+      "detail": "Native provider factor enrollment/challenge/verify; signed AAL2 token",
+      "at": "2026-11-10T09:52:33.783Z"
+    },
+    {
+      "id": "native.admin_seed",
+      "status": "PASS",
+      "detail": "Three synthetic .invalid users confirmed by administrator API; genuine signup/email confirmation NOT TESTED; no email sent",
+      "at": "2026-11-10T09:52:33.784Z"
+    },
+    {
+      "id": "baseline.cross_user_read",
+      "status": "PASS",
+      "detail": "Real signed-user PostgREST RLS excludes another synthetic profile",
+      "at": "2026-11-10T09:52:34.453Z"
+    },
+    {
+      "id": "baseline.legacy_username",
+      "status": "PASS",
+      "detail": "Actual baseline legacy RPC accepts owned native AAL2 before retirement",
+      "at": "2026-11-10T09:52:40.127Z"
+    },
+    {
+      "id": "baseline.farm_seed",
+      "status": "PASS",
+      "detail": "Created synthetic app row via actual signed-user PostgREST RPC",
+      "at": "2026-11-10T09:52:46.167Z"
+    },
+    {
+      "id": "66-01.legacy",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.150Z"
+    },
+    {
+      "id": "66-01.dml",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.306Z"
+    },
+    {
+      "id": "66-02.anon.username_reserve_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.487Z"
+    },
+    {
+      "id": "66-02.anon.username_verify_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.643Z"
+    },
+    {
+      "id": "66-02.authenticated.username_reserve_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.793Z"
+    },
+    {
+      "id": "66-02.authenticated.username_verify_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "42501"
+      },
+      "at": "2026-11-10T09:53:57.943Z"
+    },
+    {
+      "id": "66-04.no_fresh_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:53:58.102Z"
+    },
+    {
+      "id": "66-05.audited_adapter",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "code": null,
+        "method": "Exact candidate authorizeUsername bundle; actual native getClaims/getUser/session/MFA and service PostgREST grant attestation"
+      },
+      "at": "2026-11-10T09:54:08.278Z"
+    },
+    {
+      "id": "66-06.foreign_user",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:54:14.385Z"
+    },
+    {
+      "id": "66-06.target_mismatch",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:54:20.481Z"
+    },
+    {
+      "id": "66-08.concurrent",
+      "status": "PASS",
+      "detail": {
+        "success_count": 1,
+        "rejection_count": 1
+      },
+      "at": "2026-11-10T09:54:26.137Z"
+    },
+    {
+      "id": "66-07.consumed",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:54:31.694Z"
+    },
+    {
+      "id": "66-09.case_availability",
+      "status": "PASS",
+      "detail": "Actual public availability sees normalized consumed username",
+      "at": "2026-11-10T09:54:37.166Z"
+    },
+    {
+      "id": "66-07.proof_replay",
+      "status": "NOT VERIFIED",
+      "detail": {
+        "status": 200,
+        "code": null
+      },
+      "at": "2026-11-10T09:54:45.878Z",
+      "original_status": "FAIL",
+      "superseded": true,
+      "reason": "Invalid replay probe recomputed a later TOTP code. Superseded by exact-code replay PASS; not a product defect."
+    },
+    {
+      "id": "66-06.foreign_factor",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "MFA_CHALLENGE_REQUIRED"
+      },
+      "at": "2026-11-10T09:54:52.062Z"
+    },
+    {
+      "id": "65-03.wrong_totp",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "mfa_verification_failed"
+      },
+      "at": "2026-11-10T09:54:58.344Z"
+    },
+    {
+      "id": "66-03.identity",
+      "status": "PASS",
+      "detail": "Actual signed token validates expected synthetic identity",
+      "at": "2026-11-10T09:55:04.259Z"
+    },
+    {
+      "id": "66-03.forged_jwt",
+      "status": "PASS",
+      "detail": {
+        "http_status": 401
+      },
+      "at": "2026-11-10T09:55:10.087Z"
+    },
+    {
+      "id": "66-07.exact_code_replay",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "MFA_CHALLENGE_REQUIRED",
+        "method": "Reused the exact prior proof string; earlier moving-time-step probe was invalid and is superseded"
+      },
+      "at": "2026-11-10T09:58:35.383Z"
+    },
+    {
+      "id": "66-06.target_live_grant",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:58:35.702Z"
+    },
+    {
+      "id": "66-04.aal1",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:58:47.517Z"
+    },
+    {
+      "id": "65-01.wrong_current",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T09:59:04.832Z"
+    },
+    {
+      "id": "65-01.authorized_change",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "code": null
+      },
+      "at": "2026-11-10T09:59:07.295Z"
+    },
+    {
+      "id": "65-01.fresh_login",
+      "status": "PASS",
+      "detail": {
+        "old_rejected": true,
+        "new_expected_user": true
+      },
+      "at": "2026-11-10T09:59:11.743Z"
+    },
+    {
+      "id": "65-03.missing",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T09:59:16.954Z"
+    },
+    {
+      "id": "65-03.wrong",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T09:59:18.583Z"
+    },
+    {
+      "id": "65-03.backup_disabled",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T09:59:19.365Z"
+    },
+    {
+      "id": "65-02.authorized_change",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "code": null
+      },
+      "at": "2026-11-10T09:59:21.025Z"
+    },
+    {
+      "id": "65-02.fresh_login",
+      "status": "PASS",
+      "detail": {
+        "old_rejected": true,
+        "new_expected_user": true
+      },
+      "at": "2026-11-10T09:59:26.820Z"
+    },
+    {
+      "id": "66-06.other_session",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:58:59.109Z"
+    },
+    {
+      "id": "66-07.unverified",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T09:59:10.839Z"
+    },
+    {
+      "id": "66-10.prepared",
+      "status": "PASS",
+      "detail": "Actual native-MFA attested unconsumed grant prepared for audit-failure injection",
+      "at": "2026-11-10T09:59:18.175Z"
+    },
+    {
+      "id": "66-10.audit_rejection",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T10:00:24.762Z"
+    },
+    {
+      "id": "66-10.renewed",
+      "status": "PASS",
+      "detail": "Fresh native-MFA grant; original expired preparation retained as historical fixture",
+      "at": "2026-11-10T10:00:48.296Z"
+    },
+    {
+      "id": "66-10.audit_rejection",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001",
+        "forced_audit_failure": true
+      },
+      "at": "2026-11-10T10:00:54.517Z"
+    },
+    {
+      "id": "66-10.same_grant_retry",
+      "status": "PASS",
+      "detail": {
+        "provider_code": null,
+        "forced_audit_failure": false
+      },
+      "at": "2026-11-10T10:01:49.289Z"
+    },
+    {
+      "id": "66-07.expired",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001",
+        "elapsed_seconds": 202
+      },
+      "at": "2026-11-10T10:01:55.738Z"
+    },
+    {
+      "id": "66-09.unique_collision",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "23505"
+      },
+      "at": "2026-11-10T10:02:10.136Z"
+    },
+    {
+      "id": "66-12.factor_revoked",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T10:02:29.574Z"
+    },
+    {
+      "id": "66-02.service",
+      "status": "PASS",
+      "detail": {
+        "legacy_code": "42501",
+        "consume_code": "42501"
+      },
+      "at": "2026-11-10T10:03:59.090Z"
+    },
+    {
+      "id": "66-11.username_login",
+      "status": "PASS",
+      "detail": {
+        "http_status": 200,
+        "expected_identity": true,
+        "method": "Unmodified candidate username-login Edge Function; native provider signed token; no email confirmation test"
+      },
+      "at": "2026-11-10T10:04:01.079Z"
+    },
+    {
+      "id": "66-12.session_revoked",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "P0001"
+      },
+      "at": "2026-11-10T10:04:09.821Z"
+    },
+    {
+      "id": "runner.unsigned",
+      "status": "PASS",
+      "detail": {
+        "http_status": 401
+      },
+      "at": "2026-11-10T10:04:15.236Z"
+    },
+    {
+      "id": "runner.wrong_signature",
+      "status": "PASS",
+      "detail": {
+        "http_status": 401
+      },
+      "at": "2026-11-10T10:04:20.388Z"
+    },
+    {
+      "id": "runner.expired",
+      "status": "PASS",
+      "detail": {
+        "http_status": 401
+      },
+      "at": "2026-11-10T10:04:25.775Z"
+    },
+    {
+      "id": "65-01.wrong_current",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T10:06:00.541Z"
+    },
+    {
+      "id": "65-01.authorized_change",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "code": null
+      },
+      "at": "2026-11-10T10:06:03.293Z"
+    },
+    {
+      "id": "65-01.fresh_login",
+      "status": "PASS",
+      "detail": {
+        "old_rejected": true,
+        "new_expected_user": true
+      },
+      "at": "2026-11-10T10:06:09.280Z"
+    },
+    {
+      "id": "65-03.missing",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T10:06:16.405Z"
+    },
+    {
+      "id": "65-03.wrong",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T10:06:18.056Z"
+    },
+    {
+      "id": "65-03.backup_disabled",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "code": "PASSWORD_AUTH_REQUIRED"
+      },
+      "at": "2026-11-10T10:06:19.061Z"
+    },
+    {
+      "id": "65-02.authorized_change",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "code": null
+      },
+      "at": "2026-11-10T10:06:20.938Z"
+    },
+    {
+      "id": "65-02.fresh_login",
+      "status": "PASS",
+      "detail": {
+        "old_rejected": true,
+        "new_expected_user": true
+      },
+      "at": "2026-11-10T10:06:26.681Z"
+    },
+    {
+      "id": "65-14.provider_weak",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "weak_password"
+      },
+      "at": "2026-11-10T10:07:56.030Z"
+    },
+    {
+      "id": "65-14.provider_same",
+      "status": "PASS",
+      "detail": {
+        "provider_code": "same_password"
+      },
+      "at": "2026-11-10T10:07:56.267Z"
+    },
+    {
+      "id": "65-14.credential_unchanged",
+      "status": "PASS",
+      "detail": "Independent native login confirms unchanged credential after explicit provider rejections",
+      "at": "2026-11-10T10:08:02.170Z"
+    }
+  ],
+  "synthetic_users": [
+    {
+      "alias": "a"
+    },
+    {
+      "alias": "b"
+    },
+    {
+      "alias": "c"
+    },
+    {
+      "alias": "d"
+    }
+  ],
+  "candidate": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+  "scope": "Real hosted Auth/PostgREST and exact authorization helper bundles; no hosted Next.js application or actual email delivery"
+}

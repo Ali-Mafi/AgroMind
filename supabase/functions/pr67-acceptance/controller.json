@@ -1,0 +1,6 @@
+{
+  "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEC69CIDtPGInmNb10FFeIBr3F/saupkXGEBnaiUIDMWCa/zoULzcoB/N26DkxKqr8PVLSq1HrLZmD4B2Oy6obzQ==",
+  "expiresAt": "2026-11-11T23:59:59Z",
+  "candidate": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+  "algorithm": "ECDSA-P256-SHA256"
+}

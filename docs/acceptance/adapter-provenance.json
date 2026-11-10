@@ -1,0 +1,24 @@
+{
+  "candidate": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+  "records": [
+    {
+      "source": "features/account/services/username-authorization.ts",
+      "source_sha256": "75a2c79ef84a92f4c35682606ab7c5f7c50632d61265a79d3c6cf308a3b64901",
+      "bundle": "supabase/functions/pr67-acceptance/username-authorization.js",
+      "bundle_sha256": "6592432acb31bb48712d9ddaecb9b51b2734cb1791dcfbcab28e674841290aad",
+      "reproduced_exactly": true
+    },
+    {
+      "source": "features/authentication/services/password-authorization.ts",
+      "source_sha256": "f06ff50843518697474390a89904631c325d27e5de6ffa9dcb3d51ae3ea74fef",
+      "bundle": "supabase/functions/pr67-acceptance/password-authorization.js",
+      "bundle_sha256": "1e9ac92c700ba63492005dcd41e95f808dfabfe0b7dc134c5c8c488592396da7",
+      "reproduced_exactly": true
+    }
+  ],
+  "substitutions": [
+    "Build-only server marker omitted in Deno",
+    "Explicit read-only Deno environment bridge",
+    "Cookie-dependent recovery explicitly unavailable in harness"
+  ]
+}

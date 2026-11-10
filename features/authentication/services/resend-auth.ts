@@ -1,4 +1,5 @@
 import "server-only";
+import { acceptanceMail } from "@/lib/acceptance/environment";
 type AuthEmail = {
   to: string;
   subject: string;
@@ -7,6 +8,7 @@ type AuthEmail = {
   idempotencyKey: string;
 };
 export async function sendAuthEmail(message: AuthEmail) {
+  const delivery = acceptanceMail(message.to, message.subject);
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("EMAIL_UNAVAILABLE");
   const { idempotencyKey, ...content } = message;
@@ -23,7 +25,8 @@ export async function sendAuthEmail(message: AuthEmail) {
     },
     body: JSON.stringify({
       ...content,
-      from: "AgroMind <accounts@agromind.ir>",
+      from: delivery.from,
+      subject: delivery.subject,
       to: [content.to],
     }),
   });

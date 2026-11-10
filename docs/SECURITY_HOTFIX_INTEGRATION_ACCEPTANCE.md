@@ -1,3 +1,5 @@
+> Follow-up checkpoint, 2026-11-10: [real hosted results](SECURITY_HOTFIX_HOSTED_ACCEPTANCE_20261110.md): 14 PASS, 11 NOT VERIFIED, 13 BLOCKED. The dated initial-discovery observations below are historical.
+
 # PR #65 + #66 — integration rehearsal and hosted acceptance gate
 
 Date: 9 November 2026, Asia/Tehran. **NO-GO for release consideration for #65, #66 and this combined candidate while hosted acceptance is blocked.** This is an evidence gap, not a newly demonstrated security vulnerability. A developer decision never authorizes Production release.

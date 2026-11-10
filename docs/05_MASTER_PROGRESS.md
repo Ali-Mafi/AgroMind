@@ -1,3 +1,7 @@
+# Hosted acceptance update — 2026-11-10
+
+Separate PR #67 acceptance branch: 14 hosted-provider groups PASS, 11 NOT VERIFIED, 13 BLOCKED; no release approval. Both hotfix SQL migrations are installed only in disposable lpkxwwdzuligovfgpfey. HTTPS web app and mail remain blocked; Vercel project creation returned 403. [Current evidence and human actions](SECURITY_HOTFIX_HOSTED_ACCEPTANCE_20261110.md).
+
 # AgroMind Master Progress
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.

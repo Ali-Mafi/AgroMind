@@ -1,3 +1,4 @@
+import { emailOrigin } from "@/lib/acceptance/environment";
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { sendAuthEmail } from "@/features/authentication/services/resend-auth";
@@ -39,8 +40,8 @@ export async function drainSupportEmails() {
         if (!to) throw new Error("RECIPIENT_UNAVAILABLE");
         const href =
           job.audience === "staff"
-            ? `https://agromind.ir/admin/support?ticket=${job.ticketId}`
-            : `https://agromind.ir/account/help/tickets/${job.ticketId}`;
+            ? `${emailOrigin()}/admin/support?ticket=${job.ticketId}`
+            : `${emailOrigin()}/account/help/tickets/${job.ticketId}`;
         await sendAuthEmail({
           ...supportEmail(job.number, job.event, job.language, href, job.audience === "staff" ? "staff" : "user"),
           to,

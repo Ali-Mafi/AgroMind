@@ -1,3 +1,4 @@
+import { acceptanceSettings } from "@/lib/acceptance/environment";
 const PRIVATE_PATH =
   /^\/(dashboard|assistant|farms|irrigation|account|settings|weather|onboarding|invite|admin)(\/|$)/;
 export function isPrivatePath(path: string) {
@@ -19,6 +20,8 @@ export function safeMfaNextPath(value: unknown) {
 }
 
 export function siteOrigin() {
+  const acceptance = acceptanceSettings();
+  if (acceptance) return acceptance.origin;
   const previewHost =
     process.env.VERCEL_ENV === "preview"
       ? process.env.VERCEL_BRANCH_URL

@@ -1,3 +1,4 @@
+import { emailOrigin } from "@/lib/acceptance/environment";
 import { renderPremiumEmail } from "@/lib/email/layout";
 
 /** Ticket bodies and internal notes are never accepted by this renderer. */
@@ -68,10 +69,10 @@ export function supportEmail(
     : "This is an automated notification. To respond, use AgroMind support.";
 
   // The server constructs ticket URLs; reject unintended external destinations.
-  let safeHref = "https://agromind.ir/account/help";
+  let safeHref = emailOrigin() + "/account/help";
   try {
     const parsed = new URL(href);
-    if (parsed.protocol === "https:" && parsed.hostname === "agromind.ir" && !parsed.username && !parsed.password)
+    if (parsed.protocol === "https:" && parsed.origin === emailOrigin() && !parsed.username && !parsed.password)
       safeHref = parsed.href;
   } catch {
     // Keep the known-safe fallback.
