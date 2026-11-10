@@ -1,3 +1,4 @@
+import { acceptanceSettings, emailOrigin } from "@/lib/acceptance/environment";
 /** Shared Signature Premium shell. Content is always text, escaped at this boundary. */
 export type EmailLanguage = "fa" | "en";
 export type PremiumEmail = {
@@ -15,7 +16,7 @@ export type PremiumEmail = {
   afterInformation?: string[];
 };
 
-const origin = "https://agromind.ir";
+const origin = emailOrigin();
 const assets = `${origin}/email/signature-v1`;
 const artwork = `${origin}/email/signature-v2`;
 // A new stable URL bypasses email-image proxies that cached a missing asset
@@ -39,6 +40,7 @@ function actionUrl(value: string) {
   const url = new URL(value);
   if (!["https:", "http:"].includes(url.protocol) || url.username || url.password)
     throw new Error("INVALID_EMAIL_URL");
+  if (acceptanceSettings() && url.origin !== emailOrigin()) throw new Error("ACCEPTANCE_EMAIL_ORIGIN_REQUIRED");
   return url.href;
 }
 

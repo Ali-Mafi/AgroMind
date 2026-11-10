@@ -1,21 +1,25 @@
 {
-  "status": "PROPOSED_NOT_PROVISIONED",
+  "status": "BASELINE_PROVISIONED_ACCEPTANCE_IN_PROGRESS",
   "name": "agromind-hotfix-acceptance-20261109",
   "organization": {
     "proposed_name": "AgroMind",
     "proposed_id": "blezpaevjeyarvmayddg",
-    "selection_confirmed": false,
+    "selection_confirmed": true,
     "observed_plan": "free",
-    "create_permission_verified": false
+    "create_permission_verified": true
   },
   "region": "eu-central-1",
   "spend_ceiling_usd": 0,
-  "quoted_cost": null,
+  "quoted_cost": {
+    "amount": 0,
+    "recurrence": "monthly",
+    "currency": "USD"
+  },
   "upgrade_allowed": false,
   "production_ref_denylist": [
     "gedwexwxaojpqyeiebwm"
   ],
-  "isolated_project_ref": null,
+  "isolated_project_ref": "lpkxwwdzuligovfgpfey",
   "copy_production_data": false,
   "copy_production_credentials": false,
   "synthetic_users_only": true,
@@ -63,5 +67,15 @@
     ],
     "site_redirects": "exact isolated app origin + /auth/callback only; no Production redirects"
   },
-  "cleanup": "retain sanitized evidence; delete/retire only the explicitly identified disposable environment after separate cleanup decision"
+  "cleanup": "retain sanitized evidence; delete/retire only the explicitly identified disposable environment after separate cleanup decision",
+  "baseline_installed": 23,
+  "hotfix_migrations_installed": false,
+  "candidate_sha": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+  "hosting": {
+    "proposed_project": "agromind-pr67-acceptance",
+    "team": "team_YlTQlXsSz1BRdGbJHtdqoOV3",
+    "observed_plan": "Hobby",
+    "create_result": "403 forbidden; no authenticated CLI fallback",
+    "configured": false
+  }
 }
