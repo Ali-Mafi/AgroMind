@@ -1,3 +1,7 @@
+# Latest hosted acceptance
+
+- [2026-11-10: actual provider results and remaining deployment/mail blockers](2026-11-10-hosted-acceptance.md).
+
 # AgroMind Daily Progress Index
 
 Dated entries are historical evidence from the day written, not living release status. Current references: [Master Progress](../05_MASTER_PROGRESS.md), [Roadmap](../ROADMAP.md), [Project Rules](../PROJECT_RULES.md).

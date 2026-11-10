@@ -1,5 +1,5 @@
 {
-  "status": "BASELINE_PROVISIONED_ACCEPTANCE_IN_PROGRESS",
+  "status": "HOSTED_PROVIDER_PARTIAL_APP_AND_MAIL_BLOCKED",
   "name": "agromind-hotfix-acceptance-20261109",
   "organization": {
     "proposed_name": "AgroMind",
@@ -69,7 +69,7 @@
   },
   "cleanup": "retain sanitized evidence; delete/retire only the explicitly identified disposable environment after separate cleanup decision",
   "baseline_installed": 23,
-  "hotfix_migrations_installed": false,
+  "hotfix_migrations_installed": true,
   "candidate_sha": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
   "hosting": {
     "proposed_project": "agromind-pr67-acceptance",
@@ -77,5 +77,19 @@
     "observed_plan": "Hobby",
     "create_result": "403 forbidden; no authenticated CLI fallback",
     "configured": false
+  },
+  "hotfix_order": [
+    "password_reset_authorization",
+    "username_single_use_authorization"
+  ],
+  "fresh_app_server_credentials_configured": false,
+  "fresh_mail_credentials_configured": false,
+  "email_endpoint_approval": false,
+  "provider_test_runner": {
+    "url": "https://lpkxwwdzuligovfgpfey.supabase.co/functions/v1/pr67-acceptance",
+    "source_candidate": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+    "authentication": "P-256 signed request; 90-second freshness; explicit project guard; expires 2026-11-11T23:59:59Z",
+    "application_deployment": false,
+    "edge_version": 6
   }
 }

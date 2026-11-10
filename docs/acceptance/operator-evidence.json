@@ -1,0 +1,439 @@
+{
+  "project": "lpkxwwdzuligovfgpfey",
+  "candidate": "9e371da2f883405daab3d0aa4a665f68c4fa6860",
+  "migrations": [
+    {
+      "version": "20261109233756",
+      "name": "auth_cloud_foundation",
+      "sql_sha256": "c72f371f4e85e8bc513fff927e98d7a0555af92c7c763ef2a37dde3e9398aaa7"
+    },
+    {
+      "version": "20261109233757",
+      "name": "mutation_rpcs",
+      "sql_sha256": "20892eeaf855db4e38219916952143e41fcecef439b6c93d2c248355176ebe7b"
+    },
+    {
+      "version": "20261110030034",
+      "name": "harden_entitlement_reads",
+      "sql_sha256": "288170fb8672af14031b11a824a386b01ccdad1552e6641b90ea44629c4d7d61"
+    },
+    {
+      "version": "20261110030042",
+      "name": "auth_identity_stabilization",
+      "sql_sha256": "eba5df095241626ca7c482d390f80a42ee41c734c48489e00fbf2baacb0fc557"
+    },
+    {
+      "version": "20261110030043",
+      "name": "verification_watch_status",
+      "sql_sha256": "9a15741e963b64d07f89abf7716849ea27bdb8b57e78c5cf292b4a955ffefcb1"
+    },
+    {
+      "version": "20261110030044",
+      "name": "reset_incomplete_onboarding_flow_v2",
+      "sql_sha256": "a8f8721b55d365d4f1f6713b15b468a3c68abc18f8b8ea660887343ec41b0a9a"
+    },
+    {
+      "version": "20261110030045",
+      "name": "fast_cloud_snapshot",
+      "sql_sha256": "8d10f0dfbeb4d0698314eb438d495ac88dffa121770744409e86b4fa74312511"
+    },
+    {
+      "version": "20261110030109",
+      "name": "mfa_aal_gate",
+      "sql_sha256": "971532ff206ece466a8a11d32f604b9182d2cdb2db5552b54a81d1f49ca1cf72"
+    },
+    {
+      "version": "20261110030111",
+      "name": "mfa_aal_gate_runtime_compat",
+      "sql_sha256": "371b19ad473ee8ca0e8ccbf9a7316a8acf0533bd96a0ec05a8460769c3da95e7"
+    },
+    {
+      "version": "20261110030113",
+      "name": "enforce_mfa_in_account_rpcs",
+      "sql_sha256": "58c5ebf9a65afa3d365523bfdf0b44d4a3810fb69a19062f18fdf94509dbab9e"
+    },
+    {
+      "version": "20261110030123",
+      "name": "account_security_hardening",
+      "sql_sha256": "cb70dd39300c8fb2ea3a4f11a10e72c60b97d1278b7bc02e2d23f4d89c3c7b74"
+    },
+    {
+      "version": "20261110030124",
+      "name": "secure_username_change",
+      "sql_sha256": "2339830bc8692d859e96eb4637830527494f309203fae37f8ed0323e3f01ab8e"
+    },
+    {
+      "version": "20261110030126",
+      "name": "profile_person_names",
+      "sql_sha256": "191312c2e45cd2ec99cd2c430347f49e39089539a09edd7bbc29f8bbe50992d6"
+    },
+    {
+      "version": "20261110030128",
+      "name": "profile_name_update_grants",
+      "sql_sha256": "d24357ab565ad3f2b80efc5a9bd134ff06dde9f403b4ef8eaf27128b9b954eac"
+    },
+    {
+      "version": "20261110030130",
+      "name": "onboarding_name_step",
+      "sql_sha256": "ef713cd4c8ddfa7dd8615e2092a032efd5f21459353604249cf80084dbb5fe68"
+    },
+    {
+      "version": "20261110030132",
+      "name": "stronger_signup_credentials",
+      "sql_sha256": "cb34ae66229580ce4ab3ad8d57e9f3fb4989ffda9d257be9f872b09c7067a653"
+    },
+    {
+      "version": "20261110030134",
+      "name": "pending_signup_email_edit",
+      "sql_sha256": "59962cfcc515d64517e1b5e939d5cedbb20d0167e73220ab95c1e6c77524ca11"
+    },
+    {
+      "version": "20261110030143",
+      "name": "farm_collaboration_foundation",
+      "sql_sha256": "97c6b3bdd9a01eb837062bb5fe50974df59fc73128a6240fe8c1055bf85798d1"
+    },
+    {
+      "version": "20261110030145",
+      "name": "shared_farm_snapshot",
+      "sql_sha256": "6aa2832f43ddf27f862c05fec346ad6fa2310415e858ffd1621a8836247d32cf"
+    },
+    {
+      "version": "20261110030155",
+      "name": "collaboration_policy_consolidation",
+      "sql_sha256": "228739c61513dcbf530f4e26f63d143e1b6842911fddd3151129a6dff4fa9fca"
+    },
+    {
+      "version": "20261110030157",
+      "name": "team_invitations",
+      "sql_sha256": "a10a2547fb87eee9ba4e3b824a340fbd8797cfd52e29c5ed1090447955bc09c0"
+    },
+    {
+      "version": "20261110030159",
+      "name": "support_tickets",
+      "sql_sha256": "367a7dc9e8e3bdd0ba54fdd5ad1e68fc24c3142dee9ee284e14c147da43cfd6f"
+    },
+    {
+      "version": "20261110030203",
+      "name": "support_ticket_notification_language",
+      "sql_sha256": "b7437e46dc147a623cbf1f12853c96feb244843e8558e8fa4ff286e7b7ec8ea6"
+    },
+    {
+      "version": "20261110095317",
+      "name": "password_reset_authorization",
+      "sql_sha256": "7ba19394bf31730fe562059e2173b152e913fa78e6f081860c78309e1928c07b"
+    },
+    {
+      "version": "20261110095350",
+      "name": "username_single_use_authorization",
+      "sql_sha256": "283ea271d649288757fea6a12aa2350b047d7a97e662afda13a9b1890b912130"
+    },
+    {
+      "version": "20261110095957",
+      "name": "acceptance_audit_failure_fixture",
+      "sql_sha256": "c1740bdea2cdbc90443087f52a6c12fce5845881ae77c86c00cd0b56c292091d"
+    },
+    {
+      "version": "20261110100143",
+      "name": "acceptance_remove_audit_failure_fixture",
+      "sql_sha256": "aece31824c04cf910cadb2f82c67845a1e042a352dc4034147c6340729b4bb7a"
+    }
+  ],
+  "baseline_verified": [
+    {
+      "version": "20261109233756",
+      "name": "auth_cloud_foundation",
+      "sql_sha256": "c72f371f4e85e8bc513fff927e98d7a0555af92c7c763ef2a37dde3e9398aaa7"
+    },
+    {
+      "version": "20261109233757",
+      "name": "mutation_rpcs",
+      "sql_sha256": "20892eeaf855db4e38219916952143e41fcecef439b6c93d2c248355176ebe7b"
+    },
+    {
+      "version": "20261110030034",
+      "name": "harden_entitlement_reads",
+      "sql_sha256": "288170fb8672af14031b11a824a386b01ccdad1552e6641b90ea44629c4d7d61"
+    },
+    {
+      "version": "20261110030042",
+      "name": "auth_identity_stabilization",
+      "sql_sha256": "eba5df095241626ca7c482d390f80a42ee41c734c48489e00fbf2baacb0fc557"
+    },
+    {
+      "version": "20261110030043",
+      "name": "verification_watch_status",
+      "sql_sha256": "9a15741e963b64d07f89abf7716849ea27bdb8b57e78c5cf292b4a955ffefcb1"
+    },
+    {
+      "version": "20261110030044",
+      "name": "reset_incomplete_onboarding_flow_v2",
+      "sql_sha256": "a8f8721b55d365d4f1f6713b15b468a3c68abc18f8b8ea660887343ec41b0a9a"
+    },
+    {
+      "version": "20261110030045",
+      "name": "fast_cloud_snapshot",
+      "sql_sha256": "8d10f0dfbeb4d0698314eb438d495ac88dffa121770744409e86b4fa74312511"
+    },
+    {
+      "version": "20261110030109",
+      "name": "mfa_aal_gate",
+      "sql_sha256": "971532ff206ece466a8a11d32f604b9182d2cdb2db5552b54a81d1f49ca1cf72"
+    },
+    {
+      "version": "20261110030111",
+      "name": "mfa_aal_gate_runtime_compat",
+      "sql_sha256": "371b19ad473ee8ca0e8ccbf9a7316a8acf0533bd96a0ec05a8460769c3da95e7"
+    },
+    {
+      "version": "20261110030113",
+      "name": "enforce_mfa_in_account_rpcs",
+      "sql_sha256": "58c5ebf9a65afa3d365523bfdf0b44d4a3810fb69a19062f18fdf94509dbab9e"
+    },
+    {
+      "version": "20261110030123",
+      "name": "account_security_hardening",
+      "sql_sha256": "cb70dd39300c8fb2ea3a4f11a10e72c60b97d1278b7bc02e2d23f4d89c3c7b74"
+    },
+    {
+      "version": "20261110030124",
+      "name": "secure_username_change",
+      "sql_sha256": "2339830bc8692d859e96eb4637830527494f309203fae37f8ed0323e3f01ab8e"
+    },
+    {
+      "version": "20261110030126",
+      "name": "profile_person_names",
+      "sql_sha256": "191312c2e45cd2ec99cd2c430347f49e39089539a09edd7bbc29f8bbe50992d6"
+    },
+    {
+      "version": "20261110030128",
+      "name": "profile_name_update_grants",
+      "sql_sha256": "d24357ab565ad3f2b80efc5a9bd134ff06dde9f403b4ef8eaf27128b9b954eac"
+    },
+    {
+      "version": "20261110030130",
+      "name": "onboarding_name_step",
+      "sql_sha256": "ef713cd4c8ddfa7dd8615e2092a032efd5f21459353604249cf80084dbb5fe68"
+    },
+    {
+      "version": "20261110030132",
+      "name": "stronger_signup_credentials",
+      "sql_sha256": "cb34ae66229580ce4ab3ad8d57e9f3fb4989ffda9d257be9f872b09c7067a653"
+    },
+    {
+      "version": "20261110030134",
+      "name": "pending_signup_email_edit",
+      "sql_sha256": "59962cfcc515d64517e1b5e939d5cedbb20d0167e73220ab95c1e6c77524ca11"
+    },
+    {
+      "version": "20261110030143",
+      "name": "farm_collaboration_foundation",
+      "sql_sha256": "97c6b3bdd9a01eb837062bb5fe50974df59fc73128a6240fe8c1055bf85798d1"
+    },
+    {
+      "version": "20261110030145",
+      "name": "shared_farm_snapshot",
+      "sql_sha256": "6aa2832f43ddf27f862c05fec346ad6fa2310415e858ffd1621a8836247d32cf"
+    },
+    {
+      "version": "20261110030155",
+      "name": "collaboration_policy_consolidation",
+      "sql_sha256": "228739c61513dcbf530f4e26f63d143e1b6842911fddd3151129a6dff4fa9fca"
+    },
+    {
+      "version": "20261110030157",
+      "name": "team_invitations",
+      "sql_sha256": "a10a2547fb87eee9ba4e3b824a340fbd8797cfd52e29c5ed1090447955bc09c0"
+    },
+    {
+      "version": "20261110030159",
+      "name": "support_tickets",
+      "sql_sha256": "367a7dc9e8e3bdd0ba54fdd5ad1e68fc24c3142dee9ee284e14c147da43cfd6f"
+    },
+    {
+      "version": "20261110030203",
+      "name": "support_ticket_notification_language",
+      "sql_sha256": "b7437e46dc147a623cbf1f12853c96feb244843e8558e8fa4ff286e7b7ec8ea6"
+    }
+  ],
+  "hotfix_sources": [
+    {
+      "name": "password_reset_authorization",
+      "sha256": "7ba19394bf31730fe562059e2173b152e913fa78e6f081860c78309e1928c07b"
+    },
+    {
+      "name": "username_single_use_authorization",
+      "sha256": "283ea271d649288757fea6a12aa2350b047d7a97e662afda13a9b1890b912130"
+    }
+  ],
+  "seeded_row_preservation": {
+    "before": [
+      {
+        "relation": "auth.users",
+        "rows": 3,
+        "fingerprint": "07d761b3cf383b4cfbdf2500f4f39e07"
+      },
+      {
+        "relation": "profiles",
+        "rows": 3,
+        "fingerprint": "7f3d25e4c16475d8ceb3238e8470e859"
+      },
+      {
+        "relation": "accounts",
+        "rows": 3,
+        "fingerprint": "260bc332ee2e3887a3c1fd4489254364"
+      },
+      {
+        "relation": "subscriptions",
+        "rows": 3,
+        "fingerprint": "43bd215471f2e8b4b7ffced0848bda97"
+      },
+      {
+        "relation": "farms",
+        "rows": 1,
+        "fingerprint": "34d48763e9326ec00cf735a08e1114ef"
+      },
+      {
+        "relation": "irrigation",
+        "rows": 0,
+        "fingerprint": "d751713988987e9331980363e24189ce"
+      }
+    ],
+    "after_password": [
+      {
+        "relation": "auth.users",
+        "rows": 3,
+        "fingerprint": "07d761b3cf383b4cfbdf2500f4f39e07"
+      },
+      {
+        "relation": "profiles",
+        "rows": 3,
+        "fingerprint": "7f3d25e4c16475d8ceb3238e8470e859"
+      },
+      {
+        "relation": "accounts",
+        "rows": 3,
+        "fingerprint": "260bc332ee2e3887a3c1fd4489254364"
+      },
+      {
+        "relation": "subscriptions",
+        "rows": 3,
+        "fingerprint": "43bd215471f2e8b4b7ffced0848bda97"
+      },
+      {
+        "relation": "farms",
+        "rows": 1,
+        "fingerprint": "34d48763e9326ec00cf735a08e1114ef"
+      },
+      {
+        "relation": "irrigation",
+        "rows": 0,
+        "fingerprint": "d751713988987e9331980363e24189ce"
+      }
+    ],
+    "before_username": [
+      {
+        "relation": "auth.users",
+        "rows": 3,
+        "fingerprint": "07d761b3cf383b4cfbdf2500f4f39e07"
+      },
+      {
+        "relation": "profiles",
+        "rows": 3,
+        "fingerprint": "7f3d25e4c16475d8ceb3238e8470e859"
+      },
+      {
+        "relation": "accounts",
+        "rows": 3,
+        "fingerprint": "260bc332ee2e3887a3c1fd4489254364"
+      },
+      {
+        "relation": "subscriptions",
+        "rows": 3,
+        "fingerprint": "43bd215471f2e8b4b7ffced0848bda97"
+      },
+      {
+        "relation": "farms",
+        "rows": 1,
+        "fingerprint": "34d48763e9326ec00cf735a08e1114ef"
+      },
+      {
+        "relation": "irrigation",
+        "rows": 0,
+        "fingerprint": "d751713988987e9331980363e24189ce"
+      }
+    ],
+    "after_username": [
+      {
+        "relation": "auth.users",
+        "rows": 3,
+        "fingerprint": "07d761b3cf383b4cfbdf2500f4f39e07"
+      },
+      {
+        "relation": "profiles",
+        "rows": 3,
+        "fingerprint": "7f3d25e4c16475d8ceb3238e8470e859"
+      },
+      {
+        "relation": "accounts",
+        "rows": 3,
+        "fingerprint": "260bc332ee2e3887a3c1fd4489254364"
+      },
+      {
+        "relation": "subscriptions",
+        "rows": 3,
+        "fingerprint": "43bd215471f2e8b4b7ffced0848bda97"
+      },
+      {
+        "relation": "farms",
+        "rows": 1,
+        "fingerprint": "34d48763e9326ec00cf735a08e1114ef"
+      },
+      {
+        "relation": "irrigation",
+        "rows": 0,
+        "fingerprint": "d751713988987e9331980363e24189ce"
+      }
+    ]
+  },
+  "atomic_rollback": [
+    {
+      "target_username": "qa67_35e8016b_rollback",
+      "receipt_unconsumed": true,
+      "username_unchanged": true,
+      "no_audit": true
+    }
+  ],
+  "audit": [
+    {
+      "consumed_grants": 2,
+      "exactly_one_audit_per_consumed_grant": 2
+    }
+  ],
+  "revocation": [
+    {
+      "target_username": "qa67_35e8016b_revoked",
+      "unconsumed": true,
+      "no_audit": true,
+      "native_session_present": true,
+      "native_factor_present": false
+    },
+    {
+      "target_username": "qa67_35e8016b_sessiongone",
+      "unconsumed": true,
+      "no_audit": true,
+      "native_session_present": false,
+      "native_factor_present": true
+    }
+  ],
+  "isolation": [
+    {
+      "auth_user_count": 4,
+      "non_synthetic_users": 0
+    }
+  ],
+  "fixture_removed": [
+    {
+      "leftover_test_trigger": 0
+    }
+  ]
+}

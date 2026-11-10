@@ -3,6 +3,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import controller from "./controller.json" with { type: "json" };
 import { authorizeUsername } from "./username-authorization.js";
+import { authorizePassword } from "./password-authorization.js";
 
 const ref = "lpkxwwdzuligovfgpfey";
 const url = "https://" + ref + ".supabase.co";
@@ -34,6 +35,11 @@ Deno.serve(async request => {
     if (!service) return respond({ code: "STAGING_SERVICE_UNAVAILABLE" }, 503);
     const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
     if (input.op === "health") return respond({ ref, candidate: controller.candidate, serverCredentialPresent: true });
+    if (input.op === "service_acl") {
+      const legacy = await admin.rpc("change_username", { p_username: "qa67_acl_denied" });
+      const consume = await admin.rpc("change_username_authorized", { p_grant: crypto.randomUUID(), p_username: "qa67_acl_denied" });
+      return respond({ legacyCode: legacy.error?.code ?? null, consumeCode: consume.error?.code ?? null });
+    }
     if (input.op === "create") {
       if (!/^pr67_[a-z0-9_]{1,45}@example\.invalid$/.test(input.email ?? "") ||
           typeof input.password !== "string" || input.password.length < 20 || input.password.length > 100)
@@ -43,10 +49,10 @@ Deno.serve(async request => {
       if (result.error) return respond({ code: result.error.code ?? "ADMIN_CREATE_REJECTED", status: result.error.status }, 422);
       return respond({ id: result.data.user.id, confirmedByAdmin: Boolean(result.data.user.email_confirmed_at) });
     }
-    if (input.op === "authorize") {
+    if (input.op === "authorize" || input.op === "password") {
       const actor = await admin.auth.admin.getUserById(input.userId ?? "");
       if (!actor.data.user?.email?.match(/^pr67_[a-z0-9_]{1,45}@example\.invalid$/) ||
-          !/^qa67_[a-z0-9_]{1,25}$/.test(input.username ?? ""))
+          (input.op === "authorize" && !/^qa67_[a-z0-9_]{1,25}$/.test(input.username ?? "")))
         return respond({ code: "SYNTHETIC_USER_REQUIRED" }, 403);
       const anon = Deno.env.get("SUPABASE_ANON_KEY");
       if (!anon) return respond({ code: "STAGING_ANON_UNAVAILABLE" }, 503);
@@ -55,6 +61,18 @@ Deno.serve(async request => {
       if (session.error) return respond({ code: "SESSION_REJECTED" }, 401);
       const form = new FormData();
       form.set("proof_method", "totp"); form.set("proof_factor_id", input.factorId ?? ""); form.set("fresh_code", input.code ?? "");
+      if (input.op === "password") {
+        if (typeof input.password !== "string" || input.password.length < 20 || input.password.length > 100)
+          return respond({ code: "SYNTHETIC_INPUT_REQUIRED" }, 400);
+        form.set("expected_user_id", input.userId); form.set("password_context", "ordinary");
+        form.set("current_password", input.currentPassword ?? "");
+        if (input.backup) form.set("proof_method", "recovery");
+        const authorization = await authorizePassword(client, form, input.password);
+        const updated = await client.auth.updateUser({ password: input.password });
+        return respond({ authorized: true, expectedUser: updated.data.user?.id === authorization.userId,
+          error: updated.error ? { code: updated.error.code, status: updated.error.status } : null,
+          session: (await client.auth.getSession()).data.session });
+      }
       // Bundled unchanged from the exact candidate, except the build-only server marker.
       const grant = await authorizeUsername(client, form, input.username, input.userId);
       const current = await client.auth.getSession();
