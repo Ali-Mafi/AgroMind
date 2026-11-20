@@ -18,7 +18,7 @@ export async function cancelPendingMfa(request: NextRequest) {
   const host =
     request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   const origin = request.headers.get("origin");
-  const source = origin && URL.parse(origin);
+  const source = origin && URL.canParse(origin) ? new URL(origin) : null;
   if (!source || source.origin !== origin || source.host !== host)
     return new NextResponse(null, { status: 403, headers });
 
