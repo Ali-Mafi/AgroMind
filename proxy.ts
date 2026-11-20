@@ -9,6 +9,10 @@ import {
   isPrivatePath,
   safeNextPath,
 } from "@/features/authentication/lib/redirects";
+import {
+  sessionCookieName,
+  visibleSessionCookies,
+} from "@/lib/supabase/session-cookies";
 import type { Database } from "@/lib/supabase/database.types";
 
 export async function proxy(request: NextRequest) {
@@ -36,10 +40,11 @@ export async function proxy(request: NextRequest) {
       ? signIn()
       : secureResponse(response);
   const { url, key } = supabaseConfig();
+  const sessionName = sessionCookieName(url);
   const supabase = createServerClient<Database>(url, key, {
-    cookieOptions: sessionCookieOptions,
+    cookieOptions: { ...sessionCookieOptions, name: sessionName },
     cookies: {
-      getAll: () => request.cookies.getAll(),
+      getAll: () => visibleSessionCookies(request.cookies.getAll(), sessionName),
       setAll(values, headers) {
         values.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
