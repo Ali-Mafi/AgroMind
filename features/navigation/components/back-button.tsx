@@ -8,10 +8,12 @@ import { navigateBack, NAVIGATION_COMPLETE } from "../lib/history";
 export function BackButton({
   className = "",
   fallback,
+  form,
   onClick,
 }: {
   className?: string;
   fallback?: string;
+  form?: string;
   onClick?: () => void;
 }) {
   const router = useRouter();
@@ -33,12 +35,14 @@ export function BackButton({
   }, []);
   return (
     <button
-      type="button"
+      type={form ? "submit" : "button"}
+      form={form}
       disabled={busy}
       aria-label={t("Back")}
       title={t("Back")}
       className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-current/15 transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current disabled:opacity-50 ${className}`}
       onClick={() => {
+        if (form) return;
         if (onClick) {
           onClick();
           return;

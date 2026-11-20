@@ -8,15 +8,17 @@ import { T } from "@/features/settings/components/translated-text";
 export function AuthShell({
   title,
   description,
+  backForm,
   children,
 }: {
   title: string;
   description: string;
+  backForm?: string;
   children: ReactNode;
 }) {
   return (
     <main className="agromind-app relative isolate flex min-h-svh flex-col px-4 py-6 sm:px-8">
-      <BackButton />
+      <BackButton form={backForm} />
       <div className="m-auto w-full max-w-md py-10">
         <Link
           href="/"
