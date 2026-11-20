@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { NextRequest } from "next/server.js";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import * as ssr from "@supabase/ssr";
 import { loadTs } from "../../weather/tests/helpers/load-ts.mjs";
 
@@ -62,7 +64,7 @@ function request(path, cookies, options) {
   });
 }
 
-function post(cookies, attempt, source = origin) {
+function post(cookies, attempt, source = origin, includeLength = true) {
   const body = new URLSearchParams({ attempt }).toString();
   return cancel(request("/mfa/cancel", cookies, {
     method: "POST",
@@ -70,7 +72,7 @@ function post(cookies, attempt, source = origin) {
     headers: {
       origin: source,
       "content-type": "application/x-www-form-urlencoded",
-      "content-length": String(body.length),
+      ...(includeLength ? { "content-length": String(body.length) } : {}),
     },
   }));
 }
@@ -147,6 +149,7 @@ test("normal MFA cancellation returns to sign-in across tabs without a provider 
     assert.equal(await tab.authenticatedDestination(), null);
     const result = await tab.proxy(request(path, cookies));
     assert.equal(result.status, path === "/account" ? 307 : 200);
+    assert.equal(result.headers.get("referrer-policy"), path === "/mfa" ? "same-origin" : "no-referrer");
     assert.equal(result.headers.has("set-cookie"), false);
     assert.deepEqual(tab.calls, []);
   }
@@ -157,7 +160,7 @@ test("recovery cancellation leaves no authenticated app session for a reset subm
   const cookies = authCookies(session(original, { recovery: true }));
   const attempt = await pendingMfaCancellationCookie(cookies, sessionName);
   assert.equal((await app(cookies).currentUser()).id, subject);
-  const response = await post(cookies, attempt);
+  const response = await post(cookies, attempt, origin, false);
   cookies.push(...response.cookies.getAll());
   assert.equal(response.headers.get("location"), "/sign-in");
 
@@ -235,6 +238,47 @@ test("cross-origin, forged, and unauthenticated cancellations cannot set a marke
   const crossOrigin = await post(cookies, attempt, "https://other.example.test");
   assert.equal(crossOrigin.status, 403);
   assert.equal(crossOrigin.headers.has("set-cookie"), false);
+  assert.equal((await post(cookies, attempt, "null")).status, 403);
   assert.equal((await post(cookies, "forged")).headers.has("set-cookie"), false);
   assert.equal((await post([], attempt)).headers.has("set-cookie"), false);
+});
+
+test("the MFA Back button submits the separate native cancel form for both flows", async () => {
+  const cookies = authCookies(session(original));
+  const { default: page } = loadTs("app/mfa/page.tsx", {
+    "@/lib/supabase/config": config,
+    "next/headers": { cookies: async () => ({ getAll: () => cookies }) },
+    "@/features/authentication/services/session": {
+      currentUser: async () => ({ email_confirmed_at: "2026-11-20" }),
+    },
+    "@/features/authentication/services/mfa-actions": {
+      readMfaSecurityState: async () => ({
+        enabled: true, currentLevel: "aal1", factors: [], recoveryCodes: { enabled: false },
+      }),
+    },
+    "@/features/authentication/components/auth-shell": { AuthShell: () => null },
+    "@/features/authentication/components/mfa-challenge": { MfaChallenge: () => null },
+    "@/features/settings/components/translated-text": { T: () => null },
+    "@/components/ui/button": { Button: () => null },
+  });
+  const { BackButton } = loadTs("features/navigation/components/back-button.tsx", {
+    "next/navigation": { useRouter: () => ({}) },
+    "@/components/ui/navigation-arrow": { NavigationArrow: () => null },
+    "@/features/settings/hooks/use-translation": { useTranslation: () => (key) => key },
+  });
+  for (const [next, label] of [
+    ["/dashboard", "Cancel sign-in or use another account"],
+    ["/reset-password", "Cancel password reset"],
+  ]) {
+    const shell = await page({ searchParams: Promise.resolve({ next }) });
+    const [challenge, form] = shell.props.children;
+    assert.equal(challenge.props.next, next);
+    assert.equal(form.props.id, shell.props.backForm);
+    assert.equal(form.props.method, "post");
+    assert.equal(form.props.action, "/mfa/cancel");
+    assert.equal(form.props.children[0].props.value, await pendingMfaCancellationCookie(cookies, sessionName));
+    assert.equal(form.props.children[1].props.children.props.text, label);
+    const back = renderToStaticMarkup(createElement(BackButton, { form: shell.props.backForm }));
+    assert.match(back, /type="submit" form="mfa-cancel"/);
+  }
 });

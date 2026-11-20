@@ -29,15 +29,18 @@ export async function cancelPendingMfa(request: NextRequest) {
   if (!isSupabaseConfigured()) return response;
 
   // This endpoint accepts only the small native form rendered on /mfa.
-  const length = Number(request.headers.get("content-length"));
+  const type = request.headers.get("content-type")?.split(";")[0];
   if (
-    request.headers.get("content-type") !== "application/x-www-form-urlencoded" ||
-    !Number.isInteger(length) || length < 1 || length > 256
+    type !== "application/x-www-form-urlencoded" ||
+    Number(request.headers.get("content-length")) > 256
   ) {
     return new NextResponse(null, { status: 400, headers });
   }
 
-  const form = new URLSearchParams(await request.text());
+  const body = await request.text();
+  if (!body || body.length > 256)
+    return new NextResponse(null, { status: 400, headers });
+  const form = new URLSearchParams(body);
   const { url } = supabaseConfig();
   const cancellation = await pendingMfaCancellationCookie(
     request.cookies.getAll(),
