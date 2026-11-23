@@ -219,17 +219,23 @@ test("built recovery pages enforce authorization and preserve mobile account swi
 
   await t.test("verified recovery cancellation returns to sign-in and back does not restore the form", async (t) => {
     const page = await openPage(t, null, "en");
-    await beginRecovery(page, user);
+    const linkPath = await beginRecovery(page, user);
     assert.equal(await page.locator("#reset-code").count(), 0);
     const back = page.locator('button[form="recovery-cancel"]');
     assert.equal(await back.evaluate((button) => button.form.id), "recovery-cancel");
     await back.click();
     await page.waitForURL(app + "/sign-in");
-    await page.goBack({ waitUntil: "domcontentloaded" });
+    await Promise.all([
+      page.waitForURL(app + linkPath),
+      page.goBack(),
+    ]);
+    await page.locator('input[name="recovery_proof"]').waitFor({ state: "attached" });
     assert.equal(await page.locator("#reset-password").count(), 0);
-    await page.goto(app + "/reset-password");
-    assert.equal(await page.locator("#reset-password").count(), 0);
-    assert.equal(await page.locator("#forgot-email").isVisible(), true);
+
+    const direct = await page.context().newPage();
+    await direct.goto(app + "/reset-password");
+    assert.equal(await direct.locator("#reset-password").count(), 0);
+    assert.equal(await direct.locator("#forgot-email").isVisible(), true);
     await page.context().close();
   });
 });
