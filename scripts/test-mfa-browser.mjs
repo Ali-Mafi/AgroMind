@@ -94,8 +94,9 @@ test("MFA cancellation works from either button, including after client navigati
         // Match browsers that support AbortController but omit AbortSignal.timeout.
         await page.addInitScript(() => Reflect.deleteProperty(AbortSignal, "timeout"));
       }
+      const initialSignIn = app + "/sign-in?next=%2Faccount";
       await page.goto(app + "/privacy", { waitUntil: "domcontentloaded" });
-      await page.goto(app + "/sign-in", { waitUntil: "domcontentloaded" });
+      await page.goto(initialSignIn, { waitUntil: "domcontentloaded" });
       await page.evaluate(() => { window.mfaTestDocument = true; });
       await page.locator("#sign-in-identifier").fill(user.email);
       await page.locator("#sign-in-password").fill("fixture-password");
@@ -137,9 +138,11 @@ test("MFA cancellation works from either button, including after client navigati
       await page.waitForURL(app + "/sign-in", { waitUntil: "domcontentloaded" });
       await page.locator("#sign-in-identifier").waitFor();
       assert.equal(await page.evaluate(() => history.length), historyLength);
-      await page.goBack({ waitUntil: "domcontentloaded" });
-      assert.doesNotMatch(page.url(), /\/mfa(?:[/?]|$)/);
-      await page.goForward({ waitUntil: "domcontentloaded" });
+      await page.evaluate(() => history.back());
+      await page.waitForURL(initialSignIn, { waitUntil: "domcontentloaded" });
+      await page.locator("#sign-in-identifier").waitFor();
+      await page.evaluate(() => history.forward());
+      await page.waitForURL(app + "/sign-in", { waitUntil: "domcontentloaded" });
       await page.locator("#sign-in-identifier").waitFor();
       assert.equal(page.url(), app + "/sign-in");
     });
