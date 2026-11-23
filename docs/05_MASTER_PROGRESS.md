@@ -2,6 +2,10 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## Recovery-only password candidate — 2026-11-23
+
+- The reset page and password action require an email-verified recovery attempt. The action also verifies a fresh TOTP for MFA-enrolled accounts and consumes the database attempt before updating the password. The native Supabase password API remains outside this application policy. [Release evidence and provider limits](progress/2026-11-23-recovery-only-password.md)
+
 ## MFA Back hotfix candidate — 2026-11-23
 
 - Back and Cancel share a retryable MFA submission after client navigation. Local Chromium verified both controls and Persian recovery. [Hotfix evidence](progress/2026-11-23-mfa-back-hotfix.md)

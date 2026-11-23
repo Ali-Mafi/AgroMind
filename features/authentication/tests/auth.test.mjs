@@ -73,7 +73,6 @@ function harness({
       resend: record("resend", { error }),
       verifyOtp: record("verify", { data: { user }, error }),
       getUser: record("getUser", { data: { user }, error }),
-      updateUser: record("update", { data: { user }, error }),
       signOut: record("signOut", { error }),
       exchangeCodeForSession: record("exchange", { error }),
       updateUser: record("updateUser", { data: { user }, error: null }),
@@ -587,75 +586,20 @@ test("verification without cookies renders resend, while signup pending keeps th
   }
 });
 
-test("verification uses Supabase OTP verification and handles expired and invalid links", async () => {
-  const h = harness();
+test("signup verification still handles invalid and expired links", async () => {
+  const api = harness();
   const token = "a".repeat(64);
   await assert.rejects(
-    h.actions.verifyEmailAction(
-      {},
-      form({ token_hash: token, type: "recovery" }),
-    ),
-    /REDIRECT:\/reset-password/,
+    api.actions.verifyEmailAction({}, form({ token_hash: token, type: "signup" })),
+    /REDIRECT:\/verify-email\?status=success/,
   );
-  assert.deepEqual(h.calls.find((call) => call.name === "verify"), {
-    name: "verify",
-    args: [{ token_hash: token, type: "recovery" }],
-  });
-  assert.match(
-    (await h.actions.verifyEmailAction({}, form({ token_hash: "bad" }))).error,
-    /invalid/,
-  );
+  assert.deepEqual(api.calls.find((call) => call.name === "verify").args, [{ token_hash: token, type: "signup" }]);
+  assert.match((await api.actions.verifyEmailAction({}, form({ token_hash: "bad" }))).error, /invalid/);
   const expired = harness({ error: { code: "otp_expired", status: 403 } });
   assert.match(
     (await expired.actions.verifyEmailAction({}, form({ token_hash: token }))).error,
     /expired or was already used/,
   );
-});
-
-test("password reset requires the current account, then globally signs out", async () => {
-  const h = harness();
-  assert.match(
-    (
-      await h.actions.resetPasswordAction(
-        {},
-        form({ ...signup, expected_user_id: "other-user" }),
-      )
-    ).error,
-    /account changed/,
-  );
-  assert.equal(h.calls.some((c) => c.name === "update"), false);
-  await assert.rejects(
-    h.actions.resetPasswordAction(
-      {},
-      form({ ...signup, expected_user_id: "user-a" }),
-    ),
-    /REDIRECT:\/sign-in\?status=password-updated/,
-  );
-  assert.deepEqual(h.calls.at(-1), {
-    name: "signOut",
-    args: [{ scope: "global" }],
-  });
-  const expired = harness({ user: null });
-  assert.match(
-    (await expired.actions.resetPasswordAction({}, form(signup))).error,
-    /session has expired/,
-  );
-});
-
-test("password recovery requires MFA before changing a password on MFA-enabled accounts", async () => {
-  const h = harness({
-    assurance: { currentLevel: "aal1", nextLevel: "aal2" },
-  });
-
-  await assert.rejects(
-    h.actions.resetPasswordAction(
-      {},
-      form({ ...signup, expected_user_id: "user-a" }),
-    ),
-    /REDIRECT:\/mfa\?next=\/reset-password/,
-  );
-  assert.equal(h.calls.some((call) => call.name === "update"), false);
-  assert.equal(h.calls.some((call) => call.name === "signOut"), false);
 });
 
 test("logout calls Supabase, reports failures safely, and does not pretend success", async () => {

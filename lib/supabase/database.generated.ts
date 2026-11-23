@@ -334,6 +334,10 @@ export type Database = {
     Functions: {
       change_username: { Args: { p_username: string }; Returns: string }
       complete_onboarding: { Args: never; Returns: undefined }
+      consume_password_recovery: {
+        Args: { p_factor?: string; p_hash: string; p_session: string; p_user: string }
+        Returns: boolean
+      }
       consume_username_login_attempt: {
         Args: { p_identifier_hash: string }
         Returns: boolean
@@ -342,9 +346,17 @@ export type Database = {
       get_cloud_snapshot: { Args: never; Returns: Json }
       get_current_session: { Args: never; Returns: Json }
       get_entitlements: { Args: never; Returns: Json }
+      has_password_recovery: {
+        Args: { p_hash: string; p_session: string; p_user: string }
+        Returns: boolean
+      }
       import_legacy_data: {
         Args: { p_selected_ids: Json; p_snapshot: Json }
         Returns: Json
+      }
+      issue_password_recovery: {
+        Args: { p_email_proof: string; p_hash: string; p_session: string; p_user: string }
+        Returns: boolean
       }
       pending_signup_user_id: {
         Args: { p_token_hash: string }

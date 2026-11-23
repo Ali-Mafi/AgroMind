@@ -28,7 +28,10 @@ export async function proxy(request: NextRequest) {
     // A native form POST needs an Origin header for its same-origin check.
     next.headers.set(
       "Referrer-Policy",
-      request.nextUrl.pathname === "/mfa" ? "same-origin" : "no-referrer",
+      request.nextUrl.pathname === "/mfa" ||
+        (request.nextUrl.pathname === "/reset-password" && !request.nextUrl.search)
+        ? "same-origin"
+        : "no-referrer",
     );
     return next;
   };

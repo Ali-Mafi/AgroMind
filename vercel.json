@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "fix/mfa-cancel-account-switch": false,
-      "fix/mfa-back-white-screen": false
+      "fix/mfa-back-white-screen": false,
+      "fix/recovery-only-password-policy": false
     }
   },
   "regions": [

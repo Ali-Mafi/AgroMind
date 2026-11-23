@@ -50,7 +50,7 @@ export async function cancelPendingMfa(request: NextRequest) {
         });
   if (!isSupabaseConfigured()) return response;
 
-  // This endpoint accepts only the small native form rendered on /mfa.
+  // This endpoint accepts only the small native account-switch form.
   const type = request.headers.get("content-type")?.split(";")[0];
   if (
     type !== "application/x-www-form-urlencoded" ||

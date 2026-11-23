@@ -8,11 +8,13 @@ export function renderAuthEmail(
   kind: AuthEmailKind,
   tokenHash: string,
   language: "en" | "fa" = "en",
+  recoveryProof?: string,
 ) {
   const token = tokenHashSchema.parse(tokenHash);
   const url = new URL("/auth/callback", siteOrigin());
   url.searchParams.set("token_hash", token);
   url.searchParams.set("type", kind);
+  if (kind === "recovery" && recoveryProof) url.searchParams.set("proof", recoveryProof);
   const t = translator(language);
   const fa = language === "fa";
   const signup = kind === "signup";

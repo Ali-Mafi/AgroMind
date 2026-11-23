@@ -1,24 +1,30 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { CheckCircle2 } from "lucide-react";
 import { T } from "@/features/settings/components/translated-text";
-import { currentUser, needsSecondFactor } from "../services/session";
+import { isSupabaseConfigured, supabaseConfig } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
+import { pendingMfaCancellationCookie, sessionCookieName } from "@/lib/supabase/session-cookies";
+import { readPasswordRecovery } from "../services/password-recovery";
+import { readRecoveryEmail } from "../services/recovery-email-proof";
 import { readPendingSignup } from "../lib/pending-signup";
 import { tokenHashSchema } from "../lib/validation";
 import { AuthShell } from "./auth-shell";
 import { AuthForm } from "./auth-form";
+import { MfaCancelForm } from "./mfa-cancel-form";
 import { VerificationPending } from "./verification-pending";
 
 export async function EmailEntry({
   kind,
   hash,
   status,
+  proof,
 }: {
   kind: "verify" | "forgot" | "reset";
   hash?: string;
   status?: string;
+  proof?: string;
 }) {
-  const user = await currentUser();
   const validHash = tokenHashSchema.safeParse(hash);
 
   if (kind === "forgot")
@@ -39,13 +45,17 @@ export async function EmailEntry({
       </AuthShell>
     );
 
-  if (hash && validHash.success)
+  if (validHash.success && (kind === "verify" || readRecoveryEmail(validHash.data, proof)))
     return (
       <AuthShell
         title={kind === "reset" ? "Reset your password" : "Verify your email"}
         description="Continue below to securely open your email link."
       >
-        <AuthForm mode={kind === "reset" ? "recovery" : "verify"} tokenHash={validHash.data} />
+        <AuthForm
+          mode={kind === "reset" ? "recovery" : "verify"}
+          tokenHash={validHash.data}
+          recoveryProof={kind === "reset" ? proof : undefined}
+        />
         <Link
           className="mt-5 inline-flex min-h-11 items-center text-sm text-primary"
           href={kind === "reset" ? "/forgot-password" : "/verify-email?status=resend"}
@@ -55,15 +65,43 @@ export async function EmailEntry({
       </AuthShell>
     );
 
-  if (kind === "reset" && user && !hash && !status) {
-    if (await needsSecondFactor()) {
-      redirect("/mfa?next=/reset-password");
+  if (kind === "reset" && !hash && !status && isSupabaseConfigured()) {
+    const recovery = await readPasswordRecovery(await createClient()).catch(() => null);
+    if (recovery) {
+      const factors = recovery.user.factors?.filter((factor) => factor.status === "verified") ?? [];
+      const authenticators = factors.filter((factor) => factor.factor_type === "totp");
+      const cancellation = recovery.aal === "aal1"
+        ? await pendingMfaCancellationCookie(
+            (await cookies()).getAll(), sessionCookieName(supabaseConfig().url),
+          )
+        : null;
+      return (
+        <AuthShell
+          title="Choose a new password"
+          description="Use a unique password to keep your farms secure."
+          backForm={cancellation ? "recovery-cancel" : undefined}
+        >
+          {factors.length > 0 && authenticators.length === 0 ? (
+            <p role="alert" className="text-sm text-destructive">
+              <T text="No authenticator factor is available for this account." />
+            </p>
+          ) : (
+            <AuthForm
+              mode="reset"
+              recoveryAttempt={recovery.attempt}
+              authenticators={authenticators.map((factor) => ({
+                id: factor.id,
+                name: factor.friendly_name,
+              }))}
+            />
+          )}
+          {cancellation && <MfaCancelForm id="recovery-cancel" attempt={cancellation} recovery />}
+          <Link className="mt-5 inline-flex min-h-11 items-center text-sm text-primary" href="/forgot-password">
+            <T text="Request a new email" />
+          </Link>
+        </AuthShell>
+      );
     }
-    return (
-      <AuthShell title="Choose a new password" description="Use a unique password to keep your farms secure.">
-        <AuthForm mode="reset" expectedUserId={user.id} />
-      </AuthShell>
-    );
   }
 
   if (kind === "verify") {

@@ -16,6 +16,15 @@ import {
   type AuthFormState,
 } from "../lib/validation";
 import { safeNextPath, siteOrigin } from "../lib/redirects";
+import { readRecoveryEmail, recoveryRequestUrl } from "./recovery-email-proof";
+import {
+  consumePasswordRecovery,
+  issuePasswordRecovery,
+  readPasswordRecovery,
+  recoveryIdentity,
+  recoveryRequired,
+  recoveryVerifier,
+} from "./password-recovery";
 import {
   clearPendingSignup,
   createVerificationWatch,
@@ -336,7 +345,7 @@ export async function requestPasswordResetAction(
   try {
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(parsed.data, {
-      redirectTo: `${siteOrigin()}/auth/callback?next=/reset-password`,
+      redirectTo: recoveryRequestUrl(parsed.data),
     });
     return genericEmail;
   } catch {
@@ -496,11 +505,16 @@ export async function verifyEmailAction(
 ): Promise<AuthFormState> {
   const hash = tokenHashSchema.safeParse(form.get("token_hash"));
   const type = form.get("type") === "recovery" ? "recovery" : "signup";
-  if (!hash.success)
-    return { error: "This link is invalid. Request a new email." };
+  const invalid = { error: "This link is invalid. Request a new email." };
+  if (!hash.success) return invalid;
+  const proof = type === "recovery"
+    ? readRecoveryEmail(hash.data, form.get("recovery_proof"))
+    : null;
+  if (type === "recovery" && !proof) return invalid;
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({
+    const verifier = proof ? recoveryVerifier() : supabase;
+    const { data, error } = await verifier.auth.verifyOtp({
       token_hash: hash.data,
       type,
     });
@@ -509,9 +523,26 @@ export async function verifyEmailAction(
         error:
           error.code === "otp_expired"
             ? "This link has expired or was already used. Request a new email."
-            : "This link is invalid. Request a new email.",
+            : invalid.error,
       };
-    if (type === "signup") await supabase.auth.signOut({ scope: "local" });
+    if (proof) {
+      const session = data.session;
+      if (!session || data.user?.id !== proof.userId ||
+          !(await issuePasswordRecovery(verifier, session.access_token, proof).catch(() => false))) {
+        if (session) await verifier.auth.signOut({ scope: "local" });
+        return invalid;
+      }
+      // Install only the verified recovery session. A failed or stale link
+      // must not replace the account already open in this browser.
+      const installed = await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+      if (installed.error || installed.data.user?.id !== proof.userId) {
+        await verifier.auth.signOut({ scope: "local" });
+        return invalid;
+      }
+    } else await supabase.auth.signOut({ scope: "local" });
   } catch {
     return unavailable;
   }
@@ -528,56 +559,59 @@ export async function resetPasswordAction(
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return validationState(parsed.error);
 
-  let mfaRequired = false;
+  const ended = { error: recoveryRequired, recoveryEnded: true };
+  const unconfirmedUpdate = {
+    error: "We could not confirm the password update. Request a new reset email if needed.",
+    recoveryEnded: true,
+  };
+  const unconfirmedRevocation = {
+    success: "Password updated. Sign out from your account before signing in again.",
+    recoveryEnded: true,
+  };
+  let mutationStarted = false;
+  let passwordUpdated = false;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
+    const recovery = await readPasswordRecovery(supabase);
+    if (!recovery || form.get("recovery_attempt") !== recovery.attempt)
+      return ended;
+
+    let factorId: string | undefined;
+    const factors = recovery.user.factors?.filter((factor) => factor.status === "verified") ?? [];
+    if (factors.length > 0) {
+      const code = String(form.get("code") ?? "").trim();
+      const factor = factors.find((candidate) =>
+        candidate.factor_type === "totp" && candidate.id === form.get("factor_id"));
+      const invalidCode = {
+        error: "That code is not valid. Try the newest code from your authenticator app.",
       };
-
-    const active = await supabase.rpc("get_current_session");
-    if (active.error || !active.data)
-      return {
-        error: "Your session has expired. Request a new password reset email.",
-      };
-
-    if (data.user.id !== form.get("expected_user_id"))
-      return { error: "Your account changed. Reload before saving." };
-
-    const assurance =
-      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assurance.error) return unavailable;
-
-    mfaRequired =
-      assurance.data.nextLevel === "aal2" &&
-      assurance.data.currentLevel !== "aal2";
-
-    if (!mfaRequired) {
-      const updated = await supabase.auth.updateUser({
-        password: parsed.data.password,
-      });
-      if (updated.error)
-        return {
-          error:
-            updated.error.code === "same_password"
-              ? "Choose a password different from your current password."
-              : unavailable.error,
-        };
-
-      const signedOut = await supabase.auth.signOut({ scope: "global" });
-      if (signedOut.error)
-        return {
-          success:
-            "Password updated. Sign out from your account before signing in again.",
-        };
+      if (!factor || !/^\d{6}$/.test(code)) return invalidCode;
+      const verified = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+      if (verified.error || !verified.data?.access_token) return invalidCode;
+      const after = await recoveryIdentity(supabase, verified.data.access_token);
+      if (after?.user.id !== recovery.user.id || after.sessionId !== recovery.sessionId ||
+          after.aal !== "aal2") return invalidCode;
+      factorId = factor.id;
     }
-  } catch {
-    return unavailable;
-  }
+    if (!(await consumePasswordRecovery(recovery, factorId)))
+      return ended;
 
-  if (mfaRequired) redirect("/mfa?next=/reset-password");
+    mutationStarted = true;
+    const updated = await supabase.auth.updateUser({ password: parsed.data.password });
+    if (updated.error?.code === "same_password")
+      return {
+        error: "Choose a password different from your current password. Request a new reset email to try again.",
+        recoveryEnded: true,
+      };
+    if (updated.error || updated.data.user?.id !== recovery.user.id)
+      return unconfirmedUpdate;
+    passwordUpdated = true;
+    const signedOut = await supabase.auth.signOut({ scope: "global" });
+    if (signedOut.error) return unconfirmedRevocation;
+  } catch {
+    if (passwordUpdated) return unconfirmedRevocation;
+    return mutationStarted ? unconfirmedUpdate : unavailable;
+  }
 
   revalidatePath("/", "layout");
   redirect("/sign-in?status=password-updated");
