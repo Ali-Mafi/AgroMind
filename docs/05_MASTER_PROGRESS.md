@@ -2,6 +2,10 @@
 
 > **Active snapshot — 2026-10-25.** Verified against GitHub `main` and Vercel metadata. All reports below the historical archive heading describe their original dates, **not the current state**.
 
+## MFA Back hotfix candidate — 2026-11-23
+
+- Back and Cancel share a retryable MFA submission after client navigation. Local Chromium verified both controls and Persian recovery. [Hotfix evidence](progress/2026-11-23-mfa-back-hotfix.md)
+
 ## MFA cancellation draft candidate — 2026-11-20
 
 - The MFA Back button and the cancellation form return pending sign-in and recovery attempts to sign-in. Cancellation is scoped to the browser's matching AAL1 session. Draft release evidence and review boundaries are in the [MFA cancellation handoff](progress/2026-11-20-mfa-cancellation.md).

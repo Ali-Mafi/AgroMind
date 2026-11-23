@@ -1,6 +1,4 @@
 import { cookies } from "next/headers";
-import { Button } from "@/components/ui/button";
-import { T } from "@/features/settings/components/translated-text";
 import { supabaseConfig } from "@/lib/supabase/config";
 import {
   pendingMfaCancellationCookie,
@@ -8,6 +6,7 @@ import {
 } from "@/lib/supabase/session-cookies";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
+import { MfaCancelForm } from "@/features/authentication/components/mfa-cancel-form";
 import { MfaChallenge } from "@/features/authentication/components/mfa-challenge";
 import { safeMfaNextPath } from "@/features/authentication/lib/redirects";
 import { readMfaSecurityState } from "@/features/authentication/services/mfa-actions";
@@ -48,20 +47,11 @@ export default async function Page({
         factors={state.factors}
         recoveryCodesEnabled={state.recoveryCodes.enabled}
       />
-      <form id={cancelFormId} method="post" action="/mfa/cancel" className="mt-4">
-        <input type="hidden" name="attempt" value={cancellation ?? ""} />
-        <Button
-          type="submit"
-          variant="outline"
-          className="min-h-11 w-full whitespace-normal rounded-xl"
-        >
-          {destination === "/reset-password" ? (
-            <T text="Cancel password reset" />
-          ) : (
-            <T text="Cancel sign-in or use another account" />
-          )}
-        </Button>
-      </form>
+      <MfaCancelForm
+        id={cancelFormId}
+        attempt={cancellation ?? ""}
+        recovery={destination === "/reset-password"}
+      />
     </AuthShell>
   );
 }

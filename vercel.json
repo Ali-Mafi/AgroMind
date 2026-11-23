@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
-      "fix/mfa-cancel-account-switch": false
+      "fix/mfa-cancel-account-switch": false,
+      "fix/mfa-back-white-screen": false
     }
   },
   "regions": [

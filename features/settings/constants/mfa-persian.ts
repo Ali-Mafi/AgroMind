@@ -39,6 +39,7 @@ export const MFA_PERSIAN: Record<string, string> = {
   "Verify code": "تأیید کد",
   "Cancel sign-in or use another account": "لغو ورود یا استفاده از حساب دیگر",
   "Cancel password reset": "لغو بازنشانی رمز عبور",
+  "Could not cancel. Please try again.": "لغو انجام نشد. دوباره تلاش کنید.",
   "Sign in again to manage two-step verification.":
     "برای مدیریت تأیید دومرحله‌ای دوباره وارد حساب شوید.",
   "Authenticator setup could not be started. Please try again.":

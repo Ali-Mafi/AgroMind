@@ -64,13 +64,14 @@ function request(path, cookies, options) {
   });
 }
 
-function post(cookies, attempt, source = origin, includeLength = true) {
+function post(cookies, attempt, source = origin, includeLength = true, accept = "text/html") {
   const body = new URLSearchParams({ attempt }).toString();
   return cancel(request("/mfa/cancel", cookies, {
     method: "POST",
     body,
     headers: {
       origin: source,
+      accept,
       "content-type": "application/x-www-form-urlencoded",
       ...(includeLength ? { "content-length": String(body.length) } : {}),
     },
@@ -243,7 +244,25 @@ test("cross-origin, forged, and unauthenticated cancellations cannot set a marke
   assert.equal((await post([], attempt)).headers.has("set-cookie"), false);
 });
 
-test("the MFA Back button submits the separate native cancel form for both flows", async () => {
+test("enhanced cancellation sets the same marker without a document redirect", async () => {
+  const cookies = authCookies(session(original));
+  const attempt = await pendingMfaCancellationCookie(cookies, sessionName);
+  const browser = await post(cookies, attempt, origin, false, "application/json");
+  const native = await post(cookies, attempt);
+  assert.equal(browser.status, 204);
+  assert.equal(browser.headers.has("location"), false);
+  assert.equal(browser.headers.get("set-cookie"), native.headers.get("set-cookie"));
+  assert.match(browser.headers.get("cache-control"), /no-store/);
+
+  const aal2 = authCookies(session(original, { aal: "aal2" }));
+  assert.equal((await post(aal2, attempt, origin, false, "application/json")).headers.has("set-cookie"), false);
+  const rejected = await post(cookies, attempt, "null", false, "application/json");
+  assert.equal(rejected.status, 403);
+  assert.equal(rejected.headers.has("set-cookie"), false);
+  assert.match(await rejected.text(), /Could not cancel/);
+});
+
+test("the MFA Back button and secondary action share a separate cancel form for both flows", async () => {
   const cookies = authCookies(session(original));
   const { default: page } = loadTs("app/mfa/page.tsx", {
     "@/lib/supabase/config": config,
@@ -258,8 +277,10 @@ test("the MFA Back button submits the separate native cancel form for both flows
     },
     "@/features/authentication/components/auth-shell": { AuthShell: () => null },
     "@/features/authentication/components/mfa-challenge": { MfaChallenge: () => null },
-    "@/features/settings/components/translated-text": { T: () => null },
-    "@/components/ui/button": { Button: () => null },
+    "@/features/settings/hooks/use-translation": { useTranslation: () => (key) => key },
+    "@/components/ui/button": {
+      Button: ({ type, children }) => createElement("button", { type }, children),
+    },
   });
   const { BackButton } = loadTs("features/navigation/components/back-button.tsx", {
     "next/navigation": { useRouter: () => ({}) },
@@ -274,10 +295,11 @@ test("the MFA Back button submits the separate native cancel form for both flows
     const [challenge, form] = shell.props.children;
     assert.equal(challenge.props.next, next);
     assert.equal(form.props.id, shell.props.backForm);
-    assert.equal(form.props.method, "post");
-    assert.equal(form.props.action, "/mfa/cancel");
-    assert.equal(form.props.children[0].props.value, await pendingMfaCancellationCookie(cookies, sessionName));
-    assert.equal(form.props.children[1].props.children.props.text, label);
+    assert.equal(form.props.attempt, await pendingMfaCancellationCookie(cookies, sessionName));
+    const html = renderToStaticMarkup(form);
+    assert.match(html, /<form[^>]+id="mfa-cancel"[^>]+action="\/mfa\/cancel"/);
+    assert.match(html, /method="post"/);
+    assert.ok(html.includes(`<button type="submit">${label}</button>`));
     const back = renderToStaticMarkup(createElement(BackButton, { form: shell.props.backForm }));
     assert.match(back, /type="submit" form="mfa-cancel"/);
   }
