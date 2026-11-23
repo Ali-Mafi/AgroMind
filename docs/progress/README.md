@@ -34,3 +34,5 @@ Record meaningful work only. Include the starting SHA, scope, changes, test evid
 - [2026-10-28 — Signature Premium reference polish](2026-10-28-email-polish.md)
 
 - [2026-11-20 — MFA cancellation and account switching](2026-11-20-mfa-cancellation.md)
+
+- [2026-11-23 — MFA Back white-screen hotfix](2026-11-23-mfa-back-hotfix.md)

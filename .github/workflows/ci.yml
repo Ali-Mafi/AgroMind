@@ -24,3 +24,5 @@ jobs:
       - run: npm run localization:check
       - run: npm run build
       - run: npm run test:http
+      - run: npx playwright install chromium --only-shell
+      - run: node --test scripts/test-mfa-browser.mjs
