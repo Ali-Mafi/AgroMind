@@ -22,7 +22,12 @@ async function newPage(t, options) {
     args: ["--single-process", "--no-zygote", "--disable-gpu"],
   } : {});
   t.after(() => browser.close());
-  const page = await browser.newPage({ viewport: { width: 375, height: 812 }, ...options });
+  const page = await browser.newPage({
+    viewport: { width: 375, height: 812 },
+    serviceWorkers: "block",
+    ...options,
+  });
+  await page.route((url) => url.origin !== app, (route) => route.abort("blockedbyclient"));
   page.setDefaultTimeout(10_000);
   return page;
 }
@@ -89,14 +94,14 @@ test("MFA cancellation works from either button, including after client navigati
         // Match browsers that support AbortController but omit AbortSignal.timeout.
         await page.addInitScript(() => Reflect.deleteProperty(AbortSignal, "timeout"));
       }
-      await page.goto(app + "/");
-      await page.goto(app + "/sign-in");
+      await page.goto(app + "/privacy", { waitUntil: "domcontentloaded" });
+      await page.goto(app + "/sign-in", { waitUntil: "domcontentloaded" });
       await page.evaluate(() => { window.mfaTestDocument = true; });
       await page.locator("#sign-in-identifier").fill(user.email);
       await page.locator("#sign-in-password").fill("fixture-password");
       await page.locator("form").filter({ has: page.locator("#sign-in-password") })
         .locator('button[type="submit"]').click();
-      await page.waitForURL(`${app}/mfa?next=*`);
+      await page.waitForURL(`${app}/mfa?next=*`, { waitUntil: "domcontentloaded" });
       assert.equal(await page.evaluate(() => window.mfaTestDocument), true);
 
       const back = page.locator('button[form="mfa-cancel"]');
@@ -129,12 +134,12 @@ test("MFA cancellation works from either button, including after client navigati
       assert.equal((await response.request().allHeaders()).origin, app);
       assert.deepEqual([...new URLSearchParams(response.request().postData()).keys()], ["attempt"]);
       assert.equal(response.status(), 204);
-      await page.waitForURL(app + "/sign-in");
+      await page.waitForURL(app + "/sign-in", { waitUntil: "domcontentloaded" });
       await page.locator("#sign-in-identifier").waitFor();
       assert.equal(await page.evaluate(() => history.length), historyLength);
-      await page.goBack();
+      await page.goBack({ waitUntil: "domcontentloaded" });
       assert.doesNotMatch(page.url(), /\/mfa(?:[/?]|$)/);
-      await page.goForward();
+      await page.goForward({ waitUntil: "domcontentloaded" });
       await page.locator("#sign-in-identifier").waitFor();
       assert.equal(page.url(), app + "/sign-in");
     });
