@@ -9,6 +9,10 @@ import {
   isPrivatePath,
   safeNextPath,
 } from "@/features/authentication/lib/redirects";
+import {
+  sessionCookieName,
+  visibleSessionCookies,
+} from "@/lib/supabase/session-cookies";
 import type { Database } from "@/lib/supabase/database.types";
 
 export async function proxy(request: NextRequest) {
@@ -21,7 +25,11 @@ export async function proxy(request: NextRequest) {
     );
     next.headers.set("Pragma", "no-cache");
     next.headers.set("Expires", "0");
-    next.headers.set("Referrer-Policy", "no-referrer");
+    // A native form POST needs an Origin header for its same-origin check.
+    next.headers.set(
+      "Referrer-Policy",
+      request.nextUrl.pathname === "/mfa" ? "same-origin" : "no-referrer",
+    );
     return next;
   };
   const signIn = () => {
@@ -36,10 +44,11 @@ export async function proxy(request: NextRequest) {
       ? signIn()
       : secureResponse(response);
   const { url, key } = supabaseConfig();
+  const sessionName = sessionCookieName(url);
   const supabase = createServerClient<Database>(url, key, {
-    cookieOptions: sessionCookieOptions,
+    cookieOptions: { ...sessionCookieOptions, name: sessionName },
     cookies: {
-      getAll: () => request.cookies.getAll(),
+      getAll: () => visibleSessionCookies(request.cookies.getAll(), sessionName),
       setAll(values, headers) {
         values.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });

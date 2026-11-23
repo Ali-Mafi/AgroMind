@@ -37,6 +37,8 @@ export const MFA_PERSIAN: Record<string, string> = {
   "Open your authenticator app and enter the newest code for AgroMind.":
     "برنامه احراز هویت را باز کنید و جدیدترین کد AgroMind را وارد کنید.",
   "Verify code": "تأیید کد",
+  "Cancel sign-in or use another account": "لغو ورود یا استفاده از حساب دیگر",
+  "Cancel password reset": "لغو بازنشانی رمز عبور",
   "Sign in again to manage two-step verification.":
     "برای مدیریت تأیید دومرحله‌ای دوباره وارد حساب شوید.",
   "Authenticator setup could not be started. Please try again.":
