@@ -85,6 +85,10 @@ test("MFA cancellation works from either button, including after client navigati
   for (const action of ["back", "cancel"]) {
     await t.test(action, async (t) => {
       const page = await newPage(t, { hasTouch: true });
+      if (action === "back") {
+        // Match browsers that support AbortController but omit AbortSignal.timeout.
+        await page.addInitScript(() => Reflect.deleteProperty(AbortSignal, "timeout"));
+      }
       await page.goto(app + "/");
       await page.goto(app + "/sign-in");
       await page.evaluate(() => { window.mfaTestDocument = true; });

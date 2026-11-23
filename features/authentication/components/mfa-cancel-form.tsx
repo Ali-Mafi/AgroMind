@@ -23,6 +23,8 @@ export function MfaCancelForm({
     const form = event.currentTarget;
     inFlight.current = true;
     setStatus("pending");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
 
     try {
       // The current document can still carry sign-in's no-referrer policy
@@ -34,7 +36,7 @@ export function MfaCancelForm({
         mode: "same-origin",
         referrerPolicy: "same-origin",
         redirect: "error",
-        signal: AbortSignal.timeout(15_000),
+        signal: controller.signal,
       });
       if (response.status === 204) {
         if (form.isConnected) window.location.replace("/sign-in");
@@ -42,6 +44,8 @@ export function MfaCancelForm({
       }
     } catch {
       // Leave the challenge available for retry if the request fails.
+    } finally {
+      clearTimeout(timeout);
     }
 
     inFlight.current = false;
