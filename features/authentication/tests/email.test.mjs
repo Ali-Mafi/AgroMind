@@ -102,6 +102,17 @@ test("signed email hooks validate timestamp and body, send only supported events
     ).status,
     400,
   );
+  const { recoveryRequestUrl } = loadTs("features/authentication/services/recovery-email-proof.ts");
+  const recovery = {
+    user: { ...payload.user, id: "00000000-0000-4000-8000-000000000001" },
+    email_data: { ...payload.email_data, email_action_type: "recovery" },
+  };
+  assert.equal((await handleAuthEmail(request(recovery))).status, 400);
+  assert.equal(emails.length, 2);
+  recovery.email_data.redirect_to = recoveryRequestUrl(recovery.user.email);
+  assert.equal((await handleAuthEmail(request(recovery))).status, 200);
+  assert.match(emails[2].text, /proof=[0-9.]+/);
+  assert.doesNotMatch(emails[2].text, /redirect_to|request=/);
   const failed = loadTs("features/authentication/services/email-hook.ts", {
     "./resend-auth": {
       sendAuthEmail: async () => {

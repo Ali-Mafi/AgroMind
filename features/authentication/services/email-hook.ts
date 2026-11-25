@@ -5,10 +5,12 @@ import { z } from "zod";
 import { emailSchema, tokenHashSchema } from "../lib/validation";
 import { renderAuthEmail } from "../emails/templates";
 import { sendAuthEmail } from "./resend-auth";
+import { attestRecoveryEmail } from "./recovery-email-proof";
 
 const payloadSchema = z.object({
   user: z.object({
     email: emailSchema,
+    id: z.string().optional(),
     user_metadata: z
       .object({ language: z.unknown().optional() })
       .passthrough()
@@ -16,6 +18,7 @@ const payloadSchema = z.object({
   }),
   email_data: z.object({
     token_hash: tokenHashSchema,
+    redirect_to: z.string().optional(),
     email_action_type: z.enum(["signup", "recovery"]),
   }),
 });
@@ -79,10 +82,15 @@ export async function handleAuthEmail(request: Request) {
   if (!payload.success) return failure(400);
   const { user, email_data: email } = payload.data;
   try {
+    const proof = email.email_action_type === "recovery"
+      ? attestRecoveryEmail(email.redirect_to, user.email, user.id, email.token_hash)
+      : null;
+    if (email.email_action_type === "recovery" && !proof) return failure(400);
     const rendered = renderAuthEmail(
       email.email_action_type,
       email.token_hash,
       user.user_metadata?.language === "fa" ? "fa" : "en",
+      proof ?? undefined,
     );
     const idempotencyKey =
       "agromind-auth/" +

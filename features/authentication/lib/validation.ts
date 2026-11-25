@@ -109,6 +109,7 @@ export type AuthFormState = {
   error?: string;
   success?: string;
   verificationRequired?: boolean;
+  recoveryEnded?: boolean;
   fields?: Record<string, string>;
 };
 

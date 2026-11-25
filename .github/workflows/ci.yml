@@ -25,4 +25,4 @@ jobs:
       - run: npm run build
       - run: npm run test:http
       - run: npx playwright install chromium --only-shell
-      - run: node --test scripts/test-mfa-browser.mjs
+      - run: node --test scripts/test-mfa-browser.mjs scripts/test-password-recovery-browser.mjs

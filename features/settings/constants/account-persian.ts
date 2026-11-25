@@ -167,6 +167,10 @@ export const ACCOUNT_PERSIAN: Record<string, string> = {
     "این لینک منقضی شده یا قبلاً استفاده شده است. ایمیل جدیدی درخواست کنید.",
   "Your session has expired. Request a new password reset email.":
     "نشست شما منقضی شده است. ایمیل جدیدی برای بازیابی رمز عبور درخواست کنید.",
+  "Choose a password different from your current password. Request a new reset email to try again.":
+    "رمز عبوری متفاوت از رمز فعلی انتخاب کنید. برای تلاش دوباره، ایمیل بازیابی جدید درخواست کنید.",
+  "We could not confirm the password update. Request a new reset email if needed.":
+    "نتوانستیم تغییر رمز عبور را تأیید کنیم. در صورت نیاز، ایمیل بازیابی جدید درخواست کنید.",
   "Choose a password different from your current password.":
     "رمز عبوری متفاوت با رمز فعلی انتخاب کنید.",
   "Your cloud data could not be loaded.": "اطلاعات حساب دریافت نشد.",

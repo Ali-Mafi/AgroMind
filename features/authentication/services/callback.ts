@@ -4,6 +4,7 @@ import { siteOrigin, safeNextPath } from "../lib/redirects";
 import { tokenHashSchema } from "../lib/validation";
 import { clearPendingSignup } from "../lib/pending-signup";
 import { authenticatedDestination } from "./session";
+import { readRecoveryEmail } from "./recovery-email-proof";
 
 const OAUTH_INTENT_COOKIE = "agromind_oauth_intent";
 
@@ -103,27 +104,24 @@ async function handleOAuthCallback(
 export async function handleAuthCallback(request: NextRequest) {
   const params = request.nextUrl.searchParams;
 
-  if (
-    request.cookies.has(OAUTH_INTENT_COOKIE) ||
-    params.get("flow") === "oauth"
-  ) {
-    return handleOAuthCallback(request, params);
-  }
-
-  const recovery =
-    params.get("type") === "recovery" ||
-    params.get("next") === "/reset-password";
-  const destination = new URL(
-    recovery ? "/reset-password" : "/verify-email",
-    siteOrigin(),
-  );
-
-  // Do not consume token-hash email links on GET: security scanners often prefetch links.
   const hash = tokenHashSchema.safeParse(params.get("token_hash"));
-  if (
-    hash.success &&
-    ["signup", "recovery"].includes(params.get("type") ?? "")
-  ) {
+  const recovery = params.get("type") === "recovery" ||
+    params.get("next") === "/reset-password";
+  if (recovery) {
+    const destination = new URL("/reset-password", siteOrigin());
+    const proof = params.get("proof");
+    // A scanner GET can render the confirmation screen but cannot consume the link.
+    if (hash.success && proof && readRecoveryEmail(hash.data, proof)) {
+      destination.searchParams.set("token_hash", hash.data);
+      destination.searchParams.set("proof", proof);
+    } else destination.searchParams.set("status", "invalid");
+    return securedRedirect(destination);
+  }
+  if (request.cookies.has(OAUTH_INTENT_COOKIE) || params.get("flow") === "oauth")
+    return handleOAuthCallback(request, params);
+
+  const destination = new URL("/verify-email", siteOrigin());
+  if (hash.success && params.get("type") === "signup") {
     destination.searchParams.set("token_hash", hash.data);
   } else if (params.get("code")) {
     const supabase = await createClient();
@@ -131,7 +129,7 @@ export async function handleAuthCallback(request: NextRequest) {
       params.get("code")!,
     );
     if (error) destination.searchParams.set("status", "invalid");
-    else if (!recovery) {
+    else {
       await supabase.auth.signOut({ scope: "local" });
       destination.searchParams.set("status", "success");
     }

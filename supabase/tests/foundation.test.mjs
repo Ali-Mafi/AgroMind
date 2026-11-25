@@ -110,6 +110,7 @@ before(
         user: "postgres",
         password: randomBytes(24).toString("hex"),
         persistent: false,
+        postgresFlags: ["-c", "unix_socket_directories="],
         onLog: () => {},
         onError: () => {},
       });
@@ -128,7 +129,7 @@ before(
     create table auth.sessions (id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),not_after timestamptz);
     create function auth.test_session() returns trigger language plpgsql as 'begin insert into auth.sessions(id,user_id) values(new.id,new.id); return new; end';
     create trigger test_session after insert on auth.users for each row execute function auth.test_session();
-    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null);
+    create table auth.mfa_factors (id uuid primary key, user_id uuid references auth.users(id), status text not null, factor_type text not null default 'totp');
     create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
     create function auth.jwt() returns jsonb language sql stable as 'select coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
     grant usage on schema auth to authenticated,anon;
@@ -1338,5 +1339,83 @@ test("support notifications keep the ticket owner's language across staff replie
     await staff.end();
     await owner.end();
     await admin.query("delete from private.support_staff where user_id=$1", [staffId]);
+  }
+});
+
+async function recoveryRpc(client, name, ...args) {
+  const parameters = args.map((_, index) => "$" + (index + 1)).join(", ");
+  return (await client.query("select public." + name + "(" + parameters + ") as ok", args)).rows[0].ok;
+}
+
+test("recovery attempts enforce role, session, MFA, expiry and one-time use", async () => {
+  const user = users[16], other = users[17];
+  const first = randomUUID(), second = randomUUID(), third = randomUUID(), factor = randomUUID();
+  const ticket = "a".repeat(64), next = "b".repeat(64), expired = "c".repeat(64);
+  const source = "d".repeat(64), nextSource = "e".repeat(64), thirdSource = "f".repeat(64);
+  await admin.query(
+    "insert into auth.sessions(id,user_id,created_at) values ($1,$4,now()), ($2,$4,now()+interval '1 second'), ($3,$4,now()+interval '2 seconds')",
+    [first, second, third, user],
+  );
+
+  for (const [name, signature, args] of [
+    ["issue_password_recovery", "uuid,uuid,text,text", [user, first, ticket, source]],
+    ["has_password_recovery", "uuid,uuid,text", [user, first, ticket]],
+    ["consume_password_recovery", "uuid,uuid,text,uuid", [user, first, ticket, null]],
+  ]) {
+    const grants = await admin.query(
+      "select has_function_privilege('anon', $1, 'execute') as anon, has_function_privilege('authenticated', $1, 'execute') as authenticated, has_function_privilege('service_role', $1, 'execute') as service",
+      ["public." + name + "(" + signature + ")"],
+    );
+    assert.deepEqual(grants.rows[0], { anon: false, authenticated: false, service: true });
+    const client = await asUser(user, "aal2", first, true);
+    try {
+      await assert.rejects(recoveryRpc(client, name, ...args), /permission denied/);
+    } finally {
+      await client.end();
+    }
+  }
+  const table = await admin.query(
+    "select has_table_privilege('service_role', 'private.password_recovery_attempts', 'select') as readable",
+  );
+  assert.equal(table.rows[0].readable, false);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", other, first, ticket, source), false);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, first, ticket, source), true);
+  assert.equal(await recoveryRpc(admin, "has_password_recovery", user, first, ticket), true);
+  assert.equal(await recoveryRpc(admin, "has_password_recovery", user, second, ticket), false);
+  assert.equal(await recoveryRpc(admin, "has_password_recovery", other, first, ticket), false);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, second, next, source), false);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, second, next, nextSource), true);
+  assert.equal(await recoveryRpc(admin, "has_password_recovery", user, first, ticket), false);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, first, expired, thirdSource), false);
+
+  await admin.query("insert into auth.mfa_factors(id,user_id,status) values ($1,$2,'verified')", [factor, user]);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, second, next), false);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, second, next, randomUUID()), false);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, second, next, factor), true);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, second, next, factor), false);
+  await admin.query("delete from auth.mfa_factors where id=$1", [factor]);
+
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, third, expired, thirdSource), true);
+  await admin.query("update auth.sessions set not_after=now() where id=$1", [third]);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, third, expired), false);
+  await admin.query("update auth.sessions set not_after=null where id=$1", [third]);
+  await admin.query("update private.password_recovery_attempts set expires_at=now() where session_id=$1", [third]);
+  assert.equal(await recoveryRpc(admin, "has_password_recovery", user, third, expired), false);
+  assert.equal(await recoveryRpc(admin, "consume_password_recovery", user, third, expired), false);
+});
+
+test("concurrent native recovery consumes produce one winner", { skip: !native }, async () => {
+  const user = users[18];
+  const ticket = "1".repeat(64);
+  assert.equal(await recoveryRpc(admin, "issue_password_recovery", user, user, ticket, "2".repeat(64)), true);
+  const peer = postgres.getPgClient();
+  await peer.connect();
+  try {
+    const results = await Promise.all([admin, peer].map(
+      (client) => recoveryRpc(client, "consume_password_recovery", user, user, ticket),
+    ));
+    assert.deepEqual(results.sort(), [false, true]);
+  } finally {
+    await peer.end();
   }
 });

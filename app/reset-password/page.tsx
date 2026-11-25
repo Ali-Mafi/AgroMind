@@ -2,11 +2,11 @@ import { EmailEntry } from "@/features/authentication/components/email-entry";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ token_hash?: string; status?: string }>;
+  searchParams: Promise<{ token_hash?: string; proof?: string; status?: string }>;
 }) {
   const params = await searchParams;
   return (
-    <EmailEntry kind="reset" hash={params.token_hash} status={params.status} />
+    <EmailEntry kind="reset" hash={params.token_hash} proof={params.proof} status={params.status} />
   );
 }
 

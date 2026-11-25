@@ -69,12 +69,16 @@ export function AuthForm({
   mode,
   tokenHash,
   next,
-  expectedUserId,
+  recoveryAttempt,
+  recoveryProof,
+  authenticators = [],
 }: {
   mode: Mode;
   tokenHash?: string;
   next?: string;
-  expectedUserId?: string;
+  recoveryAttempt?: string;
+  recoveryProof?: string;
+  authenticators?: Array<{ id: string; name?: string }>;
 }) {
   const t = useTranslation();
   const { language } = useSettings();
@@ -134,6 +138,13 @@ export function AuthForm({
     : mode === "sign-up"
       ? signUpFeedback(state, values, submittedValues)
       : state;
+  if (mode === "reset" && state.recoveryEnded) {
+    return (
+      <p role={state.error ? "alert" : "status"} className="text-sm">
+        {t(state.error ?? state.success ?? "")}
+      </p>
+    );
+  }
   const field = (
     name: keyof typeof EMPTY_VALUES,
     label: string,
@@ -214,11 +225,8 @@ export function AuthForm({
       }}
       className="space-y-5"
     >
-      <input
-        type="hidden"
-        name="expected_user_id"
-        value={expectedUserId ?? ""}
-      />
+      {recoveryAttempt && <input type="hidden" name="recovery_attempt" value={recoveryAttempt} />}
+      {recoveryProof && <input type="hidden" name="recovery_proof" value={recoveryProof} />}
       <input type="hidden" name="next" value={next ?? "/dashboard"} />
       {mode === "sign-up" && <input type="hidden" name="accepted_terms" value={termsAccepted ? "on" : ""} />}
       <input
@@ -254,6 +262,37 @@ export function AuthForm({
           field("identifier", "Username or email", "text", "username")}
         {["sign-up", "forgot", "resend"].includes(mode) &&
           field("email", "Email", "email", "email")}
+
+        {mode === "reset" && authenticators.length > 0 && (
+          <>
+            <div className="space-y-2">
+              <label htmlFor="reset-factor" className="block text-sm font-semibold">
+                {t("Authenticator")}
+              </label>
+              <select id="reset-factor" name="factor_id" className={accountInputClass}>
+                {authenticators.map((factor) => (
+                  <option key={factor.id} value={factor.id}>
+                    {factor.name || t("Authenticator")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="reset-code" className="block text-sm font-semibold">
+                {t("6-digit code")}
+              </label>
+              <input
+                id="reset-code"
+                name="code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                dir="ltr"
+                className={accountInputClass}
+              />
+            </div>
+          </>
+        )}
 
         {withPassword && (
           <>
